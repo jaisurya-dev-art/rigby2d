@@ -291,8 +291,12 @@ export class App {
 
   /** Records an undo step once an edit gesture has finished (`busy` while dragging or typing). */
   commitHistory(busy) {
-    // Playback only moves the time; it never edits the document, so skip the snapshot.
-    if (busy || this.playing || this.committedVersion === this.version) return;
+    // Commit only when the document changed since the last commit and no gesture is in flight. We do
+    // NOT skip this while playing: playback alone never bumps `version` (advancePlayback calls
+    // changed() only when stopped), but an edit made while the timeline runs does — and it must still
+    // settle into docJson so dirty() shows the `*` and undo records it. (A former `this.playing`
+    // guard here dropped edits made during playback until you stopped.)
+    if (busy || this.committedVersion === this.version) return;
     this.committedVersion = this.version;
     this.syncJson();
     if (this.docJson !== this.baseline) {
