@@ -50,6 +50,14 @@ export function previewKeys(clip, pasteTime) {
   return clip.groups.map((g) => ({ track: g.track, times: g.keys.map((k) => pasteTime + (k.time - clip.origin)) }));
 }
 
+/** Removes every key of `keys` whose time falls within [from, to] (inclusive, frame-grid tolerant). */
+export function clearSpan(keys, from, to) {
+  const eps = 1e-6;
+  for (let i = keys.length - 1; i >= 0; i--) {
+    if (keys[i].time >= from - eps && keys[i].time <= to + eps) keys.splice(i, 1);
+  }
+}
+
 /** Inserts `key` into a sorted key list, replacing any key within half a millisecond of its time. */
 function putKey(keys, key) {
   const i = keys.findIndex((k) => Math.abs(k.time - key.time) < 5e-4);
@@ -80,9 +88,7 @@ export function pasteClipboard(clip, pasteTime, { mode, limit, snap, replace }, 
     // laid down, so the destination region ends up matching the copy exactly.
     if (replace) {
       const end = mode === 'clip' ? Math.min(pasteTime + clip.span, limit) : pasteTime + clip.span;
-      for (let i = keys.length - 1; i >= 0; i--) {
-        if (keys[i].time >= pasteTime - eps && keys[i].time <= end + eps) keys.splice(i, 1);
-      }
+      clearSpan(keys, pasteTime, end);
     }
     for (const k of g.keys) {
       const t = snap(pasteTime + (k.time - clip.origin));

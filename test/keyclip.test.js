@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
-import { cloneKey, makeClipboard, pasteClipboard, planPaste, previewKeys } from '../src/editor/keyclip.js';
+import { clearSpan, cloneKey, makeClipboard, pasteClipboard, planPaste, previewKeys } from '../src/editor/keyclip.js';
 
 const FPS = 30;
 const snap = (t) => Math.round(t * FPS) / FPS;
@@ -119,6 +119,12 @@ test('previewKeys offsets every track to the playhead without mutating', () => {
   assert.deepEqual(preview[0].times.map((t) => Math.round(t * FPS)), [20, 23]); // origin 5 -> 20
   assert.deepEqual(preview[1].times.map((t) => Math.round(t * FPS)), [21]);
   assert.equal(clip.groups[0].keys[0].time, f(5)); // clipboard untouched
+});
+
+test('clearSpan removes keys inside the range and keeps the rest', () => {
+  const keys = [f(8), f(10), f(12), f(14), f(16)].map((t) => ({ time: t, value: 0, curve: 0 }));
+  clearSpan(keys, f(10), f(14));
+  assert.deepEqual(keys.map((k) => Math.round(k.time * FPS)), [8, 16]);
 });
 
 test('cloneKey copies nested deform values', () => {
