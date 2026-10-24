@@ -602,6 +602,80 @@ export class App {
     if (!this.playing) this.changed();
   }
 
+  /**
+   * The editor state shared with the detached panel windows: the document plus what every window
+   * must agree on. This is the single source of what crosses windows — the sync layer derives the
+   * change signature and the message payload from it, so adding a field here (and reading it back in
+   * applyStateSnapshot) shares it everywhere, with nothing else to wire. Status and viewport stay
+   * local to each window; viewport-coupled modes (meshEdit/shapeEdit) are shared so a panel can enter
+   * them on the authority, whose viewport then responds.
+   */
+  snapshotState() {
+    return {
+      docJson: this.docJson,
+      anim: this.anim,
+      time: this.time,
+      mode: this.mode,
+      timelineView: this.timelineView,
+      autoKey: this.autoKey,
+      playing: this.playing,
+      fps: FPS,
+      sel: this.sel,
+      multi: [...this.multi],
+      meshEdit: this.meshEdit,
+      shapeEdit: this.shapeEdit,
+    };
+  }
+
+  /**
+   * Adopts a snapshot from the other window. `opts.undo` records one undo step for an adopted
+   * document edit (the editor window, which owns the single history, passes it). The dopesheet key
+   * selection is not here (it is addressed by index at the sync boundary); bone selection is.
+   */
+  applyStateSnapshot(s, opts = {}) {
+    // What forces a full panel rebuild (vs. just a time-dependent redraw during playback).
+    const struct = () => `${this.anim}|${this.mode}|${this.timelineView}|${this.autoKey}|${this.playing}|${JSON.stringify(this.sel)}|${[...this.multi]}|${JSON.stringify(this.meshEdit)}|${JSON.stringify(this.shapeEdit)}`;
+    const before = struct();
+    let docChanged = false;
+    if (s.docJson && s.docJson !== this.docJson) {
+      docChanged = true;
+      if (opts.undo) {
+        this.syncJson();
+        this.history.undo.push(this.docJson);
+        if (this.history.undo.length > 200) this.history.undo.shift();
+        this.history.redo = [];
+      }
+      this.doc = Skeleton.fromObject(JSON.parse(s.docJson));
+      // Keep our own canonical snapshot so the sync below is not mistaken for a fresh edit.
+      // Like restore() (undo/redo), this does NOT touch `saved`: adopting an edit from another
+      // window is a real change, so the editor (the authority) stays dirty until the user saves —
+      // the title keeps its * and New/Open still warn. `saved` means "what is on disk", and only
+      // new/open/save write it. Mirror windows never read dirty()/save, so their stale `saved` is
+      // harmless.
+      const canon = this.doc.toSnapshot();
+      this.docJson = this.baseline = canon;
+      this.selectedKeys.clear();
+    }
+    // Match the other window's frame rate so the ruler and the keys line up (changed() reads this).
+    if (typeof s.fps === 'number' && this.doc.settings) this.doc.settings.fps = s.fps;
+    if (s.anim !== undefined) this.anim = s.anim;
+    if (typeof s.time === 'number') this.time = s.time;
+    if (s.mode) this.mode = s.mode;
+    if (s.timelineView) this.timelineView = s.timelineView;
+    if (typeof s.autoKey === 'boolean') this.autoKey = s.autoKey;
+    if (typeof s.playing === 'boolean') this.playing = s.playing;
+    if ('sel' in s) this.sel = s.sel;
+    if (s.multi) this.multi = new Set(s.multi);
+    if ('meshEdit' in s) this.meshEdit = s.meshEdit;
+    if ('shapeEdit' in s) this.shapeEdit = s.shapeEdit;
+    this.sanitize();
+    // Only the time moved (playback): bump timeVersion so heavy panels are not rebuilt every frame.
+    if (docChanged || before !== struct()) this.changed();
+    else this.timeVersion++;
+    // This state came from the other window: mark it committed so it is not pushed straight back.
+    this.committedVersion = this.version;
+  }
+
   title() {
     const name = this.path ? io.basename(this.path) : 'untitled';
     return `Rigby2D - ${name}${this.dirty() ? ' *' : ''}`;

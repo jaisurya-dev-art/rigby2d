@@ -43,6 +43,90 @@ body {
     'status status status';
 }
 
+/* A panel popped out into its own window: the editor reclaims that panel's space. */
+#app.detached-timeline {
+  grid-template-rows: auto minmax(0, 1fr) 0 0 auto;
+}
+#app.detached-timeline #timeline,
+#app.detached-timeline #split-bottom {
+  display: none;
+}
+/* The side panels (tree, inspector) detach independently; the other fills the side column. */
+#app.detached-tree #tree,
+#app.detached-inspector #properties,
+#app.detached-tree #split-tree,
+#app.detached-inspector #split-tree,
+#app.detached-tree .panel-detach-btn[data-panel='tree'],
+#app.detached-inspector .panel-detach-btn[data-panel='inspector'] {
+  display: none;
+}
+#app.detached-inspector #tree {
+  flex: 1 1 0;
+}
+/* Both side panels out: collapse the side column entirely. */
+#app.detached-tree.detached-inspector #side,
+#app.detached-tree.detached-inspector #split-right {
+  display: none;
+}
+#app.detached-tree.detached-inspector {
+  grid-template-columns: minmax(300px, 1fr) 0 0;
+}
+
+/* A detached panel window (panel.html): the panel fills the window, with a status bar. */
+#app.panel-only {
+  position: relative;
+  grid-template-columns: 1fr;
+  grid-template-rows: minmax(0, 1fr) auto;
+  grid-template-areas:
+    'body'
+    'status';
+}
+#panel-body {
+  grid-area: body;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+}
+#panel-body > * {
+  flex: 1;
+  min-height: 0;
+}
+#app.panel-only #tree,
+#app.panel-only #properties {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 0;
+  min-height: 0;
+}
+
+/* The ⧉ / ⤓ detach-dock button sits at the top-right of its panel. #properties must be positioned
+   too, or the inspector's button falls back to #side and lands on top of the tree's button. */
+#timeline,
+#side,
+#properties {
+  position: relative;
+}
+.panel-detach-btn {
+  position: absolute;
+  top: 3px;
+  right: 8px;
+  z-index: 5;
+  width: 22px;
+  height: 20px;
+  padding: 0;
+  font-size: 13px;
+  line-height: 1;
+  color: var(--text);
+  background: var(--widget);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  cursor: pointer;
+}
+.panel-detach-btn:hover {
+  background: var(--widget-hover);
+}
+
 #menubar {
   grid-area: menu;
   display: flex;
