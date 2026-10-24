@@ -85,10 +85,14 @@ export function pasteClipboard(clip, pasteTime, { mode, limit, snap, replace }, 
     if (!keys) continue;
     // Replace mode: the copied block's blank spaces erase existing keys, so clear the whole pasted
     // span in this track first (only this track — other tracks keep their keys). Then the copy is
-    // laid down, so the destination region ends up matching the copy exactly.
+    // laid down, so the destination region ends up matching the copy exactly. The span is the copied
+    // AREA (`clip.cover`, the blank columns the selection swept included), falling back to the keys'
+    // extent when a clipboard carries no area (e.g. older callers / unit fixtures).
     if (replace) {
-      const end = mode === 'clip' ? Math.min(pasteTime + clip.span, limit) : pasteTime + clip.span;
-      clearSpan(keys, pasteTime, end);
+      const from = pasteTime + (clip.cover?.start ?? 0);
+      const end0 = pasteTime + (clip.cover?.end ?? clip.span);
+      const end = mode === 'clip' ? Math.min(end0, limit) : end0;
+      clearSpan(keys, from, end);
     }
     for (const k of g.keys) {
       const t = snap(pasteTime + (k.time - clip.origin));

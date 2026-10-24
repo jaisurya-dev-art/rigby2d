@@ -309,12 +309,25 @@ export function copySelectedKeys(app) {
   }
   clipboard = makeClipboard(groups);
   if (clipboard) {
-    clipboard.fullHeight = selectionIsColumns; // ruler selections span every row; a box is bounded
-    clipboard.rowRange = rowSpanOf(app, anim, groups); // rows the paste area covers, for 'full' overwrite
+    clipboard.rowRange = rowSpanOf(app, anim, groups); // copied rows, for the fallback region below
     // One coloured band per copied section (fall back to a single band over the whole copy).
     clipboard.regions = selectionRegions.length
       ? selectionRegions.map((r) => ({ ...r }))
       : [{ f0: Math.round(clipboard.origin * FPS), f1: Math.round((clipboard.origin + clipboard.span) * FPS), r0: clipboard.rowRange.min, r1: clipboard.rowRange.max, full: selectionIsColumns }];
+    // The copied AREA's frame span (the green band, blank columns the box swept included), stored as
+    // times relative to the paste origin, so overwrite clears/marks the whole band — not just the keys.
+    const originFrame = Math.round(clipboard.origin * FPS);
+    let minF = Infinity;
+    let maxF = -Infinity;
+    for (const r of clipboard.regions) {
+      minF = Math.min(minF, r.f0);
+      maxF = Math.max(maxF, r.f1);
+    }
+    if (!Number.isFinite(minF)) {
+      minF = originFrame;
+      maxF = originFrame + Math.round(clipboard.span * FPS);
+    }
+    clipboard.cover = { start: (minF - originFrame) / FPS, end: (maxF - originFrame) / FPS };
   }
   copiedSource = clipboard ? source : null;
   // Copying ends the selection gestures (Frames and Multi): the mouse is now free to pick a paste
@@ -339,6 +352,20 @@ function rowSpanOf(app, anim, groups) {
     max = Math.max(max, r);
   }
   return max >= min ? { min, max } : { min: 0, max: 0 };
+}
+
+/** The row range the copied AREA covers (its selection regions), so 'full' overwrite clears/marks the
+ *  whole area's height — every row the selection spanned, not only the ones with a copied key. */
+function coverRowBounds(clipboard, rowCount) {
+  let lo = Infinity;
+  let hi = -Infinity;
+  for (const r of clipboard.regions ?? []) {
+    if (r.full) return { lo: 0, hi: rowCount - 1 };
+    lo = Math.min(lo, r.r0);
+    hi = Math.max(hi, r.r1);
+  }
+  if (!Number.isFinite(lo)) return { lo: 0, hi: rowCount - 1 };
+  return { lo: Math.max(0, lo), hi: Math.min(rowCount - 1, hi) };
 }
 
 /** Escape's reset for the timeline: cancels any armed copy and leaves the Frames/Multi/Retime modes. */
@@ -459,18 +486,20 @@ export function pasteKeys(app) {
 function applyPaste(app, anim, pasteTime, opts) {
   app.playing = false;
   app.mode = Mode.Animate;
-  // 'full' clears the whole pasted area first, including tracks the copy did not touch.
+  // 'full' clears the whole pasted area first, including tracks the copy did not touch. The span is
+  // the copied AREA (blank columns included), matching the preview, not just the keys' extent.
   if (pasteMode === 'full') {
-    const end = opts.mode === 'clip' ? Math.min(pasteTime + clipboard.span, opts.limit) : pasteTime + clipboard.span;
+    const from = pasteTime + (clipboard.cover?.start ?? 0);
+    const end0 = pasteTime + (clipboard.cover?.end ?? clipboard.span);
+    const end = opts.mode === 'clip' ? Math.min(end0, opts.limit) : end0;
     const rows = tracks(app, anim);
     const copied = new Set(clipboard.groups.map((g) => trackId(g.track)));
-    const lo = clipboard.fullHeight ? 0 : clipboard.rowRange.min;
-    const hi = clipboard.fullHeight ? rows.length - 1 : clipboard.rowRange.max;
+    const { lo, hi } = coverRowBounds(clipboard, rows.length);
     for (let r = lo; r <= hi; r++) {
       const track = rows[r]?.track;
       if (!track || copied.has(trackId(track))) continue; // copied tracks are cleared by pasteClipboard
       const keys = resolveTrackKeys(anim, track);
-      if (keys) clearSpan(keys, pasteTime, end);
+      if (keys) clearSpan(keys, from, end);
     }
   }
   const pasted = pasteClipboard(clipboard, pasteTime, { ...opts, snap, replace: pasteMode !== 'none' }, (track) => resolveTrackKeys(anim, track));
@@ -658,6 +687,14 @@ export class Dopesheet {
     }
 
     const half = pxPerFrame / 2;
+    // A shared per-frame budget so even large bands keep drawing hollow diamonds (they only stop once
+    // this many have been drawn, instead of the whole band blanking out past a size threshold).
+    let emptyBudget = 1600;
+    const hollowAt = (x, y, stroke) => {
+      if (emptyBudget <= 0) return;
+      hollowDiamond(ctx, [x, y], 4.5, stroke);
+      emptyBudget--;
+    };
     // Hollow diamonds for the blank cells of a region (the frames with no key). `occFor(track)` gives
     // the frames that DO hold a key on that track (or null to skip the row — e.g. a non-copied row in
     // the paste preview); `offset` shifts the drawn column (the paste preview is offset by `delta`).
@@ -666,7 +703,7 @@ export class Dopesheet {
       const hi = reg.full ? rows.length - 1 : Math.min(rows.length - 1, Math.max(reg.r0, reg.r1));
       const a = Math.max(0, Math.min(reg.f0, reg.f1));
       const b = Math.min(frames, Math.max(reg.f0, reg.f1));
-      if (hi < lo || b < a || (hi - lo + 1) * (b - a + 1) > 400) return; // don't carpet-bomb huge bands
+      if (hi < lo || b < a) return;
       for (let r = lo; r <= hi; r++) {
         const track = rows[r]?.track;
         if (!track) continue;
@@ -677,7 +714,7 @@ export class Dopesheet {
           if (occ.has(f)) continue;
           const tf = f + offset;
           if (tf < 0 || tf > frames) continue;
-          hollowDiamond(ctx, [timeToX(tf / FPS), cy], 4.5, stroke);
+          hollowAt(timeToX(tf / FPS), cy, stroke);
         }
       }
     };
@@ -753,13 +790,7 @@ export class Dopesheet {
         regionBand(reg.f0, reg.f1, reg.r0, reg.r1, reg.full, 'rgba(60,220,110,0.10)', 'rgba(60,220,110,0.9)');
         regionBand(reg.f0 + delta, reg.f1 + delta, reg.r0, reg.r1, reg.full, `rgba(180,120,255,${0.08 + 0.08 * pulse})`, `rgba(180,120,255,${0.6 + 0.3 * pulse})`);
       }
-      // Hollow purple diamonds for the copy's blank frames, shifted to the paste offset — so the
-      // preview shows its gaps (the cells overwrite-all would clear) alongside the ghost keys.
-      const srcOcc = new Map(clipboard.groups.map((g) => [trackId(g.track), new Set(g.keys.map((k) => Math.round(k.time * FPS)))]));
-      const occPaste = (track) => srcOcc.get(trackId(track)) ?? null;
-      for (const reg of clipboard.regions) emptyCells(reg, delta, 'rgba(180,120,255,0.38)', occPaste);
       const alpha = 0.3 + 0.5 * pulse;
-      const spanEnd = pasteTime + clipboard.span;
       const preview = previewKeys(clipboard, pasteTime);
       // Purple ghosts of the pasted keys (red when they would land past the end).
       for (const g of preview) {
@@ -771,28 +802,34 @@ export class Dopesheet {
           ghostDiamond(ctx, [timeToX(t), cy], 5.5, over ? `rgba(255,90,120,${alpha})` : `rgba(180,120,255,${alpha})`);
         }
       }
-      // Overwrite preview: mark with a red ✕ the existing keys the paste would erase. 'overwrite'
-      // only touches the copied tracks; 'full' touches every track the selection spanned.
+      // Overwrite preview, over the copied AREA (the green band's frame span, blank columns included —
+      // not just the keys' extent). On each affected row, a cell a pasted key lands on keeps its ghost,
+      // an existing key a blank would erase gets a red ✕, and a doubly-blank cell gets a hollow purple
+      // diamond. Merge erases nothing, so it shows neither. 'overwrite' marks the copied tracks; 'full'
+      // marks every row of the area (the empty intermediate tracks too).
       if (pasteMode !== 'none') {
-        const occBy = new Map(preview.map((g) => [trackId(g.track), new Set(g.times.map((t) => Math.round(snap(t) * FPS)))]));
+        const ghostBy = new Map(preview.map((g) => [trackId(g.track), new Set(g.times.map((t) => Math.round(snap(t) * FPS)))]));
         let markRows;
         if (pasteMode === 'full') {
-          const lo = clipboard.fullHeight ? 0 : clipboard.rowRange.min;
-          const hi = clipboard.fullHeight ? rows.length - 1 : clipboard.rowRange.max;
+          const { lo, hi } = coverRowBounds(clipboard, rows.length);
           markRows = [];
           for (let r = lo; r <= hi; r++) markRows.push(r);
         } else {
           markRows = copiedRows;
         }
+        const cf0 = Math.max(0, Math.round((pasteTime + (clipboard.cover?.start ?? 0)) * FPS));
+        const cf1 = Math.min(frames, Math.round((pasteTime + (clipboard.cover?.end ?? clipboard.span)) * FPS));
         for (const r of markRows) {
           const track = rows[r]?.track;
           if (!track) continue;
-          const occ = occBy.get(trackId(track)) ?? new Set();
+          const ghosts = ghostBy.get(trackId(track)) ?? new Set();
+          const existing = occCurrent(track);
           const cy = RULER + r * ROW + ROW / 2;
-          for (const k of resolveTrackKeys(anim, track) ?? []) {
-            if (k.time < pasteTime - 1e-6 || k.time > spanEnd + 1e-6) continue;
-            if (occ.has(Math.round(k.time * FPS))) continue;
-            redCross(ctx, [timeToX(k.time), cy], 4);
+          for (let f = cf0; f <= cf1; f++) {
+            if (ghosts.has(f)) continue; // a pasted key will sit here (its ghost already shows)
+            const x = timeToX(f / FPS);
+            if (existing.has(f)) redCross(ctx, [x, cy], 4);
+            else hollowAt(x, cy, 'rgba(180,120,255,0.38)');
           }
         }
       }
