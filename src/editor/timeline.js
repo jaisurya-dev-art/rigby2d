@@ -526,9 +526,9 @@ export class Dopesheet {
       ctx.strokeRect(Math.min(from[0], to[0]) + 0.5, Math.min(from[1], to[1]) + 0.5, Math.abs(to[0] - from[0]), Math.abs(to[1] - from[1]));
     }
     this.handles = null;
-    // The retiming span/handles are a key-mode tool; hide them in frame-column mode so they don't
-    // clash with the column selection (Alt+drag reaches retiming in key mode without the handle).
-    const span = frameSelect ? null : this.selectionSpan();
+    // The retiming span/handles are a key-mode tool. Hide them in frame-column mode and while a copy
+    // is armed, so the "expander" doesn't pop up over the column selection or on Ctrl+C.
+    const span = frameSelect || clipboard ? null : this.selectionSpan();
     if (span && span.max - span.min > 1e-6) {
       const x0 = timeToX(span.min);
       const x1 = timeToX(span.max);
@@ -686,19 +686,16 @@ export class Dopesheet {
     }
     if (e.button !== 0) return;
     this.canvas.setPointerCapture(e.pointerId);
-    // Frame-column select mode: the whole drag picks columns, so key boxes and retiming are off.
-    if (frameSelect) {
+    // Frame-column selection: the Frames mode, or a one-off Alt+drag in key mode (a quick way to
+    // grab a range of columns across every track so the retiming handles can then spread them).
+    // Either way the whole drag picks columns, so key boxes and retiming are off for this gesture.
+    if (frameSelect || e.altKey) {
       this.press = { frameMode: true, pos: p, started: false, shift: e.shiftKey, startFrame: this.xToFrame(p[0]) };
       return;
     }
     const hit = this.hit(p);
-    let handleIdx = this.handles && p[1] <= RULER ? [this.handles.x0, this.handles.x1].findIndex((x) => Math.abs(p[0] - x) <= 5) : -1;
-    // Alt+drag retimes the selection without grabbing the small ruler handle: it takes the nearer
-    // edge of the selection span as the moving edge (handy when the selection spans many tracks).
-    if (e.altKey && handleIdx < 0 && this.handles) {
-      handleIdx = Math.abs(p[0] - this.handles.x0) <= Math.abs(p[0] - this.handles.x1) ? 0 : 1;
-    }
-    this.press = { pos: p, started: false, add, hit: e.altKey ? null : hit, handle: handleIdx >= 0 ? handleIdx : null, inRuler: p[1] <= RULER };
+    const handle = this.handles && p[1] <= RULER && [this.handles.x0, this.handles.x1].findIndex((x) => Math.abs(p[0] - x) <= 5);
+    this.press = { pos: p, started: false, add, hit, handle: handle >= 0 ? handle : null, inRuler: p[1] <= RULER };
   }
 
   onPointerMove(e) {
@@ -768,20 +765,26 @@ export class Dopesheet {
     if (press.frameMode) {
       app.playing = false;
       app.mode = Mode.Animate;
-      // The gesture's end column (a plain click ends where it started). Shift keeps the previous
-      // anchor and extends to it; any other gesture sets a fresh anchor at its start.
-      const endF = press.started ? press.frameBox.to : press.startFrame;
       let from;
       let to;
-      if (press.shift && this.frameAnchor !== null) {
-        from = Math.min(this.frameAnchor, endF);
-        to = Math.max(this.frameAnchor, endF);
-      } else {
+      if (press.started) {
+        // A drag selects exactly the columns it swept, and anchors at its start for a later Shift+click.
+        from = Math.min(press.startFrame, press.frameBox.to);
+        to = Math.max(press.startFrame, press.frameBox.to);
         this.frameAnchor = press.startFrame;
-        from = Math.min(press.startFrame, endF);
-        to = Math.max(press.startFrame, endF);
+        app.time = press.frameBox.to / FPS;
+      } else if (press.shift && this.frameAnchor !== null) {
+        // Shift+click extends the range from the anchored column to the clicked one.
+        from = Math.min(this.frameAnchor, press.startFrame);
+        to = Math.max(this.frameAnchor, press.startFrame);
+        app.time = press.startFrame / FPS;
+      } else {
+        // A plain click picks one column and becomes the new anchor.
+        from = press.startFrame;
+        to = press.startFrame;
+        this.frameAnchor = press.startFrame;
+        app.time = press.startFrame / FPS;
       }
-      app.time = endF / FPS;
       endCopyArming();
       selectionIsColumns = true;
       this.frameRange = { from, to };
