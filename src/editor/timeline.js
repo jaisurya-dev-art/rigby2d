@@ -127,7 +127,7 @@ export function renderControls(app, el) {
         'button',
         {
           class: frameSelectActive() ? 'active' : '',
-          title: 'Select whole frame columns: drag to select a range, Shift+click to extend. Click again for key select.',
+          title: 'Select whole frame columns: drag to select a range, Alt+drag to add another. Click again for key select.',
           onclick: () => toggleFrameSelect(app),
         },
         '▦ Frames',
@@ -523,7 +523,9 @@ function overflowDialog(extraFrames, actions) {
 
 function keyFill(selected, curve) {
   if (selected) return 'rgb(255,190,60)';
-  if (curve === STEPPED) return 'rgb(200,120,255)';
+  // Stepped ("stopped") keys are marine cyan. They used to be purple, but copy/paste now owns purple
+  // for the paste preview, so the two no longer clash.
+  if (curve === STEPPED) return 'rgb(60,170,205)';
   if (isBezier(curve)) return 'rgb(120,220,140)';
   return 'rgb(230,230,230)';
 }
@@ -604,6 +606,8 @@ export class Dopesheet {
     // Rows.
     const selectedBone = selBone(app.sel);
     const selectedSlot = selSlot(app.sel);
+    // Tracks a live copy took from get a purple label, to match the purple paste preview.
+    const copiedTrackIds = clipboard ? new Set(clipboard.groups.map((g) => trackId(g.track))) : null;
     this.keyRects = [];
     rows.forEach(({ track, label }, r) => {
       const y = RULER + r * ROW;
@@ -614,7 +618,7 @@ export class Dopesheet {
       }
       ctx.font = '12px system-ui, "Segoe UI", sans-serif';
       ctx.textBaseline = 'middle';
-      ctx.fillStyle = 'rgb(200,200,200)';
+      ctx.fillStyle = copiedTrackIds?.has(trackId(track)) ? 'rgb(185,135,255)' : 'rgb(200,200,200)';
       ctx.fillText(label, 8, y + ROW / 2, GUTTER - 14);
       (trackKeys(anim, track) ?? []).forEach((k, index) => {
         const c = [timeToX(k.time), y + ROW / 2];
@@ -639,9 +643,10 @@ export class Dopesheet {
       ctx.strokeRect(Math.min(from[0], to[0]) + 0.5, Math.min(from[1], to[1]) + 0.5, Math.abs(to[0] - from[0]), Math.abs(to[1] - from[1]));
     }
     this.handles = null;
-    // The retiming handles are hidden by default (they used to get in the way). They show only when
-    // armed with the ⇔ Retime button (one use); a right-drag retimes without them (see onPointerMove).
-    const span = retimeArmed ? this.selectionSpan() : null;
+    // The retiming handles are hidden by default (they used to get in the way). They show when armed
+    // with the ⇔ Retime button (one use), or while a right-drag retime is underway — so the right-drag
+    // scales with visible feedback (the band and the two handles) instead of silently.
+    const span = retimeArmed || (this.press?.right && this.press?.retime) ? this.selectionSpan() : null;
     if (span && span.max - span.min > 1e-6) {
       const x0 = timeToX(span.min);
       const x1 = timeToX(span.max);
@@ -652,9 +657,33 @@ export class Dopesheet {
       this.handles = { x0, x1, min: span.min, max: span.max };
     }
 
-    // Frame-column selection: a committed range, and the live band while dragging (full height,
-    // so it reads as a column marked from the ruler down over the key tracks).
     const half = pxPerFrame / 2;
+    // Hollow diamonds for the blank cells of a region (the frames with no key). `occFor(track)` gives
+    // the frames that DO hold a key on that track (or null to skip the row — e.g. a non-copied row in
+    // the paste preview); `offset` shifts the drawn column (the paste preview is offset by `delta`).
+    const emptyCells = (reg, offset, stroke, occFor) => {
+      const lo = reg.full ? 0 : Math.max(0, Math.min(reg.r0, reg.r1));
+      const hi = reg.full ? rows.length - 1 : Math.min(rows.length - 1, Math.max(reg.r0, reg.r1));
+      const a = Math.max(0, Math.min(reg.f0, reg.f1));
+      const b = Math.min(frames, Math.max(reg.f0, reg.f1));
+      if (hi < lo || b < a || (hi - lo + 1) * (b - a + 1) > 400) return; // don't carpet-bomb huge bands
+      for (let r = lo; r <= hi; r++) {
+        const track = rows[r]?.track;
+        if (!track) continue;
+        const occ = occFor(track);
+        if (!occ) continue;
+        const cy = RULER + r * ROW + ROW / 2;
+        for (let f = a; f <= b; f++) {
+          if (occ.has(f)) continue;
+          const tf = f + offset;
+          if (tf < 0 || tf > frames) continue;
+          hollowDiamond(ctx, [timeToX(tf / FPS), cy], 4.5, stroke);
+        }
+      }
+    };
+    const occCurrent = (track) => new Set((trackKeys(anim, track) ?? []).map((k) => Math.round(k.time * FPS)));
+    const EMPTY_SEL = 'rgba(230,205,130,0.35)';
+
     const columnBand = (fromF, toF, top, fill, stroke) => {
       const bx0 = timeToX(Math.min(fromF, toF) / FPS) - half;
       const bx1 = timeToX(Math.max(fromF, toF) / FPS) + half;
@@ -666,10 +695,12 @@ export class Dopesheet {
         ctx.strokeRect(bx0 + 0.5, top + 0.5, bx1 - bx0, height - top - 1);
       }
     };
-    if (this.press?.frameBox) {
-      columnBand(this.press.frameBox.from, this.press.frameBox.to, 0, 'rgba(255,170,40,0.14)', 'rgb(255,170,40)');
-    } else if (!clipboard) {
-      // One yellow band per selected area (so several Alt+drag column groups all show, not just one).
+
+    // Committed selected areas (yellow), shown whenever no copy is armed. They stay visible while a
+    // new Alt+drag adds another area; only a *replacing* drag (no Ctrl/Alt/Multi) hides them, since it
+    // is about to replace them. One band per area, so several areas all show (not just the last).
+    const dragging = this.press?.started && (this.press?.frameBox || this.press?.box);
+    if (!clipboard && !(dragging && !this.press?.add)) {
       for (const reg of selectionRegions) {
         const rTop = reg.full ? RULER : RULER + Math.max(0, reg.r0) * ROW;
         const rBot = reg.full ? height : RULER + (Math.min(rows.length - 1, reg.r1) + 1) * ROW;
@@ -679,7 +710,19 @@ export class Dopesheet {
         ctx.fillRect(bx0, rTop, Math.max(2, bx1 - bx0), rBot - rTop);
         ctx.fillStyle = 'rgba(255,170,40,0.85)';
         ctx.fillRect(bx0, RULER - 4, Math.max(2, bx1 - bx0), 4);
+        emptyCells(reg, 0, EMPTY_SEL, occCurrent);
       }
+    }
+    // Live frame-column drag on top (also a right-drag selecting columns to retime).
+    if (this.press?.frameBox) {
+      columnBand(this.press.frameBox.from, this.press.frameBox.to, 0, 'rgba(255,170,40,0.14)', 'rgb(255,170,40)');
+      emptyCells({ f0: this.press.frameBox.from, f1: this.press.frameBox.to, r0: 0, r1: 0, full: true }, 0, EMPTY_SEL, occCurrent);
+    }
+    // Live key-box drag: hollow the empty cells the box currently sweeps (a box can include blanks).
+    if (this.press?.box) {
+      const { from, to } = this.press.box;
+      const reg = this.boxRegion(Math.min(from[0], to[0]), Math.min(from[1], to[1]), Math.max(from[0], to[0]), Math.max(from[1], to[1]));
+      if (reg) emptyCells(reg, 0, EMPTY_SEL, occCurrent);
     }
 
     // Armed copy: the source span in green, and a pulsing purple preview of the paste at the playhead.
@@ -710,6 +753,11 @@ export class Dopesheet {
         regionBand(reg.f0, reg.f1, reg.r0, reg.r1, reg.full, 'rgba(60,220,110,0.10)', 'rgba(60,220,110,0.9)');
         regionBand(reg.f0 + delta, reg.f1 + delta, reg.r0, reg.r1, reg.full, `rgba(180,120,255,${0.08 + 0.08 * pulse})`, `rgba(180,120,255,${0.6 + 0.3 * pulse})`);
       }
+      // Hollow purple diamonds for the copy's blank frames, shifted to the paste offset — so the
+      // preview shows its gaps (the cells overwrite-all would clear) alongside the ghost keys.
+      const srcOcc = new Map(clipboard.groups.map((g) => [trackId(g.track), new Set(g.keys.map((k) => Math.round(k.time * FPS)))]));
+      const occPaste = (track) => srcOcc.get(trackId(track)) ?? null;
+      for (const reg of clipboard.regions) emptyCells(reg, delta, 'rgba(180,120,255,0.38)', occPaste);
       const alpha = 0.3 + 0.5 * pulse;
       const spanEnd = pasteTime + clipboard.span;
       const preview = previewKeys(clipboard, pasteTime);
@@ -780,6 +828,20 @@ export class Dopesheet {
     return Math.max(0, Math.min(frames, Math.round(this.xToTime(x) * FPS)));
   }
 
+  /** The band (frames × rows) a drag box covers, by midpoint inclusion: a column or row joins the
+   *  band only once the box reaches past its centre. So the yellow band matches the keys the box
+   *  actually selects, yet can still span the blank columns between them (overwrite-all needs those).
+   *  Returns null when the box is too thin to cover any cell centre. */
+  boxRegion(x0, y0, x1, y1) {
+    const frames = Math.round(this.layout.duration * FPS);
+    const f0 = Math.max(0, Math.ceil(this.xToTime(x0) * FPS - 1e-6));
+    const f1 = Math.min(frames, Math.floor(this.xToTime(x1) * FPS + 1e-6));
+    const r0 = Math.ceil((y0 - RULER - ROW / 2) / ROW - 1e-6);
+    const r1 = Math.floor((y1 - RULER - ROW / 2) / ROW + 1e-6);
+    if (f1 < f0 || r1 < r0) return null;
+    return { f0, f1, r0: Math.max(0, r0), r1: Math.max(0, r1), full: false };
+  }
+
   /** Selects every key sitting on frames [from, to] (across all tracks). `add` keeps the current selection. */
   selectFrames(from, to, add = false) {
     const app = this.app;
@@ -845,7 +907,9 @@ export class Dopesheet {
     const app = this.app;
     const p = this.pos(e);
     if (press.right) {
-      // A right-drag retimes the selection by scaling from its nearer edge (no handles needed).
+      // A right-drag retimes the current selection by scaling from its nearer edge. With nothing to
+      // scale yet, it instead sweeps a column range (shown as an orange band), and on release selects
+      // those columns and arms the handles — so a right-drag always "opens an area to retime".
       if (!press.started) {
         if (Math.hypot(p[0] - press.pos[0], p[1] - press.pos[1]) <= 3) return;
         press.started = true;
@@ -853,9 +917,18 @@ export class Dopesheet {
         app.mode = Mode.Animate;
         const r = this.beginRetime(press.pos[0]);
         if (r) Object.assign(press, r);
+        else {
+          press.selectColumns = true;
+          press.startFrame = this.xToFrame(press.pos[0]);
+        }
       }
       if (press.retime) {
         this.applyRetime(press, snap(this.xToTime(p[0])));
+        app.changed();
+      } else if (press.selectColumns) {
+        const f = this.xToFrame(p[0]);
+        press.frameBox = { from: press.startFrame, to: f };
+        app.time = f / FPS;
         app.changed();
       }
       return;
@@ -942,6 +1015,19 @@ export class Dopesheet {
         resortAnimation(app.currentAnimation());
         clearRegions();
         app.setStatus(`Retimed ${app.selectedKeys.size} key${app.selectedKeys.size === 1 ? '' : 's'}`);
+      } else if (press.selectColumns) {
+        // Right-drag over nothing to retime: select the swept columns and arm the handles so the very
+        // next drag of an end scales them.
+        const endF = press.frameBox ? press.frameBox.to : press.startFrame;
+        const from = Math.min(press.startFrame, endF);
+        const to = Math.max(press.startFrame, endF);
+        app.time = endF / FPS;
+        endCopyArming();
+        selectionIsColumns = true;
+        this.selectFrames(from, to, false);
+        setRegion({ f0: from, f1: to, r0: 0, r1: 0, full: true }, false);
+        retimeArmed = true;
+        app.setStatus('Retime: drag an end of the marked range to scale it.');
       }
       app.changed();
       return;
@@ -1005,7 +1091,10 @@ export class Dopesheet {
       endCopyArming();
       selectionIsColumns = false;
       app.selectedKeys = next;
-      if (inside.length) setRegion({ f0: this.xToFrame(x0), f1: this.xToFrame(x1), r0: rowAt(y0), r1: rowAt(y1), full: false }, press.add);
+      // The band follows the box by midpoint inclusion, so it hugs the selected keys (and the blank
+      // columns the box truly swept) instead of the raw drag corners.
+      const reg = this.boxRegion(x0, y0, x1, y1);
+      if (inside.length && reg) setRegion(reg, press.add);
       else if (!press.add) clearRegions();
       app.setStatus(`${next.size} key${next.size === 1 ? '' : 's'} selected`);
     }
@@ -1115,6 +1204,20 @@ function ghostDiamond(ctx, c, r, fill) {
   ctx.fillStyle = fill;
   ctx.fill();
   ctx.strokeStyle = fill;
+  ctx.lineWidth = 1;
+  ctx.stroke();
+}
+
+/** An outline-only diamond marking an empty cell inside a selection or the paste preview, so the
+ *  blanks (the frames overwrite-all would use) are visible without crowding the view. */
+function hollowDiamond(ctx, c, r, stroke) {
+  ctx.beginPath();
+  ctx.moveTo(c[0], c[1] - r);
+  ctx.lineTo(c[0] + r, c[1]);
+  ctx.lineTo(c[0], c[1] + r);
+  ctx.lineTo(c[0] - r, c[1]);
+  ctx.closePath();
+  ctx.strokeStyle = stroke;
   ctx.lineWidth = 1;
   ctx.stroke();
 }
