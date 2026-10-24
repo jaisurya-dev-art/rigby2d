@@ -284,7 +284,7 @@ window.addEventListener('keydown', (e) => {
   if (action === 'menu.close') {
     e.preventDefault();
     if (isMenuOpen()) return closeMenu();
-    if (cancelCopy(app)) return; // Escape first cancels an armed copy, before deselecting
+    cancelCopy(app); // Escape cancels an armed copy AND falls through to deselect (clears the retime marquee)
     action = actionsFor(app.keymap, combo).find((a) => a !== 'menu.close');
     if (!action) return;
   }

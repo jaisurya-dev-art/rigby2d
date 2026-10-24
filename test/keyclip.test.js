@@ -79,6 +79,28 @@ test('pasteClipboard clip mode drops keys past the limit', () => {
   assert.deepEqual(dest.map((k) => Math.round(k.time * FPS)), [58]);
 });
 
+test('pasteClipboard replace mode clears existing keys in the pasted span', () => {
+  const clip = makeClipboard([
+    { track: { bone: 1, channel: 'rotate' }, keys: [{ time: f(0), value: 1, curve: 0 }, { time: f(2), value: 2, curve: 0 }] },
+  ]);
+  const dest = [f(8), f(10), f(11), f(12), f(14)].map((t) => ({ time: t, value: 9, curve: 0 }));
+  const pasted = pasteClipboard(clip, f(10), { mode: 'all', snap, replace: true }, () => dest);
+  // span is frames 10..12; existing 10,11,12 are cleared, then the copy writes at 10 and 12.
+  assert.equal(pasted.length, 2);
+  assert.deepEqual(dest.map((k) => Math.round(k.time * FPS)), [8, 10, 12, 14]);
+  assert.deepEqual(dest.map((k) => k.value), [9, 1, 2, 9]); // 8 and 14 untouched, 10/12 from the copy
+});
+
+test('pasteClipboard merge mode keeps existing keys between pasted ones', () => {
+  const clip = makeClipboard([
+    { track: { bone: 1, channel: 'rotate' }, keys: [{ time: f(0), value: 1, curve: 0 }, { time: f(2), value: 2, curve: 0 }] },
+  ]);
+  const dest = [{ time: f(11), value: 9, curve: 0 }];
+  pasteClipboard(clip, f(10), { mode: 'all', snap }, () => dest);
+  // merge: the key at frame 11 survives between the pasted 10 and 12.
+  assert.deepEqual(dest.map((k) => Math.round(k.time * FPS)), [10, 11, 12]);
+});
+
 test('pasteClipboard skips tracks resolve cannot provide', () => {
   const clip = makeClipboard([
     { track: { deform: 7 }, keys: [{ time: f(0), value: { offset: 0, vertices: [1, 2] }, curve: 0 }] },

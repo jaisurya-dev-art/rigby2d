@@ -69,12 +69,21 @@ function putKey(keys, key) {
  * the duration to fit) or 'clip' (drop keys that land past `limit` seconds). `snap(t)` rounds a time
  * to the frame grid. Returns the pasted key objects, for selecting them afterwards.
  */
-export function pasteClipboard(clip, pasteTime, { mode, limit, snap }, resolve) {
+export function pasteClipboard(clip, pasteTime, { mode, limit, snap, replace }, resolve) {
   const pasted = [];
   const eps = 1e-6;
   for (const g of clip.groups) {
     const keys = resolve(g.track);
     if (!keys) continue;
+    // Replace mode: the copied block's blank spaces erase existing keys, so clear the whole pasted
+    // span in this track first (only this track — other tracks keep their keys). Then the copy is
+    // laid down, so the destination region ends up matching the copy exactly.
+    if (replace) {
+      const end = mode === 'clip' ? Math.min(pasteTime + clip.span, limit) : pasteTime + clip.span;
+      for (let i = keys.length - 1; i >= 0; i--) {
+        if (keys[i].time >= pasteTime - eps && keys[i].time <= end + eps) keys.splice(i, 1);
+      }
+    }
     for (const k of g.keys) {
       const t = snap(pasteTime + (k.time - clip.origin));
       if (mode === 'clip' && t > limit + eps) continue;
