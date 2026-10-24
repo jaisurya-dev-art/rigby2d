@@ -33,6 +33,8 @@ export const ACTIONS = [
   ['select.none', 'Deselect'],
   ['view.fit', 'Fit the skeleton in view'],
   ['view.actual', 'Zoom to 100%'],
+  ['edit.copyKeys', 'Copy selected keys'],
+  ['edit.pasteKeys', 'Paste keys at the playhead'],
   ['edit.delete', 'Delete selected key, bone or slot'],
   ['edit.undo', 'Undo'],
   ['edit.redo', 'Redo'],
@@ -50,6 +52,8 @@ const COMMON = {
   'file.save': ['ctrl+s'],
   'file.saveAs': ['ctrl+shift+s'],
   'file.export': ['ctrl+e'],
+  'edit.copyKeys': ['ctrl+c'],
+  'edit.pasteKeys': ['ctrl+v'],
   'edit.delete': ['delete', 'backspace'],
   'menu.close': ['escape'],
 };

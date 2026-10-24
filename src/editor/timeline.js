@@ -9,6 +9,7 @@ import { EASE_IN, EASE_IN_OUT, EASE_OUT, LINEAR, STEPPED, cloneCurve, isBezier }
 import { uniqueName } from '../core/model.js';
 import { FPS, Mode, selBone, selSlot, snap } from './app.js';
 import * as edit from './edit.js';
+import { makeClipboard, pasteClipboard, planPaste } from './keyclip.js';
 import { dragValue, h, popupMenu, select, textField } from './widgets.js';
 
 const GUTTER = 170;
@@ -120,6 +121,9 @@ export function renderControls(app, el) {
       h('span', { class: 'vsep' }),
       h('button', { 'data-tut': 'timeline:key', disabled: app.mode !== Mode.Animate, onclick: () => edit.keySelection(app) }, '◆ Key (K)'),
       h('span', { class: 'vsep' }),
+      h('button', { title: 'Copy selected keys (Ctrl+C)', disabled: !app.selectedKeys.size, onclick: () => copySelectedKeys(app) }, '⧉ Copy'),
+      h('button', { title: 'Paste keys at the playhead (Ctrl+V)', disabled: !hasClipboard(), onclick: () => pasteKeys(app) }, '⎘ Paste'),
+      h('span', { class: 'vsep' }),
       h(
         'span',
         { class: 'segmented', title: 'Timeline view' },
@@ -216,6 +220,120 @@ export function deleteSelectedKeys(app) {
   app.selectedKeys.clear();
   anim.prune();
   app.setStatus(`Deleted ${count} key${count === 1 ? '' : 's'}`);
+}
+
+// ---- copy and paste ---------------------------------------------------------------------------
+// The selected keys are copied with their absolute times; on paste the earliest lands on the
+// playhead. The clipboard lives for the editor session (not the OS clipboard): keys hold arbitrary
+// values (vectors, deform meshes, event fields) that do not round-trip as text. The paste math and
+// the overflow decision are in keyclip.js (pure, unit-tested); this file supplies the track lookup.
+
+let clipboard = null;
+
+/** Whether there is something to paste (drives the Paste button and menu item). */
+export function hasClipboard() {
+  return clipboard !== null;
+}
+
+/** Copies the selected keys to the dopesheet clipboard, grouped by their track. */
+export function copySelectedKeys(app) {
+  const anim = app.currentAnimation();
+  if (!anim || !app.selectedKeys.size) {
+    app.setStatus('Select keys to copy');
+    return;
+  }
+  const groups = [];
+  for (const { track } of tracks(app, anim)) {
+    const picked = (trackKeys(anim, track) ?? []).filter((k) => app.selectedKeys.has(k));
+    if (picked.length) groups.push({ track, keys: picked });
+  }
+  clipboard = makeClipboard(groups);
+  const n = clipboard?.count ?? 0;
+  app.setStatus(`Copied ${n} key${n === 1 ? '' : 's'}`);
+}
+
+/** The key list a copied track pastes into, creating bone/slot timelines as needed. Other track
+ *  kinds (deform, IK, constraints, sequences, draw order, events) paste only where they exist. */
+function resolveTrackKeys(anim, track) {
+  if (track.bone !== undefined && track.channel) return anim.boneTimelineMut(track.bone)[track.channel];
+  if (track.slot !== undefined) return anim.slotTimelineMut(track.slot)[track.channel ?? 'attachment'];
+  return trackKeys(anim, track) ?? null;
+}
+
+/** Pastes the clipboard at the playhead. Prompts when the keys would run past the animation's end. */
+export function pasteKeys(app) {
+  const anim = app.currentAnimation();
+  if (!anim) {
+    app.setStatus('Select an animation to paste into');
+    return;
+  }
+  if (!clipboard) {
+    app.setStatus('Clipboard is empty — copy keys first (Ctrl+C)');
+    return;
+  }
+  const pasteTime = snap(app.time);
+  const plan = planPaste(clipboard, pasteTime, anim.duration, FPS);
+  if (plan.fits) {
+    applyPaste(app, anim, pasteTime, { mode: 'all' });
+    return;
+  }
+  overflowDialog(plan.extraFrames, {
+    expand: () => {
+      anim.duration = plan.lastTime;
+      applyPaste(app, anim, pasteTime, { mode: 'all' });
+    },
+    clip: () => applyPaste(app, anim, pasteTime, { mode: 'clip', limit: anim.duration }),
+    cancel: () => app.setStatus('Paste cancelled'),
+  });
+}
+
+function applyPaste(app, anim, pasteTime, opts) {
+  app.playing = false;
+  app.mode = Mode.Animate;
+  const pasted = pasteClipboard(clipboard, pasteTime, { ...opts, snap }, (track) => resolveTrackKeys(anim, track));
+  resortAnimation(anim);
+  app.selectedKeys = new Set(pasted); // select what was pasted, ready to nudge
+  const n = pasted.length;
+  app.setStatus(n ? `Pasted ${n} key${n === 1 ? '' : 's'} at frame ${Math.round(pasteTime * FPS)}` : 'Nothing pasted (no keys fit)');
+  app.changed();
+}
+
+/** Asks how to handle a paste that overflows the animation: extend, paste what fits, or cancel. */
+function overflowDialog(extraFrames, actions) {
+  const plural = extraFrames === 1 ? '' : 's';
+  const overlay = h('div', { class: 'modal-backdrop' });
+  const onKey = (e) => {
+    if (e.key === 'Escape') {
+      e.stopPropagation();
+      close();
+      actions.cancel();
+    }
+  };
+  const close = () => {
+    overlay.remove();
+    document.removeEventListener('keydown', onKey, true);
+  };
+  const choose = (fn) => () => {
+    close();
+    fn();
+  };
+  overlay.append(
+    h(
+      'div',
+      { class: 'modal' },
+      h('h3', null, 'Paste runs past the end'),
+      h('p', null, `The pasted keys extend ${extraFrames} frame${plural} beyond the animation's length.`),
+      h(
+        'div',
+        { class: 'modal-buttons' },
+        h('button', { onclick: choose(actions.cancel) }, 'Cancel'),
+        h('button', { onclick: choose(actions.clip) }, 'Paste what fits'),
+        h('button', { class: 'primary', onclick: choose(actions.expand) }, `Extend by ${extraFrames} frame${plural}`),
+      ),
+    ),
+  );
+  document.addEventListener('keydown', onKey, true);
+  document.body.append(overlay);
 }
 
 function keyFill(selected, curve) {

@@ -17,7 +17,7 @@ import * as toolbar from './toolbar.js';
 import * as tree from './tree.js';
 import * as inspector from './inspector.js';
 import { GraphEditor } from './graph.js';
-import { Dopesheet, deleteSelectedKeys, renderControls } from './timeline.js';
+import { Dopesheet, copySelectedKeys, deleteSelectedKeys, pasteKeys, renderControls } from './timeline.js';
 import { Viewport } from './viewport.js';
 import { closeMenu, h, isMenuOpen, popupMenu, widgetState } from './widgets.js';
 import * as log from './log.js';
@@ -79,6 +79,9 @@ function menus() {
       { label: "Key the current tool's property", shortcut: sc('key.tool'), action: () => edit.keyTool(app) },
       { label: 'Key all transforms of the selection', shortcut: sc('key.transforms'), action: () => edit.keyTransforms(app) },
       { label: 'Key everything shown', shortcut: sc('key.shown'), action: () => edit.keyShown(app) },
+      'separator',
+      { label: 'Copy keys', shortcut: sc('edit.copyKeys'), disabled: !app.selectedKeys.size, action: () => copySelectedKeys(app) },
+      { label: 'Paste keys', shortcut: sc('edit.pasteKeys'), action: () => pasteKeys(app) },
       'separator',
       { label: 'Deselect', shortcut: sc('select.none'), action: () => app.deselect() },
       { label: 'Delete selection', shortcut: sc('edit.delete'), action: () => edit.deleteSelection(app) },
@@ -250,6 +253,8 @@ function run(action) {
     'select.none': () => app.deselect(),
     'view.fit': () => (app.frameRequest = true),
     'view.actual': () => zoomActual(),
+    'edit.copyKeys': () => copySelectedKeys(app),
+    'edit.pasteKeys': () => pasteKeys(app),
     'edit.delete': () => {
       if (viewport.meshTool.deleteSelected() || viewport.shapeTool.deleteSelected()) return;
       if (app.selectedKeys.size) deleteSelectedKeys(app);
