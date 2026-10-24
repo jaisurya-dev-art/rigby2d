@@ -17,7 +17,7 @@ import * as toolbar from './toolbar.js';
 import * as tree from './tree.js';
 import * as inspector from './inspector.js';
 import { GraphEditor } from './graph.js';
-import { Dopesheet, copySelectedKeys, deleteSelectedKeys, pasteKeys, renderControls } from './timeline.js';
+import { Dopesheet, cancelCopy, copySelectedKeys, deleteSelectedKeys, pasteKeys, renderControls } from './timeline.js';
 import { Viewport } from './viewport.js';
 import { closeMenu, h, isMenuOpen, popupMenu, widgetState } from './widgets.js';
 import * as log from './log.js';
@@ -284,6 +284,7 @@ window.addEventListener('keydown', (e) => {
   if (action === 'menu.close') {
     e.preventDefault();
     if (isMenuOpen()) return closeMenu();
+    if (cancelCopy(app)) return; // Escape first cancels an armed copy, before deselecting
     action = actionsFor(app.keymap, combo).find((a) => a !== 'menu.close');
     if (!action) return;
   }

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
-import { cloneKey, makeClipboard, pasteClipboard, planPaste } from '../src/editor/keyclip.js';
+import { cloneKey, makeClipboard, pasteClipboard, planPaste, previewKeys } from '../src/editor/keyclip.js';
 
 const FPS = 30;
 const snap = (t) => Math.round(t * FPS) / FPS;
@@ -85,6 +85,18 @@ test('pasteClipboard skips tracks resolve cannot provide', () => {
   ]);
   const pasted = pasteClipboard(clip, f(0), { mode: 'all', snap }, () => null);
   assert.equal(pasted.length, 0);
+});
+
+test('previewKeys offsets every track to the playhead without mutating', () => {
+  const clip = makeClipboard([
+    { track: { bone: 1, channel: 'rotate' }, keys: [{ time: f(5), value: 0, curve: 0 }, { time: f(8), value: 0, curve: 0 }] },
+    { track: { bone: 2, channel: 'scale' }, keys: [{ time: f(6), value: [1, 1], curve: 0 }] },
+  ]);
+  const preview = previewKeys(clip, f(20));
+  assert.deepEqual(preview.map((g) => g.track), [{ bone: 1, channel: 'rotate' }, { bone: 2, channel: 'scale' }]);
+  assert.deepEqual(preview[0].times.map((t) => Math.round(t * FPS)), [20, 23]); // origin 5 -> 20
+  assert.deepEqual(preview[1].times.map((t) => Math.round(t * FPS)), [21]);
+  assert.equal(clip.groups[0].keys[0].time, f(5)); // clipboard untouched
 });
 
 test('cloneKey copies nested deform values', () => {

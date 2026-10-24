@@ -42,6 +42,14 @@ export function planPaste(clip, pasteTime, duration, fps) {
   return { lastTime, fits: needFrames <= haveFrames, extraFrames: Math.max(0, needFrames - haveFrames) };
 }
 
+/**
+ * The absolute times each clipboard key would occupy if pasted at `pasteTime`, grouped by track.
+ * Mirrors pasteClipboard's offset without mutating anything, for drawing the paste preview.
+ */
+export function previewKeys(clip, pasteTime) {
+  return clip.groups.map((g) => ({ track: g.track, times: g.keys.map((k) => pasteTime + (k.time - clip.origin)) }));
+}
+
 /** Inserts `key` into a sorted key list, replacing any key within half a millisecond of its time. */
 function putKey(keys, key) {
   const i = keys.findIndex((k) => Math.abs(k.time - key.time) < 5e-4);

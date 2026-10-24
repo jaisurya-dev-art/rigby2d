@@ -9,7 +9,7 @@ import { EASE_IN, EASE_IN_OUT, EASE_OUT, LINEAR, STEPPED, cloneCurve, isBezier }
 import { uniqueName } from '../core/model.js';
 import { FPS, Mode, selBone, selSlot, snap } from './app.js';
 import * as edit from './edit.js';
-import { makeClipboard, pasteClipboard, planPaste } from './keyclip.js';
+import { makeClipboard, pasteClipboard, planPaste, previewKeys } from './keyclip.js';
 import { dragValue, h, popupMenu, select, textField } from './widgets.js';
 
 const GUTTER = 170;
@@ -123,6 +123,15 @@ export function renderControls(app, el) {
       h('span', { class: 'vsep' }),
       h('button', { title: 'Copy selected keys (Ctrl+C)', disabled: !app.selectedKeys.size, onclick: () => copySelectedKeys(app) }, '⧉ Copy'),
       h('button', { title: 'Paste keys at the playhead (Ctrl+V)', disabled: !hasClipboard(), onclick: () => pasteKeys(app) }, '⎘ Paste'),
+      h(
+        'button',
+        {
+          class: frameSelectActive() ? 'active' : '',
+          title: 'Select whole frame columns: drag to select a range, Shift+click to extend. Click again for key select.',
+          onclick: () => toggleFrameSelect(app),
+        },
+        '▦ Frames',
+      ),
       h('span', { class: 'vsep' }),
       h(
         'span',
@@ -228,14 +237,25 @@ export function deleteSelectedKeys(app) {
 // values (vectors, deform meshes, event fields) that do not round-trip as text. The paste math and
 // the overflow decision are in keyclip.js (pure, unit-tested); this file supplies the track lookup.
 
+// `clipboard` holds the copied keys; while it is set the copy is "armed": the source keys and their
+// frame span are drawn green and a pulsing purple preview of the paste follows the playhead. Pasting
+// or Escape disarms it (the green and the preview disappear); so does starting a fresh selection.
 let clipboard = null;
+let copiedSource = null; // the original key objects a copy marks green while armed
+let frameSelect = false; // true while the dopesheet is armed to select whole frame columns
 
 /** Whether there is something to paste (drives the Paste button and menu item). */
 export function hasClipboard() {
   return clipboard !== null;
 }
 
-/** Copies the selected keys to the dopesheet clipboard, grouped by their track. */
+/** Disarms the copy without a message (a fresh selection replaces it). */
+function endCopyArming() {
+  clipboard = null;
+  copiedSource = null;
+}
+
+/** Copies the selected keys to the dopesheet clipboard, grouped by their track, and arms the copy. */
 export function copySelectedKeys(app) {
   const anim = app.currentAnimation();
   if (!anim || !app.selectedKeys.size) {
@@ -243,13 +263,35 @@ export function copySelectedKeys(app) {
     return;
   }
   const groups = [];
+  const source = new Set();
   for (const { track } of tracks(app, anim)) {
     const picked = (trackKeys(anim, track) ?? []).filter((k) => app.selectedKeys.has(k));
     if (picked.length) groups.push({ track, keys: picked });
+    for (const k of picked) source.add(k);
   }
   clipboard = makeClipboard(groups);
+  copiedSource = clipboard ? source : null;
   const n = clipboard?.count ?? 0;
-  app.setStatus(`Copied ${n} key${n === 1 ? '' : 's'}`);
+  app.setStatus(`Copied ${n} key${n === 1 ? '' : 's'} — paste at the playhead (Ctrl+V), Escape to cancel`);
+}
+
+/** Disarms an armed copy (Escape). Returns whether anything was armed. */
+export function cancelCopy(app) {
+  if (!clipboard) return false;
+  endCopyArming();
+  app.setStatus('Copy cancelled');
+  return true;
+}
+
+/** Whether frame-column selection is armed (drives the ⧉ Frames button). */
+export function frameSelectActive() {
+  return frameSelect;
+}
+
+/** Toggles frame-column selection: drag on the ruler selects whole columns instead of key boxes. */
+export function toggleFrameSelect(app) {
+  frameSelect = !frameSelect;
+  app.setStatus(frameSelect ? 'Frame columns: drag to select, Shift+click to extend. Click Frames again for key select.' : 'Key select: drag a box over the keys.');
 }
 
 /** The key list a copied track pastes into, creating bone/slot timelines as needed. Other track
@@ -292,6 +334,7 @@ function applyPaste(app, anim, pasteTime, opts) {
   app.mode = Mode.Animate;
   const pasted = pasteClipboard(clipboard, pasteTime, { ...opts, snap }, (track) => resolveTrackKeys(anim, track));
   resortAnimation(anim);
+  endCopyArming(); // paste disarms the copy: the green source and the preview go away
   app.selectedKeys = new Set(pasted); // select what was pasted, ready to nudge
   const n = pasted.length;
   app.setStatus(n ? `Pasted ${n} key${n === 1 ? '' : 's'} at frame ${Math.round(pasteTime * FPS)}` : 'Nothing pasted (no keys fit)');
@@ -352,6 +395,8 @@ export class Dopesheet {
     this.keyRects = [];
     this.layout = null;
     this.press = null;
+    this.frameRange = null; // committed frame-column selection { from, to } (inclusive frame numbers)
+    this.frameAnchor = null; // last single-clicked frame, for Shift+click range extension
     canvas.addEventListener('pointerdown', (e) => this.onPointerDown(e));
     canvas.addEventListener('pointermove', (e) => this.onPointerMove(e));
     canvas.addEventListener('pointerup', (e) => this.onPointerUp(e));
@@ -366,6 +411,11 @@ export class Dopesheet {
     empty.hidden = !!anim;
     this.scroller.hidden = !anim;
     if (!anim) return;
+
+    // The frame-column selection lives only as long as there are selected keys.
+    if (!app.selectedKeys.size) this.frameRange = null;
+    const wantCursor = frameSelect ? 'crosshair' : 'default';
+    if (this.canvas.style.cursor !== wantCursor) this.canvas.style.cursor = wantCursor;
 
     const rows = tracks(app, anim);
     const duration = Math.max(anim.duration, 1 / FPS);
@@ -428,7 +478,8 @@ export class Dopesheet {
       ctx.fillText(label, 8, y + ROW / 2, GUTTER - 14);
       (trackKeys(anim, track) ?? []).forEach((k, index) => {
         const c = [timeToX(k.time), y + ROW / 2];
-        diamond(ctx, c, 5.5, keyFill(app.selectedKeys.has(k), k.curve));
+        const fill = copiedSource?.has(k) ? 'rgb(60,220,110)' : keyFill(app.selectedKeys.has(k), k.curve);
+        diamond(ctx, c, 5.5, fill);
         this.keyRects.push({ x0: c[0] - 6, x1: c[0] + 6, y0: c[1] - 7, y1: c[1] + 7, key: k, keys: trackKeys(anim, track), index, time: k.time });
       });
     });
@@ -459,6 +510,58 @@ export class Dopesheet {
       this.handles = { x0, x1, min: span.min, max: span.max };
     }
 
+    // Frame-column selection: a committed range, and the live band while dragging (full height,
+    // so it reads as a column marked from the ruler down over the key tracks).
+    const half = pxPerFrame / 2;
+    const columnBand = (fromF, toF, top, fill, stroke) => {
+      const bx0 = timeToX(Math.min(fromF, toF) / FPS) - half;
+      const bx1 = timeToX(Math.max(fromF, toF) / FPS) + half;
+      ctx.fillStyle = fill;
+      ctx.fillRect(bx0, top, bx1 - bx0, height - top);
+      if (stroke) {
+        ctx.strokeStyle = stroke;
+        ctx.lineWidth = 1;
+        ctx.strokeRect(bx0 + 0.5, top + 0.5, bx1 - bx0, height - top - 1);
+      }
+    };
+    if (this.press?.frameBox) {
+      columnBand(this.press.frameBox.from, this.press.frameBox.to, 0, 'rgba(255,170,40,0.14)', 'rgb(255,170,40)');
+    } else if (this.frameRange && !clipboard) {
+      columnBand(this.frameRange.from, this.frameRange.to, RULER, 'rgba(255,170,40,0.10)', null);
+      ctx.fillStyle = 'rgba(255,170,40,0.85)';
+      ctx.fillRect(timeToX(this.frameRange.from / FPS) - half, RULER - 4, timeToX(this.frameRange.to / FPS) + half - (timeToX(this.frameRange.from / FPS) - half), 4);
+    }
+
+    // Armed copy: the source span in green, and a pulsing purple preview of the paste at the playhead.
+    if (clipboard) {
+      const pulse = 0.5 + 0.5 * Math.sin(performance.now() / 300);
+      const gx0 = timeToX(clipboard.origin);
+      const gx1 = timeToX(clipboard.origin + clipboard.span);
+      ctx.fillStyle = 'rgba(60,220,110,0.10)';
+      ctx.fillRect(gx0, RULER, Math.max(2, gx1 - gx0), height - RULER);
+      ctx.fillStyle = 'rgba(60,220,110,0.9)';
+      ctx.fillRect(gx0, RULER - 4, Math.max(2, gx1 - gx0), 4);
+
+      const pasteTime = snap(app.time);
+      const px0 = timeToX(pasteTime);
+      const px1 = timeToX(pasteTime + clipboard.span);
+      ctx.fillStyle = `rgba(180,120,255,${0.08 + 0.08 * pulse})`;
+      ctx.fillRect(px0, RULER, Math.max(2, px1 - px0), height - RULER);
+      ctx.fillStyle = `rgba(180,120,255,${0.6 + 0.3 * pulse})`;
+      ctx.fillRect(px0, RULER - 4, Math.max(2, px1 - px0), 4);
+      const rowOf = new Map(rows.map(({ track }, r) => [trackId(track), r]));
+      const alpha = 0.3 + 0.5 * pulse;
+      for (const g of previewKeys(clipboard, pasteTime)) {
+        const r = rowOf.get(trackId(g.track));
+        if (r === undefined) continue;
+        const cy = RULER + r * ROW + ROW / 2;
+        for (const t of g.times) {
+          const over = t > duration + 1e-6;
+          ghostDiamond(ctx, [timeToX(t), cy], 5.5, over ? `rgba(255,90,120,${alpha})` : `rgba(180,120,255,${alpha})`);
+        }
+      }
+    }
+
     // Time cursor.
     const cx = timeToX(Math.min(app.time, duration));
     ctx.strokeStyle = 'rgb(255,90,70)';
@@ -481,6 +584,29 @@ export class Dopesheet {
   xToTime(x) {
     const { trackLeft, trackW, duration } = this.layout;
     return Math.min(duration, Math.max(0, ((x - trackLeft) / trackW) * duration));
+  }
+
+  /** The frame number under x, clamped to the animation. */
+  xToFrame(x) {
+    const frames = Math.round(this.layout.duration * FPS);
+    return Math.max(0, Math.min(frames, Math.round(this.xToTime(x) * FPS)));
+  }
+
+  /** Selects every key sitting on frames [from, to] (across all tracks). */
+  selectFrames(from, to) {
+    const app = this.app;
+    const anim = app.currentAnimation();
+    if (!anim) return;
+    const next = new Set();
+    for (const { track } of tracks(app, anim)) {
+      for (const k of trackKeys(anim, track) ?? []) {
+        const f = Math.round(k.time * FPS);
+        if (f >= from && f <= to) next.add(k);
+      }
+    }
+    app.selectedKeys = next;
+    const span = from === to ? `frame ${from}` : `frames ${from}–${to}`;
+    app.setStatus(`Selected ${span}: ${next.size} key${next.size === 1 ? '' : 's'}`);
   }
 
   /** Time range covered by the selected keys, or null. */
@@ -511,6 +637,11 @@ export class Dopesheet {
     }
     if (e.button !== 0) return;
     this.canvas.setPointerCapture(e.pointerId);
+    // Frame-column select mode: the whole drag picks columns, so key boxes and retiming are off.
+    if (frameSelect) {
+      this.press = { frameMode: true, pos: p, started: false, shift: e.shiftKey, startFrame: this.xToFrame(p[0]) };
+      return;
+    }
     const hit = this.hit(p);
     const handle = this.handles && p[1] <= RULER && [this.handles.x0, this.handles.x1].findIndex((x) => Math.abs(p[0] - x) <= 5);
     this.press = { pos: p, started: false, add, hit, handle: handle >= 0 ? handle : null, inRuler: p[1] <= RULER };
@@ -521,6 +652,18 @@ export class Dopesheet {
     const app = this.app;
     const p = this.pos(e);
     const press = this.press;
+    if (press.frameMode) {
+      if (!press.started) {
+        if (Math.abs(p[0] - press.pos[0]) <= 3 && Math.abs(p[1] - press.pos[1]) <= 3) return;
+        press.started = true;
+        app.playing = false;
+      }
+      const f = this.xToFrame(p[0]);
+      press.frameBox = { from: press.startFrame, to: f };
+      app.time = f / FPS; // scrub to the dragging edge for feedback
+      app.changed();
+      return;
+    }
     if (!press.started) {
       if (Math.hypot(p[0] - press.pos[0], p[1] - press.pos[1]) <= 3) return;
       press.started = true;
@@ -568,8 +711,38 @@ export class Dopesheet {
     const app = this.app;
     const press = this.press;
     this.press = null;
+    if (press.frameMode) {
+      app.playing = false;
+      app.mode = Mode.Animate;
+      let from;
+      let to;
+      if (!press.started) {
+        // A plain click picks one column; Shift+click extends from the last clicked column.
+        const f = press.startFrame;
+        if (press.shift && this.frameAnchor !== null) {
+          from = Math.min(this.frameAnchor, f);
+          to = Math.max(this.frameAnchor, f);
+        } else {
+          from = f;
+          to = f;
+          this.frameAnchor = f;
+        }
+        app.time = f / FPS;
+      } else {
+        from = Math.min(press.startFrame, press.frameBox.to);
+        to = Math.max(press.startFrame, press.frameBox.to);
+        this.frameAnchor = press.frameBox.to;
+      }
+      endCopyArming();
+      this.frameRange = { from, to };
+      this.selectFrames(from, to);
+      app.changed();
+      return;
+    }
     if (!press.started) {
       if (press.hit) {
+        endCopyArming();
+        this.frameRange = null;
         const k = press.hit.key;
         if (press.add) {
           const next = new Set(app.selectedKeys);
@@ -597,6 +770,8 @@ export class Dopesheet {
       const inside = this.keyRects.filter((r) => (r.x0 + r.x1) / 2 >= x0 && (r.x0 + r.x1) / 2 <= x1 && (r.y0 + r.y1) / 2 >= y0 && (r.y0 + r.y1) / 2 <= y1);
       const next = new Set(press.add ? app.selectedKeys : []);
       for (const r of inside) next.add(r.key);
+      endCopyArming();
+      this.frameRange = null;
       app.selectedKeys = next;
       app.setStatus(`${next.size} key${next.size === 1 ? '' : 's'} selected`);
     }
@@ -693,5 +868,25 @@ function diamond(ctx, c, r, fill) {
   ctx.strokeStyle = 'black';
   ctx.lineWidth = 1;
   ctx.stroke();
+}
+
+/** A translucent diamond with a soft outline of the same colour, for the ghostly paste preview. */
+function ghostDiamond(ctx, c, r, fill) {
+  ctx.beginPath();
+  ctx.moveTo(c[0], c[1] - r);
+  ctx.lineTo(c[0] + r, c[1]);
+  ctx.lineTo(c[0], c[1] + r);
+  ctx.lineTo(c[0] - r, c[1]);
+  ctx.closePath();
+  ctx.fillStyle = fill;
+  ctx.fill();
+  ctx.strokeStyle = fill;
+  ctx.lineWidth = 1;
+  ctx.stroke();
+}
+
+/** A stable string id for a dopesheet track descriptor, to match preview keys to their row. */
+function trackId(track) {
+  return JSON.stringify(track);
 }
 
