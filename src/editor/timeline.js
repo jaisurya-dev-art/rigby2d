@@ -321,6 +321,7 @@ export function copySelectedKeys(app) {
   // spot without the next click being read as a new selection that would cancel the copy.
   frameSelect = false;
   multiAdd = false;
+  clearRegions(); // the copy snapshotted them; the next selection gesture starts fresh
   const n = clipboard?.count ?? 0;
   app.setStatus(`Copied ${n} key${n === 1 ? '' : 's'} — move the playhead and paste (Ctrl+V), Escape to cancel`);
 }
@@ -343,6 +344,7 @@ function rowSpanOf(app, anim, groups) {
 /** Escape's reset for the timeline: cancels any armed copy and leaves the Frames/Multi/Retime modes. */
 export function exitSelectModes() {
   endCopyArming();
+  clearRegions();
   frameSelect = false;
   multiAdd = false;
   retimeArmed = false;
@@ -474,6 +476,7 @@ function applyPaste(app, anim, pasteTime, opts) {
   const pasted = pasteClipboard(clipboard, pasteTime, { ...opts, snap, replace: pasteMode !== 'none' }, (track) => resolveTrackKeys(anim, track));
   resortAnimation(anim);
   endCopyArming(); // paste disarms the copy: the green source and the preview go away
+  clearRegions(); // and the next selection gesture starts fresh, not adding to the pasted area
   app.selectedKeys = new Set(pasted); // select what was pasted, ready to nudge
   const n = pasted.length;
   app.setStatus(n ? `Pasted ${n} key${n === 1 ? '' : 's'} at frame ${Math.round(pasteTime * FPS)}` : 'Nothing pasted (no keys fit)');
@@ -534,7 +537,6 @@ export class Dopesheet {
     this.keyRects = [];
     this.layout = null;
     this.press = null;
-    this.frameRange = null; // committed frame-column selection { from, to } (inclusive frame numbers)
     canvas.addEventListener('pointerdown', (e) => this.onPointerDown(e));
     canvas.addEventListener('pointermove', (e) => this.onPointerMove(e));
     canvas.addEventListener('pointerup', (e) => this.onPointerUp(e));
@@ -550,8 +552,8 @@ export class Dopesheet {
     this.scroller.hidden = !anim;
     if (!anim) return;
 
-    // The frame-column selection lives only as long as there are selected keys.
-    if (!app.selectedKeys.size) this.frameRange = null;
+    // The selection's coloured areas live only as long as there are selected keys.
+    if (!app.selectedKeys.size) selectionRegions = [];
     const wantCursor = frameSelect ? 'crosshair' : 'default';
     if (this.canvas.style.cursor !== wantCursor) this.canvas.style.cursor = wantCursor;
 
@@ -666,10 +668,18 @@ export class Dopesheet {
     };
     if (this.press?.frameBox) {
       columnBand(this.press.frameBox.from, this.press.frameBox.to, 0, 'rgba(255,170,40,0.14)', 'rgb(255,170,40)');
-    } else if (this.frameRange && !clipboard) {
-      columnBand(this.frameRange.from, this.frameRange.to, RULER, 'rgba(255,170,40,0.10)', null);
-      ctx.fillStyle = 'rgba(255,170,40,0.85)';
-      ctx.fillRect(timeToX(this.frameRange.from / FPS) - half, RULER - 4, timeToX(this.frameRange.to / FPS) + half - (timeToX(this.frameRange.from / FPS) - half), 4);
+    } else if (!clipboard) {
+      // One yellow band per selected area (so several Alt+drag column groups all show, not just one).
+      for (const reg of selectionRegions) {
+        const rTop = reg.full ? RULER : RULER + Math.max(0, reg.r0) * ROW;
+        const rBot = reg.full ? height : RULER + (Math.min(rows.length - 1, reg.r1) + 1) * ROW;
+        const bx0 = timeToX(reg.f0 / FPS) - half;
+        const bx1 = timeToX(reg.f1 / FPS) + half;
+        ctx.fillStyle = 'rgba(255,170,40,0.10)';
+        ctx.fillRect(bx0, rTop, Math.max(2, bx1 - bx0), rBot - rTop);
+        ctx.fillStyle = 'rgba(255,170,40,0.85)';
+        ctx.fillRect(bx0, RULER - 4, Math.max(2, bx1 - bx0), 4);
+      }
     }
 
     // Armed copy: the source span in green, and a pulsing purple preview of the paste at the playhead.
@@ -817,8 +827,10 @@ export class Dopesheet {
     // grab a range of columns across every track so the retiming handles can then spread them).
     // Either way the whole drag picks columns, so key boxes and retiming are off for this gesture.
     if (frameSelect || e.altKey) {
-      // Alt (or Multi mode) adds another column group to the selection; a plain Frames drag replaces.
-      this.press = { frameMode: true, pos: p, started: false, add: e.altKey || add || multiAdd, startFrame: this.xToFrame(p[0]) };
+      // Columns add when Multi/Ctrl is held, or when Alt continues an already-started selection
+      // (so chained Alt+drags accumulate, but the first one after a copy/paste/cancel starts fresh).
+      const addColumns = add || multiAdd || (e.altKey && selectionRegions.length > 0);
+      this.press = { frameMode: true, pos: p, started: false, add: addColumns, startFrame: this.xToFrame(p[0]) };
       return;
     }
     const hit = this.hit(p);
@@ -946,7 +958,6 @@ export class Dopesheet {
       app.time = endF / FPS;
       endCopyArming();
       selectionIsColumns = true;
-      this.frameRange = { from, to };
       this.selectFrames(from, to, press.add);
       setRegion({ f0: from, f1: to, r0: 0, r1: 0, full: true }, press.add);
       app.changed();
@@ -956,7 +967,6 @@ export class Dopesheet {
       if (press.hit) {
         endCopyArming();
         selectionIsColumns = false;
-        this.frameRange = null;
         const k = press.hit.key;
         const reg = { f0: Math.round(press.hit.time * FPS), f1: Math.round(press.hit.time * FPS), r0: rowAt(press.pos[1]), r1: rowAt(press.pos[1]), full: false };
         if (press.add) {
@@ -994,7 +1004,6 @@ export class Dopesheet {
       for (const r of inside) next.add(r.key);
       endCopyArming();
       selectionIsColumns = false;
-      this.frameRange = null;
       app.selectedKeys = next;
       if (inside.length) setRegion({ f0: this.xToFrame(x0), f1: this.xToFrame(x1), r0: rowAt(y0), r1: rowAt(y1), full: false }, press.add);
       else if (!press.add) clearRegions();
