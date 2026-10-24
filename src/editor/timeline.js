@@ -150,6 +150,15 @@ export function renderControls(app, el) {
         },
         pasteModeLabel(),
       ),
+      h(
+        'button',
+        {
+          class: retimeArmedActive() ? 'active' : '',
+          title: 'Retime (scale the selected keys’ timing): show the drag handles for one use. Or right-click + drag anytime.',
+          onclick: () => toggleRetime(app),
+        },
+        '⇔ Retime',
+      ),
       h('span', { class: 'vsep' }),
       h(
         'span',
@@ -268,6 +277,10 @@ let pasteMode = 'none';
 const PASTE_MODES = ['none', 'overwrite', 'full'];
 const PASTE_LABELS = { none: '⊟ Merge', overwrite: '⊟ Overwrite', full: '⊟ Overwrite all' };
 let selectionIsColumns = false; // the current selection came from the ruler (whole columns), not a box
+let retimeArmed = false; // true shows the retiming handles for one use (otherwise hidden)
+// The areas the current selection was built from, each { f0, f1, r0, r1, full } in frames/rows, so the
+// copy preview can draw one coloured band per section instead of one band across the gaps.
+let selectionRegions = [];
 
 /** Whether there is something to paste (drives the Paste button and menu item). */
 export function hasClipboard() {
@@ -298,6 +311,10 @@ export function copySelectedKeys(app) {
   if (clipboard) {
     clipboard.fullHeight = selectionIsColumns; // ruler selections span every row; a box is bounded
     clipboard.rowRange = rowSpanOf(app, anim, groups); // rows the paste area covers, for 'full' overwrite
+    // One coloured band per copied section (fall back to a single band over the whole copy).
+    clipboard.regions = selectionRegions.length
+      ? selectionRegions.map((r) => ({ ...r }))
+      : [{ f0: Math.round(clipboard.origin * FPS), f1: Math.round((clipboard.origin + clipboard.span) * FPS), r0: clipboard.rowRange.min, r1: clipboard.rowRange.max, full: selectionIsColumns }];
   }
   copiedSource = clipboard ? source : null;
   // Copying ends the selection gestures (Frames and Multi): the mouse is now free to pick a paste
@@ -323,11 +340,38 @@ function rowSpanOf(app, anim, groups) {
   return max >= min ? { min, max } : { min: 0, max: 0 };
 }
 
-/** Escape's reset for the timeline: cancels any armed copy and leaves the Frames/Multi modes. */
+/** Escape's reset for the timeline: cancels any armed copy and leaves the Frames/Multi/Retime modes. */
 export function exitSelectModes() {
   endCopyArming();
   frameSelect = false;
   multiAdd = false;
+  retimeArmed = false;
+}
+
+/** Whether the retiming handles are shown (drives the ⇔ Retime button). */
+export function retimeArmedActive() {
+  return retimeArmed;
+}
+
+/** Arms (or disarms) the retiming handles. They scale the selected keys' timing, then disarm. */
+export function toggleRetime(app) {
+  retimeArmed = !retimeArmed;
+  app.setStatus(retimeArmed ? 'Retime: drag an end of the selected range to scale its timing (one use). Right-drag works anytime.' : 'Retime off.');
+}
+
+/** Records a selection area so the copy preview can colour each copied section on its own. */
+function setRegion(region, add) {
+  if (add) selectionRegions.push(region);
+  else selectionRegions = [region];
+}
+
+function clearRegions() {
+  selectionRegions = [];
+}
+
+/** The dopesheet row a pixel y falls on. */
+function rowAt(y) {
+  return Math.max(0, Math.floor((y - RULER) / ROW));
 }
 
 /** Whether frame-column selection is armed (drives the ▦ Frames button). */
@@ -593,9 +637,9 @@ export class Dopesheet {
       ctx.strokeRect(Math.min(from[0], to[0]) + 0.5, Math.min(from[1], to[1]) + 0.5, Math.abs(to[0] - from[0]), Math.abs(to[1] - from[1]));
     }
     this.handles = null;
-    // The retiming span/handles are a key-mode tool. Hide them in frame-column mode and while a copy
-    // is armed, so the "expander" doesn't pop up over the column selection or on Ctrl+C.
-    const span = frameSelect || clipboard ? null : this.selectionSpan();
+    // The retiming handles are hidden by default (they used to get in the way). They show only when
+    // armed with the ⇔ Retime button (one use); a right-drag retimes without them (see onPointerMove).
+    const span = retimeArmed ? this.selectionSpan() : null;
     if (span && span.max - span.min > 1e-6) {
       const x0 = timeToX(span.min);
       const x1 = timeToX(span.max);
@@ -635,27 +679,27 @@ export class Dopesheet {
       // The bands cover only the copied rows (a box selection is bounded to its pistas); a column
       // selection from the ruler spans every row.
       const copiedRows = clipboard.groups.map((g) => rowOf.get(trackId(g.track))).filter((r) => r !== undefined);
-      const top = clipboard.fullHeight || !copiedRows.length ? RULER : RULER + Math.min(...copiedRows) * ROW;
-      const bottom = clipboard.fullHeight || !copiedRows.length ? height : RULER + (Math.max(...copiedRows) + 1) * ROW;
-      const vBand = (x, w, fill) => {
-        ctx.fillStyle = fill;
-        ctx.fillRect(x, top, Math.max(2, w), bottom - top);
-      };
-
-      // Green source.
-      const gx0 = timeToX(clipboard.origin);
-      const gw = timeToX(clipboard.origin + clipboard.span) - gx0;
-      vBand(gx0, gw, 'rgba(60,220,110,0.10)');
-      ctx.fillStyle = 'rgba(60,220,110,0.9)';
-      ctx.fillRect(gx0, RULER - 4, Math.max(2, gw), 4);
-
-      // Purple paste preview at the playhead.
+      // One band per copied section: green at the source, purple at the paste offset. Each section
+      // keeps its own rectangle so disjoint copies don't share one band across the gap.
       const pasteTime = snap(app.time);
-      const px0 = timeToX(pasteTime);
-      const pw = timeToX(pasteTime + clipboard.span) - px0;
-      vBand(px0, pw, `rgba(180,120,255,${0.08 + 0.08 * pulse})`);
-      ctx.fillStyle = `rgba(180,120,255,${0.6 + 0.3 * pulse})`;
-      ctx.fillRect(px0, RULER - 4, Math.max(2, pw), 4);
+      const originFrame = Math.round(clipboard.origin * FPS);
+      const delta = Math.round(pasteTime * FPS) - originFrame;
+      const half = pxPerFrame / 2;
+      const maxRow = rows.length - 1;
+      const regionBand = (f0, f1, r0, r1, full, fill, barFill) => {
+        const rTop = full ? RULER : RULER + Math.max(0, r0) * ROW;
+        const rBot = full ? height : RULER + (Math.min(maxRow, r1) + 1) * ROW;
+        const x0 = timeToX(f0 / FPS) - half;
+        const x1 = timeToX(f1 / FPS) + half;
+        ctx.fillStyle = fill;
+        ctx.fillRect(x0, rTop, Math.max(2, x1 - x0), rBot - rTop);
+        ctx.fillStyle = barFill;
+        ctx.fillRect(x0, RULER - 4, Math.max(2, x1 - x0), 4);
+      };
+      for (const reg of clipboard.regions) {
+        regionBand(reg.f0, reg.f1, reg.r0, reg.r1, reg.full, 'rgba(60,220,110,0.10)', 'rgba(60,220,110,0.9)');
+        regionBand(reg.f0 + delta, reg.f1 + delta, reg.r0, reg.r1, reg.full, `rgba(180,120,255,${0.08 + 0.08 * pulse})`, `rgba(180,120,255,${0.6 + 0.3 * pulse})`);
+      }
       const alpha = 0.3 + 0.5 * pulse;
       const spanEnd = pasteTime + clipboard.span;
       const preview = previewKeys(clipboard, pasteTime);
@@ -761,12 +805,10 @@ export class Dopesheet {
     const p = this.pos(e);
     const add = e.ctrlKey || e.metaKey;
     if (e.button === 2) {
-      const hit = this.hit(p);
-      if (hit && !app.selectedKeys.has(hit.key)) {
-        app.selectedKeys = new Set([hit.key]);
-        app.changed();
-      }
-      if (app.selectedKeys.size) curveMenu(app, e.clientX, e.clientY);
+      // Right button: a plain click opens the curve menu; a drag retimes the selection (handled in
+      // onPointerMove/Up). Captured so the drag keeps coming even past the canvas edge.
+      this.canvas.setPointerCapture(e.pointerId);
+      this.press = { right: true, pos: p, started: false, clientX: e.clientX, clientY: e.clientY };
       return;
     }
     if (e.button !== 0) return;
@@ -785,10 +827,27 @@ export class Dopesheet {
   }
 
   onPointerMove(e) {
-    if (!this.press || !(e.buttons & 1)) return;
+    if (!this.press) return;
+    const press = this.press;
+    if (!(e.buttons & (press.right ? 2 : 1))) return;
     const app = this.app;
     const p = this.pos(e);
-    const press = this.press;
+    if (press.right) {
+      // A right-drag retimes the selection by scaling from its nearer edge (no handles needed).
+      if (!press.started) {
+        if (Math.hypot(p[0] - press.pos[0], p[1] - press.pos[1]) <= 3) return;
+        press.started = true;
+        app.playing = false;
+        app.mode = Mode.Animate;
+        const r = this.beginRetime(press.pos[0]);
+        if (r) Object.assign(press, r);
+      }
+      if (press.retime) {
+        this.applyRetime(press, snap(this.xToTime(p[0])));
+        app.changed();
+      }
+      return;
+    }
     if (press.frameMode) {
       if (!press.started) {
         if (Math.abs(p[0] - press.pos[0]) <= 3 && Math.abs(p[1] - press.pos[1]) <= 3) return;
@@ -823,13 +882,7 @@ export class Dopesheet {
       for (const m of press.move) m.key.time = Math.max(0, snap(m.time + dt));
       app.time = Math.max(0, snap(press.grabTime + dt));
     } else if (press.retime) {
-      // Scale times relative to the opposite edge of the selection.
-      const { min, max } = press.span;
-      const fixed = press.handle === 0 ? max : min;
-      const moving = press.handle === 0 ? min : max;
-      const factor = Math.abs(moving - fixed) > 1e-6 ? (t - fixed) / (moving - fixed) : 1;
-      for (const m of press.retime) m.key.time = Math.max(0, snap(fixed + (m.time - fixed) * factor));
-      app.time = t;
+      this.applyRetime(press, t);
     } else if (press.box) {
       press.box.to = p;
     } else {
@@ -843,10 +896,45 @@ export class Dopesheet {
     return [...this.app.selectedKeys].map((key) => ({ key, time: key.time }));
   }
 
+  /** Sets up a retime grabbing the selection edge nearer to pixel x, or null if there's no span. */
+  beginRetime(px) {
+    const span = this.selectionSpan();
+    if (!span || span.max - span.min <= 1e-6) return null;
+    const timeToX = (time) => this.layout.trackLeft + (time / this.layout.duration) * this.layout.trackW;
+    const handle = Math.abs(px - timeToX(span.min)) <= Math.abs(px - timeToX(span.max)) ? 0 : 1;
+    return { retime: this.beginEdit(), span, handle };
+  }
+
+  /** Scales the retimed keys so the grabbed edge follows time t (the opposite edge stays fixed). */
+  applyRetime(press, t) {
+    const { min, max } = press.span;
+    const fixed = press.handle === 0 ? max : min;
+    const moving = press.handle === 0 ? min : max;
+    const factor = Math.abs(moving - fixed) > 1e-6 ? (t - fixed) / (moving - fixed) : 1;
+    for (const m of press.retime) m.key.time = Math.max(0, snap(fixed + (m.time - fixed) * factor));
+    this.app.time = t;
+  }
+
   onPointerUp(e) {
-    if (e.button !== 0 || !this.press) return;
+    if (!this.press) return;
     const app = this.app;
     const press = this.press;
+    if (press.right) {
+      this.press = null;
+      if (!press.started) {
+        // A plain right-click: select the key under it if needed, then open the curve menu.
+        const hit = this.hit(press.pos);
+        if (hit && !app.selectedKeys.has(hit.key)) app.selectedKeys = new Set([hit.key]);
+        if (app.selectedKeys.size) curveMenu(app, press.clientX, press.clientY);
+      } else if (press.retime) {
+        resortAnimation(app.currentAnimation());
+        clearRegions();
+        app.setStatus(`Retimed ${app.selectedKeys.size} key${app.selectedKeys.size === 1 ? '' : 's'}`);
+      }
+      app.changed();
+      return;
+    }
+    if (e.button !== 0) return;
     this.press = null;
     if (press.frameMode) {
       app.playing = false;
@@ -860,6 +948,7 @@ export class Dopesheet {
       selectionIsColumns = true;
       this.frameRange = { from, to };
       this.selectFrames(from, to, press.add);
+      setRegion({ f0: from, f1: to, r0: 0, r1: 0, full: true }, press.add);
       app.changed();
       return;
     }
@@ -869,23 +958,31 @@ export class Dopesheet {
         selectionIsColumns = false;
         this.frameRange = null;
         const k = press.hit.key;
+        const reg = { f0: Math.round(press.hit.time * FPS), f1: Math.round(press.hit.time * FPS), r0: rowAt(press.pos[1]), r1: rowAt(press.pos[1]), full: false };
         if (press.add) {
           const next = new Set(app.selectedKeys);
           if (next.has(k)) next.delete(k);
           else next.add(k);
           app.selectedKeys = next;
+          setRegion(reg, true);
         } else {
           app.selectedKeys = new Set([k]);
           app.time = press.hit.time;
+          setRegion(reg, false);
         }
       } else {
-        if (!press.add) app.selectedKeys = new Set();
+        if (!press.add) {
+          app.selectedKeys = new Set();
+          clearRegions();
+        }
         app.time = snap(this.xToTime(press.pos[0]));
       }
       app.playing = false;
       app.mode = Mode.Animate;
     } else if (press.move || press.retime) {
       resortAnimation(app.currentAnimation());
+      clearRegions(); // the keys moved; a copy would re-derive its band from the new positions
+      if (press.retime) retimeArmed = false; // one-shot: the armed handles switch off after a retime
       const n = app.selectedKeys.size;
       app.setStatus(`${press.move ? 'Moved' : 'Retimed'} ${n} key${n === 1 ? '' : 's'}`);
     } else if (press.box) {
@@ -899,6 +996,8 @@ export class Dopesheet {
       selectionIsColumns = false;
       this.frameRange = null;
       app.selectedKeys = next;
+      if (inside.length) setRegion({ f0: this.xToFrame(x0), f1: this.xToFrame(x1), r0: rowAt(y0), r1: rowAt(y1), full: false }, press.add);
+      else if (!press.add) clearRegions();
       app.setStatus(`${next.size} key${next.size === 1 ? '' : 's'} selected`);
     }
     app.changed();
