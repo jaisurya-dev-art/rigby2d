@@ -152,6 +152,9 @@ export class App {
     this.saved = this.baseline;
     this.docJson = this.baseline;
     this.committedVersion = 0;
+    /** Bumps on every project load (open/new/sample), so a view can drop state tied to the old
+     *  document — e.g. the timeline's armed copy. Rides the state snapshot to the detached windows. */
+    this.docEpoch = 0;
   }
 
   changed() {
@@ -192,6 +195,7 @@ export class App {
     this.multi.clear();
     this.pending.clear();
     this.selectedKeys.clear();
+    this.docEpoch++; // a new project: views drop state tied to the old document (e.g. the armed copy)
     // Per-bone onion settings belong to the document they were made for.
     this.onion.perBone.clear();
     this._onionCache = null;
@@ -753,6 +757,7 @@ export class App {
   snapshotState() {
     return {
       docJson: this.docJson,
+      docEpoch: this.docEpoch,
       anim: this.anim,
       time: this.time,
       mode: this.mode,
@@ -800,6 +805,7 @@ export class App {
     }
     // Match the other window's frame rate so the ruler and the keys line up (changed() reads this).
     if (typeof s.fps === 'number' && this.doc.settings) this.doc.settings.fps = s.fps;
+    if (typeof s.docEpoch === 'number') this.docEpoch = s.docEpoch; // a project load reached us: views reset
     if (s.anim !== undefined) this.anim = s.anim;
     if (typeof s.time === 'number') this.time = s.time;
     if (s.mode) this.mode = s.mode;

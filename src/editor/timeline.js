@@ -249,6 +249,18 @@ let retimeArmed = false; // true shows the retiming handles for one use (otherwi
 // The areas the current selection was built from, each { f0, f1, r0, r1, full } in frames/rows, so the
 // copy preview can draw one coloured band per section instead of one band across the gaps.
 let selectionRegions = [];
+// The app.docEpoch this window last reconciled to. When a project is opened/created the epoch bumps
+// (it rides the state snapshot, so a detached window sees it too) and reconcileToDocument disarms the
+// copy: its clipboard holds keys from the old project, so pasting them — or showing their preview
+// over the new one — would be wrong.
+let docEpochSeen = 0;
+
+/** Drops the armed copy and select modes when the open document was replaced (open/new/sample). */
+function reconcileToDocument(app) {
+  if (app.docEpoch === docEpochSeen) return;
+  docEpochSeen = app.docEpoch;
+  exitSelectModes();
+}
 
 /** Whether there is something to paste (drives the Paste button and menu item). */
 export function hasClipboard() {
@@ -426,6 +438,7 @@ function resolveTrackKeys(anim, track) {
 
 /** Pastes the clipboard at the playhead. Prompts when the keys would run past the animation's end. */
 export function pasteKeys(app) {
+  reconcileToDocument(app); // never paste the old project's keys if a new one was opened (e.g. in graph view)
   const anim = app.currentAnimation();
   if (!anim) {
     app.setStatus('Select an animation to paste into');
@@ -545,6 +558,7 @@ export class Dopesheet {
 
   draw() {
     const app = this.app;
+    reconcileToDocument(app); // a project just opened? drop the armed copy before anything draws it
     const anim = app.currentAnimation();
     const empty = this.scroller.parentElement.querySelector('.empty');
     empty.hidden = !!anim;
