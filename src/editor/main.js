@@ -276,7 +276,7 @@ app.viewport = viewport;
 sync = installPanelSync(app, {
   inTauri,
   appEl: $('#app'),
-  runForwardedAction: (action) => runAction(app, action, { viewport, zoomActual, deleteSelectedKeys, copySelectedKeys, pasteKeys, closeMenu }),
+  runForwardedAction: (action) => runAction(app, action, { viewport, zoomActual, deleteSelectedKeys, closeMenu }),
 });
 const dopesheet = new Dopesheet(app, $('#dopesheet'), $('#dopesheet canvas'));
 const graph = new GraphEditor(app, $('#graph'), $('#graph canvas'));

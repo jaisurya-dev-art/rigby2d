@@ -6,6 +6,12 @@
 import { REPEATING, actionFor, actionsFor, comboOf } from './keymap.js';
 import * as edit from './edit.js';
 
+// Actions that act on the focused window's own view state (the copy/paste clipboard and its
+// on-canvas preview), not on the shared document. A detached window runs these locally — so its
+// own dopesheet shows the overlay — instead of forwarding them to the editor like every other
+// shortcut. The paste's document change still ships to the editor as one undo step (panel.js).
+const LOCAL_ACTIONS = new Set(['edit.copyKeys', 'edit.pasteKeys']);
+
 /** True while the user is typing in a text field (only File shortcuts run then). */
 export const isTyping = (el) =>
   el && ((el.tagName === 'INPUT' && !el.readOnly && !['checkbox', 'radio', 'color'].includes(el.type)) || el.tagName === 'TEXTAREA');
@@ -98,8 +104,9 @@ export function installKeyboard(app, ctx) {
     e.preventDefault();
     closeMenu?.();
     // A window can forward the action instead of running it (the detached window hands every
-    // shortcut to the editor, which owns the document and the single undo history).
-    if (ctx.onAction) ctx.onAction(action);
+    // shortcut to the editor, which owns the document and the single undo history) — except the
+    // view-local copy/paste actions, which run in the focused window so its own dopesheet shows them.
+    if (ctx.onAction && !LOCAL_ACTIONS.has(action)) ctx.onAction(action);
     else runAction(app, action, ctx);
   });
 }
