@@ -135,6 +135,20 @@ export function regionPlacement(r) {
   };
 }
 
+/** The page `filter` (min, mag) for a project texture filter ('linear' or 'nearest'). */
+export function atlasFilter(textureFilter) {
+  return textureFilter === 'nearest' ? ['Nearest', 'Nearest'] : ['Linear', 'Linear'];
+}
+
+/**
+ * The project texture filter of an atlas: 'nearest' when every page samples Nearest, else 'linear'.
+ * Pages are judged by their first (min) filter, as the runtimes do. A page without a filter line is
+ * Nearest by the format's default.
+ */
+export function textureFilterOf(pages) {
+  return pages.length && pages.every((p) => p.filter?.[0]?.startsWith('Nearest')) ? 'nearest' : 'linear';
+}
+
 /** Writes pages in the current atlas format. */
 export function writeAtlas(pages) {
   const out = [];

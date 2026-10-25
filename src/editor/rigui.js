@@ -4,6 +4,7 @@
 
 import { PART_ROLES, autoRig, findParts } from '../core/autorig.js';
 import { mapBones, retarget, skeletonHeight } from '../core/retarget.js';
+import { track } from './analytics.js';
 import { Mode } from './app.js';
 import { Images } from './images.js';
 import * as io from './io.js';
@@ -82,6 +83,7 @@ export function openAutoRig(app) {
       app.frameRequest = true;
       app.changed();
       for (const w of report.warnings) log.warn(w, { source: 'autorig' });
+      track('editor-autorig');
       app.setStatus(`AutoRig: ${report.bones.length} bones, ${report.parts.filter((p) => p.mesh).length} meshes, ${report.ik.length} IK${report.warnings.length ? ` (${report.warnings.length} note${report.warnings.length === 1 ? '' : 's'} in View ▸ Log)` : ''}. Undo reverts it.`);
       close();
     } catch (e) {
@@ -214,6 +216,7 @@ export async function openRetarget(app) {
       app.mode = Mode.Animate;
       app.time = 0;
       app.changed();
+      track('editor-retarget');
       app.setStatus(`Retargeted ${reports.map((r) => r.animation).join(', ')} (scale ${reports[0].scale.toFixed(2)}). Undo reverts it.`);
       close();
     } catch (e) {

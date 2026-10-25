@@ -59,7 +59,7 @@ export class FrameRenderer {
     if (!canvas || !canvas.width) return null;
     let entry = this.textures.get(name);
     if (!entry) {
-      entry = { tex: this.renderer.createTexture(canvas), trim: [0, 0, 1, 1], map: identity };
+      entry = { tex: this.renderer.createTexture(canvas, { linear: this.doc.textureFilter !== 'nearest' }), trim: [0, 0, 1, 1], map: identity };
       this.textures.set(name, entry);
     }
     return entry;

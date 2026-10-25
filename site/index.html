@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Rigby2D: open-source 2D skeletal animation</title>
+    <meta name="description" content="Rig layered art in one step, animate for games and film, and play it anywhere. Free and open source, with a built-in MCP server for AI assistants." />
+    <meta name="theme-color" content="#0a0a0b" />
+    <meta property="og:title" content="Rigby2D: open-source 2D skeletal animation" />
+    <meta property="og:description" content="Rig layered art in one step, animate for games and film, and play it anywhere. Free and open source." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://jaisurya-dev-art.github.io/rigby2d/" />
+    <meta property="og:image" content="https://jaisurya-dev-art.github.io/rigby2d/og.jpg" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="icon" type="image/svg+xml" href="../branding/rigby2d-icon-dark.svg" />
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+    <header class="nav">
+      <div class="wrap nav-row">
+        <a class="brand" href="./" aria-label="Rigby2D home">
+          <img src="../branding/rigby2d-mark.svg" alt="" width="28" height="28" />
+          <span>Rigby<b>2D</b></span>
+        </a>
+        <nav aria-label="Sections">
+          <a href="#features">Features</a>
+          <a href="#ai">AI</a>
+          <a href="#runtimes">Runtimes</a>
+          <a href="#download">Download</a>
+          <a href="https://github.com/jaisurya-dev-art/rigby2d" rel="noopener" data-goatcounter-click="site-github-nav">GitHub</a>
+        </nav>
+        <a class="btn small primary" href="./editor/" data-goatcounter-click="site-open-editor-nav">Open editor</a>
+      </div>
+    </header>
+
+    <main id="main">
+      <section class="hero">
+        <div class="wrap hero-grid">
+          <div class="hero-copy">
+            <p class="eyebrow">Open source · <span data-version>early alpha</span></p>
+            <h1>2D skeletal animation, <span class="accent">from layered art to any engine.</span></h1>
+            <p class="lede">
+              Rig a layered PSD in one step, animate it for games and film, and play it anywhere with the
+              included runtimes. AI assistants can inspect, rig and animate your projects through the
+              built-in MCP server.
+            </p>
+            <div class="cta">
+              <a class="btn primary" href="./editor/" data-goatcounter-click="site-open-editor-hero">Open the editor in your browser</a>
+              <a class="btn" href="https://github.com/jaisurya-dev-art/rigby2d/releases/latest/download/Rigby2D_x64_portable.exe" data-goatcounter-click="site-download-portable-hero">Download for Windows</a>
+            </div>
+            <p class="fine">Free · MIT or Apache-2.0 · No account, no install for the browser editor</p>
+          </div>
+
+          <figure class="stage" aria-label="Rigbytron, the Rigby2D mascot, animated live">
+            <canvas id="hero" aria-hidden="true"></canvas>
+            <img class="stage-fallback" src="../docs/screenshot.jpg" alt="The Rigby2D editor with the Rigbytron demo" hidden />
+            <figcaption>
+              <div class="stage-controls" role="group" aria-label="Animation">
+                <button type="button" data-anim="hold" aria-pressed="false">hold</button>
+                <button type="button" data-anim="release" aria-pressed="false">release</button>
+                <button type="button" data-anim="both" aria-pressed="true">both</button>
+              </div>
+              <span class="live"><i></i>Live: the Rigby2D runtime, in your browser <span data-cost></span></span>
+            </figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <section class="strip" aria-label="At a glance">
+        <div class="wrap strip-row">
+          <div><b>1 step</b><span>from layered PSD to an editable rig</span></div>
+          <div><b>3 runtimes</b><span>JavaScript, Rust and Godot 4</span></div>
+          <div><b>Lossless</b><span>skeleton JSON 3.8 / 4.2 / 4.3 and .skel</span></div>
+          <div><b>MCP built in</b><span>AI assistants work on real projects</span></div>
+        </div>
+      </section>
+
+      <section id="features" class="section">
+        <div class="wrap">
+          <h2>Everything from rig to render</h2>
+          <p class="section-lede">One editor for game characters and animated film, with the tools that usually take three apps.</p>
+          <div class="cards">
+            <article class="card">
+              <h3>AutoRig</h3>
+              <p>Import a layered PSD and get an editable rig: body parts found from the layer names, joints where parts meet, weighted meshes for bending parts and IK for arms and legs.</p>
+            </article>
+            <article class="card">
+              <h3>Retargeting</h3>
+              <p>Animate once, reuse on other characters. Bones are matched automatically (<code>L_UpperArm</code> finds <code>upperarm_l</code>) and movement is scaled to each character's size.</p>
+            </article>
+            <article class="card">
+              <h3>Full rigging toolset</h3>
+              <p>Bones, weighted meshes, linked meshes, image sequences, skins, events, clipping and paths, with IK, transform, path, physics and slider constraints.</p>
+            </article>
+            <article class="card">
+              <h3>Animate with confidence</h3>
+              <p>Setup and Animate modes, dopesheet and graph editor with Bézier handles, onion skinning, a pose library and face controls that blend between poses.</p>
+            </article>
+            <article class="card">
+              <h3>Film workspace</h3>
+              <p>Render transparent PNG sequences, WebM with alpha and MP4 at 4K, with timecode, an animatable camera, audio tracks and loudness-driven lip-sync.</p>
+            </article>
+            <article class="card">
+              <h3>Python scripting</h3>
+              <p>Python 3 is built in. Write scripts against the open project and turn them into tools in the Scripts menu. Each run is one undo step; failures leave the project untouched.</p>
+            </article>
+            <article class="card">
+              <h3>Made for your setup</h3>
+              <p>Pop the Timeline, Tree and Inspector out onto a second monitor and recall saved window layouts with a shortcut. Pixel-art projects stay sharp end to end.</p>
+            </article>
+            <article class="card">
+              <h3>Learn by doing</h3>
+              <p>Interactive lessons with a practice character take you from a drawing to a moving character, right inside the editor.</p>
+            </article>
+          </div>
+
+          <div class="showcase">
+            <a class="video" href="https://www.youtube.com/watch?v=KK3WT9YzhAE" rel="noopener" data-goatcounter-click="site-watch-video">
+              <img src="../docs/video-preview.jpg" alt="Watch the 75-second Rigby2D overview on YouTube" loading="lazy" width="800" />
+              <span class="play" aria-hidden="true"></span>
+              <span class="video-label">Watch the 75-second overview</span>
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <section id="ai" class="section alt">
+        <div class="wrap split">
+          <div>
+            <p class="eyebrow">Built for AI assistants</p>
+            <h2>Your assistant works on the project, not just about it</h2>
+            <p>
+              Rigby2D ships a <a href="https://modelcontextprotocol.io" rel="noopener">Model Context Protocol</a> server. Any MCP-capable AI
+              assistant can read rigs, evaluate poses with the real runtime, find export problems, add bones and eased keys, AutoRig a
+              PSD, retarget animations, lip-sync dialogue and run Python, all inside the folders you allow.
+            </p>
+            <ul class="ticks">
+              <li>Edits save in the file's own format</li>
+              <li>Many edits apply as one atomic batch</li>
+              <li>One-file install, or one command from source</li>
+            </ul>
+            <a class="btn" href="https://github.com/jaisurya-dev-art/rigby2d/blob/develop/docs/mcp.md" rel="noopener">MCP guide</a>
+          </div>
+          <div class="chat" aria-label="Example requests">
+            <p class="bubble">Which images are missing from <code>hero.skel</code>?</p>
+            <p class="bubble">Add a 1-second wave animation to <code>rigbytron.rigby</code> that raises the right arm and fires a <code>hi</code> event at the end.</p>
+            <p class="bubble">Add <code>line.wav</code> to the talk animation and lip-sync the mouth control to it.</p>
+            <p class="bubble">AutoRig <code>character.psd</code>.</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="runtimes" class="section">
+        <div class="wrap split">
+          <div>
+            <p class="eyebrow">Play it anywhere</p>
+            <h2>Small, fast runtimes</h2>
+            <p>
+              A dependency-free JavaScript runtime with a reference WebGL renderer, and a Rust port that matches it frame by frame,
+              3 to 4× faster, powering the Godot 4 node <code>RigbySkeleton2D</code>. Unity is next.
+            </p>
+            <p>The animation at the top of this page is that JavaScript runtime, drawing Rigbytron live.</p>
+            <a class="btn" href="https://github.com/jaisurya-dev-art/rigby2d/tree/develop/runtimes" rel="noopener">Runtimes</a>
+          </div>
+          <pre class="code" aria-label="JavaScript runtime example"><code><span class="k">const</span> skeleton = Skeleton.fromJson(json);
+<span class="k">const</span> pose = <span class="k">new</span> Pose(skeleton);
+<span class="k">const</span> state = <span class="k">new</span> AnimationState();
+state.play(skeleton, <span class="s">'walk'</span>, <span class="k">true</span>, <span class="n">0.2</span>);
+
+<span class="c">// every frame:</span>
+state.update(skeleton, <span class="n">1</span> / <span class="n">60</span>);
+state.apply(skeleton, pose);
+<span class="k">for</span> (<span class="k">const</span> quad <span class="k">of</span> pose.quads(skeleton)) {
+  <span class="c">// draw quad.positions with quad.uvs</span>
+}</code></pre>
+        </div>
+      </section>
+
+      <section id="download" class="section alt">
+        <div class="wrap">
+          <h2>Get Rigby2D</h2>
+          <p class="section-lede">Latest release: <a data-release href="https://github.com/jaisurya-dev-art/rigby2d/releases/latest">see all files</a></p>
+          <div class="downloads">
+            <a class="dl" href="./editor/" data-goatcounter-click="site-open-editor-downloads">
+              <b>Browser editor</b>
+              <span>Runs right here. Open and save files through your browser.</span>
+            </a>
+            <a class="dl" href="https://github.com/jaisurya-dev-art/rigby2d/releases/latest/download/Rigby2D_x64_portable.exe" data-goatcounter-click="site-download-portable">
+              <b>Windows, portable</b>
+              <span>One .exe, no install. Needs WebView2 (included in Windows 10 and 11).</span>
+            </a>
+            <a class="dl" href="https://github.com/jaisurya-dev-art/rigby2d/releases/latest" data-goatcounter-click="site-download-installer">
+              <b>Windows installer</b>
+              <span>MSI or setup .exe, on the Releases page.</span>
+            </a>
+            <a class="dl" href="https://github.com/jaisurya-dev-art/rigby2d/releases/latest/download/Rigby2D-AI.mcpb" data-goatcounter-click="site-download-ai-extension">
+              <b>AI extension</b>
+              <span>The MCP server as a one-file .mcpb install.</span>
+            </a>
+            <a class="dl" href="https://github.com/jaisurya-dev-art/rigby2d/blob/develop/runtimes/godot/addons/rigby2d/README.md" data-goatcounter-click="site-godot-runtime">
+              <b>Godot runtime</b>
+              <span>Addon and demo for Godot 4.3+, on the Releases page.</span>
+            </a>
+            <a class="dl" href="https://github.com/jaisurya-dev-art/rigby2d#getting-started" data-goatcounter-click="site-build-from-source">
+              <b>Build from source</b>
+              <span>Windows, macOS and Linux with Node.js 20+ and Tauri.</span>
+            </a>
+          </div>
+          <p class="fine">Downloads are not code-signed yet. Each release lists SHA-256 checksums; compare them before running anything.</p>
+        </div>
+      </section>
+    </main>
+
+    <footer class="foot">
+      <div class="wrap foot-row">
+        <img src="../branding/rigby2d-lockup-transparent.svg" alt="Rigby2D by Hoverlabs" width="176" height="66" />
+        <p>
+          Source code licensed MIT OR Apache-2.0. The Rigby2D, Hoverlabs and Rigbytron names, logos and artwork are trademarks of
+          Hoverlabs; see <a href="https://github.com/jaisurya-dev-art/rigby2d/blob/develop/TRADEMARKS.md" rel="noopener">TRADEMARKS.md</a>.
+          Visits are counted anonymously with <a href="https://www.goatcounter.com" rel="noopener">GoatCounter</a>: no cookies, no personal data.
+        </p>
+        <nav aria-label="Project links">
+          <a href="https://github.com/jaisurya-dev-art/rigby2d" rel="noopener">GitHub</a>
+          <a href="https://github.com/jaisurya-dev-art/rigby2d/issues" rel="noopener">Issues</a>
+          <a href="https://github.com/jaisurya-dev-art/rigby2d/blob/develop/CONTRIBUTING.md" rel="noopener">Contributing</a>
+        </nav>
+      </div>
+    </footer>
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>

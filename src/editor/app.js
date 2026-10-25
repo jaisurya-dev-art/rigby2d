@@ -13,10 +13,15 @@ import * as platform from './platform.js';
 import * as sample from './sample.js';
 import { addSound, sounds, stopAudio } from './audio.js';
 import { WORKSPACES, workspace as workspaceDef } from './workspaces.js';
+import * as onion from './onion.js';
+import { track } from './analytics.js';
 import demoUrl from '../../branding/rigbytron/rigbytron.rigby?url&no-inline';
 
 /** The bundled demo project: Rigbytron, the Rigby2D mascot. */
 const DEMO_FILE = 'rigbytron.rigby';
+
+/** Default onion-skin tint colors (future = cool, past = warm), shared with the UI. */
+export const ONION_DEFAULTS = { futureColor: [0.55, 0.75, 1], pastColor: [1, 0.55, 0.55] };
 
 /**
  * Frame rate of the open project (its output settings). A live binding: modules importing it see
@@ -112,6 +117,28 @@ export class App {
     this.showBones = true;
     /** Shows the output frame (resolution and framing) in the viewport. */
     this.showFrame = false;
+    /**
+     * Onion skinning: ghost poses of nearby frames drawn behind the current one. `future` / `past`
+     * are the default frame counts and the colors tint them. `perBone` (bone name -> partial
+     * override) limits the ghosts to those bones and their descendants; empty = the whole skeleton.
+     * It is keyed by name, not index: indices shift when bones are deleted or reparented and when
+     * undo rebuilds the document, names do not. Read and write it through onionOverride /
+     * setOnionOverride / onionOverrideCount. Disabled costs one `if` per frame.
+     */
+    this.onion = {
+      enabled: false,
+      showFuture: true,
+      showPast: true,
+      future: 3,
+      past: 3,
+      loop: true,
+      pastColor: [...ONION_DEFAULTS.pastColor],
+      futureColor: [...ONION_DEFAULTS.futureColor],
+      /** bone name -> { future?, past?, showFuture?, showPast?, futureColor?, pastColor? }. */
+      perBone: new Map(),
+    };
+    /** Playback speed multiplier (1 = real time). */
+    this.playSpeed = 1;
     /** Viewport drawing: 'webgl' (default when available) or 'canvas'. */
     this.renderer = loadSetting('rigby.renderer', 'webgl');
     this.frameRequest = false;
@@ -165,6 +192,9 @@ export class App {
     this.multi.clear();
     this.pending.clear();
     this.selectedKeys.clear();
+    // Per-bone onion settings belong to the document they were made for.
+    this.onion.perBone.clear();
+    this._onionCache = null;
     this.time = 0;
     this.playing = false;
     this.history = { undo: [], redo: [] };
@@ -202,6 +232,104 @@ export class App {
       }
       pose.updateWorld(this.doc);
     }
+    return pose;
+  }
+
+  /** A bone's own onion override (by bone index), or undefined. */
+  onionOverride(bone) {
+    return onion.onionOverride(this.doc, this.onion, bone);
+  }
+
+  /** Sets a bone's own onion override (by bone index), or removes it when `entry` is null. */
+  setOnionOverride(bone, entry) {
+    onion.setOnionOverride(this.doc, this.onion, bone, entry);
+  }
+
+  /** How many bones of this document have their own onion settings (see onion.js). */
+  onionOverrideCount() {
+    return onion.onionOverrideCount(this.doc, this.onion);
+  }
+
+  /** The onion settings in effect for a bone, or null when it is not ghosted (see onion.js). */
+  onionFor(bone, overrides) {
+    return onion.onionFor(this.doc, this.onion, bone, overrides);
+  }
+
+  /** True when any bone is currently showing onion ghosts (for the "predictions active" notice). */
+  onionActive() {
+    const o = this.onion;
+    if (!o.enabled || this.mode !== Mode.Animate || !this.currentAnimation()) return false;
+    if (this.onionOverrideCount() === 0) return (o.showFuture && o.future > 0) || (o.showPast && o.past > 0);
+    return true;
+  }
+
+  /**
+   * Draw instructions for onion skinning: an array of { pose, tint, skip } to draw behind the
+   * current pose, nearest frames brightest, grouped so each bone gets its own frame count and
+   * color. Returns [] when disabled or not animating. Cached while the time and config hold.
+   */
+  onionDraws() {
+    const o = this.onion;
+    if (!o.enabled || this.mode !== Mode.Animate) return [];
+    const anim = this.currentAnimation();
+    if (!anim) return [];
+    const bones = this.doc.bones;
+    // Resolve each bone's effective settings once.
+    const overrides = this.onionOverrideCount();
+    const cfg = bones.map((_, b) => this.onionFor(b, overrides));
+    let maxPast = 0;
+    let maxFuture = 0;
+    for (const c of cfg) {
+      if (!c) continue;
+      maxPast = Math.max(maxPast, c.past);
+      maxFuture = Math.max(maxFuture, c.future);
+    }
+    if (maxPast === 0 && maxFuture === 0) return [];
+    const key = [this.version, this.timeVersion, this.time, overrides, maxPast, maxFuture, JSON.stringify([...o.perBone]), o.pastColor.join(','), o.futureColor.join(',')].join('|');
+    if (this._onionCache?.key === key) return this._onionCache.draws;
+
+    const draws = [];
+    const dur = anim.duration;
+    const dt = 1 / FPS;
+    // One distance in one direction: the ghosted bones at that distance, grouped by color, each
+    // group drawn as one skeleton masked to its bones. Nearer frames are brighter.
+    const addDistance = (dir, d) => {
+      const maxN = dir > 0 ? maxFuture : maxPast;
+      const groups = new Map();
+      bones.forEach((_, b) => {
+        const c = cfg[b];
+        if (!c || (dir > 0 ? c.future : c.past) < d) return;
+        const color = dir > 0 ? c.futureColor : c.pastColor;
+        const ckey = color.join(',');
+        if (!groups.has(ckey)) groups.set(ckey, { color, bones: new Set() });
+        groups.get(ckey).bones.add(b);
+      });
+      if (!groups.size) return;
+      const pose = this.ghostPose(anim, this.time + dir * d * dt, dur, o.loop);
+      if (!pose) return;
+      const alpha = 0.5 * (1 - (d - 1) / Math.max(1, maxN));
+      for (const g of groups.values()) {
+        const skip = overrides === 0 ? null : (slot) => !g.bones.has(this.doc.slots[slot]?.bone);
+        draws.push({ pose, tint: [g.color[0], g.color[1], g.color[2], alpha], skip });
+      }
+    };
+    // Farthest first so nearer (brighter) ghosts land on top; past then future at each distance.
+    for (let d = Math.max(maxPast, maxFuture); d >= 1; d--) {
+      if (d <= maxPast) addDistance(-1, d);
+      if (d <= maxFuture) addDistance(1, d);
+    }
+    this._onionCache = { key, draws };
+    return draws;
+  }
+
+  /** A posed skeleton at time `t` (looping or clamped), or null when outside a non-looping clip. */
+  ghostPose(anim, t, dur, loop) {
+    let tt = t;
+    if (dur > 0 && loop) tt = remEuclid(t, dur);
+    else if (t < 0 || (dur > 0 && t > dur)) return null;
+    const pose = new Pose(this.doc);
+    pose.apply(this.doc, anim, tt, 1);
+    pose.updateWorld(this.doc);
     return pose;
   }
 
@@ -267,7 +395,9 @@ export class App {
   }
 
   restore(json) {
+    const before = this.doc;
     this.doc = Skeleton.fromObject(JSON.parse(json));
+    onion.followBoneRenames(this.onion, before, this.doc);
     FPS = this.doc.settings?.fps ?? 30;
     this.docJson = this.baseline = json;
     this.selectedKeys.clear();
@@ -291,8 +421,12 @@ export class App {
 
   /** Records an undo step once an edit gesture has finished (`busy` while dragging or typing). */
   commitHistory(busy) {
-    // Playback only moves the time; it never edits the document, so skip the snapshot.
-    if (busy || this.playing || this.committedVersion === this.version) return;
+    // Commit only when the document changed since the last commit and no gesture is in flight. We do
+    // NOT skip this while playing: playback alone never bumps `version` (advancePlayback calls
+    // changed() only when stopped), but an edit made while the timeline runs does — and it must still
+    // settle into docJson so dirty() shows the `*` and undo records it. (A former `this.playing`
+    // guard here dropped edits made during playback until you stopped.)
+    if (busy || this.committedVersion === this.version) return;
     this.committedVersion = this.version;
     this.syncJson();
     if (this.docJson !== this.baseline) {
@@ -316,6 +450,7 @@ export class App {
       this.loadDocument(doc, imported ? null : path);
       this.saveTarget = !imported && fs.reusable ? { path, fs } : null;
       const what = imported ? 'Imported' : 'Opened';
+      track(imported ? 'editor-import-skeleton' : 'editor-open');
       this.setStatus(warnings.length ? `${what} with warnings: ${warnings.join('; ')}` : `${what} ${path}`);
     } catch (e) {
       this.setStatus(`Could not open ${path}: ${errorText(e)}`);
@@ -410,6 +545,7 @@ export class App {
       this.syncJson();
       this.baseline = this.saved = this.docJson;
       const note = warnings.length ? ` (warnings: ${warnings.join('; ')})` : '';
+      track('editor-save');
       this.setStatus(`Saved ${target.path}${note}`);
     } catch (e) {
       this.setStatus(`Save failed: ${errorText(e)}`);
@@ -424,6 +560,7 @@ export class App {
       const { atlasPath, warnings } = await io.exportSkeletonJson(target.path, target.fs, this.doc, this.images, version);
       await target.fs.finish();
       const note = warnings.length ? ` (warnings: ${warnings.join('; ')})` : '';
+      track('editor-export-json');
       this.setStatus(`Exported skeleton JSON ${version}: ${target.path} and ${atlasPath}${note}`);
     } catch (e) {
       this.setStatus(`Skeleton JSON export failed: ${errorText(e)}`);
@@ -438,6 +575,7 @@ export class App {
       const { atlasPath, warnings } = await io.exportSkeletonBinary(target.path, target.fs, this.doc, this.images);
       await target.fs.finish();
       const note = warnings.length ? ` (warnings: ${warnings.join('; ')})` : '';
+      track('editor-export-skel');
       this.setStatus(`Exported ${target.path} and ${atlasPath}${note}`);
     } catch (e) {
       this.setStatus(`Binary export failed: ${errorText(e)}`);
@@ -450,6 +588,7 @@ export class App {
     try {
       const n = await io.importPsd(file, this.doc, this.images);
       this.frameRequest = true;
+      track('editor-import-psd');
       this.setStatus(`Imported ${n} layers from ${file.name}`);
     } catch (e) {
       this.setStatus(`PSD import failed: ${errorText(e)}`);
@@ -577,8 +716,9 @@ export class App {
       return;
     }
     const before = this.time;
-    this.physicsDelta += Math.min(dt, 0.1);
-    this.time += Math.min(dt, 0.1) * this.playDirection;
+    const step = Math.min(dt, 0.1) * (this.playSpeed || 1);
+    this.physicsDelta += step;
+    this.time += step * this.playDirection;
     let wrapped = false;
     if (this.time > anim.duration || this.time < 0) {
       if (this.looping && anim.duration > 0) {
@@ -600,6 +740,82 @@ export class App {
     // not rebuilt (rebuilding them every frame made the editor lag while playing).
     this.timeVersion++;
     if (!this.playing) this.changed();
+  }
+
+  /**
+   * The editor state shared with the detached panel windows: the document plus what every window
+   * must agree on. This is the single source of what crosses windows — the sync layer derives the
+   * change signature and the message payload from it, so adding a field here (and reading it back in
+   * applyStateSnapshot) shares it everywhere, with nothing else to wire. Status and viewport stay
+   * local to each window; viewport-coupled modes (meshEdit/shapeEdit) are shared so a panel can enter
+   * them on the authority, whose viewport then responds.
+   */
+  snapshotState() {
+    return {
+      docJson: this.docJson,
+      anim: this.anim,
+      time: this.time,
+      mode: this.mode,
+      timelineView: this.timelineView,
+      autoKey: this.autoKey,
+      playing: this.playing,
+      fps: FPS,
+      sel: this.sel,
+      multi: [...this.multi],
+      meshEdit: this.meshEdit,
+      shapeEdit: this.shapeEdit,
+    };
+  }
+
+  /**
+   * Adopts a snapshot from the other window. `opts.undo` records one undo step for an adopted
+   * document edit (the editor window, which owns the single history, passes it). The dopesheet key
+   * selection is not here (it is addressed by index at the sync boundary); bone selection is.
+   */
+  applyStateSnapshot(s, opts = {}) {
+    // What forces a full panel rebuild (vs. just a time-dependent redraw during playback).
+    const struct = () => `${this.anim}|${this.mode}|${this.timelineView}|${this.autoKey}|${this.playing}|${JSON.stringify(this.sel)}|${[...this.multi]}|${JSON.stringify(this.meshEdit)}|${JSON.stringify(this.shapeEdit)}`;
+    const before = struct();
+    let docChanged = false;
+    if (s.docJson && s.docJson !== this.docJson) {
+      docChanged = true;
+      if (opts.undo) {
+        this.syncJson();
+        this.history.undo.push(this.docJson);
+        if (this.history.undo.length > 200) this.history.undo.shift();
+        this.history.redo = [];
+      }
+      const prev = this.doc;
+      this.doc = Skeleton.fromObject(JSON.parse(s.docJson));
+      onion.followBoneRenames(this.onion, prev, this.doc);
+      // Keep our own canonical snapshot so the sync below is not mistaken for a fresh edit.
+      // Like restore() (undo/redo), this does NOT touch `saved`: adopting an edit from another
+      // window is a real change, so the editor (the authority) stays dirty until the user saves —
+      // the title keeps its * and New/Open still warn. `saved` means "what is on disk", and only
+      // new/open/save write it. Mirror windows never read dirty()/save, so their stale `saved` is
+      // harmless.
+      const canon = this.doc.toSnapshot();
+      this.docJson = this.baseline = canon;
+      this.selectedKeys.clear();
+    }
+    // Match the other window's frame rate so the ruler and the keys line up (changed() reads this).
+    if (typeof s.fps === 'number' && this.doc.settings) this.doc.settings.fps = s.fps;
+    if (s.anim !== undefined) this.anim = s.anim;
+    if (typeof s.time === 'number') this.time = s.time;
+    if (s.mode) this.mode = s.mode;
+    if (s.timelineView) this.timelineView = s.timelineView;
+    if (typeof s.autoKey === 'boolean') this.autoKey = s.autoKey;
+    if (typeof s.playing === 'boolean') this.playing = s.playing;
+    if ('sel' in s) this.sel = s.sel;
+    if (s.multi) this.multi = new Set(s.multi);
+    if ('meshEdit' in s) this.meshEdit = s.meshEdit;
+    if ('shapeEdit' in s) this.shapeEdit = s.shapeEdit;
+    this.sanitize();
+    // Only the time moved (playback): bump timeVersion so heavy panels are not rebuilt every frame.
+    if (docChanged || before !== struct()) this.changed();
+    else this.timeVersion++;
+    // This state came from the other window: mark it committed so it is not pushed straight back.
+    this.committedVersion = this.version;
   }
 
   title() {

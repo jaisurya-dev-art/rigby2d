@@ -194,6 +194,7 @@ function summary(p) {
     version: p.version,
     name: doc.name,
     workspace: doc.workspace ?? (p.format === 'rigby' ? 'default' : 'game'),
+    ...(doc.textureFilter !== 'linear' ? { textureFilter: doc.textureFilter } : {}),
     counts: {
       bones: doc.bones.length,
       slots: doc.slots.length,
@@ -326,6 +327,7 @@ function roundTripData(doc) {
   delete o.controllers;
   delete o.workspace;
   delete o.audio;
+  delete o.textureFilter;
   return normalize(o);
 }
 

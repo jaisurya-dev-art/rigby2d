@@ -7,7 +7,8 @@ import { getCurrentWindow } from '@tauri-apps/api/window';
 
 import './style.css';
 import { App, Mode, saveSetting } from './app.js';
-import { ACTIONS, PRESETS, REPEATING, actionFor, actionsFor, comboOf, shortcutLabel } from './keymap.js';
+import { ACTIONS, PRESETS, shortcutLabel } from './keymap.js';
+import { installKeyboard, isTyping, runAction } from './keys.js';
 import { openRenderDialog } from './renderui.js';
 import { openAutoRig, openRetarget } from './rigui.js';
 import { startAudio, stopAudio } from './audio.js';
@@ -25,6 +26,12 @@ import { toggleLogWindow, windowOpen as logOpen } from './logwindow.js';
 import { Scripts } from './scripting/scriptui.js';
 import { createTutorials } from './tutorials/index.js';
 import { openAiConnect } from './aiconnect.js';
+import { installPanelSync } from './panelsync.js';
+import { windowLayoutsMenuItem } from './layoutui.js';
+import { startAnalytics } from './analytics.js';
+
+// Anonymous visit and feature counts, only on the public website's browser editor (analytics.js).
+startAnalytics();
 
 const app = new App();
 // Errors anywhere in the editor, and status messages, go to the log (View ▸ Log).
@@ -32,6 +39,10 @@ log.installCapture(app);
 const scripts = new Scripts(app);
 const inTauri = '__TAURI_INTERNALS__' in window;
 const $ = (sel) => document.querySelector(sel);
+
+// Detaching panels into their own OS windows, syncing them and the saved window layouts all live
+// in panelsync.js (it was growing here). `sync` is created once the viewport exists (below).
+let sync = null;
 
 // ---- menu bar ---------------------------------------------------------------------------------
 
@@ -115,6 +126,8 @@ function menus() {
         ' Show output frame',
       ),
       { label: logOpen() ? 'Hide log' : 'Log', action: () => toggleLogWindow() },
+      // Save and recall where the detached panels sit (desktop only; panels pop out only there).
+      ...(inTauri && sync ? [windowLayoutsMenuItem({ app, sync })] : []),
       'separator',
       { label: 'Fit the skeleton in view', shortcut: sc('view.fit'), action: () => (app.frameRequest = true) },
       { label: 'Zoom to 100%', shortcut: sc('view.actual'), action: () => zoomActual() },
@@ -189,13 +202,32 @@ function buildMenuBar() {
     return btn;
   });
   const mode = h('button', { class: 'mode', 'data-tut': 'mode', onclick: () => app.toggleMode() });
+  // Notice that onion-skin predictions are on, with a menu to turn them off (hidden otherwise).
+  const onionNotice = h(
+    'button',
+    {
+      class: 'onion-notice',
+      hidden: true,
+      title: 'Onion-skin predictions are visible in the viewport — click for options',
+      onclick: (e) => {
+        const r = e.target.getBoundingClientRect();
+        popupMenu(r.left, r.bottom, [
+          { label: 'Turn off all predictions', action: () => { app.onion.enabled = false; app.changed(); } },
+          app.onionOverrideCount() ? { label: `Clear per-bone settings (${app.onionOverrideCount()})`, action: () => { app.onion.perBone.clear(); app.changed(); } } : null,
+        ].filter(Boolean));
+      },
+    },
+    '◉ Onion skin on',
+  );
   // Workspace switcher: which tools the editor shows for this project.
   const tabs = Object.values(WORKSPACES).map((ws) => h('button', { class: 'workspace-tab', 'data-tut': `workspace:${ws.id}`, title: ws.description, onclick: () => app.workspace !== ws.id && app.setWorkspace(ws.id) }, ws.label));
   const switcher = h('div', { class: 'workspaces', 'data-tut': 'workspaces', role: 'tablist', title: 'Workspace' }, tabs);
-  bar.replaceChildren(...titles, h('span', { class: 'vsep' }), mode, h('span', { class: 'spacer' }), switcher);
+  bar.replaceChildren(...titles, h('span', { class: 'vsep' }), mode, onionNotice, h('span', { class: 'spacer' }), switcher);
   // Called every frame: touch the DOM only when something shown changed.
   let shown = '';
   return () => {
+    // The notice follows the live onion state, independent of the cached menubar state below.
+    onionNotice.hidden = !app.onionActive();
     const state = `${app.mode}|${app.workspace}|${app.keymap}`;
     if (state === shown) return;
     shown = state;
@@ -208,91 +240,6 @@ function buildMenuBar() {
     });
   };
 }
-
-// ---- keyboard ---------------------------------------------------------------------------------
-
-const isTyping = (el) =>
-  el && ((el.tagName === 'INPUT' && !el.readOnly && !['checkbox', 'radio', 'color'].includes(el.type)) || el.tagName === 'TEXTAREA');
-
-/** Runs a keymap action. */
-function run(action) {
-  const setTool = (tool) => () => {
-    app.tool = tool;
-    app.changed();
-  };
-  const handlers = {
-    'tool.pose': setTool('pose'),
-    'tool.create': setTool('create'),
-    'tool.rotate': setTool('rotate'),
-    'tool.translate': setTool('translate'),
-    'tool.scale': setTool('scale'),
-    'tool.shear': setTool('shear'),
-    'mode.toggle': () => app.toggleMode(),
-    'play.forward': () => app.togglePlay(1),
-    'play.backward': () => app.togglePlay(-1),
-    'time.start': () => app.setTime(0),
-    'time.end': () => app.jumpToEnd(),
-    'key.next': () => app.stepKey(1),
-    'key.previous': () => app.stepKey(-1),
-    'frame.next': () => app.stepFrame(1),
-    'frame.previous': () => app.stepFrame(-1),
-    'frame.next10': () => app.stepFrame(10),
-    'frame.previous10': () => app.stepFrame(-10),
-    'loop.toggle': () => {
-      app.looping = !app.looping;
-      app.setStatus(`Looping ${app.looping ? 'on' : 'off'}`);
-    },
-    'key.changed': () => edit.keyChanged(app),
-    'key.tool': () => edit.keyTool(app),
-    'key.transforms': () => edit.keySelection(app),
-    'key.shown': () => edit.keyShown(app),
-    'autokey.toggle': () => {
-      app.autoKey = !app.autoKey;
-      app.changed();
-    },
-    'select.none': () => app.deselect(),
-    'view.fit': () => (app.frameRequest = true),
-    'view.actual': () => zoomActual(),
-    'edit.copyKeys': () => copySelectedKeys(app),
-    'edit.pasteKeys': () => pasteKeys(app),
-    'edit.delete': () => {
-      if (viewport.meshTool.deleteSelected() || viewport.shapeTool.deleteSelected()) return;
-      if (app.selectedKeys.size) deleteSelectedKeys(app);
-      else edit.deleteSelection(app);
-    },
-    'edit.undo': () => app.undo(),
-    'edit.redo': () => app.redo(),
-    'file.open': () => app.openDialog(),
-    'file.save': () => app.save(false),
-    'file.saveAs': () => app.save(true),
-    'file.export': () => app.exportSkeletonJson(app.saveVersion()),
-    'menu.close': () => closeMenu(),
-  };
-  handlers[action]?.();
-}
-
-window.addEventListener('keydown', (e) => {
-  const combo = comboOf(e);
-  if (!combo) return;
-  let action = actionFor(app.keymap, combo);
-  if (!action) return;
-  const typing = isTyping(e.target);
-  // While typing, only file shortcuts work (text fields keep their own undo, delete, etc.).
-  if (typing && !action.startsWith('file.')) return;
-  if (e.target.tagName === 'SELECT' && !['mode.toggle', 'menu.close'].includes(action) && !action.startsWith('file.')) return;
-  // A key bound to "close menus" closes an open menu; otherwise it runs its other action (deselect).
-  if (action === 'menu.close') {
-    e.preventDefault();
-    if (isMenuOpen()) return closeMenu();
-    exitSelectModes(); // Escape cancels an armed copy and leaves Frames/Multi, then falls through to deselect
-    action = actionsFor(app.keymap, combo).find((a) => a !== 'menu.close');
-    if (!action) return;
-  }
-  if (e.repeat && !REPEATING.has(action)) return;
-  e.preventDefault();
-  closeMenu();
-  run(action);
-});
 
 // ---- panel splitters --------------------------------------------------------------------------
 
@@ -324,8 +271,16 @@ splitter($('#split-bottom'), '--bottom', 'y', -1, 120);
 
 const viewport = new Viewport(app, $('#viewport'), $('#viewport-gl'));
 app.viewport = viewport;
+// Panel detaching / sync / window layouts, now that the viewport exists (shortcuts forwarded from a
+// detached window run against the authoritative editor App, which owns the undo history).
+sync = installPanelSync(app, {
+  inTauri,
+  appEl: $('#app'),
+  runForwardedAction: (action) => runAction(app, action, { viewport, zoomActual, deleteSelectedKeys, copySelectedKeys, pasteKeys, closeMenu }),
+});
 const dopesheet = new Dopesheet(app, $('#dopesheet'), $('#dopesheet canvas'));
 const graph = new GraphEditor(app, $('#graph'), $('#graph canvas'));
+installKeyboard(app, { viewport, zoomActual, deleteSelectedKeys, copySelectedKeys, pasteKeys, exitSelectModes, closeMenu, isMenuOpen });
 const renderMenuBar = buildMenuBar();
 const tutorials = createTutorials(app, viewport, { refresh: () => renderNow() });
 
@@ -433,6 +388,7 @@ function frame(now) {
     document.title = title;
     if (inTauri) getCurrentWindow().setTitle(title).catch(() => {});
   }
+  sync.syncPanels();
   requestAnimationFrame(frame);
 }
 
@@ -452,3 +408,9 @@ if (import.meta.env.DEV) window.rigby = { app, memoryFs, dopesheet, graph, viewp
 if (scripts.library.length) setTimeout(() => scripts.loadAll({ quiet: true }), 1500);
 
 $('#status-log').addEventListener('click', () => toggleLogWindow());
+
+// Each panel pops out into its own window from the ⧉ button at its top-right (desktop only).
+for (const btn of document.querySelectorAll('.panel-detach-btn')) {
+  btn.hidden = !inTauri;
+  btn.addEventListener('click', () => sync.detachPanel(btn.dataset.panel));
+}

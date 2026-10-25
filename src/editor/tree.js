@@ -6,6 +6,7 @@ import { listConstraints } from '../core/constraintdata.js';
 import { Mode, selBone, selSlot } from './app.js';
 import { CONSTRAINT_LABELS, createConstraint } from './constraintui.js';
 import * as edit from './edit.js';
+import { onionBonePanel, rgbCss } from './onionui.js';
 import { createEvent, createSkin } from './skineventui.js';
 import { h, popupMenu } from './widgets.js';
 
@@ -59,28 +60,57 @@ export function render(app, el) {
     const key = `bone:${bone}`;
     const hasChildren = kids.length || slots.length;
     const open = !collapsed.has(key);
+    const twisty = hasChildren
+      ? h(
+          'span',
+          {
+            class: 'twisty right',
+            title: open ? 'Collapse' : 'Expand',
+            onclick: (e) => {
+              e.stopPropagation();
+              if (open) collapsed.add(key);
+              else collapsed.delete(key);
+              app.changed();
+            },
+          },
+          open ? '▾' : '▸',
+        )
+      : null;
+    // Onion skinning: a per-bone toggle plus marks showing which direction(s) are ghosted.
+    const animate = app.mode === Mode.Animate;
+    const oc = animate && app.onion.enabled ? app.onionFor(bone) : null;
+    const direct = !!app.onionOverride(bone);
+    const marks =
+      oc && app.onionOverrideCount() > 0
+        ? h(
+            'span',
+            { class: 'onion-marks' },
+            oc.past > 0 ? h('span', { class: 'onion-mark', title: `Showing ${oc.past} past frame(s)`, style: { color: rgbCss(oc.pastColor) } }, '◀') : null,
+            oc.future > 0 ? h('span', { class: 'onion-mark', title: `Showing ${oc.future} future frame(s)`, style: { color: rgbCss(oc.futureColor) } }, '▶') : null,
+          )
+        : null;
+    const onionBtn = animate
+      ? h(
+          'span',
+          {
+            class: `onion-bonebtn${direct ? ' on' : ''}`,
+            title: 'Configure onion skin for this bone (past / future, color)',
+            onclick: (e) => {
+              e.stopPropagation();
+              const r = e.target.getBoundingClientRect();
+              onionBonePanel(app, bone, r.left, r.bottom);
+            },
+          },
+          '◍',
+        )
+      : null;
     skeleton.push(
       row(`🦴 ${doc.bones[bone].name}`, {
         tut: `bone:${doc.bones[bone].name}`,
         depth,
         selected: selected.has(bone),
         onclick: select({ bone }),
-        extra: hasChildren
-          ? h(
-              'span',
-              {
-                class: 'twisty right',
-                title: open ? 'Collapse' : 'Expand',
-                onclick: (e) => {
-                  e.stopPropagation();
-                  if (open) collapsed.add(key);
-                  else collapsed.delete(key);
-                  app.changed();
-                },
-              },
-              open ? '▾' : '▸',
-            )
-          : null,
+        extra: [marks, onionBtn, twisty],
       }),
     );
     if (!open) return;

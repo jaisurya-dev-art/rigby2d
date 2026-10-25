@@ -2,6 +2,7 @@
 // Render dialog: renders one or many animations (and skins) to PNG sequences, WebM or MP4 at the
 // project's output settings, with progress and cancel.
 
+import { track } from './analytics.js';
 import { dirname, joinPath } from './io.js';
 import { describeOutput } from './output.js';
 import * as platform from './platform.js';
@@ -227,6 +228,7 @@ export function openRenderDialog(app) {
       await target.fs.finish();
       const cancelled = running.cancelled;
       running = null;
+      if (!cancelled) track('editor-render');
       app.setStatus(cancelled ? `Render cancelled after ${written} file(s)` : `Rendered ${written} file(s) to ${dir === '.' ? target.path : dir}`);
       if (!cancelled) close();
       else draw();
@@ -266,6 +268,7 @@ export function openRenderDialog(app) {
         await target.fs.finish();
       }
       running = null;
+      if (files) track('editor-render-batch');
       app.setStatus(files ? `Rendered ${list.length} animations into ${target.path}` : 'Render cancelled');
       if (files) close();
       else draw();

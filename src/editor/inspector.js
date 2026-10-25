@@ -15,6 +15,7 @@ import { FPS_PRESETS, SIZE_PRESETS, formatFps, hexToRgba, rgbaToHex } from './ou
 import { posesUi } from './poseui.js';
 import { has } from './workspaces.js';
 import { sounds } from './audio.js';
+import { renameOnionBone } from './onion.js';
 
 export function render(app, el) {
   const b = selBone(app.sel);
@@ -69,6 +70,7 @@ function boneUi(app, b) {
       textField(bone.name, (name) => {
         if (name && app.doc.boneIndex(name) === null) {
           renameBoneRefs(app.doc, bone.name, name);
+          renameOnionBone(app.onion, bone.name, name); // per-bone onion settings are keyed by name
           bone.name = name;
           app.changed();
         }
@@ -389,6 +391,7 @@ function projectUi(app) {
           app.changed();
         }),
       ),
+      row('Textures', textureFilterSelect(app)),
     ),
     app.doc.skins.length
       ? h(
@@ -429,6 +432,23 @@ function projectUi(app) {
       h('li', null, 'File ▸ Save writes the .rigby work file; File ▸ Export writes skeleton JSON or .skel + a packed atlas for runtimes.'),
     ),
   ];
+}
+
+/** How images are sampled when scaled: smooth, or sharp for pixel art. Also written to exported atlases. */
+function textureFilterSelect(app) {
+  const el = select(
+    [
+      ['linear', 'Smooth (linear)'],
+      ['nearest', 'Pixel art (nearest)'],
+    ],
+    app.doc.textureFilter,
+    (v) => {
+      app.doc.textureFilter = v;
+      app.changed();
+    },
+  );
+  el.title = 'How images are drawn when scaled. Pixel art keeps every pixel sharp in the viewport, in renders and in exported atlases (filter: Nearest).';
+  return el;
 }
 
 /** Film: audio tracks of the current animation (offset and volume). */

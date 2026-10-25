@@ -9,7 +9,14 @@
 </p>
 
 <p align="center">
+  <a href="https://jaisurya-dev-art.github.io/rigby2d/"><img alt="Try it in your browser: the full editor, nothing to install" src="https://img.shields.io/badge/%E2%96%B6%20Try%20it%20in%20your%20browser-the%20full%20editor%2C%20nothing%20to%20install-b5d3e7?style=for-the-badge&labelColor=0a0a0b" height="40"></a><br>
+  <sub><a href="https://jaisurya-dev-art.github.io/rigby2d/editor/"><b>Open the editor</b></a> with the Rigbytron demo, tutorials and Python scripting · <a href="https://jaisurya-dev-art.github.io/rigby2d/">Website</a></sub>
+</p>
+
+<p align="center">
   <img alt="Status: early alpha" src="https://img.shields.io/badge/status-early%20alpha-orange">
+  <a href="https://upstar.dev/r/jaisurya-dev-art/rigby2d"><img alt="Upstar" src="https://upstar.dev/badge/jaisurya-dev-art/rigby2d.svg"></a>
+  <a href="https://www.youtube.com/watch?v=KK3WT9YzhAE"><img alt="Watch on YouTube" src="https://img.shields.io/badge/watch-75s%20overview-ff0000?logo=youtube&logoColor=white"></a>
   <a href="runtimes/godot/addons/rigby2d/README.md"><img alt="Runtime ready: Godot" src="https://img.shields.io/badge/runtime%20ready-Godot-478cbf?logo=godotengine&logoColor=white"></a>
   <a href="docs/mcp.md"><img alt="MCP server built in" src="https://img.shields.io/badge/MCP-server%20built%20in-7c3aed"></a>
   <a href="#license"><img alt="License: MIT or Apache-2.0" src="https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue.svg"></a>
@@ -21,6 +28,11 @@
 
 <p align="center">
   <a href="https://github.com/jaisurya-dev-art/rigby2d/releases/latest/download/Rigby2D_x64_portable.exe"><b>Download (portable)</b></a>: the latest portable editor for Windows, no install needed
+</p>
+
+<p align="center">
+  <a href="https://www.youtube.com/watch?v=KK3WT9YzhAE"><img src="docs/video-preview.jpg" alt="Watch the Rigby2D overview on YouTube (75 seconds)" width="800"></a><br>
+  <sub>▶ <a href="https://www.youtube.com/watch?v=KK3WT9YzhAE">Watch the 75-second overview</a>: AutoRig, animation, film, games and AI</sub>
 </p>
 
 <p align="center">
@@ -107,17 +119,19 @@ the [scripting guide](docs/scripting.md).
 ## Features
 
 - **AI assistant support (MCP)**: a built-in [Model Context Protocol](https://modelcontextprotocol.io) server lets assistants such as Claude inspect, validate, sample, edit and convert projects. See [Built for AI assistants](#built-for-ai-assistants-mcp).
-- **Art import**: PSD files (every pixel layer becomes a part, layout preserved) or individual PNGs.
+- **Art import**: PSD files (every pixel layer becomes a part, layout preserved) or individual PNGs. For pixel art, set *Textures* to *Pixel art (nearest)* in the Project inspector: images stay sharp in the viewport and in renders, and exported atlases use `filter: Nearest, Nearest`, which the runtimes follow.
 - **Rigby AutoRig and retargeting**: rig layered artwork in one step (bones, joints, meshes, IK), and reuse animations across characters with automatic bone mapping and proportion compensation. See the [guide](docs/autorig.md).
 - **Rigging**: draw bone chains directly in the viewport, reparent, attach images to bones, reorder draw order, turn images into meshes (add, move and delete vertices), bind meshes to bones and paint weights, create linked meshes, set up image sequences, and edit bounding box, clipping and path shapes.
 - **Constraints, skins and events**: create IK, transform, path, physics and slider constraints from the selected bones and edit every setting; key their mixes and values in Animate mode; key mesh deformation and image sequence frames; create skins (with skin bones and constraints) and events with keyed values; add bounding box, clipping, point and path attachments.
 - **Animation**: Setup and Animate modes, pose / rotate / translate / scale / shear tools, key buttons and optional auto key, switchable shortcut presets.
+- **Onion skinning**: see past and future frames as tinted ghosts behind the pose in Animate mode (*Onion* in the viewport toolbar), with frame counts, colors and looping; limit it to chosen bones and their children from the bone tree.
 - **Film output** (Film workspace): resolution and frame rate presets (23.976, 24, 25 fps; 4K, 2K Scope and Flat, Full HD, vertical, square), transparent or colored background, automatic or fixed framing, timecode, audio tracks with lip-sync; render transparent PNG sequences, WebM (with alpha) and MP4, one animation or a batch of animations and skins. See the [film guide](docs/film.md).
 - **Python scripting**: custom tools in the Scripts menu, a script editor, and a log window with tracebacks. See the [scripting guide](docs/scripting.md).
 - **Pose library and face controls**: save poses (with mouth-shape image swaps), apply them at any amount or as keys, and drive faces with sliders that blend between poses.
 - **Dopesheet and graph editor**: multi-key selection, moving and retiming keys, curve presets, bezier handle editing, image-swap keys.
 - **WebGL viewport** with a Canvas 2D fallback (*View* menu).
-- **Undo / redo** for every edit, with unsaved-change tracking.
+- **Detachable panels and window layouts** (desktop app): pop the Timeline, Tree and Inspector out into their own windows, for example on a second monitor, and save the arrangements as named layouts to recall from *View ▸ Window layouts* or with Ctrl+Alt+<digit>.
+- **Undo / redo** for every edit, with unsaved-change tracking (including edits made while the timeline plays).
 - **`.rigby` work file**: one self-contained file with the whole project and its images (like a `.blend`).
 - **Skeleton import/export**: opens and exports the widely used skeleton formats: `.json` (3.8, 4.2, 4.3) and binary `.skel` (4.3), with `.atlas` texture atlases. Meshes, weights, skins, constraints, events, deform and draw-order keys round-trip losslessly.
 - **Runtimes included**: a small dependency-free JavaScript runtime (`src/core`) with animation tracks, events, image sequences, IK, transform, path, physics and slider constraints, plus a reference WebGL renderer (`src/webgl`). A Rust port of it, 3 to 4× faster, powers the Godot runtime (preview, [`runtimes/`](runtimes/)).
@@ -137,7 +151,24 @@ Done in this cycle: the offline renderer (PNG sequences, WebM, MP4), resolution 
 controls, the batch renderer, the pose library and face controls, and audio tracks with
 loudness-driven lip-sync (mixed into WebM and MP4 renders), and an animatable camera.
 
+New since 0.2.5: detachable panels ([#3](https://github.com/jaisurya-dev-art/rigby2d/pull/3)), saved
+window layouts ([#6](https://github.com/jaisurya-dev-art/rigby2d/pull/6),
+[#12](https://github.com/jaisurya-dev-art/rigby2d/pull/12)), onion skinning
+([#10](https://github.com/jaisurya-dev-art/rigby2d/pull/10)), edits made during playback now mark
+the project unsaved ([#4](https://github.com/jaisurya-dev-art/rigby2d/pull/4)), and a pixel-art
+texture filter ([#11](https://github.com/jaisurya-dev-art/rigby2d/issues/11)). Thanks to
+[@maruccimauro](https://github.com/maruccimauro) for the panels, layouts, onion skinning and
+playback fix.
+
 ## Getting started
+
+### Try it in your browser
+
+**[Open the editor](https://jaisurya-dev-art.github.io/rigby2d/editor/)** on the
+[Rigby2D website](https://jaisurya-dev-art.github.io/rigby2d/): the full editor with the Rigbytron
+demo, the tutorials and Python scripting, with nothing to install. Files open and save through your
+browser (folder access where the browser supports it, otherwise a download). Detachable panels and
+window layouts need the desktop app. The website and its editor follow the `develop` branch.
 
 ### Download
 
@@ -155,7 +186,7 @@ The files are **not code-signed** yet, so Windows SmartScreen may warn before ru
 before running anything:
 
 ```powershell
-Get-FileHash .\Rigby2D_0.2.5_x64_en-US.msi -Algorithm SHA256
+Get-FileHash .\Rigby2D_0.2.6_x64_en-US.msi -Algorithm SHA256
 ```
 
 To build from source instead, follow the steps below.
@@ -191,6 +222,15 @@ The app is written to `src-tauri/target/release/` and the installers (MSI and NS
 ```bash
 npm test
 ```
+
+### Website
+
+```bash
+npm run site:build
+```
+
+Builds the website (`site/`) and the browser editor (served at `/editor/`) into `_site/`. Every push
+to `develop` deploys it to GitHub Pages through `.github/workflows/pages.yml`.
 
 ## Using Rigby2D
 
@@ -313,6 +353,7 @@ src/editor/scripting/  Python scripting: the rigby module, script host and scrip
 runtimes/       Rust runtime and the Godot 4 node (preview); see runtimes/README.md
 branding/       Logo, lockups, icons and Rigbytron (proprietary, see TRADEMARKS.md)
 examples/       WebGL player example
+site/           Website (GitHub Pages): landing page with Rigbytron playing live on the runtime
 src-tauri/      Native desktop shell (editor and splash windows, file dialog/fs plugins only)
 test/           node:test suites
 docs/           Screenshot and the film, AutoRig, scripting and MCP server guides

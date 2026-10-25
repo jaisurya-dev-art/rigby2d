@@ -11,3 +11,4 @@ src-tauri/gen/schemas/
 *.exe
 *.msi
 *.dmg
+_site/

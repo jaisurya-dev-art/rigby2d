@@ -246,7 +246,7 @@ export class Viewport {
       ctx.save();
       ctx.globalAlpha = Math.min(1, Math.max(0, q.color[3]));
       ctx.globalCompositeOperation = BLEND_OPS[q.blend] ?? 'source-over';
-      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingEnabled = app.doc.textureFilter !== 'nearest';
       if (q.kind === 'mesh') {
         if (hasImage) this.drawMesh(img, pts, q.uvs, q.triangles, dpr);
       } else if (hasImage) {

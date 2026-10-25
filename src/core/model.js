@@ -17,6 +17,8 @@ export const FORMAT = 'rigby-snapshot/1';
 /** How a bone inherits its parent's transform. */
 export const INHERIT_MODES = ['normal', 'onlyTranslation', 'noRotationOrReflection', 'noScale', 'noScaleOrReflection'];
 export const BLEND_MODES = ['normal', 'additive', 'multiply', 'screen'];
+/** How images are sampled when drawn scaled: 'linear' (smooth) or 'nearest' (sharp pixel art). */
+export const TEXTURE_FILTERS = ['linear', 'nearest'];
 export const ATTACHMENT_TYPES = ['region', 'mesh', 'linkedmesh', 'boundingbox', 'path', 'point', 'clipping'];
 
 /**
@@ -100,6 +102,8 @@ export class Skeleton {
     this.settings = defaultSettings();
     /** Whether the file this came from stored settings (then saving keeps them, even at defaults). */
     this.settingsInFile = false;
+    /** Texture filtering for the viewport, renders and the exported atlas (see TEXTURE_FILTERS). */
+    this.textureFilter = 'linear';
     /** Pose library: { name, bones: { bone name: local transform }, slots: { slot name: attachment } }. */
     this.poses = [];
     /** Facial controllers: { name, from (pose name or null = setup pose), to (pose name), value }. */
@@ -661,6 +665,7 @@ function readSkeleton(o) {
   sk.extra = raw(o.extra) ?? {};
   sk.settings = readSettings(o.settings);
   sk.settingsInFile = o.settings !== undefined;
+  sk.textureFilter = oneOf(o.textureFilter, TEXTURE_FILTERS, 'linear');
   sk.poses = readPoses(o.poses);
   sk.controllers = readControllers(o.controllers);
   sk.workspace = oneOf(o.workspace, ['game', 'film'], null);
@@ -769,6 +774,8 @@ function writeSkeleton(sk) {
   if (Object.keys(sk.extra).length) out.extra = raw(sk.extra);
   // Only when set: saving a file that never had settings must not add them.
   if (sk.settingsInFile || JSON.stringify(sk.settings) !== JSON.stringify(defaultSettings())) out.settings = raw(sk.settings);
+  // Only when not the default, so files saved before the option existed are unchanged.
+  if (sk.textureFilter !== 'linear') out.textureFilter = sk.textureFilter;
   if (sk.poses.length) out.poses = raw(sk.poses);
   if (sk.controllers.length) out.controllers = raw(sk.controllers);
   if (sk.workspace) out.workspace = sk.workspace;

@@ -35,15 +35,18 @@ export class GLView {
     });
   }
 
-  /** Texture entry for an editor image, uploaded on first use and when the image is replaced. */
-  lookup(images, name) {
+  /**
+   * Texture entry for an editor image, uploaded on first use and again when the image is replaced
+   * or the project's texture filter changes (`linear` false = nearest, for pixel art).
+   */
+  lookup(images, name, linear = true) {
     const canvas = images.get(name);
     if (!canvas || !canvas.width || !canvas.height) return null;
     const hit = this.textures.get(name);
-    if (hit && hit.canvas === canvas) return hit.entry;
+    if (hit && hit.canvas === canvas && hit.linear === linear) return hit.entry;
     if (hit) this.renderer.deleteTexture(hit.entry.tex);
-    const entry = { tex: this.renderer.createTexture(canvas), trim: [0, 0, 1, 1], map: identity };
-    this.textures.set(name, { canvas, entry });
+    const entry = { tex: this.renderer.createTexture(canvas, { linear }), trim: [0, 0, 1, 1], map: identity };
+    this.textures.set(name, { canvas, linear, entry });
     return entry;
   }
 
@@ -88,7 +91,11 @@ export class GLView {
     r.line(x0, 0, x1, 0, px, X_AXIS);
     r.line(0, y0, 0, y1, px, Y_AXIS);
 
-    r.drawSkeleton(app.doc, pose, (name) => this.lookup(app.images, name));
+    const linear = app.doc.textureFilter !== 'nearest';
+    const lookup = (name) => this.lookup(app.images, name, linear);
+    // Onion skinning: ghosts of nearby frames, faded (and optionally masked per bone) behind the pose.
+    for (const g of app.onionDraws?.() ?? []) r.drawSkeleton(app.doc, g.pose, lookup, { tint: g.tint, skip: g.skip });
+    r.drawSkeleton(app.doc, pose, lookup);
     r.end();
     this.stats = { drawCalls: r.drawCalls };
     return true;

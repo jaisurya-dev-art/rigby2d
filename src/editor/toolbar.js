@@ -6,6 +6,7 @@ import { Affine, wrapDegrees } from '../core/math.js';
 import { Mode, TOOLS, selBone } from './app.js';
 import * as edit from './edit.js';
 import { shortcutLabel } from './keymap.js';
+import { onionPanel } from './onionui.js';
 import { dragValue, h } from './widgets.js';
 
 const AXES = [
@@ -141,6 +142,39 @@ export function render(app, el) {
         )
       : null;
 
+  // Onion skinning: master toggle + quick options panel (Animate mode only).
+  const onion =
+    app.mode === Mode.Animate
+      ? h(
+          'span',
+          { class: 'onion-tool', title: 'Onion skin: draw past and future frames in the viewport' },
+          h(
+            'button',
+            {
+              class: `onion-toggle${app.onion.enabled ? ' on' : ''}`,
+              'data-tut': 'onion',
+              onclick: () => {
+                app.onion.enabled = !app.onion.enabled;
+                app.changed();
+              },
+            },
+            app.onion.enabled ? '◉ Onion' : '○ Onion',
+          ),
+          h(
+            'button',
+            {
+              class: 'onion-gear',
+              title: 'Onion-skin options',
+              onclick: (e) => {
+                const r = e.target.getBoundingClientRect();
+                onionPanel(app, r.left, r.bottom);
+              },
+            },
+            '⚙',
+          ),
+        )
+      : null;
+
   el.replaceChildren(
     ...[
       h('div', { class: 'toolgroup' }, tools),
@@ -148,6 +182,8 @@ export function render(app, el) {
       h('div', { class: 'toolgroup fields' }, fields),
       h('span', { class: 'vsep' }),
       axes,
+      onion ? h('span', { class: 'vsep' }) : null,
+      onion,
       autoKey ? h('span', { class: 'vsep' }) : null,
       autoKey,
     ].filter(Boolean),

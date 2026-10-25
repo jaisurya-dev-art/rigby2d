@@ -132,35 +132,72 @@ export function closeMenu() {
   }
 }
 
+/** Builds one popup entry: a separator, a raw DOM node, or a { label, shortcut, disabled, action } item. */
+function menuEntry(it) {
+  if (it === 'separator') return h('div', { class: 'sep' });
+  if (it instanceof Node) return it;
+  return h(
+    'button',
+    {
+      class: `item${it.class ? ` ${it.class}` : ''}`,
+      'data-tut': `item:${it.label}`,
+      title: it.title ?? null,
+      disabled: !!it.disabled,
+      onclick: () => {
+        closeMenu();
+        it.action();
+      },
+    },
+    h('span', null, it.label),
+    it.shortcut ? h('span', { class: 'shortcut' }, it.shortcut) : null,
+  );
+}
+
+/**
+ * A menu entry that opens a nested popup to its right (on hover or click). `items` is a list like
+ * popupMenu's, or a function returning one (built fresh each time it opens, so it can show live
+ * state). The child popup lives inside this entry, so the outside-click logic keeps it open.
+ */
+export function submenuItem(label, items, { title } = {}) {
+  const btn = h('button', { class: 'item submenu', title: title ?? null }, h('span', null, label), h('span', { class: 'shortcut' }, '▸'));
+  let child = null;
+  const closeChild = () => {
+    child?.remove();
+    child = null;
+  };
+  const open = () => {
+    if (child) return;
+    child = h('div', { class: 'popup submenu-popup' }, (typeof items === 'function' ? items() : items).filter(Boolean).map(menuEntry));
+    btn.append(child);
+    const r = btn.getBoundingClientRect();
+    child.style.left = `${Math.max(0, Math.min(r.right - 2, window.innerWidth - child.offsetWidth - 4))}px`;
+    child.style.top = `${Math.max(0, Math.min(r.top - 4, window.innerHeight - child.offsetHeight - 4))}px`;
+    // Moving the pointer to a sibling entry closes this submenu.
+    const parent = btn.closest('.popup');
+    const onOver = (e) => {
+      const it = e.target.closest('.item');
+      if (it && it !== btn && !btn.contains(it)) {
+        closeChild();
+        parent?.removeEventListener('pointerover', onOver);
+      }
+    };
+    parent?.addEventListener('pointerover', onOver);
+  };
+  btn.addEventListener('pointerenter', open);
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    open();
+  });
+  return btn;
+}
+
 /**
  * Shows a popup menu at screen position (x, y). Items are { label, shortcut, disabled, action }
- * or 'separator' or a DOM node.
+ * or 'separator' or a DOM node (e.g. submenuItem).
  */
 export function popupMenu(x, y, items) {
   closeMenu();
-  const menu = h(
-    'div',
-    { class: 'popup' },
-    items.filter(Boolean).map((it) => {
-      if (it === 'separator') return h('div', { class: 'sep' });
-      if (it instanceof Node) return it;
-      return h(
-        'button',
-        {
-          class: 'item',
-          'data-tut': `item:${it.label}`,
-          title: it.title ?? null,
-          disabled: !!it.disabled,
-          onclick: () => {
-            closeMenu();
-            it.action();
-          },
-        },
-        h('span', null, it.label),
-        it.shortcut ? h('span', { class: 'shortcut' }, it.shortcut) : null,
-      );
-    }),
-  );
+  const menu = h('div', { class: 'popup' }, items.filter(Boolean).map(menuEntry));
   document.body.append(menu);
   const r = menu.getBoundingClientRect();
   menu.style.left = `${Math.max(0, Math.min(x, window.innerWidth - r.width - 4))}px`;

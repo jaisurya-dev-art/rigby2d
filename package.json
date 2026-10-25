@@ -1,6 +1,6 @@
 {
   "name": "rigby2d",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "description": "Rigby2D: open-source 2D skeletal animation for games, films and interactive experiences. Built-in MCP server for AI assistants.",
   "license": "MIT OR Apache-2.0",
   "private": true,
@@ -35,7 +35,9 @@
     "web:dev": "vite",
     "web:build": "vite build",
     "test": "node --test \"test/*.test.js\"",
-    "build:mcpb": "node mcpb/build.mjs"
+    "build:mcpb": "node mcpb/build.mjs",
+    "site:dev": "vite --config site/vite.config.js",
+    "site:build": "vite build --config site/vite.config.js && vite build --base=/rigby2d/editor/ --outDir _site/editor --emptyOutDir"
   },
   "engines": {
     "node": ">=20"

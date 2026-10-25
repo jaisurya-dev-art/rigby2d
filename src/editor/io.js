@@ -3,7 +3,7 @@
 // File access goes through a platform file system (see platform.js); PNG coding uses canvas.
 
 
-import { parseAtlas, regionPlacement, writeAtlas } from '../core/atlas.js';
+import { atlasFilter, parseAtlas, regionPlacement, textureFilterOf, writeAtlas } from '../core/atlas.js';
 import { readSkeletonBinary, writeSkeletonBinary } from '../core/binary.js';
 import { isSkeletonJson, readSkeletonJson, writeSkeletonJson } from '../core/interop.js';
 
@@ -225,7 +225,10 @@ async function openSkeletonJson(path, fs, obj, images) {
   const loaded = new Map();
   const atlasText = await findAtlas(path, fs, doc);
   if (atlasText !== null) {
-    for (const page of parseAtlas(atlasText).pages) {
+    const { pages } = parseAtlas(atlasText);
+    // A pixel-art (Nearest) atlas stays sharp in the editor and is exported as Nearest again.
+    doc.textureFilter = textureFilterOf(pages);
+    for (const page of pages) {
       let sheet;
       try {
         sheet = await loadImage(fs, joinPath(dir, page.name));
@@ -305,7 +308,7 @@ async function writePackedAtlas(path, fs, doc, images) {
   const { sheet, width, height, regions } = packSheet(doc, images);
   const pngPath = withExtension(path, 'png');
   const atlasPath = withExtension(path, 'atlas');
-  const page = { name: basename(pngPath), width, height, filter: ['Linear', 'Linear'], regions: regions.map((r) => ({ ...r, rotate: 0, index: -1 })) };
+  const page = { name: basename(pngPath), width, height, filter: atlasFilter(doc.textureFilter), regions: regions.map((r) => ({ ...r, rotate: 0, index: -1 })) };
   await fs.writeFile(pngPath, await encodePng(sheet));
   await fs.writeText(atlasPath, writeAtlas([page]));
   return atlasPath;

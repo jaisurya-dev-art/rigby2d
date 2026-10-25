@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 // Help ▸ Tutorials: the lesson list, and a one-time welcome that offers the first lesson to new users.
 
+import { track } from '../analytics.js';
 import { h } from '../widgets.js';
 import { runArena } from './arena.js';
 import { Coach, finishedLessons, resetProgress } from './coach.js';
@@ -47,6 +48,7 @@ export function createTutorials(app, viewport, { refresh = () => {} } = {}) {
     } catch {
       // only a convenience
     }
+    track('editor-tutorial-start');
     coach.start(lesson);
   };
 

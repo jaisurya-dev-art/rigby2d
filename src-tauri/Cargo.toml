@@ -2,7 +2,7 @@
 # All editor logic lives in ../src (JavaScript).
 [package]
 name = "rigby2d"
-version = "0.2.5"
+version = "0.2.6"
 description = "Rigby2D: open-source 2D skeletal animation for games, films and interactive experiences."
 license = "MIT OR Apache-2.0"
 authors = ["jaisurya-dev-art"]

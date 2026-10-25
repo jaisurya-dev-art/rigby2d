@@ -3,6 +3,7 @@
 // editor) against the open project. A script run, or one tool run, is one undo step; when it
 // raises, the project is put back as it was and the traceback goes to the log.
 
+import { track } from '../analytics.js';
 import * as log from '../log.js';
 import { callApi } from './bridge.js';
 
@@ -77,6 +78,7 @@ export class ScriptHost {
    */
   async runScript(name, source) {
     const py = await this.ready();
+    track('editor-script-run');
     return this.transaction(name, `Script '${name}' failed`, () => {
       this.rigby._begin(name);
       const globals = py.globals.get('dict')();
