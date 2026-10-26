@@ -827,8 +827,8 @@ export class Viewport {
       const startY = Math.atan2(this.toScreen(opts.snap.y0w)[1] - o0[1], this.toScreen(opts.snap.y0w)[0] - o0[0]);
       this.line(o, [o[0] + Math.cos(startX) * R, o[1] + Math.sin(startX) * R], ghost, 1);
       this.line(o, [o[0] + Math.cos(startY) * R, o[1] + Math.sin(startY) * R], ghost, 1);
-      this.shearArc(o, R * 0.82, startX, curX, dim);
-      this.shearArc(o, R * 0.92, startY, curY, dim);
+      this.drawShearSweep(o, R * 0.82, startX, curX, sx - opts.snap.sx0, dim);
+      this.drawShearSweep(o, R * 0.92, startY, curY, sy - opts.snap.sy0, dim);
     }
     // Current axes with their degree readout. In a locked mode only that axis is emphasised.
     const spoke = (ang, label, strong) => {
@@ -844,17 +844,22 @@ export class Viewport {
     ctx.restore();
   }
 
-  /** A short arc from angle a0 to a1 (radians) the near way — the shear sweep indicator. */
-  shearArc(c, r, a0, a1, color) {
-    let d = a1 - a0;
-    while (d > Math.PI) d -= 2 * Math.PI;
-    while (d < -Math.PI) d += 2 * Math.PI;
-    if (Math.abs(d) < 0.02) return;
+  /** The shear sweep arc, from the start axis angle to the current one. It follows the real swept
+   *  direction (`deltaDeg` = signed shear change), so it keeps filling past 180° and restarts after a
+   *  whole turn instead of flipping to the short side. Whole turns show in the spoke's degree label. */
+  drawShearSweep(c, r, startAngle, curAngle, deltaDeg, color) {
+    const m = Math.abs(deltaDeg) % 360;
+    if (m < 0.5) return;
+    let short = curAngle - startAngle;
+    while (short > Math.PI) short -= 2 * Math.PI;
+    while (short < -Math.PI) short += 2 * Math.PI;
+    // Short way while under half a turn; past that, the long way keeps the same rotational sense.
+    const anticlockwise = m > 180 ? short >= 0 : short < 0;
     const ctx = this.ctx;
     ctx.strokeStyle = color;
-    ctx.lineWidth = 1.25;
+    ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.arc(c[0], c[1], r, a0, a0 + d, d < 0);
+    ctx.arc(c[0], c[1], r, startAngle, curAngle, anticlockwise);
     ctx.stroke();
   }
 
