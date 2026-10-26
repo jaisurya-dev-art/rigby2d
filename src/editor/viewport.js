@@ -17,6 +17,7 @@ const BONE = 'rgb(110,200,230)';
 const DRAG_THRESHOLD = 3;
 
 const rgba = (rgb, a) => rgb.replace('rgb(', 'rgba(').replace(')', `,${a})`);
+const rgbCss = (rgb) => `rgb(${rgb.slice(0, 3).map((x) => Math.round(x * 255)).join(',')})`;
 
 export class Viewport {
   constructor(app, canvas, glCanvas = null) {
@@ -104,6 +105,7 @@ export class Viewport {
     this.attachmentTime = performance.now() - t0;
     this.drawShapes(pose);
     if (app.showBones) this.drawBones(pose);
+    this.drawGuides(pose);
     this.meshTool.draw(this.ctx);
     this.shapeTool.draw(this.ctx);
     if (this.drag?.kind === 'box') {
@@ -597,6 +599,7 @@ export class Viewport {
       this.panning = null;
       this.press = null;
       this.drag = null;
+      this.guideSnapshot = null;
     }
   }
 
@@ -647,6 +650,7 @@ export class Viewport {
       }
     }
     this.drag = drag ? { ...drag, start, last: start } : null;
+    this.guideSnapshot = this.drag ? this.makeGuideSnapshot(this.drag) : null;
     app.changed();
   }
 
@@ -676,9 +680,108 @@ export class Viewport {
   dragStop() {
     const d = this.drag;
     this.drag = null;
+    this.guideSnapshot = null;
     if (d?.kind === 'create') this.createBone(this.app.pose(), d.index, d.start, d.last);
     if (d?.kind === 'box') this.boxSelect(d.from, d.to, this.press?.add);
     this.app.changed();
+  }
+
+  /** Snapshots a transform drag so real-time guides can show where each bone's tip started. */
+  makeGuideSnapshot(drag) {
+    const app = this.app;
+    const type =
+      drag.kind === 'bones'
+        ? ['rotate', 'translate', 'scale', 'shear'].includes(app.tool)
+          ? app.tool
+          : null
+        : drag.kind === 'poseAim'
+          ? 'rotate'
+          : drag.kind === 'poseTranslate'
+            ? 'translate'
+            : null;
+    if (!type) return null;
+    const pose = app.pose();
+    const list = drag.kind === 'bones' ? app.selectedBones() : [drag.index];
+    const bones = list
+      .filter((b) => b != null && b < app.doc.bones.length)
+      .map((b) => {
+        const len = app.doc.bones[b].length;
+        return { bone: b, len, o0w: pose.world[b].apply([0, 0]), t0w: pose.world[b].apply([len, 0]) };
+      });
+    return bones.length ? { type, bones } : null;
+  }
+
+  /** Real-time guides: while a bone is transformed, trace where its tip was and where it is now. */
+  drawGuides(pose) {
+    const app = this.app;
+    const snap = this.guideSnapshot;
+    if (!app.guides.enabled || !snap) return;
+    const cfg = app.guides.realtime[snap.type];
+    if (!cfg?.enabled) return;
+    const color = rgbCss(cfg.color);
+    for (const s of snap.bones) {
+      if (s.bone >= app.doc.bones.length) continue;
+      const o0 = this.toScreen(s.o0w);
+      const t0 = this.toScreen(s.t0w);
+      const o1 = this.toScreen(pose.world[s.bone].apply([0, 0]));
+      const t1 = this.toScreen(pose.world[s.bone].apply([s.len, 0]));
+      this.guideShape(snap.type, o0, t0, o1, t1, color);
+    }
+  }
+
+  /** Draws one real-time guide: a thin arc for rotate, a gentle curve for the other transforms. */
+  guideShape(type, o0, t0, o1, t1, color) {
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.lineCap = 'round';
+    const ghost = rgba(color, 0.35);
+    if (type === 'rotate') {
+      const r = Math.hypot(t1[0] - o1[0], t1[1] - o1[1]);
+      if (r > 2) {
+        const a0 = Math.atan2(t0[1] - o1[1], t0[0] - o1[0]);
+        const a1 = Math.atan2(t1[1] - o1[1], t1[0] - o1[0]);
+        let d = a1 - a0;
+        while (d > Math.PI) d -= 2 * Math.PI;
+        while (d < -Math.PI) d += 2 * Math.PI;
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 1.25;
+        ctx.beginPath();
+        ctx.arc(o1[0], o1[1], r, a0, a0 + d, d < 0);
+        ctx.stroke();
+      }
+      this.line(o1, t0, ghost, 1.25);
+      this.line(o1, t1, color, 1.25);
+    } else {
+      this.line(o0, t0, ghost, 1.25);
+      this.guideCurve(t0, t1, color);
+    }
+    this.dot(t1, color);
+    ctx.restore();
+  }
+
+  /** A gentle bowed curve from `a` to `b` (real-time guide for translate / scale / shear). */
+  guideCurve(a, b, color) {
+    const ctx = this.ctx;
+    const dx = b[0] - a[0];
+    const dy = b[1] - a[1];
+    const len = Math.hypot(dx, dy) || 1;
+    const bow = Math.min(18, len * 0.2);
+    const cx = (a[0] + b[0]) / 2 - (dy / len) * bow;
+    const cy = (a[1] + b[1]) / 2 + (dx / len) * bow;
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1.25;
+    ctx.beginPath();
+    ctx.moveTo(a[0], a[1]);
+    ctx.quadraticCurveTo(cx, cy, b[0], b[1]);
+    ctx.stroke();
+  }
+
+  dot(p, color) {
+    const ctx = this.ctx;
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.arc(p[0], p[1], 2.5, 0, Math.PI * 2);
+    ctx.fill();
   }
 
   /** Selects the bones whose origin or tip lies inside the screen rectangle. */
