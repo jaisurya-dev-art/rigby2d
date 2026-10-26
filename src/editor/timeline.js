@@ -277,11 +277,11 @@ export class Dopesheet {
         ctx.fillStyle = highlight ? 'rgb(55,50,40)' : 'rgb(34,34,34)';
         ctx.fillRect(0, y, width, ROW);
       }
-      // Shared bone hover: a short, tight cyan outline matching the viewport glow and the tree.
+      // Shared bone hover: tint the whole row background (magenta, matching the viewport glow and the
+      // tree) rather than outlining it, so it reads clearly at a glance.
       if (track.bone !== undefined && track.bone === app.hoverBone) {
-        ctx.strokeStyle = 'rgba(150,235,255,0.85)';
-        ctx.lineWidth = 1;
-        ctx.strokeRect(0.5, y + 0.5, width - 1, ROW - 1);
+        ctx.fillStyle = 'rgba(255,70,205,0.22)';
+        ctx.fillRect(0, y, width, ROW);
       }
       ctx.font = '12px system-ui, "Segoe UI", sans-serif';
       ctx.textBaseline = 'middle';

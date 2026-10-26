@@ -14,7 +14,8 @@ import { ShapeTool } from './shapetool.js';
 
 const SELECTED = 'rgb(255,170,40)';
 const BONE = 'rgb(110,200,230)';
-const HOVER = 'rgb(150,235,255)';
+// Magenta so the hover glow stands clear of the cyan bones (BONE) and the orange selection.
+const HOVER = 'rgb(255,70,205)';
 const DRAG_THRESHOLD = 3;
 
 const rgba = (rgb, a) => rgb.replace('rgb(', 'rgba(').replace(')', `,${a})`);
@@ -445,8 +446,10 @@ export class Viewport {
       const t = this.toScreen(pose.world[i].apply([b.length, 0]));
       const dir = [t[0] - o[0], t[1] - o[1]];
       const len = Math.hypot(dir[0], dir[1]);
+      // Hover gets a touch more presence than the selection glow, while staying tight.
+      const glowOpts = hovered ? { blur: 9, width: 2.5 } : undefined;
       if (len < 4) {
-        if (glow) this.glowOutline(() => this.arcPath(o, 6), glow);
+        if (glow) this.glowOutline(() => this.arcPath(o, 6), glow, glowOpts);
         this.circle(o, 6, rgba(color, 0.35), color, 1.5);
         return;
       }
@@ -454,7 +457,7 @@ export class Viewport {
       const n = [(-dir[1] / len) * w, (dir[0] / len) * w];
       const mid = [o[0] + dir[0] * 0.18, o[1] + dir[1] * 0.18];
       const shape = [o, [mid[0] + n[0], mid[1] + n[1]], t, [mid[0] - n[0], mid[1] - n[1]]];
-      if (glow) this.glowOutline(() => this.polyPath(shape), glow);
+      if (glow) this.glowOutline(() => this.polyPath(shape), glow, glowOpts);
       this.polygon(shape, rgba(color, selected ? 0.55 : 0.3), color, 1.5);
       this.circle(o, w * 0.55, 'rgb(30,30,30)', color, 1.5);
     });
@@ -472,13 +475,13 @@ export class Viewport {
   }
 
   /** Strokes `trace`'s path as a short, tight halo — the hover / selection highlight. */
-  glowOutline(trace, color) {
+  glowOutline(trace, color, { blur = 7, width = 2 } = {}) {
     const ctx = this.ctx;
     ctx.save();
     ctx.shadowColor = color;
-    ctx.shadowBlur = 7;
+    ctx.shadowBlur = blur;
     ctx.strokeStyle = color;
-    ctx.lineWidth = 2;
+    ctx.lineWidth = width;
     ctx.beginPath();
     trace();
     ctx.stroke();

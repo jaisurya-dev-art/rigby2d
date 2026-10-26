@@ -390,7 +390,8 @@ li {
 /* Shared bone hover: a short, tight outline matching the viewport glow, driven from any of the
    three views (viewport, tree, timeline). Outline only, so it layers over .selected cleanly. */
 .row.bone-hover {
-  box-shadow: inset 0 0 0 1px rgba(150, 235, 255, 0.85);
+  background: rgba(255, 70, 205, 0.18);
+  box-shadow: inset 0 0 0 1px rgba(255, 70, 205, 0.85);
 }
 .row.slot {
   color: rgb(180, 200, 160);

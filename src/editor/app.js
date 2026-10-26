@@ -773,6 +773,7 @@ export class App {
       fps: FPS,
       sel: this.sel,
       multi: [...this.multi],
+      hoverBone: this.hoverBone,
       meshEdit: this.meshEdit,
       shapeEdit: this.shapeEdit,
     };
@@ -787,6 +788,7 @@ export class App {
     // What forces a full panel rebuild (vs. just a time-dependent redraw during playback).
     const struct = () => `${this.anim}|${this.mode}|${this.timelineView}|${this.autoKey}|${this.playing}|${JSON.stringify(this.sel)}|${[...this.multi]}|${JSON.stringify(this.meshEdit)}|${JSON.stringify(this.shapeEdit)}`;
     const before = struct();
+    const prevHover = this.hoverBone;
     let docChanged = false;
     if (s.docJson && s.docJson !== this.docJson) {
       docChanged = true;
@@ -819,9 +821,14 @@ export class App {
     if (typeof s.playing === 'boolean') this.playing = s.playing;
     if ('sel' in s) this.sel = s.sel;
     if (s.multi) this.multi = new Set(s.multi);
+    if ('hoverBone' in s) this.hoverBone = s.hoverBone;
     if ('meshEdit' in s) this.meshEdit = s.meshEdit;
     if ('shapeEdit' in s) this.shapeEdit = s.shapeEdit;
     this.sanitize();
+    // Hover is shared but must not trigger a full panel rebuild (it changes as the cursor sweeps):
+    // the viewport and timeline canvases read hoverBone each frame; the tree updates its row class
+    // through onHoverChange, so fire it here when an adopted snapshot moved the hover.
+    if (this.hoverBone !== prevHover) this.onHoverChange?.(this.hoverBone);
     // Only the time moved (playback): bump timeVersion so heavy panels are not rebuilt every frame.
     if (docChanged || before !== struct()) this.changed();
     else this.timeVersion++;
