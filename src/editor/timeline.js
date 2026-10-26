@@ -262,6 +262,27 @@ function reconcileToDocument(app) {
   exitSelectModes();
 }
 
+// The app.timelineClipStamp this window last reconciled. The clipboard is module-local for fast draws,
+// but it is mirrored on `app` (serializable) so it crosses windows in the state snapshot.
+let clipStampSeen = 0;
+
+/** Keeps the module clipboard in step with the shared app.timelineClip, both ways: adopt a copy that
+ *  arrived from the other window (stamp moved), else publish a copy made here (the vars diverged). So
+ *  detaching/docking the timeline carries the armed copy and its preview to the window that now shows
+ *  the dopesheet. The per-diamond green source tint (copiedSource) stays window-local — the green band
+ *  from clipboard.regions still marks the source area. */
+function syncClipboard(app) {
+  if (app.timelineClipStamp !== clipStampSeen) {
+    clipStampSeen = app.timelineClipStamp;
+    clipboard = app.timelineClip;
+    copiedSource = null;
+  } else if (clipboard !== app.timelineClip) {
+    app.timelineClip = clipboard;
+    app.timelineClipStamp++;
+    clipStampSeen = app.timelineClipStamp;
+  }
+}
+
 /** Whether there is something to paste (drives the Paste button and menu item). */
 export function hasClipboard() {
   return clipboard !== null;
@@ -559,6 +580,7 @@ export class Dopesheet {
   draw() {
     const app = this.app;
     reconcileToDocument(app); // a project just opened? drop the armed copy before anything draws it
+    syncClipboard(app); // adopt a copy from the other window, or publish one made here (detach/dock)
     const anim = app.currentAnimation();
     const empty = this.scroller.parentElement.querySelector('.empty');
     empty.hidden = !!anim;
