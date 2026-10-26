@@ -648,6 +648,13 @@ export class Viewport {
       } else {
         drag = { kind: 'box', from: press, to: press };
       }
+      // Shear has three drag modes, chosen by where the press lands on the bone's sphere widget:
+      // on the X-axis great circle (shear_x), on the Y-axis one (shear_y), or inside (free, both).
+      if (drag?.kind === 'bones' && app.tool === 'shear') {
+        const b = hit && selBone(hit) !== null ? selBone(hit) : selBone(app.sel);
+        drag.shearMode = this.pickShearMode(pose, b, press);
+        app.setStatus(`Shear: ${{ x: 'X axis', y: 'Y axis', free: 'free' }[drag.shearMode]}`);
+      }
     }
     this.drag = drag ? { ...drag, start, last: start } : null;
     this.guideSnapshot = this.drag ? this.makeGuideSnapshot(this.drag) : null;
@@ -686,6 +693,28 @@ export class Viewport {
     this.app.changed();
   }
 
+  /** Which shear axis a press selects: 'x' / 'y' when near that axis line, else 'free' (both). The
+   *  bone's axes are compared in screen space (that is where the press and the sphere widget live). */
+  pickShearMode(pose, b, press) {
+    if (b == null || b >= pose.world.length) return 'free';
+    const W = pose.world[b];
+    const o = this.toScreen(W.apply([0, 0]));
+    const len = this.app.doc.bones[b].length || 10;
+    const dirOf = (v) => { const p = this.toScreen(W.apply(v)); return Math.atan2(p[1] - o[1], p[0] - o[0]); };
+    const pAng = (Math.atan2(press[1] - o[1], press[0] - o[0]) * 180) / Math.PI;
+    // Gap to a line is the smaller of the gaps to its two rays (an axis line runs both ways).
+    const gapTo = (ang) => {
+      const d = (ang * 180) / Math.PI;
+      return Math.min(Math.abs(wrapDegrees(pAng - d)), Math.abs(wrapDegrees(pAng - d - 180)));
+    };
+    const gx = gapTo(dirOf([len, 0]));
+    const gy = gapTo(dirOf([0, len]));
+    const TOL = 22;
+    if (gx <= TOL && gx <= gy) return 'x';
+    if (gy <= TOL) return 'y';
+    return 'free';
+  }
+
   /** Snapshots a transform drag so real-time guides can show where each bone's tip started. */
   makeGuideSnapshot(drag) {
     const app = this.app;
@@ -706,27 +735,127 @@ export class Viewport {
       .filter((b) => b != null && b < app.doc.bones.length)
       .map((b) => {
         const len = app.doc.bones[b].length;
-        return { bone: b, len, o0w: pose.world[b].apply([0, 0]), t0w: pose.world[b].apply([len, 0]) };
+        const W = pose.world[b];
+        // y0w and the start shear values let the shear guide show where each axis began.
+        return {
+          bone: b,
+          len,
+          o0w: W.apply([0, 0]),
+          t0w: W.apply([len, 0]),
+          y0w: W.apply([0, len || 1]),
+          sx0: pose.local[b].shear_x ?? 0,
+          sy0: pose.local[b].shear_y ?? 0,
+        };
       });
-    return bones.length ? { type, bones } : null;
+    return bones.length ? { type, mode: drag.shearMode ?? null, bones } : null;
   }
 
   /** Real-time guides: while a bone is transformed, trace where its tip was and where it is now. */
   drawGuides(pose) {
     const app = this.app;
+    if (!app.guides.enabled) return;
     const snap = this.guideSnapshot;
-    if (!app.guides.enabled || !snap) return;
-    const cfg = app.guides.realtime[snap.type];
-    if (!cfg?.enabled) return;
-    const color = rgbCss(cfg.color);
-    for (const s of snap.bones) {
-      if (s.bone >= app.doc.bones.length) continue;
-      const o0 = this.toScreen(s.o0w);
-      const t0 = this.toScreen(s.t0w);
-      const o1 = this.toScreen(pose.world[s.bone].apply([0, 0]));
-      const t1 = this.toScreen(pose.world[s.bone].apply([s.len, 0]));
-      this.guideShape(snap.type, o0, t0, o1, t1, color);
+    if (snap) {
+      const cfg = app.guides.realtime[snap.type];
+      if (!cfg?.enabled) return;
+      const color = rgbCss(cfg.color);
+      for (const s of snap.bones) {
+        if (s.bone >= app.doc.bones.length) continue;
+        if (snap.type === 'shear') {
+          this.drawShearSphere(pose, s.bone, color, { active: true, mode: snap.mode, snap: s });
+          continue;
+        }
+        const o0 = this.toScreen(s.o0w);
+        const t0 = this.toScreen(s.t0w);
+        const o1 = this.toScreen(pose.world[s.bone].apply([0, 0]));
+        const t1 = this.toScreen(pose.world[s.bone].apply([s.len, 0]));
+        this.guideShape(snap.type, o0, t0, o1, t1, color);
+      }
+      return;
     }
+    // Not dragging: show the shear sphere on the selected bone so the three drag regions (X-axis
+    // line, Y-axis line, free interior) can be aimed before the press.
+    const shearCfg = app.guides.realtime.shear;
+    if (app.tool === 'shear' && shearCfg?.enabled && !this.meshTool.active && !this.shapeTool.active) {
+      const b = selBone(app.sel);
+      if (b != null && b < app.doc.bones.length) this.drawShearSphere(pose, b, rgbCss(shearCfg.color), { active: false });
+    }
+  }
+
+  /** Shear widget: a sphere around the anchor whose two great circles are the X- and Y-axis shear
+   *  lines, with each axis's current tilt shown in degrees (counting whole turns and sign). While
+   *  dragging it also ghosts where each axis started and arcs the sweep. */
+  drawShearSphere(pose, b, color, opts = {}) {
+    const ctx = this.ctx;
+    if (b >= pose.world.length) return;
+    const W = pose.world[b];
+    const len = this.app.doc.bones[b].length || 1;
+    const o = this.toScreen(W.apply([0, 0]));
+    const tip = this.toScreen(W.apply([len, 0]));
+    const R = Math.max(44, Math.min(120, Math.hypot(tip[0] - o[0], tip[1] - o[1]) || 44));
+    const dirOf = (v) => { const p = this.toScreen(W.apply(v)); return Math.atan2(p[1] - o[1], p[0] - o[0]); };
+    const curX = dirOf([len, 0]);
+    const curY = dirOf([0, len]);
+    const sx = pose.local[b].shear_x ?? 0;
+    const sy = pose.local[b].shear_y ?? 0;
+    const ghost = rgba(color, 0.3);
+    const dim = rgba(color, 0.55);
+    ctx.save();
+    ctx.lineCap = 'round';
+    ctx.font = '11px system-ui, "Segoe UI", sans-serif';
+    ctx.textBaseline = 'middle';
+    // Sphere silhouette.
+    ctx.strokeStyle = ghost;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.arc(o[0], o[1], R, 0, Math.PI * 2);
+    ctx.stroke();
+    // Great circles (foreshortened ellipses) along each axis = the clickable X / Y shear lines.
+    const greatCircle = (rot, on) => {
+      ctx.strokeStyle = on ? color : ghost;
+      ctx.lineWidth = on ? 1.5 : 1;
+      ctx.beginPath();
+      ctx.ellipse(o[0], o[1], R, R * 0.3, rot, 0, Math.PI * 2);
+      ctx.stroke();
+    };
+    greatCircle(curX, opts.mode === 'x');
+    greatCircle(curY, opts.mode === 'y');
+    // Ghost the start axes and arc the sweep while dragging.
+    if (opts.active && opts.snap) {
+      const o0 = this.toScreen(opts.snap.o0w);
+      const startX = Math.atan2(this.toScreen(opts.snap.t0w)[1] - o0[1], this.toScreen(opts.snap.t0w)[0] - o0[0]);
+      const startY = Math.atan2(this.toScreen(opts.snap.y0w)[1] - o0[1], this.toScreen(opts.snap.y0w)[0] - o0[0]);
+      this.line(o, [o[0] + Math.cos(startX) * R, o[1] + Math.sin(startX) * R], ghost, 1);
+      this.line(o, [o[0] + Math.cos(startY) * R, o[1] + Math.sin(startY) * R], ghost, 1);
+      this.shearArc(o, R * 0.82, startX, curX, dim);
+      this.shearArc(o, R * 0.92, startY, curY, dim);
+    }
+    // Current axes with their degree readout. In a locked mode only that axis is emphasised.
+    const spoke = (ang, label, strong) => {
+      const e = [o[0] + Math.cos(ang) * R, o[1] + Math.sin(ang) * R];
+      this.line(o, e, strong ? color : dim, strong ? 2 : 1.25);
+      this.dot(e, strong ? color : dim);
+      ctx.fillStyle = color;
+      ctx.textAlign = Math.cos(ang) < -0.3 ? 'right' : Math.cos(ang) > 0.3 ? 'left' : 'center';
+      ctx.fillText(label, o[0] + Math.cos(ang) * (R + 15), o[1] + Math.sin(ang) * (R + 15));
+    };
+    spoke(curX, `X ${shearReadout(sx)}`, opts.mode !== 'y');
+    spoke(curY, `Y ${shearReadout(sy)}`, opts.mode !== 'x');
+    ctx.restore();
+  }
+
+  /** A short arc from angle a0 to a1 (radians) the near way — the shear sweep indicator. */
+  shearArc(c, r, a0, a1, color) {
+    let d = a1 - a0;
+    while (d > Math.PI) d -= 2 * Math.PI;
+    while (d < -Math.PI) d += 2 * Math.PI;
+    if (Math.abs(d) < 0.02) return;
+    const ctx = this.ctx;
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1.25;
+    ctx.beginPath();
+    ctx.arc(c[0], c[1], r, a0, a0 + d, d < 0);
+    ctx.stroke();
   }
 
   /** Draws one real-time guide: a thin arc for rotate, a gentle curve for the other transforms. */
@@ -844,9 +973,27 @@ export class Viewport {
         local.scale_y *= r;
         break;
       }
-      case 'shear':
-        local.shear_y = (local.shear_y ?? 0) + sign * angleBetween(origin, last, cur);
+      case 'shear': {
+        const d = sign * angleBetween(origin, last, cur);
+        const mode = this.drag?.shearMode ?? 'y';
+        if (mode === 'x') {
+          local.shear_x = (local.shear_x ?? 0) + d;
+        } else if (mode === 'y') {
+          local.shear_y = (local.shear_y ?? 0) + d;
+        } else {
+          // Free: tilt whichever current axis the cursor is nearer, so one sweep can reach both.
+          const xw = pose.world[b].applyVector([1, 0]);
+          const yw = pose.world[b].applyVector([0, 1]);
+          const curAng = Math.atan2(cur[1] - origin[1], cur[0] - origin[0]);
+          const gap = (vec) => {
+            let g = Math.abs(curAng - Math.atan2(vec[1], vec[0])) % (2 * Math.PI);
+            return g > Math.PI ? 2 * Math.PI - g : g;
+          };
+          if (gap(xw) <= gap(yw)) local.shear_x = (local.shear_x ?? 0) + d;
+          else local.shear_y = (local.shear_y ?? 0) + d;
+        }
         break;
+      }
       default:
         return;
     }
@@ -932,6 +1079,15 @@ function distToSegment(p, a, b) {
   const lenSq = ab[0] * ab[0] + ab[1] * ab[1];
   const t = lenSq > 0 ? Math.min(1, Math.max(0, ((p[0] - a[0]) * ab[0] + (p[1] - a[1]) * ab[1]) / lenSq)) : 0;
   return Math.hypot(p[0] - (a[0] + ab[0] * t), p[1] - (a[1] + ab[1] * t));
+}
+
+/** Formats a shear angle for the sphere readout: sign, whole-turn count (⟳×n) and the remainder. */
+function shearReadout(v) {
+  const sign = v < 0 ? '-' : '+';
+  const a = Math.abs(v);
+  const turns = Math.floor(a / 360);
+  const rem = a - turns * 360;
+  return turns >= 1 ? `${sign}⟳×${turns} ${rem.toFixed(0)}°` : `${sign}${a.toFixed(0)}°`;
 }
 
 function angleBetween(origin, a, b) {
