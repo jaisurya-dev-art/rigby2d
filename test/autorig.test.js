@@ -115,6 +115,29 @@ test('autorig: refuses rigged projects, honours role overrides', () => {
   assert.equal(r.parts.find((p) => p.name === 'mouth').role, 'jaw');
 });
 
+test('autorig: mouth shapes have no side, accessories ride on their body part', () => {
+  const f = figure([
+    ...CHARACTER,
+    ['mouth_viseme_L', 0, 345, 30, 12],
+    ['mouth_viseme_O', 0, 345, 14, 14],
+    ['earring_l', 52, 345, 8, 16],
+    ['blush', -22, 360, 20, 8],
+    ['bindi', 0, 400, 6, 6],
+  ]);
+  const r = autoRig(f.doc, f.alphaOf);
+  const part = (name) => r.parts.find((p) => p.name === name);
+  // "_L" on a mouth shape is a name, not a side: every mouth shape shares the one mouth bone.
+  assert.equal(part('mouth_viseme_L').side, null);
+  assert.equal(part('mouth_viseme_L').bone, part('mouth').bone);
+  assert.equal(part('mouth_viseme_O').bone, part('mouth').bone);
+  assert.equal(f.doc.bones.some((b) => /mouth_l/.test(b.name)), false);
+  // Jewellery and makeup are identified from their names, so nothing is left unknown.
+  assert.equal(part('earring_l').role, 'ear');
+  assert.equal(part('blush').role, 'head');
+  assert.equal(part('bindi').role, 'head');
+  assert.equal(r.warnings.some((w) => /earring|blush|bindi/.test(w)), false);
+});
+
 // ---- retargeting ------------------------------------------------------------------------------
 
 

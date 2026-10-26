@@ -126,7 +126,7 @@ them under `film`.
 | `add_audio_track` | Stores a sound file (WAV, MP3, OGG, M4A, AAC, FLAC) in the work file as an audio track of an animation, with start time and volume. |
 | `set_audio_track` | Changes a track's start time or volume. |
 | `remove_audio_track` | Removes a track, and its sound file when nothing else uses it. |
-| `lip_sync` | Keys a face control on every frame from the loudness of an audio track (WAV through MCP). |
+| `lip_sync` | Lip-syncs an animation to an audio track: with `text` (the words spoken) or `timing_file` (ElevenLabs timestamps, Whisper or word-timing JSON, Rhubarb, Papagayo) keys mouth shapes (visemes) on a mouth slot; otherwise keys a face control from loudness. Reading the audio needs a WAV track; a timing file does not. |
 
 Times can be given in seconds (`time`) or as a `frame` at the project's frame rate.
 

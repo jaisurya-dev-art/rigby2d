@@ -120,13 +120,15 @@ export function findParts(doc, alphaOf, { roles = {}, sides = {} } = {}) {
     const g = measure(pose, slot, att, alphaOf(att.image ?? att.name));
     const found = classify(slot.name) ?? classify(att.name) ?? classify(att.image ?? '');
     const manual = roles[slot.name];
+    const role = manual ?? found?.role ?? null;
     parts.push({
       slot: i,
       name: slot.name,
       att,
       g,
-      role: manual ?? found?.role ?? null,
-      side: slot.name in sides ? sides[slot.name] : (found?.side ?? null),
+      role,
+      // Only paired parts have sides: "mouth_viseme_L" is a mouth shape, not the mouth's left side.
+      side: slot.name in sides ? sides[slot.name] : PAIRED.has(role) ? (found?.side ?? null) : null,
       index: found?.index ?? null,
       from: manual ? 'manual' : found ? 'name' : null,
     });

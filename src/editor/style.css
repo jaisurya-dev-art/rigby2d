@@ -1123,6 +1123,46 @@ div.log-entry {
   color: white;
 }
 
+/* ---- Lip-sync dialog ---- */
+.lipsync-grid {
+  display: grid;
+  grid-template-columns: 150px 1fr;
+  gap: 6px 10px;
+  align-items: center;
+}
+.lipsync-text {
+  width: 100%;
+  resize: vertical;
+  font: inherit;
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 6px 8px;
+}
+.lipsync-file {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.lipsync-error {
+  color: #f08a8a;
+}
+.lipsync-map {
+  display: grid;
+  gap: 4px;
+  padding: 8px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+.lipsync-row {
+  display: grid;
+  grid-template-columns: 48px 210px 1fr;
+  gap: 10px;
+  align-items: center;
+}
+
 /* ---- AutoRig and retarget dialogs ---- */
 .modal.modal-wide {
   width: min(720px, calc(100vw - 32px));

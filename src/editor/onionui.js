@@ -80,6 +80,7 @@ export function onionPanel(app, x, y) {
       return o.pastColor;
     }),
     h('div', { class: 'onion-sep' }),
+    numRow('Spacing (frames)', o.step ?? 1, (v) => { o.step = v; refresh(); }, { min: 1, max: 12 }),
     checkRow('Loop', o.loop, (v) => { o.loop = v; refresh(); }),
     h('div', { class: 'onion-note' }, app.onionOverrideCount() ? `${app.onionOverrideCount()} bone(s) have their own settings: prediction shows only on those. Clear them from each bone or the ANIMATE notice.` : 'Applies to the whole skeleton. Enable individual bones from the tree to limit it.'),
   );

@@ -82,9 +82,42 @@ The **Poses & face controls** section at the bottom of the inspector:
 as audio tracks of the current animation. Each track has a start time and volume; tracks play with
 the timeline and are stored inside the `.rigby` file.
 
-**Lip-sync**: the *Lip-sync* button of a face control keys that control on every frame from the
-loudness of the animation's first audio track: a "mouth open" control opens on speech and closes in
-silence. (It follows loudness, not individual phonemes.)
+**Lip-sync (mouth shapes)**: *Lip-sync…* in the audio section keys a mouth slot shape by shape from
+the speech, so every sound gets its mouth. It uses the nine shapes animators use:
+
+| Shape | For |
+| --- | --- |
+| A | ah, as in "father" |
+| E | eh, as in "bed" |
+| I | ee, and most consonants (C D G K N R S T Y Z) |
+| O | oh, as in "go" |
+| U | oo and w, as in "you" |
+| MBP | lips closed: M, B, P |
+| FV | lower lip on teeth: F, V |
+| L | tongue up: L, TH |
+| rest | silence between words |
+
+The timing comes from one of:
+
+- **The words spoken**: type the line; Rigby2D lays the words over the speech in the track (its
+  loudness), each taking time for its sounds. Nothing else is needed.
+- **A timing file** for exact timing:
+  - ElevenLabs text-to-speech timestamps (character timings, so the voice you generated syncs
+    exactly)
+  - Whisper or any `[{ word, start, end }]` word-timing JSON
+  - Rhubarb Lip Sync (`.tsv` or `.json`) and Papagayo / Moho switch files (`.dat`)
+
+Pick the mouth slot (the slot whose images cover the most shapes is chosen for you) and check the
+mapping: images are matched by name (`mouth_viseme_A`, `A`, `ah`, `MBP`, `mouth_smile` for rest...),
+and any shape can be set by hand; a shape without an image uses the rest mouth. *Lead* sets how many
+frames each mouth lands before its sound (2 by default, as animators time it) and *Hold at least*
+how long a shape stays, so the mouth never flickers. *Generate lip-sync* replaces the mouth keys over
+the length of the track as one undo step; the result is ordinary image-swap keys, so it exports to
+skeleton JSON and `.skel` and plays in every runtime.
+
+**Lip-sync (loudness)**: the *Lip-sync* button of a face control keys that control on every frame
+from the loudness of the animation's first audio track: a "mouth open" control opens on speech and
+closes in silence. Use it for mouths drawn as one shape that opens and closes.
 
 WebM and MP4 renders include the animation's audio, mixed. Every render also writes it as
 `<name>.wav` next to the frames or video, ready for your video editor.

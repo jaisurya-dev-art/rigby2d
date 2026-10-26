@@ -16,6 +16,7 @@ import { posesUi } from './poseui.js';
 import { has } from './workspaces.js';
 import { sounds } from './audio.js';
 import { renameOnionBone } from './onion.js';
+import { openLipSync } from './lipsyncui.js';
 
 export function render(app, el) {
   const b = selBone(app.sel);
@@ -467,8 +468,13 @@ function audioUi(app) {
         row('Volume', dragValue(t.volume * 100, (v) => ((t.volume = Math.max(0, v) / 100), app.changed()), { speed: 1, min: 0, max: 400, decimals: 0, suffix: ' %' })),
       ),
     ),
-    h('button', { disabled: !anim, onclick: () => app.importAudio() }, 'Import audio…'),
-    h('div', { class: 'small weak' }, 'Tracks play with the timeline. Face controls can be keyed from their loudness (Lip-sync).'),
+    h(
+      'div',
+      { class: 'buttons' },
+      h('button', { disabled: !anim, onclick: () => app.importAudio() }, 'Import audio…'),
+      h('button', { disabled: !tracks.length, 'data-tut': 'lipsync', title: 'Key mouth shapes (visemes) from the speech in a track', onclick: () => openLipSync(app) }, 'Lip-sync…'),
+    ),
+    h('div', { class: 'small weak' }, 'Tracks play with the timeline. Lip-sync keys a mouth slot shape by shape from the speech; face controls can also follow loudness.'),
   ];
 }
 

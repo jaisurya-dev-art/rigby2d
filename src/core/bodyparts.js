@@ -10,7 +10,7 @@ export const ROLES = [
   ['eye', ['eye', 'eyes', 'eyeball', 'eyeballs', 'sclera', 'eyelid', 'eyelids', 'lid', 'lids']],
   ['mouth', ['mouth', 'lips', 'lip', 'teeth', 'tongue', 'smile']],
   ['nose', ['nose', 'snout', 'beak']],
-  ['ear', ['ear', 'ears']],
+  ['ear', ['ear', 'ears', 'earring', 'earrings']],
   ['jaw', ['jaw', 'chin']],
   ['hair', ['hair', 'bangs', 'fringe', 'ponytail', 'pigtail', 'braid', 'hat', 'cap', 'helmet', 'horn', 'horns', 'antenna']],
   ['neck', ['neck']],
@@ -25,7 +25,7 @@ export const ROLES = [
   ['tail', ['tail']],
   ['wing', ['wing', 'wings']],
   ['pelvis', ['pelvis', 'hip', 'hips', 'waist', 'pants', 'shorts', 'skirt', 'butt', 'belt', 'groin']],
-  ['head', ['head', 'face', 'skull']],
+  ['head', ['head', 'face', 'skull', 'blush', 'bindi', 'freckles']],
   ['torso', ['torso', 'body', 'chest', 'trunk', 'belly', 'abdomen', 'stomach', 'shirt', 'spine', 'ribs', 'jacket', 'coat', 'dress', 'top', 'upperbody']],
 ];
 

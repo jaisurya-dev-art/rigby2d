@@ -11,6 +11,7 @@ import { FPS_PRESETS, hexToRgba, rgbaToHex } from '../editor/output.js';
 import { applyAmount, blendPoses, capturePose } from '../core/poses.js';
 import { poseAt, writeTargets } from '../core/keying.js';
 import { findAttachment } from '../core/model.js';
+import { VISEMES, keyLipSync, matchMouths, readTiming, tidy, timeTextByLoudness, visemeCues } from '../core/lipsync.js';
 import { EDIT, NAME, OUTPUT, OVERWRITE, animationOf, boneIndex, checkName, edit, roundTime, slotIndex } from './edits.js';
 import { ToolError } from './protocol.js';
 import { PATH } from './tools.js';
@@ -333,28 +334,85 @@ export function createFilmTools(ws) {
     tool(
       'lip_sync',
       'Lip-sync',
-      "Key a face control (such as 'mouth open') on every frame of an animation from the loudness of one of its audio tracks: the mouth opens on speech and closes in silence. It follows loudness, not phonemes. Here the track must be a WAV file (the editor's Lip-sync button also takes MP3, OGG and others). Saves the work file.",
-      { control: NAME('Face control'), animation: NAME('Animation'), sound: { type: 'string', description: "Audio track to follow (default: the animation's first)." } },
-      ['control', 'animation'],
-      (args, doc, p) => {
+      'Lip-sync an animation to one of its audio tracks. With `text` (the words spoken) or `timing_file` (ElevenLabs timestamps or Whisper/word-timing JSON, Rhubarb Lip Sync .tsv/.json, Papagayo .dat), keys mouth shapes (visemes A, E, I, O, U, MBP, FV, L and rest) as image swaps on a mouth slot, each landing a little before its sound; the slot and the shape-to-image mapping are found from image names unless given. Without them, keys a face control (such as \'mouth open\') from the loudness of the track instead. Reading the audio (text or loudness) needs a WAV track; a timing file does not. Saves the work file.',
+      {
+        animation: NAME('Animation'),
+        sound: { type: 'string', description: "Audio track to follow (default: the animation's first)." },
+        text: { type: 'string', description: 'The words spoken in the track, timed against its loudness (viseme lip-sync).' },
+        timing_file: { type: 'string', description: 'A timing file inside the workspace: ElevenLabs timestamps, Whisper or [{ word, start, end }] JSON, Rhubarb (.tsv/.json) or Papagayo (.dat). Times are from the start of the sound.' },
+        slot: { type: 'string', description: 'Mouth slot for viseme lip-sync (default: the slot whose images cover the most mouth shapes).' },
+        mouths: { type: 'object', additionalProperties: { type: ['string', 'null'] }, description: "Override the image used for mouth shapes: { A: 'mouth_open', rest: 'mouth_smile', ... }." },
+        lead: { type: 'integer', minimum: 0, maximum: 6, description: 'Frames each mouth lands before its sound (default 2).' },
+        min_hold: { type: 'integer', minimum: 1, maximum: 8, description: 'Frames a mouth shape is held at least (default about 0.05 s).' },
+        control: { type: 'string', description: 'Face control to key from loudness (when neither text nor timing_file is given).' },
+      },
+      ['animation'],
+      async (args, doc, p) => {
         requireWorkFile(p, 'Lip-sync');
-        const c = controlOf(doc, args.control);
         const anim = animationOf(doc, args.animation);
         const tracks = doc.audio.filter((t) => t.animation === anim.name && (!args.sound || t.sound === args.sound));
         const track = tracks[0] ?? fail(args.sound ? `No audio track '${args.sound}' on '${anim.name}'.` : `'${anim.name}' has no audio tracks; add one with add_audio_track.`);
         const bytes = p.entries.get(`audio/${track.sound}`) ?? fail(`The sound file '${track.sound}' is missing from the work file.`);
-        if (!/\.wav$/i.test(track.sound)) throw new ToolError(`Lip-sync through MCP reads WAV files; '${track.sound}' is not one. Use the Lip-sync button in the editor, or add a WAV version of the track.`);
-        const to = poseOf(doc, c.to);
-        const from = c.from ? poseOf(doc, c.from) : null;
         const fps = doc.settings.fps;
         const frames = Math.max(1, Math.round(anim.duration * fps)) + 1;
-        sounds.set(track.sound, { bytes, buffer: decodeWav(bytes) });
-        let levels;
-        try {
-          levels = frameLevels(track, fps, frames);
-        } finally {
-          sounds.delete(track.sound);
+        const isWav = /\.wav$/i.test(track.sound);
+        const levelsOf = () => {
+          if (!isWav) throw new ToolError(`Reading the audio through MCP needs a WAV track; '${track.sound}' is not one. Give a timing_file, use the Lip-sync dialog in the editor, or add a WAV version of the track.`);
+          sounds.set(track.sound, { bytes, buffer: decodeWav(bytes) });
+          try {
+            return { levels: frameLevels(track, fps, frames), length: sounds.get(track.sound).buffer.duration };
+          } finally {
+            sounds.delete(track.sound);
+          }
+        };
+
+        if (args.text !== undefined || args.timing_file !== undefined) {
+          // Viseme lip-sync on a mouth slot.
+          const candidates = doc.slots.map((s, i) => ({ s, i })).filter(({ s }) => s.attachments.length > 1);
+          const covered = (s) => Object.values(matchMouths(s.attachments.map((a) => a.name))).filter(Boolean).length;
+          const si = args.slot !== undefined ? slotIndex(doc, args.slot) : (candidates.sort((a, b) => covered(b.s) - covered(a.s))[0]?.i ?? fail('No mouth slot found: lip-sync needs a slot with several mouth images.'));
+          const slot = doc.slots[si];
+          const mouths = { ...matchMouths(slot.attachments.map((a) => a.name)), ...(args.mouths ?? {}) };
+          for (const [v, name] of Object.entries(args.mouths ?? {})) {
+            if (!VISEMES.includes(v)) throw new ToolError(`Unknown mouth shape '${v}'; use ${VISEMES.join(', ')}.`);
+            if (name !== null && !slot.attachments.some((a) => a.name === name)) throw new ToolError(`Slot '${slot.name}' has no image '${name}'.`);
+          }
+          const opts = { fps, lead: args.lead ?? 2, minHold: args.min_hold ?? Math.max(2, Math.round(fps * 0.05)) };
+          let cues;
+          let offset = track.offset;
+          let length;
+          let source;
+          if (args.timing_file !== undefined) {
+            const file = await ws.existing(args.timing_file);
+            let timing;
+            try {
+              timing = readTiming(await fs.readFile(file, 'utf8'), { name: path.basename(file) });
+            } catch (e) {
+              throw new ToolError(e.message);
+            }
+            cues = timing.words ? visemeCues(timing.words, opts) : tidy(timing.cues.map((c) => ({ time: Math.max(0, c.time - opts.lead / fps), viseme: c.viseme })), opts.minHold / fps);
+            source = timing.words ? `${timing.words.length} words (${timing.kind})` : `${timing.cues.length} mouth cues (${timing.kind})`;
+            length = isWav ? levelsOf().length : (cues.at(-1)?.time ?? 0) + 0.5;
+          } else {
+            const { levels, length: l } = levelsOf();
+            const words = timeTextByLoudness(args.text, levels, fps);
+            cues = visemeCues(words, opts);
+            offset = 0;
+            length = l;
+            source = `${words.length} words, timed by loudness`;
+          }
+          const start = Math.max(0, track.offset);
+          const end = Math.min(anim.duration, track.offset + length);
+          const keys = keyLipSync(anim, si, cues, mouths, { start, end, offset });
+          return { mode: 'visemes', animation: anim.name, sound: track.sound, slot: slot.name, source, keys, mouths };
         }
+
+        if (args.control === undefined) throw new ToolError('Give text or timing_file for viseme lip-sync, or control for loudness lip-sync.');
+        const c = controlOf(doc, args.control);
+        if (!isWav) throw new ToolError(`Lip-sync through MCP reads WAV files; '${track.sound}' is not one. Use the Lip-sync button in the editor, or add a WAV version of the track.`);
+        const to = poseOf(doc, c.to);
+        const from = c.from ? poseOf(doc, c.from) : null;
+        const { levels } = levelsOf();
         for (let f = 0; f < frames; f++) {
           const time = roundTime(f / fps);
           writeTargets(doc, blendPoses(doc, poseAt(doc, anim, time), from, to, levels[f]), anim, time);

@@ -60,6 +60,8 @@ export class GraphEditor {
     this.hidden = new Set();
     /** Value range shown, or null to fit the visible curves. */
     this.range = null;
+    /** Time range shown ({ t0, t1 } in seconds), or null for the whole animation. */
+    this.timeRange = null;
     /** Selected components per selected key (a key missing here has all components selected). */
     this.components = new Map();
     this.points = [];
@@ -106,6 +108,16 @@ export class GraphEditor {
 
   fit() {
     this.range = null;
+    this.timeRange = null;
+    this.app.changed();
+  }
+
+  /** Shows the time range [t0, t1] (seconds); at least a few frames wide, inside the animation. */
+  zoomTime(t0, t1) {
+    const duration = this.layout?.duration ?? Math.max(this.app.currentAnimation()?.duration ?? 1, 1 / FPS);
+    const span = Math.min(duration, Math.max(4 / FPS, t1 - t0));
+    const start = Math.min(Math.max(0, t0), duration - span);
+    this.timeRange = span >= duration - 1e-9 ? null : { t0: start, t1: start + span };
     this.app.changed();
   }
 
@@ -151,9 +163,12 @@ export class GraphEditor {
     const viewH = Math.max(40, this.scroller.clientHeight - RULER - PAD);
     const trackLeft = GUTTER;
     const trackW = Math.max(10, width - 12 - trackLeft);
-    const timeToX = (t) => trackLeft + (t / duration) * trackW;
+    // Time range: the whole animation unless zoomed (Ctrl+wheel) or panned (Alt+wheel).
+    const t0 = this.timeRange ? Math.max(0, this.timeRange.t0) : 0;
+    const t1 = this.timeRange ? Math.min(duration, this.timeRange.t1) : duration;
+    const timeToX = (t) => trackLeft + ((t - t0) / (t1 - t0)) * trackW;
     const valueToY = (v) => RULER + PAD / 2 + ((range.hi - v) / (range.hi - range.lo)) * viewH;
-    this.layout = { trackLeft, trackW, duration, range, viewH };
+    this.layout = { trackLeft, trackW, duration, range, viewH, t0, t1 };
 
     // Value grid.
     ctx.save();
@@ -231,8 +246,8 @@ export class GraphEditor {
     // Ruler.
     ctx.fillStyle = 'rgb(45,45,45)';
     ctx.fillRect(0, 0, width, RULER);
-    const frames = Math.round(duration * FPS);
-    const pxPerFrame = trackW / (duration * FPS);
+    const frames = Math.min(Math.round(duration * FPS), Math.ceil(t1 * FPS));
+    const pxPerFrame = trackW / ((t1 - t0) * FPS);
     const labelEvery = [1, 2, 5, 10, 15, 30, 60].find((n) => n * pxPerFrame >= 34) ?? 120;
     ctx.strokeStyle = 'rgb(120,120,120)';
     ctx.lineWidth = 1;
@@ -240,7 +255,7 @@ export class GraphEditor {
     ctx.textBaseline = 'top';
     ctx.fillStyle = 'rgb(170,170,170)';
     ctx.beginPath();
-    for (let f = 0; f <= frames; f++) {
+    for (let f = Math.max(0, Math.floor(t0 * FPS)); f <= frames; f++) {
       const x = Math.round(timeToX(f / FPS)) + 0.5;
       const major = f % labelEvery === 0;
       if (major || pxPerFrame >= 5) {
@@ -257,7 +272,7 @@ export class GraphEditor {
     ctx.fillStyle = 'rgb(150,150,150)';
     ctx.font = '11px system-ui, "Segoe UI", sans-serif';
     ctx.textBaseline = 'middle';
-    ctx.fillText(curves.length ? (this.range ? 'Double-click: fit' : 'Curves') : 'No keyed bone channels', 8, RULER / 2);
+    ctx.fillText(curves.length ? (this.range || this.timeRange ? 'Double-click: fit' : 'Curves') : 'No keyed bone channels', 8, RULER / 2);
     this.rows = [];
     curves.forEach((cv, r) => {
       const y = RULER + r * ROW;
@@ -322,8 +337,8 @@ export class GraphEditor {
   }
 
   xToTime(x) {
-    const { trackLeft, trackW, duration } = this.layout;
-    return Math.min(duration, Math.max(0, ((x - trackLeft) / trackW) * duration));
+    const { trackLeft, trackW, duration, t0, t1 } = this.layout;
+    return Math.min(duration, Math.max(0, t0 + ((x - trackLeft) / trackW) * (t1 - t0)));
   }
 
   yToValue(y) {
@@ -384,7 +399,20 @@ export class GraphEditor {
   onWheel(e) {
     if (!this.layout || this.pos(e)[0] <= GUTTER) return;
     e.preventDefault();
-    const { range } = this.layout;
+    const { range, t0, t1 } = this.layout;
+    if (e.ctrlKey || e.metaKey) {
+      // Ctrl+wheel: zoom time around the cursor.
+      const at = this.xToTime(this.pos(e)[0]);
+      const f = Math.exp(Math.sign(e.deltaY) * 0.15);
+      this.zoomTime(at + (t0 - at) * f, at + (t1 - at) * f);
+      return;
+    }
+    if (e.altKey) {
+      // Alt+wheel: pan time.
+      const shift = (Math.sign(e.deltaY || e.deltaX) * (t1 - t0)) / 10;
+      this.zoomTime(t0 + shift, t1 + shift);
+      return;
+    }
     if (e.shiftKey) {
       const shift = (Math.sign(e.deltaY) * (range.hi - range.lo)) / 10;
       this.range = { lo: range.lo - shift, hi: range.hi - shift };
@@ -522,7 +550,7 @@ export class GraphEditor {
       if (Math.abs(dxPx) > Math.abs(dyPx)) dyPx = 0;
       else dxPx = 0;
     }
-    const dt = snap(move.grab[0] + (dxPx / this.layout.trackW) * this.layout.duration) - move.grab[0];
+    const dt = snap(move.grab[0] + (dxPx / this.layout.trackW) * (this.layout.t1 - this.layout.t0)) - move.grab[0];
     const dv = -dyPx * this.valuePerPixel();
     for (const m of move.times) m.key.time = Math.max(0, snap(m.time + dt));
     for (const m of move.values) setValue(m.key, m.c, m.value + dv);

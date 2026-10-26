@@ -126,6 +126,20 @@ test('mcp film: audio tracks are stored in the work file and drive lip-sync', as
   const keys = (await tools.describe_animation({ path: file, animation: 'hold' })).bones.find((b) => b.bone === 'head').keys;
   assert.equal(keys.rotate.length, 73);
 
+  // Viseme lip-sync from a timing file (no audio decoding needed), on a slot with named images.
+  await fs.writeFile(path.join(tmp, 'line.json'), JSON.stringify([{ word: 'hi', start: 1.0, end: 1.3 }, { word: 'me', start: 1.5, end: 1.9 }]));
+  const v = await tools.lip_sync({ path: file, animation: 'hold', timing_file: 'line.json', slot: 'hand', mouths: { A: 'hand_e', rest: 'hand' } });
+  assert.equal(v.mode, 'visemes');
+  assert.equal(v.slot, 'hand');
+  assert.ok(v.keys >= 2, `keys ${v.keys}`);
+  const handKeys = (await tools.describe_animation({ path: file, animation: 'hold' })).slots.find((s) => s.slot === 'hand');
+  assert.ok(handKeys, 'the hand slot has attachment keys now');
+  // Text is timed against the WAV's loudness.
+  const t = await tools.lip_sync({ path: file, animation: 'hold', text: 'hi there', slot: 'hand', mouths: { A: 'hand_e', rest: 'hand' } });
+  assert.match(t.source, /2 words, timed by loudness/);
+  await assert.rejects(tools.lip_sync({ path: file, animation: 'hold', timing_file: 'line.json', slot: 'hand', mouths: { A: 'nope' } }), /has no image 'nope'/);
+  await assert.rejects(tools.lip_sync({ path: file, animation: 'hold' }), /Give text or timing_file/);
+
   const removed = await tools.remove_audio_track({ path: file, sound: 'line.wav', animation: 'hold' });
   assert.equal(removed.fileRemoved, true);
   assert.ok(!unzip(new Uint8Array(await fs.readFile(file))).has('audio/line.wav'));

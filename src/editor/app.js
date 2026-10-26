@@ -131,6 +131,8 @@ export class App {
       showPast: true,
       future: 3,
       past: 3,
+      /** Frames between ghosts (1 = every frame; more spreads the ghosts out at high frame rates). */
+      step: 1,
       loop: true,
       pastColor: [...ONION_DEFAULTS.pastColor],
       futureColor: [...ONION_DEFAULTS.futureColor],
@@ -295,12 +297,12 @@ export class App {
       maxFuture = Math.max(maxFuture, c.future);
     }
     if (maxPast === 0 && maxFuture === 0) return [];
-    const key = [this.version, this.timeVersion, this.time, overrides, maxPast, maxFuture, JSON.stringify([...o.perBone]), o.pastColor.join(','), o.futureColor.join(',')].join('|');
+    const key = [this.version, this.timeVersion, this.time, overrides, maxPast, maxFuture, JSON.stringify([...o.perBone]), o.pastColor.join(','), o.futureColor.join(','), o.step].join('|');
     if (this._onionCache?.key === key) return this._onionCache.draws;
 
     const draws = [];
     const dur = anim.duration;
-    const dt = 1 / FPS;
+    const dt = Math.max(1, Math.round(o.step ?? 1)) / FPS;
     // One distance in one direction: the ghosted bones at that distance, grouped by color, each
     // group drawn as one skeleton masked to its bones. Nearer frames are brighter.
     const addDistance = (dir, d) => {
