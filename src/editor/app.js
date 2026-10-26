@@ -20,6 +20,20 @@ import { demoById } from './demos.js';
 export const ONION_DEFAULTS = { futureColor: [0.55, 0.75, 1], pastColor: [1, 0.55, 0.55] };
 
 /**
+ * Default guide colors, shared with the UI. Real-time guides are drawn while a bone is transformed
+ * (rotate defaults to fluorescent green); static guides are the Photoshop-style ruler guides. Solid,
+ * bright colors so they read over the artwork. Each `[r, g, b]` is 0..1.
+ */
+export const GUIDES_DEFAULTS = {
+  rotate: [0.25, 1, 0.3],
+  translate: [0.3, 0.7, 1],
+  scale: [1, 0.8, 0.2],
+  shear: [1, 0.4, 0.85],
+  vertical: [0.2, 0.9, 0.95],
+  horizontal: [1, 0.6, 0.25],
+};
+
+/**
  * Frame rate of the open project (its output settings). A live binding: modules importing it see
  * the current project's value.
  */
@@ -134,6 +148,28 @@ export class App {
       futureColor: [...ONION_DEFAULTS.futureColor],
       /** bone name -> { future?, past?, showFuture?, showPast?, futureColor?, pastColor? }. */
       perBone: new Map(),
+    };
+    /**
+     * Guides: visual aids drawn over the viewport. `realtime` guides trace a transform while a bone
+     * is being rotated/translated/scaled/sheared; `static` are the ruler guides the user drops from
+     * the rulers. Each type has its own enable flag and color. `lines` holds the placed static
+     * guides. Session state (not persisted), toggled from the "Guides" toolbar button. Drawing is
+     * added by later features; this is the shared model and its options popover.
+     */
+    this.guides = {
+      enabled: false,
+      realtime: {
+        rotate: { enabled: true, color: [...GUIDES_DEFAULTS.rotate] },
+        translate: { enabled: true, color: [...GUIDES_DEFAULTS.translate] },
+        scale: { enabled: true, color: [...GUIDES_DEFAULTS.scale] },
+        shear: { enabled: true, color: [...GUIDES_DEFAULTS.shear] },
+      },
+      static: {
+        vertical: { enabled: true, color: [...GUIDES_DEFAULTS.vertical] },
+        horizontal: { enabled: true, color: [...GUIDES_DEFAULTS.horizontal] },
+      },
+      /** Placed static guides: { axis: 'x' | 'y', pos: world coordinate }. */
+      lines: [],
     };
     /** Playback speed multiplier (1 = real time). */
     this.playSpeed = 1;
