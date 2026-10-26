@@ -157,7 +157,7 @@ export class App {
      * added by later features; this is the shared model and its options popover.
      */
     this.guides = {
-      enabled: false,
+      enabled: true,
       realtime: {
         rotate: { enabled: true, color: [...GUIDES_DEFAULTS.rotate] },
         translate: { enabled: true, color: [...GUIDES_DEFAULTS.translate] },
