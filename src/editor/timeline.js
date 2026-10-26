@@ -206,6 +206,7 @@ export class Dopesheet {
     canvas.addEventListener('pointermove', (e) => this.onPointerMove(e));
     canvas.addEventListener('pointerup', (e) => this.onPointerUp(e));
     canvas.addEventListener('pointercancel', () => (this.press = null));
+    canvas.addEventListener('pointerleave', () => app.setHover(null));
     canvas.addEventListener('contextmenu', (e) => e.preventDefault());
   }
 
@@ -215,9 +216,13 @@ export class Dopesheet {
     const empty = this.scroller.parentElement.querySelector('.empty');
     empty.hidden = !!anim;
     this.scroller.hidden = !anim;
-    if (!anim) return;
+    if (!anim) {
+      this.rows = null;
+      return;
+    }
 
     const rows = tracks(app, anim);
+    this.rows = rows; // kept so pointer hover can map a y position to a track's bone
     const duration = Math.max(anim.duration, 1 / FPS);
     const width = Math.max(1, this.scroller.clientWidth);
     const height = Math.max(RULER + Math.max(rows.length, 1) * ROW + 6, this.scroller.clientHeight);
@@ -271,6 +276,12 @@ export class Dopesheet {
       if (r % 2 === 1 || highlight) {
         ctx.fillStyle = highlight ? 'rgb(55,50,40)' : 'rgb(34,34,34)';
         ctx.fillRect(0, y, width, ROW);
+      }
+      // Shared bone hover: a short, tight cyan outline matching the viewport glow and the tree.
+      if (track.bone !== undefined && track.bone === app.hoverBone) {
+        ctx.strokeStyle = 'rgba(150,235,255,0.85)';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(0.5, y + 0.5, width - 1, ROW - 1);
       }
       ctx.font = '12px system-ui, "Segoe UI", sans-serif';
       ctx.textBaseline = 'middle';
@@ -366,10 +377,24 @@ export class Dopesheet {
     this.press = { pos: p, started: false, add, hit, handle: handle >= 0 ? handle : null, inRuler: p[1] <= RULER };
   }
 
+  /** Lights up the bone of the row under the cursor, synced with the viewport and tree. */
+  hoverAt(p) {
+    const app = this.app;
+    if (!this.rows || p[1] < RULER) {
+      app.setHover(null);
+      return;
+    }
+    const track = this.rows[Math.floor((p[1] - RULER) / ROW)]?.track;
+    app.setHover(track && track.bone !== undefined ? track.bone : null);
+  }
+
   onPointerMove(e) {
-    if (!this.press || !(e.buttons & 1)) return;
     const app = this.app;
     const p = this.pos(e);
+    if (!this.press || !(e.buttons & 1)) {
+      this.hoverAt(p);
+      return;
+    }
     const press = this.press;
     if (!press.started) {
       if (Math.hypot(p[0] - press.pos[0], p[1] - press.pos[1]) <= 3) return;
