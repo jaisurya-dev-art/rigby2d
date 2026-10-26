@@ -751,6 +751,13 @@ export class Viewport {
       }
       this.line(o1, t0, ghost, 1.25);
       this.line(o1, t1, color, 1.25);
+    } else if (type === 'translate') {
+      // Translate moves base and tip by the same vector: two straight travel guides, one from the
+      // anchor base and one from the opposite tip, with the start pose ghosted behind them.
+      this.line(o0, t0, ghost, 1.25);
+      this.line(o0, o1, color, 1.25);
+      this.line(t0, t1, color, 1.25);
+      this.dot(o1, color);
     } else {
       this.line(o0, t0, ghost, 1.25);
       this.guideCurve(t0, t1, color);
