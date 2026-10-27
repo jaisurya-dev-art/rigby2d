@@ -88,6 +88,14 @@ export class App {
     this.hoverBone = null;
     /** The tree registers a callback here on each rebuild so hover updates track the live DOM. */
     this.onHoverChange = null;
+    /**
+     * Draw-order images to glow in the viewport while a draw-order row is dragged: `{ main, slots }`,
+     * where `slots` are the lit slot indices (the dragged row and its two new neighbours) and `main`
+     * is the dragged one (a stronger glow). Null when not dragging. Transient like `hoverBone` and
+     * shared the same way, so the glow shows in the editor's viewport even while the Tree is detached.
+     * The viewport reads it each frame; set it through `setImageGlow`.
+     */
+    this.imageGlow = null;
     /** Mesh being edited: { slot, name, mode: 'vertices' | 'weights', bone, radius, strength, subtract, selected }. */
     this.meshEdit = null;
     /** Shape being edited (bounding box, clipping or path): { slot, name, selected }. */
@@ -383,6 +391,12 @@ export class App {
     this.onHoverChange?.(b);
   }
 
+  /** Sets which draw-order images glow in the viewport (`{ main, slots }`, or null to clear). Shared
+   *  across windows like the bone hover, so the editor's viewport lights up from a detached Tree. */
+  setImageGlow(glow) {
+    this.imageGlow = glow && glow.slots && glow.slots.length ? glow : null;
+  }
+
   /** Drops unkeyed changes (they only live until the time, animation or mode changes). */
   discardPending(reason = '') {
     if (!this.pending.size) return;
@@ -434,6 +448,7 @@ export class App {
     const s = selSlot(this.sel);
     if ((b !== null && b >= this.doc.bones.length) || (s !== null && s >= this.doc.slots.length)) this.sel = null;
     if (this.hoverBone !== null && this.hoverBone >= this.doc.bones.length) this.hoverBone = null;
+    if (this.imageGlow && this.imageGlow.slots.some((i) => i >= this.doc.slots.length)) this.imageGlow = null;
     if (this.anim !== null && this.anim >= this.doc.animations.length) {
       this.anim = this.doc.animations.length ? this.doc.animations.length - 1 : null;
     }
@@ -787,6 +802,7 @@ export class App {
       sel: this.sel,
       multi: [...this.multi],
       hoverBone: this.hoverBone,
+      imageGlow: this.imageGlow,
       meshEdit: this.meshEdit,
       shapeEdit: this.shapeEdit,
     };
@@ -835,6 +851,7 @@ export class App {
     if ('sel' in s) this.sel = s.sel;
     if (s.multi) this.multi = new Set(s.multi);
     if ('hoverBone' in s) this.hoverBone = s.hoverBone;
+    if ('imageGlow' in s) this.imageGlow = s.imageGlow; // shared like hoverBone; read by the viewport each frame
     if ('meshEdit' in s) this.meshEdit = s.meshEdit;
     if ('shapeEdit' in s) this.shapeEdit = s.shapeEdit;
     this.sanitize();

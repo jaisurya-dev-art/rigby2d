@@ -115,6 +115,9 @@ function update(d, y) {
   const lr = d.list.getBoundingClientRect();
   const win = d.handle.ownerDocument.defaultView;
 
+  // Glow the same three images in the viewport (shared, so it shows even with the Tree detached).
+  d.app.setImageGlow({ main: d.from, slots: [above, d.from, below].filter((s) => s != null) });
+
   // Insertion line across the list at the chosen gap.
   const lineY = gf === 0 ? d.rows[0].getBoundingClientRect().top : d.rows[gf - 1].getBoundingClientRect().bottom;
   Object.assign(d.line.style, { left: `${lr.left + 2}px`, width: `${lr.width - 4}px`, top: `${lineY}px` });
@@ -219,5 +222,6 @@ function cleanup(d) {
   d.line?.remove();
   d.viewer?.remove();
   d.handle.closest('.order-row')?.classList.remove('dragging');
+  d.app.setImageGlow(null);
   widgetState.dragging = false;
 }

@@ -16,6 +16,8 @@ const SELECTED = 'rgb(255,170,40)';
 const BONE = 'rgb(110,200,230)';
 // Magenta so the hover glow stands clear of the cyan bones (BONE) and the orange selection.
 const HOVER = 'rgb(255,70,205)';
+// Azure glow on the images a draw-order drag is moving; distinct from the magenta bone hover.
+const IMG_GLOW = 'rgb(90,200,255)';
 const DRAG_THRESHOLD = 3;
 
 const rgba = (rgb, a) => rgb.replace('rgb(', 'rgba(').replace(')', `,${a})`);
@@ -107,6 +109,7 @@ export class Viewport {
     }
     this.attachmentTime = performance.now() - t0;
     this.drawShapes(pose);
+    if (app.imageGlow) this.drawImageGlow(pose);
     if (app.showBones) this.drawBones(pose);
     this.meshTool.draw(this.ctx);
     this.shapeTool.draw(this.ctx);
@@ -486,6 +489,21 @@ export class Viewport {
     trace();
     ctx.stroke();
     ctx.restore();
+  }
+
+  /** Outlines the images a draw-order drag is moving with the same glow used for bones, so the three
+   *  slots in the Tree preview (dragged + its two new neighbours) are easy to spot in the render. */
+  drawImageGlow(pose) {
+    const { slots, main } = this.app.imageGlow;
+    const lit = new Set(slots);
+    for (const q of pose.quads(this.app.doc)) {
+      if (!lit.has(q.slot)) continue;
+      // Region quads already carry their four corners; a mesh gives its hull a tight outline.
+      const outline = (q.kind === 'mesh' ? convexHull(q.positions) : q.positions).map((p) => this.toScreen(p));
+      if (outline.length < 2) continue;
+      const strong = q.slot === main;
+      this.glowOutline(() => this.polyPath(outline), IMG_GLOW, { blur: strong ? 16 : 10, width: strong ? 3 : 2 });
+    }
   }
 
   drawOverlay() {
@@ -870,6 +888,24 @@ function distToSegment(p, a, b) {
   const lenSq = ab[0] * ab[0] + ab[1] * ab[1];
   const t = lenSq > 0 ? Math.min(1, Math.max(0, ((p[0] - a[0]) * ab[0] + (p[1] - a[1]) * ab[1]) / lenSq)) : 0;
   return Math.hypot(p[0] - (a[0] + ab[0] * t), p[1] - (a[1] + ab[1] * t));
+}
+
+/** Convex hull of 2D points (Andrew's monotone chain), counter-clockwise. Used to outline a mesh
+ *  attachment with a single tight loop for the draw-order glow. */
+function convexHull(points) {
+  if (points.length < 3) return points.slice();
+  const pts = [...points].sort((p, q) => p[0] - q[0] || p[1] - q[1]);
+  const cross = (o, a, b) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
+  const half = (src) => {
+    const h = [];
+    for (const p of src) {
+      while (h.length >= 2 && cross(h[h.length - 2], h[h.length - 1], p) <= 0) h.pop();
+      h.push(p);
+    }
+    h.pop();
+    return h;
+  };
+  return [...half(pts), ...half(pts.reverse())];
 }
 
 function angleBetween(origin, a, b) {

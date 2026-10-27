@@ -56,9 +56,10 @@ Slots are drawn back to front in the **Draw order** section of the tree. Select 
 list. While you drag, a line marks where the slot will land and a side preview shows the slot between
 the two it will sit between (the one drawn in front of it on top, the one drawn behind it below),
 each with its image, so you can read the resulting stacking before releasing. The preview says
-*Nothing in front* or *Nothing behind* when the slot would become the front- or back-most. PSD
-imports keep the layer order. Draw order can also change during an animation (draw-order keys from
-imported files are kept and exported).
+*Nothing in front* or *Nothing behind* when the slot would become the front- or back-most. At the
+same time those three images glow in the viewport (the dragged one brighter), so you can spot them in
+the render, not just in the tree. PSD imports keep the layer order. Draw order can also change during
+an animation (draw-order keys from imported files are kept and exported).
 
 ## Attachments
 
