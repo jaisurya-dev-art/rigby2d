@@ -125,13 +125,46 @@ function update(d, y) {
     h('div', { class: 'ov-cap' }, '▼ Behind'),
   );
 
-  // Park the viewer beside the list, flipping to the other side if it would overflow.
-  const vr = d.viewer.getBoundingClientRect();
-  let x = lr.right + 12;
-  if (x + vr.width > win.innerWidth - 8) x = lr.left - vr.width - 12;
-  x = Math.max(8, x);
-  const top = Math.max(8, Math.min(y - vr.height / 2, win.innerHeight - vr.height - 8));
-  Object.assign(d.viewer.style, { left: `${x}px`, top: `${top}px` });
+  placeViewer(d, y, lr, win);
+}
+
+// Viewer placement, in px.
+const GAP = 12; // space between the viewer and the list
+const EDGE = 8; // keep this clear of the window edges
+const FULL = 148; // the viewer's natural width (matches the CSS)
+const MIN = 100; // below this it is unreadable, so hide it instead
+const NAMES = 150; // width the row names are assumed to take before the overlay may start
+
+/**
+ * Parks the viewer near the list. First choice is the full card in the gutter beside the list
+ * (right, else left) — this is the docked panel, with the canvas or another panel alongside.
+ * A detached panel fills its own window and has no gutter: there the names sit at the left, so
+ * the viewer overlays the empty strip to their right, anchored a fixed distance from the rows
+ * (never flung to the window edge) and shrunk to fit — or hidden when even that is too narrow,
+ * leaving the insertion line to show the drop.
+ */
+function placeViewer(d, y, lr, win) {
+  const v = d.viewer;
+  const winW = win.innerWidth;
+  let width = FULL;
+  let x;
+  if (winW - EDGE - (lr.right + GAP) >= FULL) {
+    x = lr.right + GAP; // gutter on the right
+  } else if (lr.left - GAP - EDGE >= FULL) {
+    x = lr.left - FULL - GAP; // gutter on the left
+  } else {
+    x = lr.left + NAMES + GAP; // no gutter: overlay the empty strip past the names
+    if (x + width > winW - EDGE) width = winW - EDGE - x;
+    if (width < MIN) {
+      v.style.display = 'none';
+      return;
+    }
+  }
+  v.style.display = '';
+  v.style.width = `${width}px`;
+  const vh = v.getBoundingClientRect().height;
+  const top = Math.max(EDGE, Math.min(y - vh / 2, win.innerHeight - vh - EDGE));
+  Object.assign(v.style, { left: `${Math.max(EDGE, x)}px`, top: `${top}px` });
 }
 
 function cell(app, pose, slot, role) {
