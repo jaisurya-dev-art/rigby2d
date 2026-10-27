@@ -143,10 +143,10 @@ const NAMES = 150; // width the row names are assumed to take before the overlay
 
 /**
  * Parks the viewer near the list. First choice is the full card in the gutter beside the list
- * (right, else left) — this is the docked panel, with the canvas or another panel alongside.
+ * (right, else left): this is the docked panel, with the canvas or another panel alongside.
  * A detached panel fills its own window and has no gutter: there the names sit at the left, so
  * the viewer overlays the empty strip to their right, anchored a fixed distance from the rows
- * (never flung to the window edge) and shrunk to fit — or hidden when even that is too narrow,
+ * (never flung to the window edge) and shrunk to fit, or hidden when even that is too narrow,
  * leaving the insertion line to show the drop.
  */
 function placeViewer(d, y, lr, win) {
