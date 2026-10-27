@@ -11,13 +11,12 @@ import * as edit from './edit.js';
 import { GLView } from './glview.js';
 import { MeshTool } from './meshtool.js';
 import { ShapeTool } from './shapetool.js';
+import { GLOW_COLORS } from './draworderdnd.js';
 
 const SELECTED = 'rgb(255,170,40)';
 const BONE = 'rgb(110,200,230)';
 // Magenta so the hover glow stands clear of the cyan bones (BONE) and the orange selection.
 const HOVER = 'rgb(255,70,205)';
-// Azure glow on the images a draw-order drag is moving; distinct from the magenta bone hover.
-const IMG_GLOW = 'rgb(90,200,255)';
 const DRAG_THRESHOLD = 3;
 
 const rgba = (rgb, a) => rgb.replace('rgb(', 'rgba(').replace(')', `,${a})`);
@@ -491,18 +490,23 @@ export class Viewport {
     ctx.restore();
   }
 
-  /** Outlines the images a draw-order drag is moving with the same glow used for bones, so the three
-   *  slots in the Tree preview (dragged + its two new neighbours) are easy to spot in the render. */
+  /** Outlines the images a draw-order drag is moving with the same glow used for bones, each in its
+   *  role's colour (drawn in front / moving / drawn behind), so the three slots in the Tree preview
+   *  are easy to tell apart in the render. */
   drawImageGlow(pose) {
-    const { slots, main } = this.app.imageGlow;
-    const lit = new Set(slots);
+    const { above, dragged, below } = this.app.imageGlow;
+    const lit = new Map(); // slot -> glow colour
+    if (above !== null && above !== undefined) lit.set(above, GLOW_COLORS.above);
+    if (below !== null && below !== undefined) lit.set(below, GLOW_COLORS.below);
+    if (dragged !== null && dragged !== undefined) lit.set(dragged, GLOW_COLORS.dragged);
     for (const q of pose.quads(this.app.doc)) {
-      if (!lit.has(q.slot)) continue;
+      const color = lit.get(q.slot);
+      if (!color) continue;
       // Region quads already carry their four corners; a mesh gives its hull a tight outline.
       const outline = (q.kind === 'mesh' ? convexHull(q.positions) : q.positions).map((p) => this.toScreen(p));
       if (outline.length < 2) continue;
-      const strong = q.slot === main;
-      this.glowOutline(() => this.polyPath(outline), IMG_GLOW, { blur: strong ? 16 : 10, width: strong ? 3 : 2 });
+      const strong = q.slot === dragged;
+      this.glowOutline(() => this.polyPath(outline), color, { blur: strong ? 16 : 10, width: strong ? 3 : 2 });
     }
   }
 

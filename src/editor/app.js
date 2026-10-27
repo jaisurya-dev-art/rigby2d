@@ -391,10 +391,11 @@ export class App {
     this.onHoverChange?.(b);
   }
 
-  /** Sets which draw-order images glow in the viewport (`{ main, slots }`, or null to clear). Shared
-   *  across windows like the bone hover, so the editor's viewport lights up from a detached Tree. */
+  /** Sets which draw-order images glow in the viewport (`{ above, dragged, below }` slot indices, any
+   *  of them null, or the whole thing null to clear). Shared across windows like the bone hover, so
+   *  the editor's viewport lights up from a detached Tree. */
   setImageGlow(glow) {
-    this.imageGlow = glow && glow.slots && glow.slots.length ? glow : null;
+    this.imageGlow = glow && glow.dragged !== null && glow.dragged !== undefined ? glow : null;
   }
 
   /** Drops unkeyed changes (they only live until the time, animation or mode changes). */
@@ -448,7 +449,11 @@ export class App {
     const s = selSlot(this.sel);
     if ((b !== null && b >= this.doc.bones.length) || (s !== null && s >= this.doc.slots.length)) this.sel = null;
     if (this.hoverBone !== null && this.hoverBone >= this.doc.bones.length) this.hoverBone = null;
-    if (this.imageGlow && this.imageGlow.slots.some((i) => i >= this.doc.slots.length)) this.imageGlow = null;
+    if (this.imageGlow) {
+      const n = this.doc.slots.length;
+      const g = this.imageGlow;
+      if ([g.above, g.dragged, g.below].some((i) => i !== null && i !== undefined && i >= n)) this.imageGlow = null;
+    }
     if (this.anim !== null && this.anim >= this.doc.animations.length) {
       this.anim = this.doc.animations.length ? this.doc.animations.length - 1 : null;
     }

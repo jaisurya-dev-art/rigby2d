@@ -8,6 +8,16 @@ import { h, widgetState } from './widgets.js';
 const THUMB = 52; // preview thumbnail size, px
 const START = 4; // pointer travel before a click turns into a drag, px
 
+/**
+ * Glow colour per role, one source of truth for the viewport render and the preview card so they
+ * match: a distinct hue tells the three images apart (drawn in front / moving / drawn behind).
+ */
+export const GLOW_COLORS = {
+  above: 'rgb(95,220,130)', // ends up drawn in front (top cell)
+  dragged: 'rgb(95,185,255)', // the slot being moved (middle cell)
+  below: 'rgb(255,165,90)', // ends up drawn behind (bottom cell)
+};
+
 let drag = null; // the active gesture, or null when idle
 
 /**
@@ -116,7 +126,7 @@ function update(d, y) {
   const win = d.handle.ownerDocument.defaultView;
 
   // Glow the same three images in the viewport (shared, so it shows even with the Tree detached).
-  d.app.setImageGlow({ main: d.from, slots: [above, d.from, below].filter((s) => s != null) });
+  d.app.setImageGlow({ above, dragged: d.from, below });
 
   // Insertion line across the list at the chosen gap.
   const lineY = gf === 0 ? d.rows[0].getBoundingClientRect().top : d.rows[gf - 1].getBoundingClientRect().bottom;
@@ -187,9 +197,10 @@ function cell(app, pose, slot, role) {
   }
   const name = app.doc.slots[slot].name;
   const canvas = thumb(app, pose, slot);
+  // A left bar in the cell's glow colour, so the card is a legend for the viewport glow.
   return h(
     'div',
-    { class: `ov-cell ov-${role}` },
+    { class: `ov-cell ov-${role}`, style: { borderLeft: `3px solid ${GLOW_COLORS[role]}` } },
     h('div', { class: 'ov-thumb' }, canvas ?? h('span', { class: 'ov-noimg' }, '▣')),
     h('div', { class: 'ov-name', title: name }, name),
   );
