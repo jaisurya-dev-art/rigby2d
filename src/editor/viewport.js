@@ -11,12 +11,17 @@ import * as edit from './edit.js';
 import { GLView } from './glview.js';
 import { MeshTool } from './meshtool.js';
 import { ShapeTool } from './shapetool.js';
+import { h, popupMenu } from './widgets.js';
 
 const SELECTED = 'rgb(255,170,40)';
 const BONE = 'rgb(110,200,230)';
 const DRAG_THRESHOLD = 3;
+/** Width of the pixel rulers (screen px), and how close to a guide line counts as a grab. */
+const RULER_W = 18;
+const GUIDE_GRAB = 5;
 
 const rgba = (rgb, a) => rgb.replace('rgb(', 'rgba(').replace(')', `,${a})`);
+const rgbCss = (rgb) => `rgb(${rgb.slice(0, 3).map((x) => Math.round(x * 255)).join(',')})`;
 
 export class Viewport {
   constructor(app, canvas, glCanvas = null) {
@@ -33,6 +38,8 @@ export class Viewport {
     this.height = 1;
     /** Active tool drag: { kind: 'bone'|'slot'|'create', index, start, last }. */
     this.drag = null;
+    /** Active guide drag: creating from a ruler, moving a placed guide, or the corner menu. */
+    this.guideDrag = null;
     this.press = null;
     this.panning = null;
     canvas.addEventListener('pointerdown', (e) => this.onPointerDown(e));
@@ -41,6 +48,8 @@ export class Viewport {
     canvas.addEventListener('pointercancel', (e) => this.onPointerUp(e));
     canvas.addEventListener('wheel', (e) => this.onWheel(e), { passive: false });
     canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+    // Delete / Backspace while dragging a guide removes it (capture phase, to beat the keymap).
+    window.addEventListener('keydown', (e) => this.onGuideKey(e), true);
   }
 
   toScreen(p) {
@@ -117,6 +126,10 @@ export class Viewport {
       this.line(this.toScreen(this.drag.start), this.toScreen(this.drag.last), SELECTED, 2);
     }
     if (app.showFrame && has(app, 'outputFrame')) this.drawFrameGate();
+    if (app.guides.enabled) {
+      this.drawStaticGuides();
+      this.drawRulers();
+    }
     this.drawOverlay();
   }
 
@@ -450,6 +463,326 @@ export class Viewport {
     });
   }
 
+  // ---- rulers and static guides -------------------------------------------------------------
+
+  /** A "nice" ruler step in world units so labels stay ~60 px apart at the current zoom. */
+  niceStep() {
+    const target = 60 / (this.app.view.zoom || 1);
+    const pow = Math.pow(10, Math.floor(Math.log10(target)));
+    for (const m of [1, 2, 5]) if (pow * m >= target) return pow * m;
+    return pow * 10;
+  }
+
+  /** Draws the placed static guides, plus the one being created or moved (follows the cursor). */
+  drawStaticGuides() {
+    const d = this.guideDrag;
+    this.app.guides.lines.forEach((ln, i) => {
+      if (d?.index === i) return; // the dragged guide is drawn at its live position below
+      this.drawGuideLine(ln, false);
+    });
+    if (d && d.axis != null && d.pos != null) this.drawGuideLine({ axis: d.axis, pos: d.pos }, true);
+  }
+
+  /** Draws one guide line. axis 'x' = vertical, 'y' = horizontal, 'd' = main diagonal,
+   *  'a' = antidiagonal. `active` = currently dragged. */
+  drawGuideLine(ln, active) {
+    const g = this.app.guides;
+    let color;
+    if (ln.axis === 'x') {
+      if (!g.static.vertical.enabled && !active) return;
+      color = rgbCss(g.static.vertical.color);
+    } else if (ln.axis === 'y') {
+      if (!g.static.horizontal.enabled && !active) return;
+      color = rgbCss(g.static.horizontal.color);
+    } else if (ln.axis === 'd') {
+      if (!g.static.diagonal.enabled && !active) return;
+      color = rgbCss(g.static.diagonal.color);
+    } else {
+      if (!g.static.antidiagonal.enabled && !active) return;
+      color = rgbCss(g.static.antidiagonal.color);
+    }
+    const ctx = this.ctx;
+    const del = active && this.guideDrag?.overRuler;
+    ctx.strokeStyle = del ? 'rgb(255,70,70)' : active ? 'rgb(255,120,120)' : color;
+    ctx.lineWidth = active ? 1.5 : 1;
+    ctx.save();
+    if (del) ctx.setLineDash([5, 4]);
+    ctx.beginPath();
+    if (ln.axis === 'x') {
+      const x = Math.round(this.toScreen([ln.pos, 0])[0]) + 0.5;
+      if (x >= RULER_W) {
+        ctx.moveTo(x, RULER_W);
+        ctx.lineTo(x, this.height);
+      }
+    } else if (ln.axis === 'y') {
+      const y = Math.round(this.toScreen([0, ln.pos])[1]) + 0.5;
+      if (y >= RULER_W) {
+        ctx.moveTo(RULER_W, y);
+        ctx.lineTo(this.width, y);
+      }
+    } else {
+      // Diagonal: 'd' is world y = x + pos, 'a' is y = -x + pos. Drawn full-width; the rulers,
+      // painted afterwards, cover the parts that fall under the ruler strips.
+      const xL = this.toWorld([RULER_W, 0])[0];
+      const xR = this.toWorld([this.width, 0])[0];
+      const yOf = (xw) => (ln.axis === 'd' ? xw + ln.pos : -xw + ln.pos);
+      const p0 = this.toScreen([xL, yOf(xL)]);
+      const p1 = this.toScreen([xR, yOf(xR)]);
+      ctx.moveTo(p0[0], p0[1]);
+      ctx.lineTo(p1[0], p1[1]);
+    }
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  /** Draws the Photoshop-style pixel rulers (top = world X, left = world Y) and the corner. */
+  drawRulers() {
+    const ctx = this.ctx;
+    const w = this.width;
+    const hgt = this.height;
+    const gd = this.guideDrag;
+    const diag = !!gd && (gd.axis === 'd' || gd.axis === 'a');
+    const dragging = !!gd && (gd.axis === 'x' || gd.axis === 'y');
+    ctx.save();
+    ctx.font = '9px ui-monospace, Consolas, monospace';
+    ctx.textBaseline = 'top';
+    ctx.fillStyle = 'rgb(28,28,30)';
+    ctx.fillRect(0, 0, w, RULER_W);
+    ctx.fillRect(0, 0, RULER_W, hgt);
+    // While dragging a guide, flash the ruler(s) it can be dropped on to delete: the matching ruler
+    // for a vertical/horizontal guide, or both rulers for a diagonal.
+    if (dragging || diag) {
+      const flash = 0.35 + 0.4 * Math.abs(Math.sin(performance.now() / 180));
+      ctx.fillStyle = `rgba(220,50,50,${flash})`;
+      if (diag) {
+        ctx.fillRect(0, 0, w, RULER_W);
+        ctx.fillRect(0, 0, RULER_W, hgt);
+      } else if (gd.axis === 'y') {
+        ctx.fillRect(0, 0, w, RULER_W);
+      } else {
+        ctx.fillRect(0, 0, RULER_W, hgt);
+      }
+    }
+    ctx.fillStyle = 'rgb(150,150,155)';
+    ctx.strokeStyle = 'rgb(90,90,95)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    const step = this.niceStep();
+    const leftW = this.toWorld([RULER_W, 0])[0];
+    const rightW = this.toWorld([w, 0])[0];
+    for (let x = Math.ceil(leftW / step) * step; x <= rightW; x += step) {
+      const sx = Math.round(this.toScreen([x, 0])[0]) + 0.5;
+      if (sx < RULER_W) continue;
+      ctx.moveTo(sx, RULER_W - 6);
+      ctx.lineTo(sx, RULER_W);
+      ctx.fillText(String(Math.round(x)), sx + 2, 2);
+    }
+    const botW = this.toWorld([0, hgt])[1];
+    const topW = this.toWorld([0, RULER_W])[1];
+    for (let y = Math.ceil(botW / step) * step; y <= topW; y += step) {
+      const sy = Math.round(this.toScreen([0, y])[1]) + 0.5;
+      if (sy < RULER_W) continue;
+      ctx.moveTo(RULER_W - 6, sy);
+      ctx.lineTo(RULER_W, sy);
+      ctx.fillText(String(Math.round(y)), 1, sy + 2);
+    }
+    ctx.stroke();
+    // Corner (the intersection): click opens the guide menu.
+    ctx.fillStyle = 'rgb(44,44,48)';
+    ctx.fillRect(0, 0, RULER_W, RULER_W);
+    ctx.strokeStyle = 'rgb(90,90,95)';
+    ctx.strokeRect(0.5, 0.5, RULER_W - 1, RULER_W - 1);
+    if (dragging || diag) this.drawTrashIcon();
+    ctx.restore();
+  }
+
+  /** Trash-can icon(s) on the ruler(s) a dragged guide can be dropped on to delete: the matching
+   *  ruler for a vertical/horizontal guide, or both for a diagonal. */
+  drawTrashIcon() {
+    const ax = this.guideDrag.axis;
+    if (ax === 'd' || ax === 'a') {
+      this.trashAt(this.width / 2, RULER_W / 2);
+      this.trashAt(RULER_W / 2, this.height / 2);
+    } else if (ax === 'y') {
+      this.trashAt(this.width / 2, RULER_W / 2);
+    } else {
+      this.trashAt(RULER_W / 2, this.height / 2);
+    }
+  }
+
+  /** Draws one trash-can icon centered at (cx, cy). */
+  trashAt(cx, cy) {
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.strokeStyle = 'rgb(255,235,235)';
+    ctx.lineWidth = 1.2;
+    ctx.lineJoin = 'round';
+    ctx.beginPath();
+    ctx.moveTo(-4, -3);
+    ctx.lineTo(4, -3);
+    ctx.lineTo(3, 6);
+    ctx.lineTo(-3, 6);
+    ctx.closePath();
+    ctx.moveTo(-6, -3);
+    ctx.lineTo(6, -3);
+    ctx.moveTo(-2, -3);
+    ctx.lineTo(-2, -5);
+    ctx.lineTo(2, -5);
+    ctx.lineTo(2, -3);
+    ctx.moveTo(-1.5, -1);
+    ctx.lineTo(-1.5, 4);
+    ctx.moveTo(1.5, -1);
+    ctx.lineTo(1.5, 4);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  /** A left press on a ruler, the corner or a guide. Returns true if it consumed the event. */
+  rulerPointerDown(pos) {
+    const inTop = pos[1] < RULER_W;
+    const inLeft = pos[0] < RULER_W;
+    if (inTop && inLeft) {
+      this.guideDrag = { corner: true };
+      return true;
+    }
+    if (inTop) {
+      this.guideDrag = { axis: 'y', origin: 'ruler', pos: this.toWorld(pos)[1], overRuler: false };
+      return true;
+    }
+    if (inLeft) {
+      this.guideDrag = { axis: 'x', origin: 'ruler', pos: this.toWorld(pos)[0], overRuler: false };
+      return true;
+    }
+    const idx = this.guideAt(pos);
+    if (idx !== null) {
+      const ln = this.app.guides.lines[idx];
+      this.guideDrag = { axis: ln.axis, origin: 'canvas', index: idx, pos: ln.pos, overRuler: false };
+      return true;
+    }
+    return false;
+  }
+
+  /** Index of the placed guide within grab distance of a screen position, or null. */
+  guideAt(pos) {
+    const g = this.app.guides;
+    if (pos[0] < RULER_W || pos[1] < RULER_W) return null;
+    for (let i = g.lines.length - 1; i >= 0; i--) {
+      const ln = g.lines[i];
+      if (ln.axis === 'x') {
+        if (g.static.vertical.enabled && Math.abs(pos[0] - this.toScreen([ln.pos, 0])[0]) <= GUIDE_GRAB) return i;
+      } else if (ln.axis === 'y') {
+        if (g.static.horizontal.enabled && Math.abs(pos[1] - this.toScreen([0, ln.pos])[1]) <= GUIDE_GRAB) return i;
+      } else if (
+        ((ln.axis === 'd' && g.static.diagonal.enabled) || (ln.axis === 'a' && g.static.antidiagonal.enabled)) &&
+        this.diagDistance(ln, pos) <= GUIDE_GRAB
+      ) {
+        return i;
+      }
+    }
+    return null;
+  }
+
+  /** Perpendicular screen distance from `pos` to a diagonal guide line. */
+  diagDistance(ln, pos) {
+    const xL = this.toWorld([RULER_W, 0])[0];
+    const xR = this.toWorld([this.width, 0])[0];
+    const yOf = (xw) => (ln.axis === 'd' ? xw + ln.pos : -xw + ln.pos);
+    const a = this.toScreen([xL, yOf(xL)]);
+    const b = this.toScreen([xR, yOf(xR)]);
+    const vx = b[0] - a[0];
+    const vy = b[1] - a[1];
+    const len = Math.hypot(vx, vy) || 1;
+    return Math.abs((pos[0] - a[0]) * vy - (pos[1] - a[1]) * vx) / len;
+  }
+
+  guideDragMove(pos) {
+    const d = this.guideDrag;
+    // Only vertical/horizontal guides can be dropped back on their ruler to delete.
+    d.overRuler = d.axis === 'x' ? pos[0] < RULER_W : d.axis === 'y' ? pos[1] < RULER_W : pos[0] < RULER_W || pos[1] < RULER_W;
+    d.pos = this.posFor(d.axis, this.toWorld(pos));
+  }
+
+  /** The stored `pos` for a guide axis at a world point. */
+  posFor(axis, w) {
+    return axis === 'x' ? w[0] : axis === 'y' ? w[1] : axis === 'd' ? w[1] - w[0] : w[1] + w[0];
+  }
+
+  guideDragStop(pos, e) {
+    const app = this.app;
+    const d = this.guideDrag;
+    this.guideDrag = null;
+    if (!d) return;
+    if (d.corner) {
+      this.intersectionMenu(e.clientX, e.clientY);
+      return;
+    }
+    const overRuler = d.axis === 'x' ? pos[0] < RULER_W : d.axis === 'y' ? pos[1] < RULER_W : pos[0] < RULER_W || pos[1] < RULER_W;
+    if (d.origin === 'ruler') {
+      if (!overRuler) app.guides.lines.push({ axis: d.axis, pos: this.posFor(d.axis, this.toWorld(pos)) });
+    } else if (overRuler) {
+      app.guides.lines.splice(d.index, 1);
+    } else {
+      app.guides.lines[d.index].pos = this.posFor(d.axis, this.toWorld(pos));
+    }
+    app.changed();
+  }
+
+  /** Delete / Backspace while dragging a guide removes it (the one being moved), or cancels a new
+   *  one being dragged out of a ruler. */
+  onGuideKey(e) {
+    const d = this.guideDrag;
+    if (!d || d.axis == null) return;
+    if (e.key !== 'Delete' && e.key !== 'Backspace') return;
+    if (d.origin === 'canvas') this.app.guides.lines.splice(d.index, 1);
+    this.guideDrag = null;
+    this.app.changed();
+    e.preventDefault();
+    e.stopPropagation();
+  }
+
+  /** Menu at the ruler intersection: add a guide (main diagonal / antidiagonal / vertical /
+   *  horizontal, through the origin) or delete the placed guides by type. */
+  intersectionMenu(x, y) {
+    const app = this.app;
+    const g = app.guides;
+    const add = (axis) => () => {
+      g.lines.push({ axis, pos: 0 });
+      app.changed();
+    };
+    const count = (axis) => g.lines.filter((l) => l.axis === axis).length;
+    const remove = (label, axis) => ({
+      label,
+      action: () => {
+        g.lines = g.lines.filter((l) => l.axis !== axis);
+        app.changed();
+      },
+    });
+    const items = [
+      { label: 'Add main diagonal', action: add('d') },
+      { label: 'Add antidiagonal', action: add('a') },
+      'separator',
+      { label: 'Add vertical guide', action: add('x') },
+      { label: 'Add horizontal guide', action: add('y') },
+    ];
+    const dels = [];
+    if (count('x')) dels.push(remove(`Delete all vertical (${count('x')})`, 'x'));
+    if (count('y')) dels.push(remove(`Delete all horizontal (${count('y')})`, 'y'));
+    if (count('d')) dels.push(remove(`Delete all diagonal (${count('d')})`, 'd'));
+    if (count('a')) dels.push(remove(`Delete all antidiagonal (${count('a')})`, 'a'));
+    if (g.lines.length) {
+      dels.push({
+        label: `Delete all (${g.lines.length})`,
+        action: () => {
+          g.lines.length = 0;
+          app.changed();
+        },
+      });
+    }
+    if (dels.length) items.push('separator', ...dels);
+    popupMenu(x, y, items);
+  }
+
   drawOverlay() {
     const app = this.app;
     let text = 'SETUP';
@@ -459,10 +792,13 @@ export class Viewport {
     }
     text += `   ${TOOLS.find((t) => t.id === app.tool)?.label ?? ''}`;
     const ctx = this.ctx;
+    // Shift clear of the rulers when guides are on, so the status text isn't hidden under them.
+    const ox = app.guides.enabled ? RULER_W + 6 : 10;
+    const oy = app.guides.enabled ? RULER_W + 4 : 8;
     ctx.font = '13px system-ui, "Segoe UI", sans-serif';
     ctx.fillStyle = 'rgb(200,200,200)';
     ctx.textBaseline = 'top';
-    ctx.fillText(text, 10, 8);
+    ctx.fillText(text, ox, oy);
     // Events fired during playback fade out over a moment.
     const now = performance.now();
     let row = 0;
@@ -470,7 +806,7 @@ export class Viewport {
       const age = (now - f.at) / 1200;
       if (age >= 1) continue;
       ctx.fillStyle = `rgba(255,200,90,${1 - age})`;
-      ctx.fillText(`⚑ ${f.name}`, 10, 30 + row++ * 18);
+      ctx.fillText(`⚑ ${f.name}`, ox, oy + 22 + row++ * 18);
     }
     if (app.mode === Mode.Animate) {
       ctx.strokeStyle = 'rgba(255,110,80,0.7)';
@@ -545,6 +881,11 @@ export class Viewport {
     }
     document.activeElement?.blur?.();
     const pos = this.eventPos(e);
+    // Guides: a press on a ruler, the corner or a guide is handled here, not as selection.
+    if (e.button === 0 && this.app.guides.enabled && this.rulerPointerDown(pos)) {
+      this.press = null;
+      return;
+    }
     const editTool = this.meshTool.active ? this.meshTool : this.shapeTool.active ? this.shapeTool : null;
     if (e.button === 0 && editTool) {
       this.meshPress = editTool;
@@ -560,6 +901,13 @@ export class Viewport {
   onPointerMove(e) {
     const app = this.app;
     const pos = this.eventPos(e);
+    if (this.guideDrag) {
+      if (this.guideDrag.axis != null) {
+        this.guideDragMove(pos);
+        app.changed();
+      }
+      return;
+    }
     if (this.meshTool.active) {
       this.meshTool.hover = pos;
       if (this.meshPress === this.meshTool && e.buttons & 1) this.meshTool.move(pos);
@@ -582,6 +930,11 @@ export class Viewport {
   }
 
   onPointerUp(e) {
+    if (this.guideDrag) {
+      if (e.type === 'pointercancel') this.guideDrag = null;
+      else this.guideDragStop(this.eventPos(e), e);
+      return;
+    }
     if (e.button === 1 || e.button === 2) this.panning = null;
     if (this.meshPress && (e.button === 0 || e.type === 'pointercancel')) {
       this.meshPress.up();
