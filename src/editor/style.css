@@ -403,6 +403,127 @@ li {
 .order-row .row {
   flex: 1;
 }
+.order-row .row[title='Drag to reorder'] {
+  cursor: grab;
+}
+.order-row.dragging {
+  opacity: 0.45;
+}
+.order-row.dragging .row {
+  outline: 1px dashed var(--accent);
+  outline-offset: -1px;
+}
+
+/* Insertion line shown across the list while dragging a draw-order row. */
+.order-dropline {
+  position: fixed;
+  height: 0;
+  border-top: 2px solid var(--accent);
+  border-radius: 2px;
+  pointer-events: none;
+  z-index: 60;
+  transform: translateY(-1px);
+}
+.order-dropline::before,
+.order-dropline::after {
+  content: '';
+  position: absolute;
+  top: -3px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+.order-dropline::before {
+  left: -2px;
+}
+.order-dropline::after {
+  right: -2px;
+}
+
+/* Side viewer: in front (top) -> moving slot (middle) -> behind (bottom). */
+.order-viewer {
+  position: fixed;
+  z-index: 61;
+  width: 148px;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+}
+.order-viewer .ov-cap {
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--weak);
+  text-align: center;
+}
+.order-viewer .ov-seam {
+  height: 0;
+  margin: 1px 10px;
+  border-top: 1px dashed var(--border);
+}
+.order-viewer .ov-cell {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg);
+  min-height: 44px;
+}
+.order-viewer .ov-dragged {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent) inset;
+  background: var(--selected);
+}
+.order-viewer .ov-thumb {
+  width: 32px;
+  height: 32px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 3px;
+  background: repeating-conic-gradient(#2a2a2a 0% 25%, #202020 0% 50%) 0 0 / 10px 10px;
+  overflow: hidden;
+}
+.order-viewer .ov-thumb canvas {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+.order-viewer .ov-noimg {
+  color: var(--weak);
+  font-size: 14px;
+}
+.order-viewer .ov-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 11px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.order-viewer .ov-empty {
+  justify-content: center;
+  color: var(--weak);
+  border-style: dashed;
+  background: transparent;
+}
+.order-viewer .ov-empty-icon {
+  font-size: 13px;
+  opacity: 0.8;
+}
+.order-viewer .ov-empty-text {
+  font-size: 10px;
+}
 
 button,
 select,
