@@ -16,6 +16,12 @@ let drag = null; // the active gesture, or null when idle
  * The row keeps its own `onclick` for selection: a press that does not travel stays a click.
  */
 export function dragOrderRow(app, handle, from, n) {
+  // A detached panel has no image pixels until it asks for them: warm this slot's image now so its
+  // thumbnail is ready for the first drag (a no-op in the editor window, where images are loaded).
+  const setup = app.doc.slots[from]?.attachment;
+  const warm = setup ? app.doc.attachment(from, setup) : null;
+  if (warm && warm.image) app.ensureImage(warm.image);
+
   handle.addEventListener('pointerdown', (e) => {
     if (drag || e.button !== 0 || n < 2) return;
     drag = { app, from, n, handle, pointerId: e.pointerId, startX: e.clientX, startY: e.clientY, started: false };
@@ -191,8 +197,12 @@ function thumb(app, pose, slot) {
   const doc = app.doc;
   const name = pose.attachment[slot] ?? doc.slots[slot].attachment;
   const att = name ? doc.attachment(slot, name) : null;
-  const src = att && att.image ? app.images.get(att.image) : null;
-  if (!src || !src.width || !src.height) return null;
+  if (!att || !att.image) return null;
+  const src = app.images.get(att.image);
+  if (!src || !src.width || !src.height) {
+    app.ensureImage(att.image); // detached panel: pull the pixels from the editor; it redraws on arrival
+    return null;
+  }
   const c = document.createElement('canvas');
   c.width = THUMB;
   c.height = THUMB;

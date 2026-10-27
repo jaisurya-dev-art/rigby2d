@@ -8,7 +8,7 @@
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import { WebviewWindow } from '@tauri-apps/api/webviewWindow';
 import { emit, listen } from '@tauri-apps/api/event';
-import { EV_SYNC, EV_CONTROL, EV_CLOSED, EV_PLACE, PANELS, panelLabel } from './dock.js';
+import { EV_SYNC, EV_CONTROL, EV_CLOSED, EV_PLACE, EV_IMAGE, PANELS, panelLabel } from './dock.js';
 import { saveSetting } from './app.js';
 import { keySelectionIndices, applyKeySelection } from './keyorder.js';
 import { byHotkey, layoutHotkeyDigit, loadLayouts } from './layouts.js';
@@ -191,6 +191,20 @@ export function installPanelSync(app, { inTauri, appEl, runForwardedAction }) {
     broadcastState(false);
   }
 
+  // Replies to a window that asked for an image's pixels (not shared in the state snapshot). Sent as
+  // a PNG data URL so the payload stays small; the window decodes and caches it.
+  function sendImage(name) {
+    const canvas = app.images.get(name);
+    if (!canvas) return;
+    let url;
+    try {
+      url = canvas.toDataURL('image/png');
+    } catch {
+      return; // a tainted canvas can't be read; nothing we can do here
+    }
+    emit(EV_IMAGE, { name, url });
+  }
+
   // Adopts the state a detached window sent (document edits as one undo step), without echoing it.
   function applyFromPanel(p) {
     app.applyStateSnapshot(p, { undo: true });
@@ -214,6 +228,7 @@ export function installPanelSync(app, { inTauri, appEl, runForwardedAction }) {
         return;
       }
       if (p.action) return void runForwardedAction(p.action);
+      if (p.needImage) return void sendImage(p.needImage);
       applyFromPanel(p);
     });
     listen(EV_CLOSED, (e) => dockPanel(e.payload?.panel));

@@ -74,6 +74,9 @@ export class App {
     /** Where Ctrl+S writes without asking: { path, fs }, or null. */
     this.saveTarget = null;
     this.images = new Images();
+    /** Mirror windows only: fetch an image's pixels from the authority on demand (images are not in
+     *  the shared state snapshot). Null in the editor window, where every image is already loaded. */
+    this.onMissingImage = null;
     this.sel = null;
     /**
      * Bone the cursor is over in the viewport, the tree or the timeline (index), or null. Shared so
@@ -761,6 +764,16 @@ export class App {
    * local to each window; viewport-coupled modes (meshEdit/shapeEdit) are shared so a panel can enter
    * them on the authority, whose viewport then responds.
    */
+  /**
+   * Makes sure an image's pixels are available in this window, requesting them from the authority
+   * the first time a detached panel needs to draw one. In the editor window every image is already
+   * loaded, so this is a no-op (`onMissingImage` is null). Image pixels are deliberately not part of
+   * snapshotState (they are large and rarely change), so a mirror window fetches each on demand.
+   */
+  ensureImage(name) {
+    if (name && !this.images.contains(name)) this.onMissingImage?.(name);
+  }
+
   snapshotState() {
     return {
       docJson: this.docJson,
