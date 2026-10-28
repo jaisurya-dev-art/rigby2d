@@ -6,6 +6,8 @@ import rigbytronUrl from '../../branding/rigbytron/rigbytron.rigby?url&no-inline
 import rigbytronThumb from '../../branding/rigbytron/thumbnail.png?url';
 import nilaUrl from '../../branding/nila/nila.rigby?url&no-inline';
 import nilaThumb from '../../branding/nila/thumbnail.png?url';
+import sceneUrl from '../../branding/scene/scene.rigby?url&no-inline';
+import sceneThumb from '../../branding/scene/thumbnail.png?url';
 
 export const DEMOS = [
   {
@@ -25,6 +27,15 @@ export const DEMOS = [
     thumbnail: nilaThumb,
     animation: 'wave',
     description: 'A layered character with bending meshes, physics on her braid and jhumkas, face poses, voice with viseme lip-sync, and the 70-second promo animation (Film workspace).',
+  },
+  {
+    id: 'scene',
+    name: 'Scene: NILA meets Rigbytron',
+    file: 'scene.rigby',
+    url: sceneUrl,
+    thumbnail: sceneThumb,
+    animation: 'meet',
+    description: 'Scene composition: both characters as actors with clips (her line with its voice and lip-sync, his slash), a painted multiplane stage with parallax and a moving camera.',
   },
 ];
 

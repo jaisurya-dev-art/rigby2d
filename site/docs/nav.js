@@ -17,7 +17,7 @@ export const NAV = [
   },
   {
     title: 'Film and audio',
-    pages: ['film', 'lip-sync'],
+    pages: ['film', 'scenes', 'lip-sync'],
   },
   {
     title: 'Automation',

@@ -93,7 +93,6 @@ shapes sound by sound (with automatic transcription, a typed line or a timing fi
 WebM and MP4 renders include the animation's audio, mixed. Every render also writes it as
 `<name>.wav` next to the frames or video, ready for your video editor.
 
-## Coming next
+## Scenes
 
-Scene composition: several characters in one shot. Follow the
-[issues](https://github.com/jaisurya-dev-art/rigby2d/issues) for progress.
+Several characters in one shot, with clips, parallax layers and a camera: see [Scenes](scenes.md).

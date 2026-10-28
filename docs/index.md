@@ -22,6 +22,8 @@ and meshes, animate it for games or film, and play it anywhere with the included
 - **Make films** in the [Film workspace](film.md): resolution and frame-rate presets, an animatable
   camera, audio tracks, [viseme lip-sync](lip-sync.md) with automatic transcription, and renders to
   PNG sequences, WebM with alpha and MP4.
+- **Compose scenes** with several characters: actors with NLE-style clips, parallax layers and a
+  camera. See [Scenes](scenes.md).
 - **Automate** with [Python scripting](scripting.md) and custom tools, or let an AI assistant work
   through the [MCP server](mcp.md).
 - **Ship** skeleton JSON (3.8, 4.2, 4.3) or binary `.skel` with a texture atlas, and play it with

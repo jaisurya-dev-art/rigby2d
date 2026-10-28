@@ -49,7 +49,7 @@ runtimes and the MCP server. The pages are also in [`docs/`](docs/).
 | [Installation](https://jaisurya-dev-art.github.io/rigby2d/docs/installation.html) | [Importing art](https://jaisurya-dev-art.github.io/rigby2d/docs/importing-art.html) | [Animating](https://jaisurya-dev-art.github.io/rigby2d/docs/animating.html) | [Export](https://jaisurya-dev-art.github.io/rigby2d/docs/export.html) |
 | [Quick start](https://jaisurya-dev-art.github.io/rigby2d/docs/quick-start.html) | [AutoRig](https://jaisurya-dev-art.github.io/rigby2d/docs/autorig.html) | [Graph editor](https://jaisurya-dev-art.github.io/rigby2d/docs/graph-editor.html) | [Runtimes](https://jaisurya-dev-art.github.io/rigby2d/docs/runtimes.html) |
 | [The interface](https://jaisurya-dev-art.github.io/rigby2d/docs/interface.html) | [Bones and slots](https://jaisurya-dev-art.github.io/rigby2d/docs/bones-and-slots.html) | [Poses and faces](https://jaisurya-dev-art.github.io/rigby2d/docs/poses-and-faces.html) | [Python scripting](https://jaisurya-dev-art.github.io/rigby2d/docs/scripting.html) |
-| [Demo projects](https://jaisurya-dev-art.github.io/rigby2d/docs/demos.html) | [Meshes](https://jaisurya-dev-art.github.io/rigby2d/docs/meshes.html) · [Constraints](https://jaisurya-dev-art.github.io/rigby2d/docs/constraints.html) | [Film](https://jaisurya-dev-art.github.io/rigby2d/docs/film.html) · [Lip-sync](https://jaisurya-dev-art.github.io/rigby2d/docs/lip-sync.html) | [AI assistants (MCP)](https://jaisurya-dev-art.github.io/rigby2d/docs/mcp.html) |
+| [Demo projects](https://jaisurya-dev-art.github.io/rigby2d/docs/demos.html) | [Meshes](https://jaisurya-dev-art.github.io/rigby2d/docs/meshes.html) · [Constraints](https://jaisurya-dev-art.github.io/rigby2d/docs/constraints.html) | [Film](https://jaisurya-dev-art.github.io/rigby2d/docs/film.html) · [Scenes](https://jaisurya-dev-art.github.io/rigby2d/docs/scenes.html) · [Lip-sync](https://jaisurya-dev-art.github.io/rigby2d/docs/lip-sync.html) | [AI assistants (MCP)](https://jaisurya-dev-art.github.io/rigby2d/docs/mcp.html) |
 
 ## Features
 
@@ -60,11 +60,14 @@ runtimes and the MCP server. The pages are also in [`docs/`](docs/).
   skinning, pose library, face controls and retargeting between characters.
 - **Film workspace**: 4K, timecode, an animatable camera, audio tracks, viseme lip-sync with
   on-device Whisper transcription, and renders to PNG sequences, WebM with alpha and MP4.
+- **Scene composition** (new in 0.3): several characters on one stage as actors with NLE-style clips
+  (trim, speed, loops, crossfades, their own audio), painted layers with parallax, and a camera.
+  See [Scenes](https://jaisurya-dev-art.github.io/rigby2d/docs/scenes.html).
 - **Python scripting** and custom tools, and a built-in **MCP server** so AI assistants such as
   Claude can inspect, rig and animate your projects.
 - **Lossless skeleton JSON (3.8, 4.2, 4.3) and binary `.skel`** with texture atlases, played by the
   **JavaScript, Rust and Godot runtimes**.
-- Built-in **tutorials** and demo projects (**NILA** and **Rigbytron**).
+- Built-in **tutorials** and demo projects (**NILA**, **Rigbytron**, and a **scene** with both).
 
 ## Getting started
 
