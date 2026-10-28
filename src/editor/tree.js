@@ -13,6 +13,21 @@ import { h, popupMenu } from './widgets.js';
 /** Collapsed sections and bones (kept for the session). */
 const collapsed = new Set(['images', 'events']);
 
+/** The app and the tree's root, so bone-hover updates reach the live DOM between rebuilds. */
+let treeApp = null;
+let treeRoot = null;
+
+/**
+ * Toggles the hover class on bone rows. Registered as `app.onHoverChange` on every rebuild so the
+ * callback always points at the current DOM; hover never rebuilds the tree, only re-paints classes.
+ */
+function applyBoneHover(bone) {
+  if (!treeRoot) return;
+  for (const r of treeRoot.querySelectorAll('.row[data-bone]')) {
+    r.classList.toggle('bone-hover', Number(r.dataset.bone) === bone);
+  }
+}
+
 function section(app, id, title, count, children, actions = null) {
   const open = !collapsed.has(id);
   return h(
@@ -37,16 +52,20 @@ function section(app, id, title, count, children, actions = null) {
   );
 }
 
-function row(label, { depth = 0, selected = false, cls = '', onclick, extra = null, title, tut = null } = {}) {
-  return h(
-    'div',
-    { class: `row${selected ? ' selected' : ''}${cls ? ` ${cls}` : ''}`, 'data-tut': tut, style: { paddingLeft: `${depth * 14 + 4}px` }, onclick, title },
-    label,
-    extra,
-  );
+function row(label, { depth = 0, selected = false, cls = '', onclick, extra = null, title, tut = null, bone = null } = {}) {
+  const attrs = { class: `row${selected ? ' selected' : ''}${cls ? ` ${cls}` : ''}`, 'data-tut': tut, style: { paddingLeft: `${depth * 14 + 4}px` }, onclick, title };
+  // Bone rows drive (and show) the shared hover: hovering one lights the bone up here, in the
+  // viewport and in the timeline. Done with mouse enter/leave so it never rebuilds the tree.
+  if (bone !== null) {
+    attrs['data-bone'] = String(bone);
+    attrs.onmouseenter = () => treeApp?.setHover(bone);
+    attrs.onmouseleave = () => treeApp?.setHover(null);
+  }
+  return h('div', attrs, label, extra);
 }
 
 export function render(app, el) {
+  treeApp = app;
   const doc = app.doc;
   const selected = new Set(app.selectedBones());
   const select = (item) => (e) => app.select(item, e.ctrlKey || e.metaKey);
@@ -111,6 +130,7 @@ export function render(app, el) {
         selected: selected.has(bone),
         onclick: select({ bone }),
         extra: [marks, onionBtn, twisty],
+        bone,
       }),
     );
     if (!open) return;
@@ -259,4 +279,8 @@ export function render(app, el) {
     ),
   );
   el.querySelector('.tree-scroll').scrollTop = scrolled;
+  // Keep hover alive across the rebuild and keep the callback pointing at this fresh DOM.
+  treeRoot = el;
+  app.onHoverChange = applyBoneHover;
+  applyBoneHover(app.hoverBone);
 }

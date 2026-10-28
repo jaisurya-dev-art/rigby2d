@@ -75,6 +75,16 @@ export class App {
     this.saveTarget = null;
     this.images = new Images();
     this.sel = null;
+    /**
+     * Bone the cursor is over in the viewport, the tree or the timeline (index), or null. Shared so
+     * the same bone lights up in all three at once, wherever the pointer is. Transient and local to
+     * this window: it never touches the document or `version` (so the tree is not rebuilt) and is
+     * not sent to detached windows. The viewport and dopesheet read it directly each frame; the tree
+     * updates its row classes through `onHoverChange`. Set it through `setHover`.
+     */
+    this.hoverBone = null;
+    /** The tree registers a callback here on each rebuild so hover updates track the live DOM. */
+    this.onHoverChange = null;
     /** Mesh being edited: { slot, name, mode: 'vertices' | 'weights', bone, radius, strength, subtract, selected }. */
     this.meshEdit = null;
     /** Shape being edited (bounding box, clipping or path): { slot, name, selected }. */
@@ -362,6 +372,14 @@ export class App {
     this.changed();
   }
 
+  /** Lights up `bone` (index, or null to clear) in the viewport, tree and timeline at once. */
+  setHover(bone) {
+    const b = bone !== null && bone !== undefined && bone >= 0 && bone < this.doc.bones.length ? bone : null;
+    if (b === this.hoverBone) return;
+    this.hoverBone = b;
+    this.onHoverChange?.(b);
+  }
+
   /** Drops unkeyed changes (they only live until the time, animation or mode changes). */
   discardPending(reason = '') {
     if (!this.pending.size) return;
@@ -412,6 +430,7 @@ export class App {
     const b = selBone(this.sel);
     const s = selSlot(this.sel);
     if ((b !== null && b >= this.doc.bones.length) || (s !== null && s >= this.doc.slots.length)) this.sel = null;
+    if (this.hoverBone !== null && this.hoverBone >= this.doc.bones.length) this.hoverBone = null;
     if (this.anim !== null && this.anim >= this.doc.animations.length) {
       this.anim = this.doc.animations.length ? this.doc.animations.length - 1 : null;
     }
@@ -754,6 +773,7 @@ export class App {
       fps: FPS,
       sel: this.sel,
       multi: [...this.multi],
+      hoverBone: this.hoverBone,
       meshEdit: this.meshEdit,
       shapeEdit: this.shapeEdit,
     };
@@ -768,6 +788,7 @@ export class App {
     // What forces a full panel rebuild (vs. just a time-dependent redraw during playback).
     const struct = () => `${this.anim}|${this.mode}|${this.timelineView}|${this.autoKey}|${this.playing}|${JSON.stringify(this.sel)}|${[...this.multi]}|${JSON.stringify(this.meshEdit)}|${JSON.stringify(this.shapeEdit)}`;
     const before = struct();
+    const prevHover = this.hoverBone;
     let docChanged = false;
     if (s.docJson && s.docJson !== this.docJson) {
       docChanged = true;
@@ -800,9 +821,14 @@ export class App {
     if (typeof s.playing === 'boolean') this.playing = s.playing;
     if ('sel' in s) this.sel = s.sel;
     if (s.multi) this.multi = new Set(s.multi);
+    if ('hoverBone' in s) this.hoverBone = s.hoverBone;
     if ('meshEdit' in s) this.meshEdit = s.meshEdit;
     if ('shapeEdit' in s) this.shapeEdit = s.shapeEdit;
     this.sanitize();
+    // Hover is shared but must not trigger a full panel rebuild (it changes as the cursor sweeps):
+    // the viewport and timeline canvases read hoverBone each frame; the tree updates its row class
+    // through onHoverChange, so fire it here when an adopted snapshot moved the hover.
+    if (this.hoverBone !== prevHover) this.onHoverChange?.(this.hoverBone);
     // Only the time moved (playback): bump timeVersion so heavy panels are not rebuilt every frame.
     if (docChanged || before !== struct()) this.changed();
     else this.timeVersion++;

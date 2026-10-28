@@ -45,6 +45,10 @@ both modes; only the result differs.
 | Fit the skeleton in view | *View ▸ Fit the skeleton in view* (<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F</kbd>). |
 | Deselect | <kbd>Esc</kbd>, or click empty space. |
 
+Hovering a bone — in the viewport, the tree or a timeline track — highlights it in all three at
+once with a short glow, so you can tell which bone is which across the panels (and across detached
+panel windows). The selection is shown the same way.
+
 ### Tools
 
 | Tool | Key | Does |

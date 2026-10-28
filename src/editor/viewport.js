@@ -14,6 +14,8 @@ import { ShapeTool } from './shapetool.js';
 
 const SELECTED = 'rgb(255,170,40)';
 const BONE = 'rgb(110,200,230)';
+// Magenta so the hover glow stands clear of the cyan bones (BONE) and the orange selection.
+const HOVER = 'rgb(255,70,205)';
 const DRAG_THRESHOLD = 3;
 
 const rgba = (rgb, a) => rgb.replace('rgb(', 'rgba(').replace(')', `,${a})`);
@@ -41,6 +43,7 @@ export class Viewport {
     canvas.addEventListener('pointercancel', (e) => this.onPointerUp(e));
     canvas.addEventListener('wheel', (e) => this.onWheel(e), { passive: false });
     canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+    canvas.addEventListener('pointerleave', () => app.setHover(null));
   }
 
   toScreen(p) {
@@ -88,6 +91,7 @@ export class Viewport {
       app.frameRequest = false;
     }
     const pose = app.pose();
+    this.lastPose = pose; // reused for cheap bone hover-testing between frames
     const t0 = performance.now();
     const gl = app.renderer !== 'canvas' && this.glView?.draw(app, pose, this.width, this.height, dpr);
     if (this.glCanvas) this.glCanvas.hidden = !gl;
@@ -433,21 +437,55 @@ export class Viewport {
     const selection = new Set(app.selectedBones());
     app.doc.bones.forEach((b, i) => {
       const selected = selection.has(i);
+      const hovered = i === app.hoverBone;
       const color = selected ? SELECTED : BONE;
+      // A short, tight glow on the outline marks the hovered bone (and the selection), synced with
+      // the tree and timeline. Hover wins the glow colour so it reads even over a selected bone.
+      const glow = hovered ? HOVER : selected ? SELECTED : null;
       const o = this.toScreen(pose.world[i].apply([0, 0]));
       const t = this.toScreen(pose.world[i].apply([b.length, 0]));
       const dir = [t[0] - o[0], t[1] - o[1]];
       const len = Math.hypot(dir[0], dir[1]);
+      // Hover gets a touch more presence than the selection glow, while staying tight.
+      const glowOpts = hovered ? { blur: 9, width: 2.5 } : undefined;
       if (len < 4) {
+        if (glow) this.glowOutline(() => this.arcPath(o, 6), glow, glowOpts);
         this.circle(o, 6, rgba(color, 0.35), color, 1.5);
         return;
       }
       const w = Math.min(12, Math.max(3, len * 0.1));
       const n = [(-dir[1] / len) * w, (dir[0] / len) * w];
       const mid = [o[0] + dir[0] * 0.18, o[1] + dir[1] * 0.18];
-      this.polygon([o, [mid[0] + n[0], mid[1] + n[1]], t, [mid[0] - n[0], mid[1] - n[1]]], rgba(color, selected ? 0.55 : 0.3), color, 1.5);
+      const shape = [o, [mid[0] + n[0], mid[1] + n[1]], t, [mid[0] - n[0], mid[1] - n[1]]];
+      if (glow) this.glowOutline(() => this.polyPath(shape), glow, glowOpts);
+      this.polygon(shape, rgba(color, selected ? 0.55 : 0.3), color, 1.5);
       this.circle(o, w * 0.55, 'rgb(30,30,30)', color, 1.5);
     });
+  }
+
+  polyPath(pts) {
+    const ctx = this.ctx;
+    ctx.moveTo(pts[0][0], pts[0][1]);
+    for (const p of pts.slice(1)) ctx.lineTo(p[0], p[1]);
+    ctx.closePath();
+  }
+
+  arcPath(c, r) {
+    this.ctx.arc(c[0], c[1], r, 0, Math.PI * 2);
+  }
+
+  /** Strokes `trace`'s path as a short, tight halo — the hover / selection highlight. */
+  glowOutline(trace, color, { blur = 7, width = 2 } = {}) {
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.shadowColor = color;
+    ctx.shadowBlur = blur;
+    ctx.strokeStyle = color;
+    ctx.lineWidth = width;
+    ctx.beginPath();
+    trace();
+    ctx.stroke();
+    ctx.restore();
   }
 
   drawOverlay() {
@@ -479,21 +517,27 @@ export class Viewport {
     }
   }
 
+  /** The nearest bone under a screen position (index), or null. Bones only — used for hover. */
+  hitBone(pose, pos) {
+    const app = this.app;
+    if (!app.showBones) return null;
+    let best = null;
+    app.doc.bones.forEach((b, i) => {
+      const o = this.toScreen(pose.world[i].apply([0, 0]));
+      const t = this.toScreen(pose.world[i].apply([b.length, 0]));
+      const d = distToSegment(pos, o, t);
+      const len = Math.hypot(t[0] - o[0], t[1] - o[1]);
+      const reach = len < 4 ? 8 : Math.min(12, Math.max(5, len * 0.1));
+      if (d <= reach && (best === null || d < best.d)) best = { d, i };
+    });
+    return best ? best.i : null;
+  }
+
   /** Finds the bone or slot under a screen position (bones first, then topmost image). */
   hitTest(pose, pos) {
     const app = this.app;
-    if (app.showBones) {
-      let best = null;
-      app.doc.bones.forEach((b, i) => {
-        const o = this.toScreen(pose.world[i].apply([0, 0]));
-        const t = this.toScreen(pose.world[i].apply([b.length, 0]));
-        const d = distToSegment(pos, o, t);
-        const len = Math.hypot(t[0] - o[0], t[1] - o[1]);
-        const reach = len < 4 ? 8 : Math.min(12, Math.max(5, len * 0.1));
-        if (d <= reach && (best === null || d < best.d)) best = { d, i };
-      });
-      if (best) return { bone: best.i };
-    }
+    const bone = this.hitBone(pose, pos);
+    if (bone !== null) return { bone };
     const world = this.toWorld(pos);
     for (const q of pose.quads(app.doc).reverse()) {
       const att = q.attachment;
@@ -578,6 +622,10 @@ export class Viewport {
         this.dragStart(this.press.pos);
       }
       if (this.press.started) this.dragMove(pos);
+    }
+    // Shared bone highlight: light up the bone under the cursor, unless dragging or in a sub-editor.
+    if (!this.panning && !this.press && !this.meshTool.active && !this.shapeTool.active) {
+      app.setHover(this.hitBone(this.lastPose ?? app.pose(), pos));
     }
   }
 
