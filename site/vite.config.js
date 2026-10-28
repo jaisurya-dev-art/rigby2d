@@ -24,6 +24,20 @@ function socialImage() {
   };
 }
 
+/** The demo projects at fixed URLs (demos/<id>.rigby and .png), which the desktop app downloads. */
+const DEMOS = { rigbytron: 'branding/rigbytron/rigbytron.rigby', nila: 'branding/nila/nila.rigby', scene: 'branding/scene/scene.rigby' };
+function demoFiles() {
+  return {
+    name: 'rigby-site-demos',
+    generateBundle() {
+      for (const [id, file] of Object.entries(DEMOS)) {
+        this.emitFile({ type: 'asset', fileName: `demos/${id}.rigby`, source: fs.readFileSync(path.join(repo, file)) });
+        this.emitFile({ type: 'asset', fileName: `demos/${id}.png`, source: fs.readFileSync(path.join(repo, path.dirname(file), 'thumbnail.png')) });
+      }
+    },
+  };
+}
+
 const OG = 'https://jaisurya-dev-art.github.io/rigby2d/og.jpg';
 const MIME = { '.mp4': 'video/mp4', '.webm': 'video/webm', '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.webp': 'image/webp', '.gif': 'image/gif', '.svg': 'image/svg+xml' };
 const BRAND = { 'mark.svg': 'branding/rigby2d-mark.svg', 'icon.svg': 'branding/rigby2d-icon-dark.svg' };
@@ -82,7 +96,7 @@ export default defineConfig({
   root: here,
   base: process.env.SITE_BASE ?? '/rigby2d/',
   clearScreen: false,
-  plugins: [socialImage(), documentation()],
+  plugins: [socialImage(), documentation(), demoFiles()],
   // The pages import the runtime, NILA and the docs from outside this folder.
   server: { port: 1430, strictPort: true, fs: { allow: [repo] } },
   build: {

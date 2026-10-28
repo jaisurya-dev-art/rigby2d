@@ -1,7 +1,11 @@
 # Demo projects
 
-*File ▸ Open demo…* lists the bundled demo projects. Click a card to open it, playing. Opening a demo
-does not touch your files; *Save* keeps a copy.
+*File ▸ Open demo…* lists the demo projects. Click a card to open it, playing. Opening a demo does
+not touch your files; *Save* keeps a copy.
+
+The browser editor includes the demos. The desktop app downloads a demo from the Rigby2D website when
+you open it (so it needs an internet connection then), which keeps the app itself free of the
+characters' artwork.
 
 ![The Open demo dialog: Rigbytron, NILA and the scene demo](images/demo-picker.jpg "File ▸ Open demo")
 

@@ -14,7 +14,7 @@ import { addSound, sounds, stopAudio } from './audio.js';
 import { WORKSPACES, workspace as workspaceDef } from './workspaces.js';
 import * as onion from './onion.js';
 import { track } from './analytics.js';
-import { demoById } from './demos.js';
+import { DEMOS_REMOTE, demoById } from './demos.js';
 import { actorEntries, actors, loadActors, poseActors } from './actors.js';
 import { applyParallax, setupCameraPosition } from '../core/scene.js';
 
@@ -587,7 +587,7 @@ export class App {
   /** A bundled demo project (see demos.js) with its images loaded; the open document is not replaced. */
   async demoDocument(id = 'rigbytron') {
     const demo = demoById(id);
-    const blob = await (await fetch(demo.url)).blob();
+    const blob = await demoBlob(demo);
     return io.openProject(demo.file, platform.memoryFs([new File([blob], demo.file)]), this.images);
   }
 
@@ -599,7 +599,7 @@ export class App {
     if (ask && !(await this.confirmDiscard())) return;
     const demo = demoById(id);
     try {
-      const blob = await (await fetch(demo.url)).blob();
+      const blob = await demoBlob(demo);
       await this.openFrom(demo.file, platform.memoryFs([new File([blob], demo.file)]));
       if (this.path !== demo.file) return; // openFrom reported what went wrong
       this.saveTarget = null;
@@ -610,7 +610,7 @@ export class App {
       this.frameRequest = true;
       this.setStatus(`${demo.name} demo: ${demo.description} Save keeps a copy.`);
     } catch (e) {
-      this.setStatus(`Could not open the demo: ${errorText(e)}`);
+      this.setStatus(`Could not open the demo: ${errorText(e)}${DEMOS_REMOTE ? ' Demos download from the Rigby2D website: check the internet connection.' : ''}`);
     }
   }
 
@@ -943,4 +943,11 @@ export class App {
     const name = this.path ? io.basename(this.path) : 'untitled';
     return `Rigby2D - ${name}${this.dirty() ? ' *' : ''}`;
   }
+}
+
+/** A demo's work file (downloaded from the website by the desktop app; see demos.js). */
+async function demoBlob(demo) {
+  const res = await fetch(demo.url);
+  if (!res.ok) throw new Error(`${demo.file}: HTTP ${res.status}`);
+  return res.blob();
 }

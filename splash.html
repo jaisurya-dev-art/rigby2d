@@ -19,23 +19,16 @@
       }
       body {
         background:
-          radial-gradient(60% 75% at 28% 58%, rgba(64, 140, 230, 0.16), transparent 70%),
+          radial-gradient(60% 75% at 50% 52%, rgba(64, 140, 230, 0.16), transparent 70%),
           radial-gradient(50% 40% at 70% 50%, rgba(123, 167, 199, 0.07), transparent 70%),
           #0a0a0b;
-      }
-      #view {
-        position: absolute;
-        inset: 0;
-        width: 100%;
-        height: 100%;
-        display: block;
       }
       #lockup {
         position: absolute;
         left: 50%;
         top: 50%;
-        width: 44%;
-        transform: translate(4%, -50%);
+        width: 56%;
+        transform: translate(-46%, -50%);
         opacity: 0;
         clip-path: inset(0 100% 0 0);
         filter: drop-shadow(0 0 18px rgba(80, 160, 255, 0.35));
@@ -47,7 +40,7 @@
           transform 0.8s cubic-bezier(0.2, 0.7, 0.2, 1);
         clip-path: inset(0 0 0 0);
         opacity: 1;
-        transform: translate(0, -50%);
+        transform: translate(-50%, -50%);
       }
       #note {
         position: absolute;
@@ -63,7 +56,6 @@
     </style>
   </head>
   <body data-tauri-drag-region>
-    <canvas id="view"></canvas>
     <img id="lockup" alt="Rigby2D by Hoverlabs" draggable="false" />
     <div id="note">Loading…</div>
     <script type="module" src="/src/splash/splash.js"></script>

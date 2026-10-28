@@ -14,6 +14,8 @@ ask it to:
   press *Transcribe* or *Generate lip-sync* with automatic transcription. Your audio is transcribed
   on your computer and never uploaded. Hugging Face's
   [privacy policy](https://huggingface.co/privacy) applies to that download.
+- **Demo projects** (*File ▸ Open demo*) download from the Rigby2D website (GitHub Pages) when you
+  open one.
 - Links you click (the website, the documentation, GitHub) open in your browser.
 
 ## The AI assistant extension and MCP server

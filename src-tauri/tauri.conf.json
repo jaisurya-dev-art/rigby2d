@@ -33,7 +33,7 @@
       }
     ],
     "security": {
-      "csp": "default-src 'self' ipc: http://ipc.localhost; script-src 'self' 'wasm-unsafe-eval'; img-src 'self' blob: data:; style-src 'self' 'unsafe-inline'; connect-src 'self' ipc: http://ipc.localhost https://huggingface.co https://*.huggingface.co https://*.hf.co"
+      "csp": "default-src 'self' ipc: http://ipc.localhost; script-src 'self' 'wasm-unsafe-eval'; img-src 'self' blob: data: https://jaisurya-dev-art.github.io; style-src 'self' 'unsafe-inline'; connect-src 'self' ipc: http://ipc.localhost https://jaisurya-dev-art.github.io https://huggingface.co https://*.huggingface.co https://*.hf.co"
     }
   },
   "bundle": {

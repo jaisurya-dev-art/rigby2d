@@ -25,9 +25,14 @@ function pyodideAssets() {
   };
 }
 
+// The demo projects: bundled into the browser editor, downloaded from the website by the desktop app
+// (Tauri sets TAURI_ENV_PLATFORM for its builds), which then carries no character artwork.
+const demoSources = path.resolve(process.env.TAURI_ENV_PLATFORM ? 'src/editor/demo-sources-remote.js' : 'src/editor/demo-sources-bundled.js');
+
 // Vite serves and bundles the editor UI; Tauri hosts it in a native window.
 export default defineConfig({
   clearScreen: false,
+  resolve: { alias: { '@demo-sources': demoSources } },
   plugins: [pyodideAssets()],
   worker: { format: 'es' },
   server: { port: 1420, strictPort: true, watch: { ignored: ['**/src-tauri/**'] } },
