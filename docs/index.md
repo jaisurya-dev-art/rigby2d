@@ -7,7 +7,9 @@ and meshes, animate it for games or film, and play it anywhere with the included
 ![The Rigby2D editor with NILA, the Rigby2D mascot, in Animate mode: the viewport, the bone tree, the inspector and the dopesheet](images/editor-overview.jpg "NILA, one of the bundled demos, open in the editor")
 
 > [!TIP]
-> The fastest way to see what Rigby2D can do: [open the editor in your browser](https://jaisurya-dev-art.github.io/rigby2d/editor/),
+> Watch [Meet NILA](https://youtu.be/3StZlHwZeSo), our mascot's 70-second promo, animated and rendered in Rigby2D.
+>
+> The fastest way to try it: [open the editor in your browser](https://jaisurya-dev-art.github.io/rigby2d/editor/),
 > choose *File ▸ Open demo* and pick NILA. Nothing to install.
 
 ## What you can do with it

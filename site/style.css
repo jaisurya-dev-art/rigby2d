@@ -683,3 +683,14 @@ h3 {
 .card:hover h3 a::after {
   opacity: 1;
 }
+
+.showcase.two {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+@media (max-width: 820px) {
+  .showcase.two {
+    grid-template-columns: 1fr;
+  }
+}

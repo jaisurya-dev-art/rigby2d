@@ -16,7 +16,7 @@
 <p align="center">
   <img alt="Status: early alpha" src="https://img.shields.io/badge/status-early%20alpha-orange">
   <a href="https://upstar.dev/r/jaisurya-dev-art/rigby2d"><img alt="Upstar" src="https://upstar.dev/badge/jaisurya-dev-art/rigby2d.svg"></a>
-  <a href="https://www.youtube.com/watch?v=KK3WT9YzhAE"><img alt="Watch on YouTube" src="https://img.shields.io/badge/watch-75s%20overview-ff0000?logo=youtube&logoColor=white"></a>
+  <a href="https://youtu.be/3StZlHwZeSo"><img alt="Watch the NILA promo on YouTube" src="https://img.shields.io/badge/watch-NILA%20promo-ff0000?logo=youtube&logoColor=white"></a>
   <a href="runtimes/godot/addons/rigby2d/README.md"><img alt="Runtime ready: Godot" src="https://img.shields.io/badge/runtime%20ready-Godot-478cbf?logo=godotengine&logoColor=white"></a>
   <a href="docs/mcp.md"><img alt="MCP server built in" src="https://img.shields.io/badge/MCP-server%20built%20in-7c3aed"></a>
   <a href="#license"><img alt="License: MIT or Apache-2.0" src="https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue.svg"></a>
@@ -31,8 +31,8 @@
 </p>
 
 <p align="center">
-  <a href="https://www.youtube.com/watch?v=KK3WT9YzhAE"><img src="docs/video-preview.jpg" alt="Watch the Rigby2D overview on YouTube (75 seconds)" width="800"></a><br>
-  <sub>▶ <a href="https://www.youtube.com/watch?v=KK3WT9YzhAE">Watch the 75-second overview</a>: AutoRig, animation, film, games and AI</sub>
+  <a href="https://youtu.be/3StZlHwZeSo"><img src="docs/images/nila-promo.jpg" alt="Watch Meet NILA on YouTube: the Rigby2D mascot, animated in Rigby2D" width="800"></a><br>
+  <sub>▶ <a href="https://youtu.be/3StZlHwZeSo">Watch <b>Meet NILA</b></a>: our new mascot, rigged, animated, lip-synced and rendered in Rigby2D · Also: <a href="https://www.youtube.com/watch?v=KK3WT9YzhAE">the 75-second overview</a></sub>
 </p>
 
 <p align="center">
