@@ -1779,3 +1779,38 @@ div.log-entry {
 .tree-section .pad {
   padding: 4px 8px 8px;
 }
+
+/* ---- Browser editor: home link and file name in the menu bar ---- */
+#menubar .home-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 8px 2px 4px;
+  border-radius: 4px;
+  color: var(--text);
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+#menubar .home-link:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+#menubar .home-link img {
+  display: block;
+}
+#menubar .doc-title {
+  overflow: hidden;
+  max-width: 40vw;
+  color: var(--weak);
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+#menubar .doc-title.dirty {
+  color: var(--text);
+}
+@media (max-width: 900px) {
+  #menubar .home-link span {
+    display: none;
+  }
+}
