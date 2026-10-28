@@ -63,7 +63,8 @@ never change the animation data, so exports are identical either way.
 
 ## Status
 
-Rigby2D is in early alpha and moves quickly. These pages describe the current `develop` branch,
+Rigby2D is in **public beta**: ready for real projects, and still moving quickly. These pages
+describe the current `develop` branch,
 which is what the [website](https://jaisurya-dev-art.github.io/rigby2d/) and its browser editor run.
 Found something wrong or missing? [Open an issue](https://github.com/jaisurya-dev-art/rigby2d/issues)
 or use *Edit this page on GitHub* below.

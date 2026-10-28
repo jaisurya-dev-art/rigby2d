@@ -14,7 +14,7 @@
 </p>
 
 <p align="center">
-  <img alt="Status: early alpha" src="https://img.shields.io/badge/status-early%20alpha-orange">
+  <img alt="Status: public beta" src="https://img.shields.io/badge/status-public%20beta-blue">
   <a href="https://upstar.dev/r/jaisurya-dev-art/rigby2d"><img alt="Upstar" src="https://upstar.dev/badge/jaisurya-dev-art/rigby2d.svg"></a>
   <a href="https://youtu.be/3StZlHwZeSo"><img alt="Watch the NILA promo on YouTube" src="https://img.shields.io/badge/watch-NILA%20promo-ff0000?logo=youtube&logoColor=white"></a>
   <a href="runtimes/godot/addons/rigby2d/README.md"><img alt="Runtime ready: Godot" src="https://img.shields.io/badge/runtime%20ready-Godot-478cbf?logo=godotengine&logoColor=white"></a>

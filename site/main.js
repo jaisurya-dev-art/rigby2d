@@ -192,7 +192,7 @@ fetch('https://api.github.com/repos/jaisurya-dev-art/rigby2d/releases/latest', {
   .then((rel) => {
     if (!rel?.tag_name) return;
     const version = rel.tag_name.replace(/^v/, '');
-    for (const el of document.querySelectorAll('[data-version]')) el.textContent = `version ${version}, early alpha`;
+    for (const el of document.querySelectorAll('[data-version]')) el.textContent = `version ${version}, public beta`;
     const link = $('[data-release]');
     if (link) {
       link.textContent = `Rigby2D ${version}`;
