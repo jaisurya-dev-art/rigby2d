@@ -13,7 +13,7 @@ export const NAV = [
   },
   {
     title: 'Animation',
-    pages: ['animating', 'graph-editor', 'onion-skin', 'poses-and-faces', 'retargeting'],
+    pages: ['animating', 'graph-editor', 'onion-skin', 'guides', 'poses-and-faces', 'retargeting'],
   },
   {
     title: 'Film and audio',

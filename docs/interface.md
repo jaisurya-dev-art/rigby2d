@@ -10,7 +10,7 @@ their own windows.
 | --- | --- | --- |
 | 1 | **Menu bar** | *File*, *Edit*, *View*, *Scripts* and *Help*, and the **SETUP / ANIMATE** mode button. |
 | 2 | **Workspace switch** | **Game** or **Film**: which tools are shown. See [Workspaces](#workspaces). |
-| 3 | **Viewport toolbar** | Transform tools, the active tool's values with a key button, axes, onion skin and auto key. |
+| 3 | **Viewport toolbar** | Transform tools, the active tool's values with a key button, axes, onion skin, guides and auto key. |
 | 4 | **Viewport** | The character. Select, pose and edit here. |
 | 5 | **Tree** | The skeleton (bones, slots, attachments) and the draw order, skins, constraints, events, animations and images. |
 | 6 | **Inspector** | Properties of the selection: a bone, slot, constraint, skin or event, or the project when nothing is selected. Poses and face controls sit at the bottom. |
@@ -69,6 +69,9 @@ changed but not keyed, or not keyed.
 
 **Axes**: *Local*, *Parent* and *World* decide the space the values are shown in and the
 direction the Translate tool moves.
+
+**Guides**: optional real-time transform guides and Photoshop-style ruler guides; see
+[Guides](guides.md).
 
 ### View options
 

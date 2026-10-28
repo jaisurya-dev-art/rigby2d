@@ -1668,3 +1668,93 @@ div.log-entry {
   background: var(--widget);
   color: var(--text);
 }
+
+/* ---- Guides (real-time transform guides + static ruler guides) ------------------------------ */
+#viewbar .guides-tool {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+#viewbar .guides-toggle,
+#viewbar .guides-gear {
+  background: transparent;
+  color: var(--weak);
+}
+#viewbar .guides-toggle:hover,
+#viewbar .guides-gear:hover {
+  background: var(--widget);
+}
+#viewbar .guides-toggle.on {
+  color: var(--accent);
+  font-weight: 600;
+}
+/* Options popover (inside a .popup). */
+.guides-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 240px;
+  padding: 2px;
+}
+.guides-panel .guides-title {
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+.guides-panel .guides-subtitle {
+  color: var(--weak);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.guides-panel .guides-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+.guides-panel .guides-name {
+  flex: 1;
+}
+.guides-panel .guides-color {
+  width: 40px;
+  height: 22px;
+  padding: 0;
+  cursor: pointer;
+}
+.guides-panel .guides-color-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.guides-panel .guides-reset {
+  background: transparent;
+  color: var(--weak);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0 5px;
+  line-height: 20px;
+  cursor: pointer;
+}
+.guides-panel .guides-reset:hover {
+  background: var(--widget);
+  color: var(--text);
+}
+.guides-panel .guides-sep {
+  height: 1px;
+  background: var(--border);
+  margin: 3px 0;
+}
+.guides-panel .guides-clear {
+  background: transparent;
+  color: var(--weak);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 2px 6px;
+  cursor: pointer;
+  margin-top: 2px;
+}
+.guides-panel .guides-clear:hover {
+  background: var(--widget);
+  color: var(--text);
+}

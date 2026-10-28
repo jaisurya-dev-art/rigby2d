@@ -7,6 +7,7 @@ import { Mode, TOOLS, selBone } from './app.js';
 import * as edit from './edit.js';
 import { shortcutLabel } from './keymap.js';
 import { onionPanel } from './onionui.js';
+import { guidesPanel } from './guidesui.js';
 import { dragValue, h } from './widgets.js';
 
 const AXES = [
@@ -175,6 +176,36 @@ export function render(app, el) {
         )
       : null;
 
+  // Guides: master toggle + options popover. Available in both modes (real-time guides apply to any
+  // bone transform, static guides apply always). Drawing is added by later features.
+  const guides = h(
+    'span',
+    { class: 'guides-tool', title: 'Guides: real-time transform guides and static ruler guides' },
+    h(
+      'button',
+      {
+        class: `guides-toggle${app.guides.enabled ? ' on' : ''}`,
+        onclick: () => {
+          app.guides.enabled = !app.guides.enabled;
+          app.changed();
+        },
+      },
+      app.guides.enabled ? '▦ Guides' : '▢ Guides',
+    ),
+    h(
+      'button',
+      {
+        class: 'guides-gear',
+        title: 'Guide options',
+        onclick: (e) => {
+          const r = e.target.getBoundingClientRect();
+          guidesPanel(app, r.left, r.bottom);
+        },
+      },
+      '⚙',
+    ),
+  );
+
   el.replaceChildren(
     ...[
       h('div', { class: 'toolgroup' }, tools),
@@ -184,6 +215,8 @@ export function render(app, el) {
       axes,
       onion ? h('span', { class: 'vsep' }) : null,
       onion,
+      h('span', { class: 'vsep' }),
+      guides,
       autoKey ? h('span', { class: 'vsep' }) : null,
       autoKey,
     ].filter(Boolean),
