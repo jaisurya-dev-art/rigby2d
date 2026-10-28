@@ -35,7 +35,7 @@ export const DEMOS = [
     url: sceneUrl,
     thumbnail: sceneThumb,
     animation: 'meet',
-    description: 'Scene composition: both characters as actors with clips (her line with its voice and lip-sync, his slash), a painted multiplane stage with parallax and a moving camera.',
+    description: 'Scene composition: both characters as actors with clips (her line with its voice and lip-sync, then his hello in a robot voice and his slash), a painted multiplane stage with parallax and a moving camera.',
   },
 ];
 

@@ -5,7 +5,7 @@ shared timeline, NLE-style, in front of painted layers with **parallax**, filmed
 animate. Scenes are part of the Film workspace and render to PNG sequences, WebM and MP4 with every
 actor's audio.
 
-<figure><video src="videos/scene-demo.mp4" poster="videos/scene-demo.jpg" controls playsinline preload="none" aria-label="The scene demo rendered to MP4"></video><figcaption>The scene demo (File ▸ Open demo ▸ Scene: NILA meets Rigbytron), rendered to MP4 by Rigby2D. Sound on: her line comes from her own clip, with its lip-sync.</figcaption></figure>
+<figure><video src="videos/scene-demo.mp4" poster="videos/scene-demo.jpg" controls playsinline preload="none" aria-label="The scene demo rendered to MP4"></video><figcaption>The scene demo (File ▸ Open demo ▸ Scene: NILA meets Rigbytron), rendered to MP4 by Rigby2D. Sound on: NILA's line comes from her own clip, with its lip-sync; then Rigbytron hops and says hi in his robot voice (an audio track of the shot).</figcaption></figure>
 
 ## How a scene works
 
@@ -32,7 +32,8 @@ A scene is an ordinary project used as a **stage**, so every tool you already kn
    images…*; or add your own layer bones (children of the root) for mountains, trees and
    foreground props.
 4. **Stage it**: click an actor in the viewport to select it (a dashed frame shows which), then move,
-   turn and scale it with the transform tools. In Animate mode, key it like any bone to walk it across
+   turn and scale it with the transform tools. Actors stand with their feet on their anchor, so
+   keeping anchors at y = 0 keeps everyone on the ground. In Animate mode, key it like any bone to walk it across
    the stage.
 5. **Direct it**: give each actor its clips (below), key the camera, and play with <kbd>Space</kbd>.
 6. **Render**: *File ▸ Render animation…* renders the shot with every actor, layer and sound.
@@ -49,6 +50,7 @@ Select an actor (click it in the viewport, or its row in the tree's **Scene** se
 | **Name** | The actor's name in the scene. |
 | **Skin** | Which of the character's skins it wears. |
 | **Face the other way (flip)** | Mirrors the actor, so two characters can face each other. |
+| **Ground** | Raises or lowers the character so its feet stand on the anchor bone. Characters are often drawn with their feet above or below their origin; when an actor is added, Rigby2D measures where its feet are (the lowest point of its setup pose) and sets this for you, so every actor stands on the same ground line at any size. **Feet on anchor** measures it again. |
 | **Clips in "shot"** | Its clips in the current shot (below). **＋ Add clip at the playhead…** adds one. |
 | **🗑 Remove actor** | Takes it off the stage with its anchor bone and slot. |
 
@@ -166,7 +168,7 @@ An AI assistant can build and direct scenes in `.rigby` files:
 
 | Tool | Does |
 | --- | --- |
-| `add_actor` | Puts a character (another `.rigby` file) on the stage, placed, scaled and flipped, with an optional first clip. |
+| `add_actor` | Puts a character (another `.rigby` file) on the stage with its feet on the ground line, placed, scaled and flipped, with an optional first clip. |
 | `add_clip` / `remove_clip` | Places or removes clips: start, in / out, speed, loops and blend. |
 | `set_actor` | Moves, scales, flips, reskins or renames an actor. |
 | `set_layer_depth` | Sets a layer's parallax depth (and the scene's focal distance). |
