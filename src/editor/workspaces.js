@@ -21,7 +21,7 @@ export const WORKSPACES = {
     label: 'Film',
     description: 'Animate for film, video and motion graphics; render image sequences and video.',
     fps: 24,
-    features: new Set(['poses', 'output', 'render', 'faceControls', 'timecode', 'outputFrame', 'audio']),
+    features: new Set(['poses', 'output', 'render', 'faceControls', 'timecode', 'outputFrame', 'audio', 'scene']),
   },
 };
 

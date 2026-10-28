@@ -10,6 +10,7 @@ import { Animation, BONE_CHANNELS, SLOT_CHANNELS, emptyBoneTimeline, emptySlotTi
 import { LINEAR, cloneCurve } from './curve.js';
 import { identityTransform } from './math.js';
 import { readControllers, readPoses } from './poses.js';
+import { readScene } from './scene.js';
 
 /** Version tag of the internal snapshot format. */
 export const FORMAT = 'rigby-snapshot/1';
@@ -112,6 +113,12 @@ export class Skeleton {
     this.workspace = null;
     /** Audio tracks: { sound (file in the work file), animation (name), offset (s), volume }. */
     this.audio = [];
+    /**
+     * Scene composition (see scene.js): actors placed on this skeleton as a stage, layer depths and
+     * focal length; null for an ordinary character project. Actor characters are stored next to
+     * the project in the work file (actors/<id>/), not here.
+     */
+    this.scene = null;
   }
 
   static fromJson(json) {
@@ -669,6 +676,7 @@ function readSkeleton(o) {
   sk.poses = readPoses(o.poses);
   sk.controllers = readControllers(o.controllers);
   sk.workspace = oneOf(o.workspace, ['game', 'film'], null);
+  sk.scene = readScene(o.scene);
   sk.audio = arr(o.audio, 'audio')
     .filter((t) => t && typeof t.sound === 'string' && typeof t.animation === 'string')
     .map((t) => ({ sound: t.sound, animation: t.animation, offset: Number.isFinite(t.offset) ? t.offset : 0, volume: Number.isFinite(t.volume) ? Math.max(0, t.volume) : 1 }));
@@ -780,5 +788,6 @@ function writeSkeleton(sk) {
   if (sk.controllers.length) out.controllers = raw(sk.controllers);
   if (sk.workspace) out.workspace = sk.workspace;
   if (sk.audio.length) out.audio = raw(sk.audio);
+  if (sk.scene) out.scene = raw(sk.scene);
   return out;
 }

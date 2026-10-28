@@ -264,7 +264,7 @@ test('mcp server: answers over stdio', async () => {
   await new Promise((resolve) => child.on('close', resolve));
   const byId = new Map(lines.map((m) => [m.id, m]));
   assert.equal(byId.get(1).result.serverInfo.name, 'rigby2d');
-  assert.equal(byId.get(2).result.tools.length, 35);
+  assert.equal(byId.get(2).result.tools.length, 40);
   assert.equal(byId.get(3).result.structuredContent.counts.bones, 11);
   assert.equal(byId.get(null).error.code, ErrorCode.PARSE_ERROR);
   assert.equal(lines.length, 4);

@@ -9,6 +9,8 @@ import { Pose } from '../core/pose.js';
 import { FPS, Mode, TOOLS, selBone, selSlot } from './app.js';
 import * as edit from './edit.js';
 import { GLView } from './glview.js';
+import { actorSlots } from '../core/scene.js';
+import { actorBounds, actorOfBone, imageKey } from './actors.js';
 import { MeshTool } from './meshtool.js';
 import { ShapeTool } from './shapetool.js';
 import { GLOW_COLORS } from './draworderdnd.js';
@@ -205,6 +207,7 @@ export class Viewport {
     const app = this.app;
     const pose = new Pose(app.doc);
     const pts = pose.quads(app.doc).flatMap((q) => q.positions);
+    for (const e of app.actorPoses(pose).values()) for (const q of e.pose.quads(e.doc)) pts.push(...q.positions);
     app.doc.bones.forEach((b, i) => {
       pts.push(pose.world[i].apply([0, 0]));
       pts.push(pose.world[i].apply([b.length, 0]));
@@ -256,9 +259,29 @@ export class Viewport {
 
   drawAttachments(pose, dpr) {
     const app = this.app;
+    // Scenes: each actor is drawn at its stage slot, tinted by the slot (see core/scene.js).
+    const posed = app.actorPoses(pose);
+    const bySlot = posed.size ? actorSlots(app.doc, app.doc.scene) : new Map();
+    const stageQuads = pose.quads(app.doc);
+    const quadAt = new Map(stageQuads.map((q) => [q.slot, q]));
+    for (const i of pose.drawOrder) {
+      const actor = bySlot.get(i);
+      const e = actor && posed.get(actor.name);
+      if (e) {
+        const tint = pose.color[i];
+        for (const q of e.pose.quads(e.doc)) this.drawQuad({ ...q, image: imageKey(actor.id, q.image), color: q.color.map((c, k) => c * tint[k]) }, e.doc, e.pose, dpr, false);
+      }
+      const q = quadAt.get(i);
+      if (q) this.drawQuad(q, app.doc, pose, dpr, true);
+    }
+  }
+
+  /** Draws one drawable of `doc` posed by `pose` with Canvas 2D (`own`: a stage drawable, outlined when selected). */
+  drawQuad(q, doc, pose, dpr, own) {
+    const app = this.app;
     const ctx = this.ctx;
     const screen = this.screenAffine();
-    for (const q of pose.quads(app.doc)) {
+    {
       const att = q.attachment;
       const img = app.images.tinted(q.image, q.color);
       const pts = q.positions.map((p) => this.toScreen(p));
@@ -272,11 +295,12 @@ export class Viewport {
       } else if (hasImage) {
         // Image pixel (px, py) -> attachment-local point, then world, then screen.
         const toLocal = new Affine(att.width / img.width, 0, 0, -att.height / img.height, -att.width / 2, att.height / 2);
-        const m = screen.mul(pose.attachmentWorld(app.doc, q.slot, att)).mul(toLocal);
+        const m = screen.mul(pose.attachmentWorld(doc, q.slot, att)).mul(toLocal);
         ctx.setTransform(dpr * m.a, dpr * m.b, dpr * m.c, dpr * m.d, dpr * m.tx, dpr * m.ty);
         ctx.drawImage(img, 0, 0);
       }
       ctx.restore();
+      if (!own) return;
       if (!hasImage) this.outline(q, pts, 'rgb(255,0,200)');
       if (selSlot(app.sel) === q.slot) this.outline(q, pts, SELECTED);
     }
@@ -351,6 +375,7 @@ export class Viewport {
   /** Outlines of the selected slot and of attachments whose image is missing. */
   drawOutlines(pose) {
     const app = this.app;
+    this.drawActorFrames(pose);
     const selected = selSlot(app.sel);
     for (const q of pose.quads(app.doc)) {
       const img = app.images.get(q.image);
@@ -360,6 +385,27 @@ export class Viewport {
       if (missing) this.outline(q, pts, 'rgb(255,0,200)');
       if (selected === q.slot) this.outline(q, pts, SELECTED);
     }
+  }
+
+  /** A dashed box around the selected actor (its anchor bone is selected), and its name. */
+  drawActorFrames(pose) {
+    const app = this.app;
+    const b = selBone(app.sel);
+    const actor = b === null ? null : actorOfBone(app.doc, b);
+    const e = actor && app.actorPoses(pose).get(actor.name);
+    const box = e && actorBounds(e.doc, e.pose);
+    if (!box) return;
+    const [x0, y0] = this.toScreen([box[0], box[3]]);
+    const [x1, y1] = this.toScreen([box[2], box[1]]);
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.setLineDash([6, 4]);
+    this.polygon([[x0 - 6, y0 - 6], [x1 + 6, y0 - 6], [x1 + 6, y1 + 6], [x0 - 6, y1 + 6]], 'rgba(255,140,215,0.05)', 'rgb(255,140,215)', 1.5);
+    ctx.restore();
+    ctx.font = '12px system-ui, "Segoe UI", sans-serif';
+    ctx.fillStyle = 'rgb(255,140,215)';
+    ctx.textBaseline = 'bottom';
+    ctx.fillText(`🎬 ${actor.name}`, x0 - 6, y0 - 9);
   }
 
   /** Outline of a drawable: the quad, or the mesh hull. */
@@ -898,28 +944,56 @@ export class Viewport {
     const bone = this.hitBone(pose, pos);
     if (bone !== null) return { bone };
     const world = this.toWorld(pos);
-    for (const q of pose.quads(app.doc).reverse()) {
+    // Actors: clicking one selects its anchor bone, so the transform tools move, turn and scale it.
+    const posed = app.actorPoses(pose);
+    if (posed.size) {
+      const bySlot = actorSlots(app.doc, app.doc.scene);
+      const stageQuads = new Set(pose.quads(app.doc).map((q) => q.slot));
+      for (const i of [...pose.drawOrder].reverse()) {
+        if (stageQuads.has(i) && this.hitStageSlot(pose, world, i)) break;
+        const actor = bySlot.get(i);
+        const e = actor && posed.get(actor.name);
+        if (e && pose.color[i][3] > 0 && this.hitDrawables(e.pose.quads(e.doc), e.doc, e.pose, world, (n) => imageKey(actor.id, n))) {
+          const b = app.doc.boneIndex(actor.bone);
+          if (b !== null) return { bone: b };
+        }
+      }
+    }
+    const hit = this.hitDrawables(pose.quads(app.doc), app.doc, pose, world, (n) => n);
+    return hit ? { slot: hit.slot } : null;
+  }
+
+  /** The front-most of `quads` (of `doc` posed by `pose`) under a world point, or null. */
+  hitDrawables(quads, doc, pose, world, keyOf) {
+    const app = this.app;
+    for (const q of [...quads].reverse()) {
       const att = q.attachment;
       if (q.kind === 'mesh') {
         const t = q.triangles;
         for (let i = 0; i + 2 < t.length; i += 3) {
-          if (pointInTriangle(world, q.positions[t[i]], q.positions[t[i + 1]], q.positions[t[i + 2]])) return { slot: q.slot };
+          if (pointInTriangle(world, q.positions[t[i]], q.positions[t[i + 1]], q.positions[t[i + 2]])) return q;
         }
         continue;
       }
-      const [lx, ly] = pose.attachmentWorld(app.doc, q.slot, att).inverse().apply(world);
+      const [lx, ly] = pose.attachmentWorld(doc, q.slot, att).inverse().apply(world);
       const { width: w, height: h } = att;
       if (Math.abs(lx) > w * 0.5 || Math.abs(ly) > h * 0.5) continue;
-      const img = app.images.get(q.image);
+      const key = keyOf(q.image);
+      const img = app.images.get(key);
       let opaque = true;
       if (img) {
         const px = Math.min(Math.floor((lx / w + 0.5) * img.width), img.width - 1);
         const py = Math.min(Math.floor((0.5 - ly / h) * img.height), img.height - 1);
-        opaque = app.images.alphaAt(q.image, px, py) > 16;
+        opaque = app.images.alphaAt(key, px, py) > 16;
       }
-      if (opaque) return { slot: q.slot };
+      if (opaque) return q;
     }
     return null;
+  }
+
+  /** Whether the stage drawable of slot `i` covers a world point. */
+  hitStageSlot(pose, world, i) {
+    return !!this.hitDrawables(pose.quads(this.app.doc).filter((q) => q.slot === i), this.app.doc, pose, world, (n) => n);
   }
 
   // ---- input --------------------------------------------------------------------------------

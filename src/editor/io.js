@@ -137,7 +137,9 @@ async function openWorkfile(path, fs, images) {
   for (const [name, canvas] of loaded) images.insert(name, canvas);
   for (const name of usedImages(doc)) if (!loaded.has(name)) warnings.push(`image '${name}' is missing`);
   const audio = new Map([...files].filter(([k]) => k.startsWith('audio/')).map(([k, bytes]) => [k.slice('audio/'.length), bytes]));
-  return { doc, warnings, audio };
+  // A scene's actors: the characters' own work files, stored under actors/<id>/ (see actors.js).
+  const actorFiles = new Map([...files].filter(([k]) => k.startsWith('actors/')));
+  return { doc, warnings, audio, actorFiles };
 }
 
 /** Every image referenced by an attachment in any skin. */

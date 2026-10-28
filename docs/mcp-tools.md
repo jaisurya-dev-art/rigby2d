@@ -9,7 +9,7 @@ root folders. Editing tools save the file in its own format, or a copy when `out
 
 <!-- generated:mcp-tools -->
 
-The server has **35 tools**. Parameters marked **required** must be given; the others are optional.
+The server has **40 tools**. Parameters marked **required** must be given; the others are optional.
 
 ### `inspect_project`
 
@@ -459,6 +459,92 @@ Copy animations from one character to another (any format): bones are matched au
 | `replace` | boolean | Replace target animations with the same name. |
 | `output` | string | Save to this file instead of changing the input (same format as the input, inside the workspace). |
 | `overwrite` | boolean | Replace `output` if it already exists (default false). |
+
+### `add_actor`
+
+Put a character (another .rigby work file) into this scene as an actor. Its whole project is stored inside the scene, and a stage bone and slot named after it are created: the bone places it (animate it to move, turn or scale the actor), the slot sets where it is drawn among the other layers. Optionally give it a first clip. Saves the work file.
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `path` **required** | string | Project file: a .rigby work file or a skeleton .json / .skel export. Relative paths resolve against the first workspace root. |
+| `output` | string | Save to this file instead of changing the input (same format as the input, inside the workspace). |
+| `overwrite` | boolean | Replace `output` if it already exists (default false). |
+| `character` **required** | string | The character: a .rigby work file inside the workspace. |
+| `name` | string | Actor name (default: the character's name). |
+| `x` | number | Position on the stage (default 0). |
+| `y` | number | Position on the stage (default 0, the ground line). |
+| `scale` | number | Size (default 1). |
+| `flip` | boolean | Face the other way. |
+| `shot` | string | Shot (an animation of the scene) name. |
+| `animation` | string | The character's animation to play. |
+| `start` | number | When the first clip starts (default 0), when animation is given. |
+| `in` | number | Where in the animation to start (seconds, default 0). |
+| `out` | number | Where in the animation to stop (seconds, default its end). |
+| `speed` | number | Playback speed (default 1). |
+| `loops` | integer | How many times it plays (default 1; 0 = repeats until the next clip). |
+| `blend` | number | Crossfade from the previous clip, in seconds (default 0.25 after another clip). |
+
+### `add_clip`
+
+Place a clip of an actor's animation on a shot of the scene, NLE-style: from 'start' it plays the animation between 'in' and 'out' at 'speed', 'loops' times, crossfading from the actor's previous clip over 'blend' seconds; after it ends the actor holds the last frame until its next clip. The shot grows to fit. Saves the work file.
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `path` **required** | string | Project file: a .rigby work file or a skeleton .json / .skel export. Relative paths resolve against the first workspace root. |
+| `output` | string | Save to this file instead of changing the input (same format as the input, inside the workspace). |
+| `overwrite` | boolean | Replace `output` if it already exists (default false). |
+| `actor` **required** | string | Actor name. |
+| `shot` **required** | string | Shot (an animation of the scene) name. |
+| `animation` **required** | string | The character's animation to play. |
+| `start` **required** | number | When the clip starts on the shot, in seconds. |
+| `in` | number | Where in the animation to start (seconds, default 0). |
+| `out` | number | Where in the animation to stop (seconds, default its end). |
+| `speed` | number | Playback speed (default 1). |
+| `loops` | integer | How many times it plays (default 1; 0 = repeats until the next clip). |
+| `blend` | number | Crossfade from the previous clip, in seconds (default 0.25 after another clip). |
+
+### `remove_clip`
+
+Remove an actor's clip that starts at 'start' (seconds) on a shot. Saves the work file.
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `path` **required** | string | Project file: a .rigby work file or a skeleton .json / .skel export. Relative paths resolve against the first workspace root. |
+| `output` | string | Save to this file instead of changing the input (same format as the input, inside the workspace). |
+| `overwrite` | boolean | Replace `output` if it already exists (default false). |
+| `actor` **required** | string | Actor name. |
+| `shot` **required** | string | Shot name. |
+| `start` **required** | number |  |
+
+### `set_actor`
+
+Change an actor: its setup position, size, facing, skin or name. To move it over time, key its bone (named in add_actor's result) with set_bone_key. Saves the work file.
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `path` **required** | string | Project file: a .rigby work file or a skeleton .json / .skel export. Relative paths resolve against the first workspace root. |
+| `output` | string | Save to this file instead of changing the input (same format as the input, inside the workspace). |
+| `overwrite` | boolean | Replace `output` if it already exists (default false). |
+| `actor` **required** | string | Actor name. |
+| `x` | number |  |
+| `y` | number |  |
+| `scale` | number |  |
+| `flip` | boolean |  |
+| `skin` | string | One of the character's skins ('' for the default). |
+| `rename` | string | New actor name. |
+
+### `set_layer_depth`
+
+Set the depth of a top-level stage bone (a background or foreground layer) for parallax: when the 'camera' bone moves, a layer at depth z keeps up with focal / (focal + z) of the motion (focal 1000 by default), keeping its drawn size. 0 = no parallax; negative = in front of the picture plane (moves faster). Saves the work file.
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `path` **required** | string | Project file: a .rigby work file or a skeleton .json / .skel export. Relative paths resolve against the first workspace root. |
+| `output` | string | Save to this file instead of changing the input (same format as the input, inside the workspace). |
+| `overwrite` | boolean | Replace `output` if it already exists (default false). |
+| `bone` **required** | string | Bone name. |
+| `depth` **required** | number |  |
+| `focal` | number | Optional: the focal distance for the whole scene. |
 
 ### `run_script`
 

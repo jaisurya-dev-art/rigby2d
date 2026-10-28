@@ -13,6 +13,7 @@ import { dragValue, h, popupMenu, select, textField } from './widgets.js';
 // The dopesheet's row order and key-selection-by-index live in keyorder.js (core-only, so the
 // selection round trip can be tested in Node). Re-exported here so the windows import them as before.
 import { tracks, trackKeys } from './keyorder.js';
+import { drawLanes, laneActors, pressLane } from './sceneui.js';
 export { orderedKeys, keySelectionIndices, applyKeySelection } from './keyorder.js';
 
 const GUTTER = 170;
@@ -223,9 +224,13 @@ export class Dopesheet {
 
     const rows = tracks(app, anim);
     this.rows = rows; // kept so pointer hover can map a y position to a track's bone
+    // Scenes: a clip lane per actor sits between the ruler and the key rows.
+    const lanes = has(app, 'scene') ? laneActors(app).length : 0;
+    const top = RULER + lanes * ROW;
+    this.top = top;
     const duration = Math.max(anim.duration, 1 / FPS);
     const width = Math.max(1, this.scroller.clientWidth);
-    const height = Math.max(RULER + Math.max(rows.length, 1) * ROW + 6, this.scroller.clientHeight);
+    const height = Math.max(top + Math.max(rows.length, 1) * ROW + 6, this.scroller.clientHeight);
     const dpr = window.devicePixelRatio || 1;
     this.canvas.style.width = `${width}px`;
     this.canvas.style.height = `${height}px`;
@@ -270,8 +275,9 @@ export class Dopesheet {
     const selectedBone = selBone(app.sel);
     const selectedSlot = selSlot(app.sel);
     this.keyRects = [];
+    this.laneRects = lanes ? drawLanes(ctx, app, { top: RULER, row: ROW, width, gutter: GUTTER, timeToX }) : [];
     rows.forEach(({ track, label }, r) => {
-      const y = RULER + r * ROW;
+      const y = top + r * ROW;
       const highlight = (track.bone !== undefined && track.bone === selectedBone) || (track.slot !== undefined && track.slot === selectedSlot);
       if (r % 2 === 1 || highlight) {
         ctx.fillStyle = highlight ? 'rgb(55,50,40)' : 'rgb(34,34,34)';
@@ -361,6 +367,18 @@ export class Dopesheet {
     const app = this.app;
     const p = this.pos(e);
     const add = e.ctrlKey || e.metaKey;
+    // Actor clip lanes (scenes): move or trim a clip, or right-click for its menu.
+    if (p[1] > RULER && p[1] < (this.top ?? RULER) && (e.button === 0 || e.button === 2)) {
+      const lane = pressLane(app, this.laneRects ?? [], p, e, (x) => this.xToTime(x), RULER, ROW);
+      if (lane === 'handled') return;
+      if (lane) {
+        this.canvas.setPointerCapture(e.pointerId);
+        this.press = { lane, pos: p, started: false };
+        app.changed();
+        return;
+      }
+      if (e.button === 2) return;
+    }
     if (e.button === 2) {
       const hit = this.hit(p);
       if (hit && !app.selectedKeys.has(hit.key)) {
@@ -380,17 +398,23 @@ export class Dopesheet {
   /** Lights up the bone of the row under the cursor, synced with the viewport and tree. */
   hoverAt(p) {
     const app = this.app;
-    if (!this.rows || p[1] < RULER) {
+    const top = this.top ?? RULER;
+    if (!this.rows || p[1] < top) {
       app.setHover(null);
       return;
     }
-    const track = this.rows[Math.floor((p[1] - RULER) / ROW)]?.track;
+    const track = this.rows[Math.floor((p[1] - top) / ROW)]?.track;
     app.setHover(track && track.bone !== undefined ? track.bone : null);
   }
 
   onPointerMove(e) {
     const app = this.app;
     const p = this.pos(e);
+    if (this.press?.lane && e.buttons & 1) {
+      this.press.started = true;
+      this.press.lane.move(p[0]);
+      return;
+    }
     if (!this.press || !(e.buttons & 1)) {
       this.hoverAt(p);
       return;
@@ -443,6 +467,11 @@ export class Dopesheet {
     const app = this.app;
     const press = this.press;
     this.press = null;
+    if (press.lane) {
+      if (press.started) press.lane.end();
+      app.changed();
+      return;
+    }
     if (!press.started) {
       if (press.hit) {
         const k = press.hit.key;

@@ -15,6 +15,8 @@ import { WORKSPACES, workspace as workspaceDef } from './workspaces.js';
 import * as onion from './onion.js';
 import { track } from './analytics.js';
 import { demoById } from './demos.js';
+import { actorEntries, actors, loadActors, poseActors } from './actors.js';
+import { applyParallax, setupCameraPosition } from '../core/scene.js';
 
 /** Default onion-skin tint colors (future = cool, past = warm), shared with the UI. */
 export const ONION_DEFAULTS = { futureColor: [0.55, 0.75, 1], pastColor: [1, 0.55, 0.55] };
@@ -290,8 +292,31 @@ export class App {
         for (const values of Object.values(channels)) Object.assign(pose.local[bone], values);
       }
       pose.updateWorld(this.doc);
+      // Scenes: deep layers drift behind near ones as the camera moves (see core/scene.js).
+      if (this.doc.scene) {
+        if (this._cameraVersion !== this.version) {
+          this._setupCamera = setupCameraPosition(this.doc);
+          this._cameraVersion = this.version;
+        }
+        applyParallax(this.doc, this.doc.scene, pose, this._setupCamera);
+      }
     }
     return pose;
+  }
+
+  /**
+   * The scene's actors posed for the stage pose `stagePose` (see actors.js): Map actor name ->
+   * { actor, doc, pose }. Empty for projects without a scene.
+   */
+  actorPoses(stagePose) {
+    if (!this.doc.scene?.actors.length) return new Map();
+    // Drawing, outlines and hit tests ask for the same frame: pose the actors once per stage pose.
+    if (this._actorPoses?.stage === stagePose) return this._actorPoses.map;
+    const delta = this.actorPhysicsDelta ?? 0;
+    this.actorPhysicsDelta = 0;
+    const map = poseActors(this, stagePose, delta);
+    this._actorPoses = { stage: stagePose, map };
+    return map;
   }
 
   /** A bone's own onion override (by bone index), or undefined. */
@@ -520,10 +545,11 @@ export class App {
   /** Opens a .rigby work file, or imports skeleton JSON, from `path` on the file system `fs`. */
   async openFrom(path, fs) {
     try {
-      const { doc, warnings, imported, audio } = await io.openProject(path, fs, this.images);
+      const { doc, warnings, imported, audio, actorFiles } = await io.openProject(path, fs, this.images);
       stopAudio();
       sounds.clear();
       for (const [name, bytes] of audio ?? []) await addSound(name, bytes).catch(() => warnings.push(`sound '${name}' cannot be decoded`));
+      warnings.push(...(await loadActors(actorFiles ?? new Map(), this.images)));
       // Skeleton exports come from game workflows: open them in the game workspace.
       if (imported) doc.workspace = WORKSPACES.game.id;
       // Imported files are not work files: the first Save asks where to put the .rigby file.
@@ -552,6 +578,7 @@ export class App {
     doc.settings.fps = ws.fps;
     saveSetting('rigby.workspace', ws.id);
     this.images.clear();
+    actors.clear();
     this.loadDocument(doc, null);
     this.saveTarget = null;
     this.setStatus(`New ${ws.label.toLowerCase()} project`);
@@ -612,7 +639,7 @@ export class App {
     try {
       const used = new Set(this.doc.audio.map((t) => t.sound));
       const audioFiles = [...sounds].filter(([name]) => used.has(name)).map(([name, s]) => ({ path: `audio/${name}`, bytes: s.bytes }));
-      const { warnings } = await io.saveWorkfile(target.path, target.fs, this.doc, this.images, audioFiles);
+      const { warnings } = await io.saveWorkfile(target.path, target.fs, this.doc, this.images, [...audioFiles, ...actorEntries(this.doc)]);
       await target.fs.finish();
       this.path = target.path;
       this.saveTarget = target.fs.reusable ? target : null;
@@ -792,6 +819,7 @@ export class App {
     const before = this.time;
     const step = Math.min(dt, 0.1) * (this.playSpeed || 1);
     this.physicsDelta += step;
+    this.actorPhysicsDelta = (this.actorPhysicsDelta ?? 0) + step;
     this.time += step * this.playDirection;
     let wrapped = false;
     if (this.time > anim.duration || this.time < 0) {

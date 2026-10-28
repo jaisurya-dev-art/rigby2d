@@ -618,10 +618,14 @@ export function solvePhysics(sk, pose, c, state, sim, delta) {
   const w = c.weights;
   const mix = state.mix;
   const m = pose.world[c.bone];
+  // A placed skeleton (a scene actor) simulates in its own units, so a character shown at half size
+  // swings like it does at full size: positions are divided by the placement's scale going in and
+  // the result multiplied by it coming out. Unplaced skeletons are unchanged (ps = 1).
+  const ps = pose.placement ? Math.sqrt(Math.abs(pose.placement.determinant())) || 1 : 1;
   const axis = Math.hypot(m.a, m.b) || 1;
-  const len = Math.max(MIN_TIP, sk.bones[c.bone].length * axis);
-  const origin = [m.tx, m.ty];
-  const tip = [m.tx + (m.a / axis) * len, m.ty + (m.b / axis) * len];
+  const len = Math.max(MIN_TIP, (sk.bones[c.bone].length * axis) / ps);
+  const origin = [m.tx / ps, m.ty / ps];
+  const tip = [origin[0] + (m.a / axis) * len, origin[1] + (m.b / axis) * len];
   if (!sim.ready) {
     Object.assign(sim, { ready: true, rest: 0, o: [0, 0], ov: [0, 0], t: [0, 0], tv: [0, 0], lastOrigin: origin, lastTip: tip });
   }
@@ -661,8 +665,8 @@ export function solvePhysics(sk, pose, c, state, sim, delta) {
   }
   if (mix === 0) return null;
   const out = m.clone();
-  out.tx += sim.o[0] * w.x * mix;
-  out.ty += sim.o[1] * w.y * mix;
+  out.tx += sim.o[0] * w.x * mix * ps;
+  out.ty += sim.o[1] * w.y * mix * ps;
   if (w.rotate || w.scaleX || w.shearX) {
     const from = [tip[0] - origin[0], tip[1] - origin[1]];
     const to = [from[0] + sim.t[0], from[1] + sim.t[1]];

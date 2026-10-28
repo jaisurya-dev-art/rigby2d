@@ -8,6 +8,7 @@ import * as edit from './edit.js';
 import { renameBoneRefs, renameSlotRefs } from '../core/constraintdata.js';
 import { sequenceFrameName } from '../core/sequence.js';
 import { constraintUi } from './constraintui.js';
+import { actorUi, depthUi } from './sceneui.js';
 import { bindMesh, regionToMesh, unbindMesh } from './meshtool.js';
 import { eventUi, skinUi } from './skineventui.js';
 import { dragValue, h, select, textField } from './widgets.js';
@@ -118,8 +119,10 @@ function boneUi(app, b) {
   const scl = { speed: 0.01, decimals: 3 };
 
   return [
+    actorUi(app, b),
     h('h2', null, app.selectedBones().length > 1 ? `Bone (${app.selectedBones().length} selected)` : 'Bone'),
     h('div', { class: 'grid' }, props),
+    depthUi(app, b),
     h('hr'),
     h('strong', null, setupMode ? 'Setup pose' : app.autoKey ? 'Pose at current frame (auto key on)' : 'Pose at current frame'),
     h(

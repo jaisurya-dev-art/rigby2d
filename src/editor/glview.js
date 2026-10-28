@@ -3,6 +3,8 @@
 // WebGL renderer. Bones, handles and other overlays stay on the 2D canvas above it.
 
 import { WebGLRenderer } from '../webgl/renderer.js';
+import { actorSlots } from '../core/scene.js';
+import { imageKey } from './actors.js';
 
 const BACKGROUND = [38 / 255, 38 / 255, 38 / 255];
 const GRID = [48 / 255, 48 / 255, 48 / 255, 1];
@@ -95,9 +97,26 @@ export class GLView {
     const lookup = (name) => this.lookup(app.images, name, linear);
     // Onion skinning: ghosts of nearby frames, faded (and optionally masked per bone) behind the pose.
     for (const g of app.onionDraws?.() ?? []) r.drawSkeleton(app.doc, g.pose, lookup, { tint: g.tint, skip: g.skip });
-    r.drawSkeleton(app.doc, pose, lookup);
+    r.drawSkeleton(app.doc, pose, lookup, { between: sceneActors(app, pose, r, lookup) });
     r.end();
     this.stats = { drawCalls: r.drawCalls };
     return true;
   }
+}
+
+/**
+ * For scenes: a `between` callback for drawSkeleton that draws each actor at its stage slot, tinted
+ * by the slot's color (null for projects without actors). Shared with the offline renderer.
+ */
+export function sceneActors(app, pose, r, lookup, posed = app.actorPoses(pose)) {
+  if (!posed.size) return null;
+  const bySlot = actorSlots(app.doc, app.doc.scene);
+  return (i) => {
+    const actor = bySlot.get(i);
+    const e = actor && posed.get(actor.name);
+    if (!e) return;
+    const tint = pose.color[i];
+    if (tint[3] <= 0) return;
+    r.drawSkeleton(e.doc, e.pose, (name) => lookup(imageKey(actor.id, name)), { tint });
+  };
 }

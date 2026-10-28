@@ -166,14 +166,17 @@ export class WebGLRenderer {
 
   /**
    * Draws every visible region and mesh of a posed skeleton in draw order, masked by clipping
-   * attachments. `skip(slot, attachment)` can leave attachments out.
+   * attachments. `skip(slot, attachment)` can leave attachments out. `between(slot)` is called
+   * as each slot's turn comes, before its attachment, to draw something else there (a scene draws
+   * its actors at their slots this way).
    */
-  drawSkeleton(sk, pose, lookup, { tint = [1, 1, 1, 1], skip = null } = {}) {
+  drawSkeleton(sk, pose, lookup, { tint = [1, 1, 1, 1], skip = null, between = null } = {}) {
     let clipper = null;
     let clipEnd = null;
     const uv = [0, 0];
     for (const i of pose.drawOrder) {
       const slot = sk.slots[i];
+      between?.(i);
       const att = slot ? pose.slotAttachment(sk, i) : null;
       const type = att ? (att.type ?? 'region') : null;
       if (att && type === 'clipping' && !skip?.(i, att)) {

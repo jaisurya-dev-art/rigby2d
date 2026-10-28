@@ -45,6 +45,12 @@ export class Pose {
     this.physics = new Map();
     /** Seconds of physics to simulate in the next `updateWorld` (0 = only apply offsets). */
     this.physicsDelta = 0;
+    /**
+     * Where the whole skeleton sits in a larger space (an Affine applied above its root bones), as
+     * when a character is an actor in a scene; null = at the origin. Constraints and physics work in
+     * the placed space, so an actor walking across a scene swings its hair.
+     */
+    this.placement = null;
     this.setToSetup(sk);
   }
 
@@ -297,7 +303,7 @@ export class Pose {
       const p = bones[i].parent;
       const want = desired.get(i);
       if (want) {
-        this.applied[i] = localFromWorld(p === null ? null : this.world[p], want, this.inherit[i]);
+        this.applied[i] = p === null && this.placement ? localFromWorld(this.placement, want, 'normal') : localFromWorld(p === null ? null : this.world[p], want, this.inherit[i]);
         this.world[i] = want;
         dirty[i] = 1;
       } else if (p !== null && dirty[p]) {
@@ -334,7 +340,10 @@ export class Pose {
   updateBone(sk, i) {
     const p = sk.bones[i].parent;
     const w = this.world[i] ?? (this.world[i] = new Affine());
-    if (p === null) toAffine(this.applied[i], w);
+    if (p === null) {
+      if (this.placement) Affine.multiply(this.placement, toAffine(this.applied[i], LOCAL), w);
+      else toAffine(this.applied[i], w);
+    }
     else inheritWorld(this.world[p], toAffine(this.applied[i], LOCAL), this.inherit[i], w);
   }
 

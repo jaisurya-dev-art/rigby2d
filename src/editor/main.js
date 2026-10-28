@@ -12,6 +12,7 @@ import { installKeyboard, isTyping, runAction } from './keys.js';
 import { openRenderDialog } from './renderui.js';
 import { openAutoRig, openRetarget } from './rigui.js';
 import { startAudio, stopAudio } from './audio.js';
+import { clipTracks } from './actors.js';
 import { memoryFs } from './platform.js';
 import * as edit from './edit.js';
 import * as toolbar from './toolbar.js';
@@ -29,6 +30,7 @@ import { openAiConnect } from './aiconnect.js';
 import { installPanelSync } from './panelsync.js';
 import { windowLayoutsMenuItem } from './layoutui.js';
 import { openDemoPicker } from './demoui.js';
+import { newScene } from './sceneui.js';
 import { startAnalytics } from './analytics.js';
 
 // Anonymous visit and feature counts, only on the public website's browser editor (analytics.js).
@@ -61,6 +63,7 @@ function menus() {
     File: [
       { label: 'New game project', action: () => app.newDocument('game') },
       { label: 'New film project', action: () => app.newDocument('film') },
+      { label: 'New scene (several characters)', action: () => newScene(app) },
       { label: 'Open demo…', action: () => openDemoPicker(app) },
       { label: 'Open… (.rigby, or import .json / .skel)', shortcut: 'Ctrl+O', action: () => app.openDialog() },
       'separator',
@@ -341,7 +344,7 @@ function frame(now) {
   app.sanitize();
   // Audio tracks (Film) start with playback, and restart when the time jumps or loops.
   const jumped = app.playing && (!audioPlaying || app.anim !== lastAnim || app.time < lastTime || app.time - lastTime > 0.25);
-  if (jumped && has(app, 'audio') && app.playDirection > 0) startAudio(app.doc, app.currentAnimation()?.name, app.time);
+  if (jumped && has(app, 'audio') && app.playDirection > 0) startAudio(app.doc, app.currentAnimation()?.name, app.time, clipTracks(app.doc, app.currentAnimation()?.name));
   if (!app.playing && audioPlaying) stopAudio();
   audioPlaying = app.playing && app.playDirection > 0;
   if (app.time !== lastTime || app.anim !== lastAnim) {

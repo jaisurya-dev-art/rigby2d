@@ -10,6 +10,8 @@ import * as edit from './edit.js';
 import { onionBonePanel, rgbCss } from './onionui.js';
 import { createEvent, createSkin } from './skineventui.js';
 import { h, popupMenu } from './widgets.js';
+import { has } from './workspaces.js';
+import { addActorMenu, sceneRows } from './sceneui.js';
 
 /** Collapsed sections and bones (kept for the session). */
 const collapsed = new Set(['images', 'events']);
@@ -273,6 +275,9 @@ export function render(app, el) {
   const scrolled = el.querySelector('.tree-scroll')?.scrollTop ?? 0;
   el.replaceChildren(
     h('div', { class: 'tree-scroll scroll' },
+      has(app, 'scene') || doc.scene?.actors.length
+        ? section(app, 'scene', 'Scene', doc.scene?.actors.length ?? 0, doc.scene?.actors.length ? sceneRows(app, row) : [h('div', { class: 'small weak pad' }, 'Characters acting together: ＋ Actor adds one (File ▸ New scene starts a stage with a camera).')], h('button', { class: 'small', title: 'Add a character to the scene', onclick: (e) => { const r = e.target.getBoundingClientRect(); addActorMenu(app, r.left, r.bottom); } }, '＋ Actor'))
+        : null,
       section(app, 'skeleton', doc.name || 'Skeleton', doc.bones.length, skeleton, addBone),
       section(app, 'draworder', 'Draw order', n, orderList),
       section(app, 'skins', 'Skins', doc.skins.length + 1, skins, newSkin),

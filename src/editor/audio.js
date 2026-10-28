@@ -39,22 +39,28 @@ export function stopAudio() {
   playing = [];
 }
 
-/** Plays the tracks of `animation` from `time` seconds. */
-export function startAudio(doc, animation, time) {
+/**
+ * Plays the tracks of `animation` from `time` seconds. `extra` adds tracks that start `from`
+ * seconds into their sound and may stop after `duration` seconds (scene clips' audio).
+ */
+export function startAudio(doc, animation, time, extra = []) {
   stopAudio();
   const ctx = audioContext();
   if (ctx.state === 'suspended') ctx.resume();
-  for (const t of tracksOf(doc, animation)) {
-    const buffer = sounds.get(t.sound).buffer;
+  for (const t of [...tracksOf(doc, animation), ...extra]) {
+    const buffer = sounds.get(t.sound)?.buffer;
+    if (!buffer) continue;
+    const from = t.from ?? 0;
+    const length = Math.min(buffer.duration - from, t.duration ?? Infinity);
     const at = time - t.offset;
-    if (at >= buffer.duration) continue;
+    if (at >= length) continue;
     const src = ctx.createBufferSource();
     src.buffer = buffer;
     const gain = ctx.createGain();
     gain.gain.value = t.volume;
     src.connect(gain).connect(ctx.destination);
-    if (at >= 0) src.start(0, at);
-    else src.start(ctx.currentTime - at);
+    if (at >= 0) src.start(0, from + at, length - at);
+    else src.start(ctx.currentTime - at, from, length);
     playing.push(src);
   }
 }
@@ -85,8 +91,8 @@ export function frameLevels(track, fps, frames) {
 }
 
 /** The tracks of `animation` mixed over `duration` seconds (48 kHz stereo AudioBuffer), or null. */
-export async function mixBuffer(doc, animation, duration) {
-  const tracks = tracksOf(doc, animation);
+export async function mixBuffer(doc, animation, duration, extra = []) {
+  const tracks = [...tracksOf(doc, animation), ...extra].filter((t) => sounds.get(t.sound)?.buffer);
   if (!tracks.length || duration <= 0) return null;
   const rate = 48000;
   const ctx = new OfflineAudioContext(2, Math.ceil(duration * rate), rate);
@@ -96,15 +102,18 @@ export async function mixBuffer(doc, animation, duration) {
     const gain = ctx.createGain();
     gain.gain.value = t.volume;
     src.connect(gain).connect(ctx.destination);
-    if (t.offset >= 0) src.start(t.offset);
-    else src.start(0, -t.offset);
+    const from = t.from ?? 0;
+    const length = Math.min(src.buffer.duration - from, t.duration ?? Infinity);
+    if (length <= 0) continue;
+    if (t.offset >= 0) src.start(t.offset, from, length);
+    else if (-t.offset < length) src.start(0, from - t.offset, length + t.offset);
   }
   return ctx.startRendering();
 }
 
 /** The tracks of `animation` mixed over `duration` seconds as a 16-bit stereo WAV, or null. */
-export async function mixWav(doc, animation, duration) {
-  return wavOf(await mixBuffer(doc, animation, duration));
+export async function mixWav(doc, animation, duration, extra = []) {
+  return wavOf(await mixBuffer(doc, animation, duration, extra));
 }
 
 /**

@@ -11,6 +11,8 @@ import { animationBounds, outputFrame } from '../output.js';
 import { writeMp4 } from './mp4.js';
 import { writeWebm } from './webm.js';
 import { encodeAac, encodeOpus, joinBuffers, mixBuffer, wavOf } from '../audio.js';
+import { actors, clipTracks, imageKey } from '../actors.js';
+import { actorSlots, applyParallax, poseActor, setupCameraPosition } from '../../core/scene.js';
 
 export const FORMATS = [
   ['png', 'PNG sequence (transparent)'],
@@ -52,6 +54,38 @@ export class FrameRenderer {
     this.state = new AnimationState();
     this.frame = -1;
     if (job.animation !== null && job.animation !== undefined) this.state.setAnimation(doc, 0, doc.animations[job.animation].name, false, 0);
+    // Scenes: actors keep their own poses (and physics) from frame to frame.
+    this.actorPoses = new Map();
+    this.setupCamera = doc.scene ? setupCameraPosition(doc) : null;
+  }
+
+  /** Poses the stage's parallax layers and every actor for the current frame, `dt` after the last. */
+  poseScene(dt) {
+    const { doc, job } = this;
+    if (!doc.scene) return;
+    applyParallax(doc, doc.scene, this.pose, this.setupCamera);
+    const shot = job.animation === null || job.animation === undefined ? '' : doc.animations[job.animation].name;
+    const t = Math.max(0, this.frame) / job.settings.fps;
+    for (const actor of doc.scene.actors) {
+      const lib = actors.get(actor.id);
+      if (!lib) continue;
+      let pose = this.actorPoses.get(actor.name);
+      if (!pose) this.actorPoses.set(actor.name, (pose = new Pose(lib.doc)));
+      poseActor(doc, this.pose, actor, lib.doc, shot, t, pose, dt);
+    }
+  }
+
+  /** drawSkeleton's `between` callback that draws each actor at its stage slot (null without actors). */
+  actorDrawer() {
+    if (!this.actorPoses.size) return null;
+    const bySlot = actorSlots(this.doc, this.doc.scene);
+    return (i) => {
+      const actor = bySlot.get(i);
+      const pose = actor && this.actorPoses.get(actor.name);
+      const lib = actor && actors.get(actor.id);
+      const tint = this.pose.color[i];
+      if (pose && lib && tint[3] > 0) this.renderer.drawSkeleton(lib.doc, pose, (name) => this.lookup(imageKey(actor.id, name)), { tint });
+    };
   }
 
   lookup(name) {
@@ -73,15 +107,21 @@ export class FrameRenderer {
     while (this.frame < n) {
       if (this.frame >= 0) this.state.update(doc, dt);
       this.frame++;
+      // Actor physics steps every frame too, even the ones skipped.
+      if (doc.scene && this.frame < n) {
+        this.state.apply(doc, this.pose);
+        this.poseScene(this.frame > 0 ? dt : 0);
+      }
     }
     this.state.apply(doc, this.pose);
+    this.poseScene(this.frame > 0 ? dt : 0);
     gl.viewport(0, 0, this.width, this.height);
     const bg = job.settings.background;
     if (bg) gl.clearColor(bg[0] * bg[3], bg[1] * bg[3], bg[2] * bg[3], bg[3]);
     else gl.clearColor(0, 0, 0, 0);
     gl.clear(gl.COLOR_BUFFER_BIT);
     this.renderer.begin(this.width, this.height, cameraFor(job.settings, doc, this.pose, this.camera));
-    this.renderer.drawSkeleton(doc, this.pose, (name) => this.lookup(name));
+    this.renderer.drawSkeleton(doc, this.pose, (name) => this.lookup(name), { between: this.actorDrawer() });
     this.renderer.end();
     gl.finish();
     return this.canvas;
@@ -388,7 +428,7 @@ async function encodeVideo(doc, images, jobs, job, progress) {
   const parts = [];
   for (const { job: segment, range } of segments) {
     const name = doc.animations[segment.animation]?.name;
-    parts.push({ buffer: name ? await mixBuffer(doc, name, range.count / s.fps).catch(() => null) : null, seconds: range.count / s.fps });
+    parts.push({ buffer: name ? await mixBuffer(doc, name, range.count / s.fps, clipTracks(doc, name)).catch(() => null) : null, seconds: range.count / s.fps });
   }
   const mixed = segments.length === 1 ? parts[0].buffer : joinBuffers(parts);
   let audio = null;

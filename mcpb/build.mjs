@@ -93,8 +93,9 @@ const listed = JSON.parse(
     const { createFilmTools } = await import(${JSON.stringify(new URL('../src/mcp/film.js', import.meta.url).href)});
     const { createRiggingTools } = await import(${JSON.stringify(new URL('../src/mcp/rigging.js', import.meta.url).href)});
     const { createScriptTools } = await import(${JSON.stringify(new URL('../src/mcp/scripting.js', import.meta.url).href)});
+    const { createSceneTools } = await import(${JSON.stringify(new URL('../src/mcp/scene.js', import.meta.url).href)});
     const ws = await Workspace.open([process.cwd()]);
-    const all = [...createTools(ws), ...createEditTools(ws), ...createFilmTools(ws), ...createRiggingTools(ws), ...createScriptTools(ws)];
+    const all = [...createTools(ws), ...createEditTools(ws), ...createFilmTools(ws), ...createRiggingTools(ws), ...createSceneTools(ws), ...createScriptTools(ws)];
     process.stdout.write(JSON.stringify(all.map((t) => ({ name: t.name, description: t.description.split('. ')[0].replace(/\\.$/, '') + '.' }))));
   `], { cwd: repo, encoding: 'utf8' }),
 );
