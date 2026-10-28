@@ -2511,7 +2511,7 @@ dependencies = [
 
 [[package]]
 name = "rigby2d"
-version = "0.2.6"
+version = "0.3.0"
 dependencies = [
  "tauri",
  "tauri-build",

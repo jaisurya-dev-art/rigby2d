@@ -1,6 +1,6 @@
 {
   "name": "rigby2d",
-  "version": "0.2.6",
+  "version": "0.3.0",
   "description": "Rigby2D: open-source 2D skeletal animation for games, films and interactive experiences. Built-in MCP server for AI assistants.",
   "license": "MIT OR Apache-2.0",
   "private": true,
