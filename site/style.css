@@ -666,3 +666,20 @@ h3 {
     transition: none;
   }
 }
+
+.card h3 a {
+  color: inherit;
+  text-decoration: none;
+}
+.card h3 a:hover {
+  color: var(--ice);
+}
+.card h3 a::after {
+  content: ' →';
+  color: var(--steel);
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.card:hover h3 a::after {
+  opacity: 1;
+}

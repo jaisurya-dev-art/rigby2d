@@ -4,10 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Rigby2D: open-source 2D skeletal animation</title>
-    <meta name="description" content="Rig layered art in one step, animate for games and film, and play it anywhere. Free and open source, with a built-in MCP server for AI assistants." />
+    <meta name="description" content="Rig layered art in one step, animate for games and film, lip-sync dialogue from audio, compose scenes and play it anywhere. Free and open source, with a built-in MCP server for AI assistants." />
     <meta name="theme-color" content="#0a0a0b" />
     <meta property="og:title" content="Rigby2D: open-source 2D skeletal animation" />
-    <meta property="og:description" content="Rig layered art in one step, animate for games and film, and play it anywhere. Free and open source." />
+    <meta property="og:description" content="Rig layered art in one step, animate for games and film, lip-sync dialogue from audio and play it anywhere. Free and open source." />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://jaisurya-dev-art.github.io/rigby2d/" />
     <meta property="og:image" content="https://jaisurya-dev-art.github.io/rigby2d/og.jpg" />
@@ -42,8 +42,8 @@
             <p class="eyebrow">Open source · <span data-version>early alpha</span></p>
             <h1>2D skeletal animation, <span class="accent">from layered art to any engine.</span></h1>
             <p class="lede">
-              Rig a layered PSD in one step, animate it for games and film, and play it anywhere with the
-              included runtimes. AI assistants can inspect, rig and animate your projects through the
+              Rig a layered PSD in one step, animate it for games and film, make it talk with lip-sync from
+              audio, and play it anywhere with the included runtimes. AI assistants can inspect, rig and animate your projects through the
               built-in MCP server.
             </p>
             <div class="cta">
@@ -90,43 +90,55 @@
       <section id="features" class="section">
         <div class="wrap">
           <h2>Everything from rig to render</h2>
-          <p class="section-lede">One editor for game characters and animated film, with the tools that usually take three apps.</p>
+          <p class="section-lede">One editor for game characters and animated film, with the tools that usually take three apps. Every card links to its guide in the <a href="./docs/">documentation</a>.</p>
           <div class="cards">
             <article class="card">
-              <h3>AutoRig</h3>
+              <h3><a href="./docs/autorig.html">AutoRig</a></h3>
               <p>Import a layered PSD and get an editable rig: body parts found from the layer names, joints where parts meet, weighted meshes for bending parts and IK for arms and legs.</p>
             </article>
             <article class="card">
-              <h3>Retargeting</h3>
+              <h3><a href="./docs/retargeting.html">Retargeting</a></h3>
               <p>Animate once, reuse on other characters. Bones are matched automatically (<code>L_UpperArm</code> finds <code>upperarm_l</code>) and movement is scaled to each character's size.</p>
             </article>
             <article class="card">
-              <h3>Full rigging toolset</h3>
+              <h3><a href="./docs/bones-and-slots.html">Full rigging toolset</a></h3>
               <p>Bones, weighted meshes, linked meshes, image sequences, skins, events, clipping and paths, with IK, transform, path, physics and slider constraints.</p>
             </article>
             <article class="card">
-              <h3>Animate with confidence</h3>
+              <h3><a href="./docs/animating.html">Animate with confidence</a></h3>
               <p>Setup and Animate modes, dopesheet and graph editor with Bézier handles, onion skinning, a pose library and face controls that blend between poses.</p>
             </article>
             <article class="card">
-              <h3>Film workspace</h3>
-              <p>Render transparent PNG sequences, WebM with alpha and MP4 at 4K, with timecode, an animatable camera, audio tracks and viseme lip-sync, transcribed on your computer.</p>
+              <h3><a href="./docs/film.html">Film workspace</a></h3>
+              <p>Render transparent PNG sequences, WebM with alpha and MP4 at 4K, with timecode, frame-rate presets, an animatable camera and audio tracks mixed into the video.</p>
             </article>
             <article class="card">
-              <h3>Scenes</h3>
+              <h3><a href="./docs/lip-sync.html">Lip-sync from audio</a></h3>
+              <p>Drop in a voice line and the mouth is keyed shape by shape with the nine viseme mouths, each landing just before its sound and never flickering. Whisper transcribes the speech on your computer, nothing uploaded; or use ElevenLabs, Rhubarb or Papagayo timings.</p>
+            </article>
+            <article class="card">
+              <h3><a href="./docs/scenes.html">Scenes</a></h3>
               <p>Put several characters on one stage. Each plays clips of its animations, trimmed, looped and crossfaded, with its own voice, in front of painted layers with parallax and a moving camera.</p>
             </article>
             <article class="card">
-              <h3>Python scripting</h3>
+              <h3><a href="./docs/scripting.html">Python scripting</a></h3>
               <p>Python 3 is built in. Write scripts against the open project and turn them into tools in the Scripts menu. Each run is one undo step; failures leave the project untouched.</p>
             </article>
             <article class="card">
-              <h3>Made for your setup</h3>
+              <h3><a href="./docs/interface.html">Made for your setup</a></h3>
               <p>Pop the Timeline, Tree and Inspector out onto a second monitor and recall saved window layouts with a shortcut. Pixel-art projects stay sharp end to end.</p>
             </article>
             <article class="card">
-              <h3>Learn by doing</h3>
+              <h3><a href="./docs/quick-start.html">Learn by doing</a></h3>
               <p>Interactive lessons with a practice character take you from a drawing to a moving character, right inside the editor.</p>
+            </article>
+            <article class="card">
+              <h3><a href="./docs/guides.html">Guides and precision</a></h3>
+              <p>Pixel rulers and guide lines, real-time guides that trace each rotate, move, scale and shear, drag-and-drop draw order with a live preview, and the hovered bone lit up in every panel.</p>
+            </article>
+            <article class="card">
+              <h3><a href="./docs/installation.html">Runs anywhere</a></h3>
+              <p>The full editor runs in your browser with nothing to install, or as a Windows app. Projects are one <code>.rigby</code> file; exports are standard skeleton JSON and <code>.skel</code>.</p>
             </article>
           </div>
 
@@ -160,7 +172,7 @@
           <div class="chat" aria-label="Example requests">
             <p class="bubble">Which images are missing from <code>hero.skel</code>?</p>
             <p class="bubble">Add a 1-second wave animation to <code>nila.rigby</code> that raises the right arm and fires a <code>hi</code> event at the end.</p>
-            <p class="bubble">Add <code>line.wav</code> to the talk animation and lip-sync the mouth control to it.</p>
+            <p class="bubble">Add <code>line.wav</code> to the talk animation and lip-sync NILA's mouth to it from this script.</p>
             <p class="bubble">AutoRig <code>character.psd</code>.</p>
           </div>
         </div>
