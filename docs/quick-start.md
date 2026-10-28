@@ -11,10 +11,10 @@ upper arm, forearm, hand, thigh, shin, foot, and so on). No PSD at hand? Open a 
 
 ## 1. Import the artwork
 
-Open the editor and choose *File ▸ Import PSD…*. Every pixel layer becomes an image in its own slot,
+Open the editor and choose *File ▸ Import ▸ PSD…*. Every pixel layer becomes an image in its own slot,
 exactly where it was drawn. Hidden layers are imported hidden.
 
-![A layered PSD of NILA imported into Rigby2D: every layer is an image on the root bone](images/psd-imported.jpg "After File ▸ Import PSD: the layers are in place, but nothing is rigged yet")
+![A layered PSD of NILA imported into Rigby2D: every layer is an image on the root bone](images/psd-imported.jpg "After File ▸ Import ▸ PSD: the layers are in place, but nothing is rigged yet")
 
 Layer names matter for the next step. `upperarm_l`, `L Upper Arm` and `arm.left.upper` all work; see
 [naming layers](autorig.md#naming-layers).
@@ -72,8 +72,8 @@ Smooth the motion with easing: right-click a key and choose **Ease in-out**, or 
 
 - *File ▸ Save* (<kbd>Ctrl</kbd>+<kbd>S</kbd>) writes `name.rigby`: the whole project with its
   images in one file. Reopen it any time with *File ▸ Open*.
-- *File ▸ Export JSON + atlas…* (<kbd>Ctrl</kbd>+<kbd>E</kbd>) writes `name.json`, `name.atlas`
-  and `name.png` for a game. *Export .skel + atlas* writes the compact binary format instead.
+- *File ▸ Export ▸ JSON + atlas…* (<kbd>Ctrl</kbd>+<kbd>E</kbd>) writes `name.json`, `name.atlas`
+  and `name.png` for a game. *Export ▸ Binary .skel + atlas* writes the compact binary format instead.
 
 Then [play it in your game](runtimes.md), or switch to the Film workspace and
 [render a video](film.md#rendering).

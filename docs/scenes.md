@@ -23,12 +23,12 @@ A scene is an ordinary project used as a **stage**, so every tool you already kn
 
 ## Making a scene
 
-1. **File ▸ New scene (several characters)** starts a Film project set up as a stage: a `camera`
+1. **File ▸ New ▸ Scene (several characters)** starts a Film project set up as a stage: a `camera`
    bone the output frame follows, a `background` layer with depth, and a first shot (`shot 1`, 5 s).
 2. **Add characters**: in the tree's **Scene** section, press **＋ Actor** and choose a `.rigby`
    file or one of the demos. The character is copied into the scene, so the scene file is complete on
    its own. It is placed at the center of the view with a first clip at the playhead.
-3. **Add backgrounds**: select a layer bone (such as `background`) and use *File ▸ Import PNG
+3. **Add backgrounds**: select a layer bone (such as `background`) and use *File ▸ Import ▸ PNG
    images…*; or add your own layer bones (children of the root) for mountains, trees and
    foreground props.
 4. **Stage it**: click an actor in the viewport to select it (a dashed frame shows which), then move,
@@ -131,7 +131,7 @@ character (stored under `actors/` inside it), so it opens anywhere. Each actor k
 exactly as it was added; to update a character, remove the actor and add the new version.
 
 Skeleton exports (*Export JSON / .skel*) contain the stage only; to play a whole scene in a game,
-use *Export scene for runtimes* (see [In games and apps](#in-games-and-apps)).
+use *File ▸ Export ▸ Scene for runtimes* (see [In games and apps](#in-games-and-apps)).
 
 ## Performance
 
@@ -143,7 +143,7 @@ about 3 seconds.
 ## In games and apps
 
 Scenes play in games as cutscenes, intros or living backgrounds, with the camera, parallax, clips
-and crossfades exactly as in the editor. *File ▸ Export scene for runtimes…* writes:
+and crossfades exactly as in the editor. *File ▸ Export ▸ Scene for runtimes…* writes:
 
 | File | What it is |
 | --- | --- |

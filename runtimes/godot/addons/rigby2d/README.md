@@ -35,7 +35,7 @@ library into `addons/rigby2d/bin/`.
 
 ## Use
 
-1. Export your skeleton from Rigby2D: *File ▸ Export .skel + atlas (4.3)* (or *Export JSON + atlas*).
+1. Export your skeleton from Rigby2D: *File ▸ Export ▸ Binary .skel + atlas (4.3)* (or *JSON + atlas*).
    Put the `.skel`/`.json`, the `.atlas` and its page images in your project.
 2. Add a `RigbySkeleton2D` node and set *Skeleton File* and *Atlas File*.
 3. Pick an *Animation*. It plays in the editor too when *Playing* is on.
@@ -105,7 +105,7 @@ The node's own `modulate`, `visible`, `z_index` and transform apply as usual.
 `RigbyScene2D` plays a scene made in the Rigby2D editor: a stage with backgrounds and a camera,
 several characters, their clips and crossfades, and parallax.
 
-1. In Rigby2D, open the scene and choose *File ▸ Export scene for runtimes…*. Put all the files it
+1. In Rigby2D, open the scene and choose *File ▸ Export ▸ Scene for runtimes…*. Put all the files it
    writes (`name.scene.json`, and a `.json`, `.atlas` and `.png` for the stage and each character)
    in one folder of your project.
 2. Add a `RigbyScene2D` node and set *Scene File* to the `.scene.json`.

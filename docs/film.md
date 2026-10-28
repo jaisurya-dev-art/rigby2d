@@ -4,7 +4,7 @@ Rigby2D makes animation for film, video and motion graphics as well as for games
 workspace** gathers the tools for that: output resolution and frame rate, an animatable camera, audio
 tracks with lip-sync, face controls, and an offline renderer for PNG sequences, WebM with alpha and
 MP4. Switch to it with the **Game | Film** switch at the top right of the editor, or start with
-*File ▸ New film project*.
+*File ▸ New ▸ Film project*.
 
 ![NILA's 70-second promo in the Film workspace, with the output frame and timecode](images/film-output.jpg "The Film workspace: the output frame in the viewport, timecode in the timeline")
 
@@ -81,7 +81,7 @@ of the Film workspace. See [Poses and face controls](poses-and-faces.md).
 
 ## Audio and lip-sync
 
-*File ▸ Import audio…* (or **Import audio…** in the project panel) adds WAV, MP3, OGG, M4A or FLAC
+*File ▸ Import ▸ Audio…* (or **Import audio…** in the project panel) adds WAV, MP3, OGG, M4A or FLAC
 files as audio tracks of the current animation. Each track has a start time and volume; tracks play
 with the timeline and are stored inside the `.rigby` file.
 

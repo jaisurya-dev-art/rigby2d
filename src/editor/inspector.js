@@ -411,7 +411,7 @@ function projectUi(app) {
         )
       : null,
     app.doc.header
-      ? h('div', { class: 'small weak' }, `Imported from skeleton JSON ${app.doc.header.version ?? ''}. Export again with File ▸ Export skeleton JSON.`)
+      ? h('div', { class: 'small weak' }, `Imported from skeleton JSON ${app.doc.header.version ?? ''}. Export again with File ▸ Export ▸ JSON + atlas.`)
       : null,
     h('hr'),
     has(app, 'output') ? outputUi(app) : frameRateUi(app),
@@ -422,7 +422,7 @@ function projectUi(app) {
     h('div', null, `${app.doc.ik.length} IK constraints · ${app.doc.events.length} events · ${app.doc.animations.length} animations`),
     h('hr'),
     h('strong', null, `Images (${app.doc.images.length})`),
-    app.doc.images.length ? null : h('p', null, 'Use File ▸ Import PSD or Import PNG images to add art.'),
+    app.doc.images.length ? null : h('p', null, 'Use File ▸ Import ▸ PSD or PNG images to add art.'),
     app.doc.images.map((img) => h('div', null, `${img.name}  (${img.width}×${img.height})`)),
     h('hr'),
     h('strong', null, 'Getting started'),

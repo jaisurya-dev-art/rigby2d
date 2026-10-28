@@ -8,7 +8,7 @@ file from another tool. **Loudness lip-sync** opens and closes a mouth control w
 
 ## What you need
 
-1. **An audio track** on the animation: *File ▸ Import audio…* in the Film workspace (WAV, MP3, OGG,
+1. **An audio track** on the animation: *File ▸ Import ▸ Audio…* in the Film workspace (WAV, MP3, OGG,
    M4A or FLAC). See [Audio](film.md#audio-and-lip-sync).
 2. **A mouth slot** with an image per mouth shape (it can be fewer; see below). Name them after the
    shapes (`mouth_A`, `mouth_MBP`, …) and they are matched for you.

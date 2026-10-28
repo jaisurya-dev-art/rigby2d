@@ -7,13 +7,13 @@ import { getCurrentWindow } from '@tauri-apps/api/window';
 
 import './style.css';
 import { App, Mode, saveSetting } from './app.js';
-import { ACTIONS, PRESETS, shortcutLabel } from './keymap.js';
+import { PRESETS, shortcutLabel } from './keymap.js';
 import { installKeyboard, isTyping, runAction } from './keys.js';
 import { openRenderDialog } from './renderui.js';
 import { openAutoRig, openRetarget } from './rigui.js';
 import { startAudio, stopAudio } from './audio.js';
 import { clipTracks } from './actors.js';
-import { memoryFs } from './platform.js';
+import { isDesktop, memoryFs, openExternal } from './platform.js';
 import * as edit from './edit.js';
 import * as toolbar from './toolbar.js';
 import * as tree from './tree.js';
@@ -21,7 +21,7 @@ import * as inspector from './inspector.js';
 import { GraphEditor } from './graph.js';
 import { Dopesheet, deleteSelectedKeys, renderControls } from './timeline.js';
 import { Viewport } from './viewport.js';
-import { closeMenu, h, isMenuOpen, popupMenu, widgetState } from './widgets.js';
+import { closeMenu, h, isMenuOpen, popupMenu, submenuItem, widgetState } from './widgets.js';
 import * as log from './log.js';
 import { toggleLogWindow, windowOpen as logOpen } from './logwindow.js';
 import { Scripts } from './scripting/scriptui.js';
@@ -31,6 +31,8 @@ import { installPanelSync } from './panelsync.js';
 import { windowLayoutsMenuItem } from './layoutui.js';
 import { openDemoPicker } from './demoui.js';
 import { newScene } from './sceneui.js';
+import { ago, clearRecentProjects, recentProjects, splitPath } from './recent.js';
+import { LINKS, openAbout, openShortcuts } from './helpui.js';
 import markUrl from '../../branding/rigby2d-mark.svg?url';
 import { startAnalytics } from './analytics.js';
 
@@ -61,29 +63,39 @@ function zoomActual() {
 
 function menus() {
   return {
+    // Grouped so the menu stays short as features grow: New, Import and Export open submenus.
     File: [
-      { label: 'New game project', action: () => app.newDocument('game') },
-      { label: 'New film project', action: () => app.newDocument('film') },
-      { label: 'New scene (several characters)', action: () => newScene(app) },
+      submenuItem('New', [
+        { label: 'Game project', action: () => app.newDocument('game') },
+        { label: 'Film project', action: () => app.newDocument('film') },
+        { label: 'Scene (several characters)', action: () => newScene(app) },
+      ]),
+      { label: 'Open…', shortcut: 'Ctrl+O', title: 'Open a .rigby work file, or import a skeleton .json / .skel', action: () => app.openDialog() },
+      submenuItem('Open recent', recentItems),
       { label: 'Open demo…', action: () => openDemoPicker(app) },
-      { label: 'Open… (.rigby, or import .json / .skel)', shortcut: 'Ctrl+O', action: () => app.openDialog() },
       'separator',
       { label: 'Save', shortcut: 'Ctrl+S', action: () => app.save(false) },
       { label: 'Save as…', shortcut: 'Ctrl+Shift+S', action: () => app.save(true) },
       'separator',
-      { label: 'Import PSD…', action: () => app.importPsd() },
-      { label: 'Import PNG images…', action: () => app.importImages() },
+      submenuItem('Import', [
+        { label: 'PSD…', action: () => app.importPsd() },
+        { label: 'PNG images…', action: () => app.importImages() },
+        ...(has(app, 'audio') ? [{ label: 'Audio…', action: () => app.importAudio() }] : []),
+      ]),
       { label: 'AutoRig artwork…', action: () => openAutoRig(app) },
-      { label: 'Retarget animations from another character…', action: () => openRetarget(app) },
-      ...(has(app, 'audio') ? [{ label: 'Import audio…', action: () => app.importAudio() }] : []),
-      // Film renders first; skeleton exports (for game engines) follow in both workspaces.
-      ...(has(app, 'render') ? ['separator', { label: 'Render animation… (PNG, WebM, MP4)', action: () => openRenderDialog(app) }, 'separator'] : []),
-      { label: 'Export JSON + atlas…', shortcut: 'Ctrl+E', action: () => app.exportSkeletonJson(app.saveVersion()) },
-      { label: 'Export as format 3.8…', action: () => app.exportSkeletonJson('3.8') },
-      { label: 'Export as format 4.2…', action: () => app.exportSkeletonJson('4.2') },
-      { label: 'Export as format 4.3…', action: () => app.exportSkeletonJson('4.3') },
-      { label: 'Export .skel + atlas (4.3)…', action: () => app.exportSkeletonBinary() },
-      { label: 'Export scene for runtimes…', action: () => app.exportScene() },
+      { label: 'Retarget animations…', title: 'Copy animations from another character onto this one', action: () => openRetarget(app) },
+      'separator',
+      // Film renders video; skeleton exports (for game engines) are in both workspaces.
+      ...(has(app, 'render') ? [{ label: 'Render animation…', title: 'PNG sequence, WebM or MP4', action: () => openRenderDialog(app) }] : []),
+      submenuItem('Export', [
+        { label: 'JSON + atlas…', shortcut: 'Ctrl+E', action: () => app.exportSkeletonJson(app.saveVersion()) },
+        { label: 'Binary .skel + atlas (4.3)…', action: () => app.exportSkeletonBinary() },
+        'separator',
+        { label: 'JSON format 3.8…', action: () => app.exportSkeletonJson('3.8') },
+        { label: 'JSON format 4.2…', action: () => app.exportSkeletonJson('4.2') },
+        { label: 'JSON format 4.3…', action: () => app.exportSkeletonJson('4.3') },
+        ...(app.doc.scene ? ['separator', { label: 'Scene for runtimes…', title: 'The stage, every character and their clips, for the JavaScript, Rust and Godot runtimes', action: () => app.exportScene() }] : []),
+      ]),
       'separator',
       { label: 'Quit', action: () => (inTauri ? getCurrentWindow().close() : window.close()) },
     ],
@@ -158,34 +170,60 @@ function menus() {
     Scripts: scripts.menu(),
     Help: [
       { label: 'Tutorials…', action: () => tutorials.open() },
+      { label: 'Keyboard shortcuts…', action: () => openShortcuts(app) },
+      { label: 'Documentation', shortcut: '↗', action: () => openExternal(LINKS.docs) },
+      'separator',
       { label: 'Connect an AI assistant…', action: () => openAiConnect() },
       'separator',
-      h(
-        'div',
-        { class: 'help' },
-        h('p', null, 'Rigby2D by Hoverlabs: 2D skeletal animation.'),
-        h('p', { class: 'weak' }, 'Code: MIT OR Apache-2.0. The Rigby2D and Hoverlabs names and logos are trademarks of Hoverlabs.'),
-        h('p', { class: 'weak' }, `Shortcuts: ${PRESETS[app.keymap].label} (change in View)`),
-        h('hr'),
-        h(
-          'table',
-          { class: 'keys' },
-          ACTIONS.filter(([id]) => sc(id)).map(([id, label]) => h('tr', null, h('td', null, sc(id)), h('td', null, label))),
-        ),
-        h('hr'),
-        h('p', null, 'Click: select · Ctrl+click: add/remove · drag empty space: box select'),
-        h('p', null, 'Right or middle drag: pan · Wheel: zoom'),
-      ),
+      { label: "What's new", shortcut: '↗', action: () => openExternal(LINKS.releaseNotes) },
+      { label: 'Report an issue', shortcut: '↗', action: () => openExternal(LINKS.issues) },
+      'separator',
+      { label: 'About Rigby2D', action: () => openAbout() },
     ],
   };
+}
+
+/**
+ * File ▸ Open recent: projects opened or saved here, newest first. The browser cannot reopen a file
+ * it was given once, so there only demos are listed.
+ */
+function recentItems() {
+  const list = recentProjects().filter((e) => e.kind === 'demo' || isDesktop);
+  if (!list.length) return [{ label: isDesktop ? 'No recent projects' : 'No recent demos', disabled: true, action: () => {} }];
+  const entry = (e) => {
+    const { name, folder } = e.kind === 'file' ? splitPath(e.path) : { name: `${e.name ?? e.id} demo`, folder: 'Demo project' };
+    return h(
+      'button',
+      {
+        class: 'item recent',
+        title: e.kind === 'file' ? e.path : null,
+        onclick: () => {
+          closeMenu();
+          app.openRecent(e);
+        },
+      },
+      h('span', { class: 'recent-text' }, h('span', { class: 'recent-name' }, name), h('span', { class: 'recent-folder' }, folder)),
+      h('span', { class: 'shortcut' }, ago(e.time)),
+    );
+  };
+  return [...list.map(entry), 'separator', { label: 'Clear recent projects', action: () => clearRecentProjects() }];
 }
 
 let openTitle = null;
 
 function showMenu(title, button) {
   const r = button.getBoundingClientRect();
-  popupMenu(r.left, r.bottom, menus()[title]);
+  const menu = popupMenu(r.left, r.bottom + 2, menus()[title]);
+  menu.classList.add('menubar-popup');
   openTitle = title;
+  // The title stays highlighted while its menu is open.
+  for (const b of document.querySelectorAll('#menubar .menu-title')) b.classList.toggle('open', b === button);
+  const watch = new MutationObserver(() => {
+    if (menu.isConnected) return;
+    button.classList.remove('open');
+    watch.disconnect();
+  });
+  watch.observe(document.body, { childList: true });
 }
 
 function buildMenuBar() {
@@ -265,29 +303,56 @@ function buildMenuBar() {
 
 // ---- panel splitters --------------------------------------------------------------------------
 
-function splitter(el, cssVar, axis, sign, min) {
+// Drag a splitter to resize the panels on either side; double-click restores the default size.
+// Sizes are remembered on this machine. `max()` keeps room for the panel on the other side.
+function splitter(el, cssVar, axis, sign, min, max) {
+  const root = document.documentElement;
+  const key = `rigby.layout${cssVar}`;
+  const fallback = getComputedStyle(root).getPropertyValue(cssVar).trim();
+  const apply = (px) => root.style.setProperty(cssVar, `${Math.round(Math.max(min, Math.min(max(), px)))}px`);
+  try {
+    const saved = parseFloat(localStorage.getItem(key));
+    if (Number.isFinite(saved)) apply(saved);
+  } catch {
+    // Storage disabled: default sizes.
+  }
   el.addEventListener('pointerdown', (e) => {
+    if (e.button !== 0) return;
     e.preventDefault();
     el.setPointerCapture(e.pointerId);
-    const root = document.documentElement;
+    el.classList.add('dragging');
     const start = axis === 'x' ? e.clientX : e.clientY;
     const size = parseFloat(getComputedStyle(root).getPropertyValue(cssVar));
-    const move = (ev) => {
-      const d = (axis === 'x' ? ev.clientX : ev.clientY) - start;
-      root.style.setProperty(cssVar, `${Math.max(min, size + sign * d)}px`);
-    };
+    const move = (ev) => apply(size + sign * ((axis === 'x' ? ev.clientX : ev.clientY) - start));
     const up = () => {
+      el.classList.remove('dragging');
       el.removeEventListener('pointermove', move);
       el.removeEventListener('pointerup', up);
+      el.removeEventListener('pointercancel', up);
+      try {
+        localStorage.setItem(key, String(parseFloat(getComputedStyle(root).getPropertyValue(cssVar))));
+      } catch {
+        // Not remembered.
+      }
     };
     el.addEventListener('pointermove', move);
     el.addEventListener('pointerup', up);
+    el.addEventListener('pointercancel', up);
   });
+  el.addEventListener('dblclick', () => {
+    root.style.setProperty(cssVar, fallback);
+    try {
+      localStorage.removeItem(key);
+    } catch {
+      // Nothing stored.
+    }
+  });
+  el.title = 'Drag to resize · double-click to reset';
 }
 
-splitter($('#split-right'), '--right', 'x', -1, 220);
-splitter($('#split-tree'), '--tree', 'y', 1, 120);
-splitter($('#split-bottom'), '--bottom', 'y', -1, 120);
+splitter($('#split-right'), '--right', 'x', -1, 220, () => window.innerWidth - 360);
+splitter($('#split-tree'), '--tree', 'y', 1, 80, () => $('#side').clientHeight - 120);
+splitter($('#split-bottom'), '--bottom', 'y', -1, 120, () => window.innerHeight - 220);
 
 // ---- main loop --------------------------------------------------------------------------------
 

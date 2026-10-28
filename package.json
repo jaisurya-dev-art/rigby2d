@@ -47,6 +47,7 @@
     "@tauri-apps/api": "^2.12.3",
     "@tauri-apps/plugin-dialog": "^2.8.2",
     "@tauri-apps/plugin-fs": "^2.7.0",
+    "@tauri-apps/plugin-opener": "^2.7.2",
     "ag-psd": "^31.0.3",
     "pyodide": "^314.0.7"
   },

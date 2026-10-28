@@ -1,7 +1,7 @@
 # Keyboard shortcuts
 
-Rigby2D has two shortcut presets. Choose one under *View ▸ Shortcuts*; *Help* lists the keys of the
-active preset. On macOS, <kbd>Ctrl</kbd> also works as <kbd>Cmd</kbd>.
+Rigby2D has two shortcut presets. Choose one under *View ▸ Shortcuts*; *Help ▸ Keyboard shortcuts*
+lists the keys of the active preset, with a search box and the preset switch. On macOS, <kbd>Ctrl</kbd> also works as <kbd>Cmd</kbd>.
 
 - **Reference** (default): tools and playback on the left hand (B, N, C, V, X, Z; Q, W, E, A, S, D,
   R, F), as in common 2D animation tools.

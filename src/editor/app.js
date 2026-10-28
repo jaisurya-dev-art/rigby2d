@@ -14,6 +14,7 @@ import { addSound, sounds, stopAudio } from './audio.js';
 import { WORKSPACES, workspace as workspaceDef } from './workspaces.js';
 import * as onion from './onion.js';
 import { track } from './analytics.js';
+import { forgetProject, rememberProject } from './recent.js';
 import { DEMOS_REMOTE, demoById } from './demos.js';
 import { actorEntries, actors, imageKey, loadActors, poseActors } from './actors.js';
 import { applyParallax, setupCameraPosition } from '../core/scene.js';
@@ -556,6 +557,7 @@ export class App {
       this.loadDocument(doc, imported ? null : path);
       this.saveTarget = !imported && fs.reusable ? { path, fs } : null;
       const what = imported ? 'Imported' : 'Opened';
+      if (platform.isDesktop && fs.reusable) rememberProject({ kind: 'file', path });
       track(imported ? 'editor-import-skeleton' : 'editor-open');
       this.setStatus(warnings.length ? `${what} with warnings: ${warnings.join('; ')}` : `${what} ${path}`);
     } catch (e) {
@@ -608,9 +610,22 @@ export class App {
       this.playing = true;
       this.playDirection = 1;
       this.frameRequest = true;
+      rememberProject({ kind: 'demo', id: demo.id, name: demo.name });
       this.setStatus(`${demo.name} demo: ${demo.description} Save keeps a copy.`);
     } catch (e) {
       this.setStatus(`Could not open the demo: ${errorText(e)}${DEMOS_REMOTE ? ' Demos download from the Rigby2D website: check the internet connection.' : ''}`);
+    }
+  }
+
+  /** Reopens an entry of File ▸ Open recent; one that cannot be opened any more leaves the list. */
+  async openRecent(entry) {
+    if (entry.kind === 'demo') return this.openDemo(entry.id);
+    const file = platform.desktopFile(entry.path);
+    if (!file || !(await this.confirmDiscard())) return;
+    await this.openFrom(file.path, file.fs);
+    if (this.path !== entry.path && !this.status.startsWith('Imported')) {
+      forgetProject(entry);
+      this.setStatus(`${this.status} It was removed from the recent projects.`);
     }
   }
 
@@ -645,6 +660,7 @@ export class App {
       this.saveTarget = target.fs.reusable ? target : null;
       this.syncJson();
       this.baseline = this.saved = this.docJson;
+      if (platform.isDesktop && target.fs.reusable) rememberProject({ kind: 'file', path: target.path });
       const note = warnings.length ? ` (warnings: ${warnings.join('; ')})` : '';
       track('editor-save');
       this.setStatus(`Saved ${target.path}${note}`);
@@ -670,7 +686,7 @@ export class App {
 
   /** Exports the scene for runtimes: a manifest plus the stage and every character as skeleton JSON. */
   async exportScene() {
-    if (!this.doc.scene) return this.setStatus('This project has no scene to export (File ▸ New scene)');
+    if (!this.doc.scene) return this.setStatus('This project has no scene to export (File ▸ New ▸ Scene)');
     const target = await this.guard(() => platform.pickSaveTarget(`${this.doc.name || 'scene'}.scene.json`, 'Rigby2D scene', 'json'));
     if (!target) return;
     try {

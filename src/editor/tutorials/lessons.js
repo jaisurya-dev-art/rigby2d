@@ -101,7 +101,7 @@ export const LESSONS = [
     summary: 'Turn a layered drawing into a moving character with AutoRig, then move it.',
     steps: [
       {
-        text: 'A character starts as a <b>layered drawing</b>: one layer per body part. Normally you import your own PSD with <i>File ▸ Import PSD</i>. For practice, click <b>Load the practice character</b>.',
+        text: 'A character starts as a <b>layered drawing</b>: one layer per body part. Normally you import your own PSD with <i>File ▸ Import ▸ PSD</i>. For practice, click <b>Load the practice character</b>.',
         action: { label: 'Load the practice character', run: ({ app }) => openPractice(app) },
         target: 'coach:action',
         done: ({ app }) => isPractice(app, false),

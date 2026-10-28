@@ -9,6 +9,7 @@
 
 import { ask, open, save } from '@tauri-apps/plugin-dialog';
 import * as tfs from '@tauri-apps/plugin-fs';
+import { openUrl } from '@tauri-apps/plugin-opener';
 
 import { zip } from './zip.js';
 
@@ -172,6 +173,17 @@ function pickWithInput({ accept, multiple = false, directory = false }) {
 }
 
 // ---- public API -------------------------------------------------------------------------------
+
+/** Opens an https link in the browser (the system browser on desktop, a new tab on the web). */
+export async function openExternal(url) {
+  if (isDesktop) await openUrl(url);
+  else window.open(url, '_blank', 'noopener');
+}
+
+/** A project file at `path` on the desktop's disk (reopened from File ▸ Open recent), or null on the web. */
+export function desktopFile(path) {
+  return isDesktop ? { path, fs: desktopFs } : null;
+}
 
 export async function confirmDialog(message, title) {
   return isDesktop ? ask(message, { title, kind: 'warning' }) : window.confirm(message);

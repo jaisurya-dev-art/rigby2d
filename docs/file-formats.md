@@ -3,10 +3,10 @@
 | File | What it is | Made by |
 | --- | --- | --- |
 | `.rigby` | The work file: a ZIP with `project.json` (the whole document) and `images/*.png`, plus `audio/*` for audio tracks. | *File ▸ Save* |
-| `.json` | Skeleton JSON, format 3.8, 4.2 or 4.3. | *Export JSON + atlas* |
-| `.skel` | Binary skeleton, format 4.3. | *Export .skel + atlas* |
+| `.json` | Skeleton JSON, format 3.8, 4.2 or 4.3. | *Export ▸ JSON + atlas* |
+| `.skel` | Binary skeleton, format 4.3. | *Export ▸ Binary .skel + atlas* |
 | `.atlas` + `.png` | Texture atlas: the packed images and where each one sits. | Every export |
-| `.scene.json` | A scene for runtimes: actors, clips and depths, naming the stage and character skeletons next to it. | *Export scene for runtimes* |
+| `.scene.json` | A scene for runtimes: actors, clips and depths, naming the stage and character skeletons next to it. | *Export ▸ Scene for runtimes* |
 
 ## The `.rigby` work file
 

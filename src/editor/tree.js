@@ -276,7 +276,7 @@ export function render(app, el) {
   el.replaceChildren(
     h('div', { class: 'tree-scroll scroll' },
       has(app, 'scene') || doc.scene?.actors.length
-        ? section(app, 'scene', 'Scene', doc.scene?.actors.length ?? 0, doc.scene?.actors.length ? sceneRows(app, row) : [h('div', { class: 'small weak pad' }, 'Characters acting together: ＋ Actor adds one (File ▸ New scene starts a stage with a camera).')], h('button', { class: 'small', title: 'Add a character to the scene', onclick: (e) => { const r = e.target.getBoundingClientRect(); addActorMenu(app, r.left, r.bottom); } }, '＋ Actor'))
+        ? section(app, 'scene', 'Scene', doc.scene?.actors.length ?? 0, doc.scene?.actors.length ? sceneRows(app, row) : [h('div', { class: 'small weak pad' }, 'Characters acting together: ＋ Actor adds one (File ▸ New ▸ Scene starts a stage with a camera).')], h('button', { class: 'small', title: 'Add a character to the scene', onclick: (e) => { const r = e.target.getBoundingClientRect(); addActorMenu(app, r.left, r.bottom); } }, '＋ Actor'))
         : null,
       section(app, 'skeleton', doc.name || 'Skeleton', doc.bones.length, skeleton, addBone),
       section(app, 'draworder', 'Draw order', n, orderList),

@@ -8,7 +8,7 @@ their own windows.
 
 | | Area | What it is for |
 | --- | --- | --- |
-| 1 | **Menu bar** | *File*, *Edit*, *View*, *Scripts* and *Help*, and the **SETUP / ANIMATE** mode button. |
+| 1 | **Menu bar** | *File* (with *New*, *Open recent*, *Import* and *Export* submenus), *Edit*, *View*, *Scripts* and *Help* (tutorials, keyboard shortcuts, documentation, about), and the **SETUP / ANIMATE** mode button. |
 | 2 | **Workspace switch** | **Game** or **Film**: which tools are shown. See [Workspaces](#workspaces). |
 | 3 | **Viewport toolbar** | Transform tools, the active tool's values with a key button, axes, onion skin, guides and auto key. |
 | 4 | **Viewport** | The character. Select, pose and edit here. |

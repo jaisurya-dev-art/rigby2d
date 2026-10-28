@@ -24,7 +24,7 @@ export const actorColor = (doc, actor) => COLORS[Math.max(0, doc.scene.actors.in
 // ---- creating ----------------------------------------------------------------------------------
 
 /**
- * File ▸ New scene: a film project set up as a stage: a camera bone the output frame follows, a
+ * File ▸ New ▸ Scene: a film project set up as a stage: a camera bone the output frame follows, a
  * background layer with depth, and a first shot. Actors are added next.
  */
 export async function newScene(app) {
@@ -45,7 +45,7 @@ export async function newScene(app) {
   app.commitHistory(false);
   app.changed();
   count('editor-new-scene');
-  app.setStatus('New scene: add characters with ＋ Actor in the Scene section of the tree, and backgrounds with File ▸ Import PNG images (select the background bone first).');
+  app.setStatus('New scene: add characters with ＋ Actor in the Scene section of the tree, and backgrounds with File ▸ Import ▸ PNG images (select the background bone first).');
 }
 
 /** Adds an actor from a work file's bytes at the view's center, selects it and keys nothing yet. */

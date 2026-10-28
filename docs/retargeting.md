@@ -6,7 +6,7 @@ project, matching bones automatically and scaling movement to the character's si
 ## Retargeting animations
 
 1. Open the character that should receive the animations.
-2. Choose *File ▸ Retarget animations from another character…* and pick the project that has the
+2. Choose *File ▸ Retarget animations…* and pick the project that has the
    animations (`.rigby`, `.json` or `.skel`).
 3. Tick the animations you want, then check the bone matches in the table: each bone of **this
    character** with its **source bone** and how it was **matched**.

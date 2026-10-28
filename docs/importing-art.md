@@ -18,7 +18,7 @@ can move on their own, and bring the pieces in as a layered PSD or as PNG files.
 
 ## Importing a PSD
 
-*File ▸ Import PSD…* imports every pixel layer:
+*File ▸ Import ▸ PSD…* imports every pixel layer:
 
 - Each layer becomes an image in its own slot on the root bone, exactly where it sits in the canvas.
 - The canvas's bottom center becomes the origin of the world, so a character drawn standing on the
@@ -36,7 +36,7 @@ Next: rig it in one step with [AutoRig](autorig.md), or by hand with
 
 ## Importing PNG images
 
-*File ▸ Import PNG images…* adds one or more PNG files as images on the **selected bone** (the root
+*File ▸ Import ▸ PNG images…* adds one or more PNG files as images on the **selected bone** (the root
 when nothing is selected), side by side above it. Move them into place with the Translate tool in
 Setup mode.
 

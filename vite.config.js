@@ -29,9 +29,13 @@ function pyodideAssets() {
 // (Tauri sets TAURI_ENV_PLATFORM for its builds), which then carries no character artwork.
 const demoSources = path.resolve(process.env.TAURI_ENV_PLATFORM ? 'src/editor/demo-sources-remote.js' : 'src/editor/demo-sources-bundled.js');
 
+// The version shown in Help ▸ About (package.json is the one source of the version).
+const version = JSON.parse(fs.readFileSync('package.json', 'utf8')).version;
+
 // Vite serves and bundles the editor UI; Tauri hosts it in a native window.
 export default defineConfig({
   clearScreen: false,
+  define: { __RIGBY_VERSION__: JSON.stringify(version) },
   resolve: { alias: { '@demo-sources': demoSources } },
   plugins: [pyodideAssets()],
   worker: { format: 'es' },
