@@ -36,7 +36,8 @@
 </p>
 
 <p align="center">
-  <img src="docs/screenshot.jpg" alt="Rigby2D editor with the Rigbytron demo: viewport, bone hierarchy, inspector and dopesheet" width="800">
+  <img src="docs/screenshot.jpg" alt="The Rigby2D editor animating NILA: viewport with her rig, bone tree, inspector and dopesheet" width="800"><br>
+  <sub>The editor animating NILA: the head bone selected in the tree, its keys in the dopesheet, its pose in the inspector.</sub>
 </p>
 
 ## Documentation
@@ -61,8 +62,10 @@ runtimes and the MCP server. The pages are also in [`docs/`](docs/).
 - **Film workspace**: 4K, timecode, an animatable camera, audio tracks, viseme lip-sync with
   on-device Whisper transcription, and renders to PNG sequences, WebM with alpha and MP4.
 - **Scene composition** (new in 0.3): several characters on one stage as actors with NLE-style clips
-  (trim, speed, loops, crossfades, their own audio), painted layers with parallax, and a camera.
-  See [Scenes](https://jaisurya-dev-art.github.io/rigby2d/docs/scenes.html).
+  (trim, speed, loops, crossfades, their own audio), painted layers with parallax, and a camera,
+  and they play in games through every runtime. See [Scenes](https://jaisurya-dev-art.github.io/rigby2d/docs/scenes.html).
+- **A focused editor**: Game and Film workspaces, panels you can resize or pop out to a second
+  monitor, *Open recent*, and a searchable shortcut reference with Reference and Blender-like keys.
 - **Python scripting** and custom tools, and a built-in **MCP server** so AI assistants such as
   Claude can inspect, rig and animate your projects.
 - **Lossless skeleton JSON (3.8, 4.2, 4.3) and binary `.skel`** with texture atlases, played by the
