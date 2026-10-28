@@ -50,7 +50,7 @@ function linkTarget(href) {
   const anchor = hash ? `#${hash}` : '';
   const page = file.replace(/^\.\//, '');
   if (/^[\w-]+\.md$/.test(page) && fs.existsSync(path.join(DOCS, page))) return `${page.replace(/\.md$/, '')}.html${anchor}`;
-  if (page.startsWith('images/')) return page;
+  if (page.startsWith('images/') || page.startsWith('videos/')) return page;
   // Any other repository path: show it on GitHub.
   const rel = path.posix.normalize(path.posix.join('docs', page));
   const isDir = file.endsWith('/') || (fs.existsSync(path.join(REPO, rel)) && fs.statSync(path.join(REPO, rel)).isDirectory());
@@ -217,8 +217,12 @@ export function searchIndex(pages) {
   return entries;
 }
 
-/** Image files under docs/images, relative to docs/. */
+/** Image and video files under docs/images and docs/videos, relative to docs/. */
 export function imageFiles() {
-  const dir = path.join(DOCS, 'images');
-  return fs.existsSync(dir) ? fs.readdirSync(dir).filter((f) => /\.(png|jpe?g|webp|gif|svg)$/i.test(f)).map((f) => `images/${f}`) : [];
+  const out = [];
+  for (const sub of ['images', 'videos']) {
+    const dir = path.join(DOCS, sub);
+    if (fs.existsSync(dir)) out.push(...fs.readdirSync(dir).filter((f) => /\.(png|jpe?g|webp|gif|svg|mp4|webm)$/i.test(f)).map((f) => `${sub}/${f}`));
+  }
+  return out;
 }

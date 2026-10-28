@@ -14,6 +14,8 @@ button — in two groups:
 
 Each type keeps its own colour. Placed static guides can be cleared from the popover.
 
+![The Guides options popover: enable and colour for the Rotate, Translate, Scale and Shear guides and the Vertical and Horizontal static guides](images/guides-options.jpg "The ⚙ Guides options")
+
 ## Rulers and static guides
 
 With guides on, horizontal and vertical pixel rulers frame the viewport.
@@ -25,6 +27,8 @@ With guides on, horizontal and vertical pixel rulers frame the viewport.
   antidiagonal, vertical or horizontal guide (through the origin), or to delete the placed guides
   by type (all vertical, horizontal, diagonal, antidiagonal, or all).
 
+<figure><video src="videos/ruler-guides.mp4" poster="videos/ruler-guides.jpg" controls muted loop playsinline preload="none" aria-label="Pixel rulers, dragging out guides, the corner menu and deleting a guide on a ruler"></video><figcaption>Pixel rulers, dragging out guides, the corner menu and deleting a guide on a ruler (video by @maruccimauro)</figcaption></figure>
+
 ## Real-time transform guides
 
 While you drag a bone with a transform tool, a thin guide traces the change:
@@ -35,6 +39,8 @@ While you drag a bone with a transform tool, a thin guide traces the change:
 | **Translate** | Two straight lines, from the anchor base and from the tip. |
 | **Scale** | A curve at the tip. |
 | **Shear** | A sphere around the anchor (see below). |
+
+<figure><video src="videos/realtime-guides.mp4" poster="videos/realtime-guides.jpg" controls muted loop playsinline preload="none" aria-label="Real-time guides while rotating, translating, scaling and shearing bones"></video><figcaption>Real-time guides while rotating, translating, scaling and shearing bones (video by @maruccimauro)</figcaption></figure>
 
 ### Shear sphere
 

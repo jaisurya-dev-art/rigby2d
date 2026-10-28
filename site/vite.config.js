@@ -25,7 +25,7 @@ function socialImage() {
 }
 
 const OG = 'https://jaisurya-dev-art.github.io/rigby2d/og.jpg';
-const MIME = { '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.webp': 'image/webp', '.gif': 'image/gif', '.svg': 'image/svg+xml' };
+const MIME = { '.mp4': 'video/mp4', '.webm': 'video/webm', '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.webp': 'image/webp', '.gif': 'image/gif', '.svg': 'image/svg+xml' };
 const BRAND = { 'mark.svg': 'branding/rigby2d-mark.svg', 'icon.svg': 'branding/rigby2d-icon-dark.svg' };
 
 /** The documentation: pages rendered from docs/*.md, served live in development and written by the build. */
@@ -53,7 +53,7 @@ function documentation() {
             res.setHeader('Content-Type', 'application/json');
             return res.end(JSON.stringify(searchIndex(await renderAll())));
           }
-          const file = BRAND[rest] ? path.join(repo, BRAND[rest]) : rest.startsWith('images/') ? path.join(DOCS, rest) : null;
+          const file = BRAND[rest] ? path.join(repo, BRAND[rest]) : /^(images|videos)\//.test(rest) ? path.join(DOCS, rest) : null;
           if (file && fs.existsSync(file)) {
             res.setHeader('Content-Type', MIME[path.extname(file).toLowerCase()] ?? 'application/octet-stream');
             return fs.createReadStream(file).pipe(res);

@@ -498,6 +498,14 @@ kbd {
 .doc figure img {
   display: block;
 }
+.doc video {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  background: #000;
+}
 .doc figcaption {
   margin-top: 9px;
   color: var(--muted);

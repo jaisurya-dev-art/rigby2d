@@ -49,6 +49,8 @@ Hovering a bone — in the viewport, the tree or a timeline track — highlights
 once with a short glow, so you can tell which bone is which across the panels (and across detached
 panel windows). The selection is shown the same way.
 
+<figure><video src="videos/bone-highlight.mp4" poster="videos/bone-highlight.jpg" controls muted loop playsinline preload="none" aria-label="Hovering a bone highlights it in the viewport, the tree and the timeline at once"></video><figcaption>Hovering a bone highlights it in the viewport, the tree and the timeline at once (video by @maruccimauro)</figcaption></figure>
+
 ### Tools
 
 | Tool | Key | Does |

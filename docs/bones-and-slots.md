@@ -62,6 +62,8 @@ the dragged one brighter), so you can tell them apart in the render, not just in
 keep the layer order. Draw order can also change during an animation (draw-order keys from imported
 files are kept and exported).
 
+<figure><video src="videos/draw-order-drag.mp4" poster="videos/draw-order-drag.jpg" controls muted loop playsinline preload="none" aria-label="Dragging a slot in the Draw order list, with the side preview and the viewport glow"></video><figcaption>Dragging a slot in the Draw order list, with the side preview and the viewport glow (video by @maruccimauro)</figcaption></figure>
+
 ## Attachments
 
 | Type | What it is | Create it with |
