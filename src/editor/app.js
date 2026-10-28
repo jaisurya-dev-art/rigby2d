@@ -31,6 +31,8 @@ export const GUIDES_DEFAULTS = {
   shear: [1, 0.4, 0.85],
   vertical: [0.2, 0.9, 0.95],
   horizontal: [1, 0.6, 0.25],
+  diagonal: [0.51, 0.82, 0.63],
+  antidiagonal: [0.82, 0.59, 0.9],
 };
 
 /**
@@ -188,6 +190,8 @@ export class App {
       static: {
         vertical: { enabled: true, color: [...GUIDES_DEFAULTS.vertical] },
         horizontal: { enabled: true, color: [...GUIDES_DEFAULTS.horizontal] },
+        diagonal: { enabled: true, color: [...GUIDES_DEFAULTS.diagonal] },
+        antidiagonal: { enabled: true, color: [...GUIDES_DEFAULTS.antidiagonal] },
       },
       /** Placed static guides: { axis: 'x' | 'y', pos: world coordinate }. */
       lines: [],

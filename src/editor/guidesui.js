@@ -58,6 +58,8 @@ export function guidesPanel(app, x, y) {
     h('div', { class: 'guides-subtitle' }, 'Static guides'),
     guideRow('Vertical', g.static.vertical, D.vertical, refresh),
     guideRow('Horizontal', g.static.horizontal, D.horizontal, refresh),
+    guideRow('Diagonal', g.static.diagonal, D.diagonal, refresh),
+    guideRow('Antidiagonal', g.static.antidiagonal, D.antidiagonal, refresh),
     placed
       ? h(
           'button',
