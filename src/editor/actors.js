@@ -4,7 +4,7 @@
 // for byte under actors/<id>/ in its own work file. Their images live in the editor's image store
 // as "@<id>/<image>" and their sounds as "@<id>/<sound>", so they never clash with the stage's own.
 
-import { addActorToStage, emptyScene, poseActor } from '../core/scene.js';
+import { addActorToStage, emptyScene, groundOffset, poseActor } from '../core/scene.js';
 import { Pose } from '../core/pose.js';
 import { Skeleton } from '../core/model.js';
 import { addSound, sounds } from './audio.js';
@@ -74,7 +74,7 @@ export async function addActor(app, name, bytes, at = [0, 0]) {
   for (let n = 2; actors.has(id); n++) id = `${base}${n}`;
   const actorDoc = await loadActor(id, files, app.images);
   const raw = actorDoc.name && actorDoc.name !== 'untitled' ? actorDoc.name : base;
-  const actor = addActorToStage(doc, { id, name: raw[0].toUpperCase() + raw.slice(1), source: name, at });
+  const actor = addActorToStage(doc, { id, name: raw[0].toUpperCase() + raw.slice(1), source: name, at, ground: groundOffset(actorDoc) });
   return actor;
 }
 

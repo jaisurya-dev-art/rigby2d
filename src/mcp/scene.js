@@ -7,7 +7,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 
 import { Skeleton } from '../core/model.js';
-import { addActorToStage, clipLength, readClip } from '../core/scene.js';
+import { addActorToStage, clipLength, groundOffset, readClip } from '../core/scene.js';
 import { unzip } from '../editor/zip.js';
 import { EDIT, NAME, OUTPUT, OVERWRITE, animationOf, boneIndex, edit } from './edits.js';
 import { ToolError } from './protocol.js';
@@ -69,7 +69,7 @@ export function createSceneTools(ws) {
     tool(
       'add_actor',
       'Add actor',
-      'Put a character (another .rigby work file) into this scene as an actor. Its whole project is stored inside the scene, and a stage bone and slot named after it are created: the bone places it (animate it to move, turn or scale the actor), the slot sets where it is drawn among the other layers. Optionally give it a first clip. Saves the work file.',
+      'Put a character (another .rigby work file) into this scene as an actor. Its whole project is stored inside the scene, and a stage bone and slot named after it are created: the bone places it (animate it to move, turn or scale the actor), the slot sets where it is drawn among the other layers. The character stands with its feet on the bone (y is the ground line), however it was drawn. Optionally give it a first clip. Saves the work file.',
       {
         character: { type: 'string', description: 'The character: a .rigby work file inside the workspace.' },
         name: { type: 'string', description: "Actor name (default: the character's name)." },
@@ -99,7 +99,7 @@ export function createSceneTools(ws) {
         for (const [k, bytes] of files) p.entries.set(`actors/${id}/${k}`, bytes);
         const derived = character.name && character.name !== 'untitled' ? character.name : base;
         const raw = args.name ?? derived[0].toUpperCase() + derived.slice(1);
-        const actor = addActorToStage(doc, { id, name: raw, source: path.basename(file), at: [args.x ?? 0, args.y ?? 0] });
+        const actor = addActorToStage(doc, { id, name: raw, source: path.basename(file), at: [args.x ?? 0, args.y ?? 0], ground: groundOffset(character) });
         const bone = doc.bones[doc.boneIndex(actor.bone)];
         if (args.scale !== undefined) bone.setup.scale_x = bone.setup.scale_y = args.scale;
         actor.flip = !!args.flip;

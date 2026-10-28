@@ -51,6 +51,7 @@ export function readScene(o) {
       source: typeof a.source === 'string' ? a.source : null,
       skin: typeof a.skin === 'string' && a.skin ? a.skin : null,
       flip: !!a.flip,
+      ground: typeof a.ground === 'number' && Number.isFinite(a.ground) ? a.ground : 0,
       clips: Object.fromEntries(
         Object.entries(a.clips && typeof a.clips === 'object' ? a.clips : {}).map(([shot, list]) => [
           shot,
@@ -84,14 +85,14 @@ function unique(taken, want) {
  * units) and its slot (on top of the draw order), both named after the actor, and adds the actor to
  * the scene (created if needed). `id` names the character's stored files. Returns the actor.
  */
-export function addActorToStage(stage, { id, name, source = null, at = [0, 0] }) {
+export function addActorToStage(stage, { id, name, source = null, at = [0, 0], ground = 0 }) {
   stage.scene ??= emptyScene();
   const actorName = unique((n) => stage.scene.actors.some((a) => a.name === n), name);
   const bone = unique((n) => stage.bones.some((b) => b.name === n), actorName);
   const slot = unique((n) => stage.slots.some((s) => s.name === n), actorName);
   stage.bones.push({ name: bone, parent: 0, length: 0, setup: transform(at[0], at[1], 0), inherit: 'normal', skinRequired: false, color: 'ff8cd9ff' });
   stage.slots.push(makeSlot(slot, stage.bones.length - 1, null));
-  const actor = { id, name: actorName, bone, slot, source, skin: null, flip: false, clips: {} };
+  const actor = { id, name: actorName, bone, slot, source, skin: null, flip: false, ground, clips: {} };
   stage.scene.actors.push(actor);
   return actor;
 }
@@ -158,13 +159,33 @@ export function actorEnd(actor, actorDoc, shot) {
 
 // ---- posing -------------------------------------------------------------------------------------
 
-/** The placement of an actor: its anchor bone's world transform, mirrored when flipped. */
+/**
+ * How far to move a character so it stands on its origin: characters are often drawn with their
+ * feet above or below it (a PSD's layout), so the lowest point of the setup pose is found and
+ * brought to y = 0. Stored with the actor (`ground`) when it joins a scene.
+ */
+export function groundOffset(character) {
+  const pose = new Pose(character);
+  let low = Infinity;
+  for (const q of pose.quads(character)) for (const [, y] of q.positions) low = Math.min(low, y);
+  return Number.isFinite(low) ? -low : 0;
+}
+
+/**
+ * The placement of an actor: its anchor bone's world transform, mirrored when flipped, with the
+ * character raised or lowered by its ground offset so its feet stand on the anchor at any scale.
+ */
 export function actorPlacement(stage, stagePose, actor) {
   const b = stage.bones.findIndex((x) => x.name === actor.bone);
   const w = b >= 0 ? stagePose.world[b].clone() : new Affine();
   if (actor.flip) {
     w.a = -w.a;
     w.b = -w.b;
+  }
+  const g = actor.ground ?? 0;
+  if (g) {
+    w.tx += w.c * g;
+    w.ty += w.d * g;
   }
   return w;
 }

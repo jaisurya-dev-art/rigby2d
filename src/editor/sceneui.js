@@ -4,7 +4,7 @@
 // dopesheet (move a clip by dragging it, trim it by its edges, right-click for more).
 // The model and evaluation are in core/scene.js; the actor library in actors.js.
 
-import { clipLength, clipSpan, emptyScene, readClip } from '../core/scene.js';
+import { clipLength, clipSpan, emptyScene, groundOffset, readClip } from '../core/scene.js';
 import { transform } from '../core/math.js';
 import { Animation } from '../core/animation.js';
 import { FPS, Mode, selBone } from './app.js';
@@ -168,6 +168,14 @@ export function actorUi(app, bone) {
       ),
       ...row('Skin', select(skins, actor.skin ?? '', (v) => ((actor.skin = v || null), changed()))),
       ...row('', h('label', { class: 'check' }, h('input', { type: 'checkbox', checked: actor.flip, onchange: (e) => ((actor.flip = e.target.checked), changed()) }), ' Face the other way (flip)')),
+      ...row(
+        'Ground',
+        dragValue(actor.ground ?? 0, (v) => {
+          actor.ground = v;
+          app.changed();
+        }, { speed: 1, decimals: 0 }),
+        lib ? h('button', { class: 'small', title: "Stand the character's feet (the lowest point of its setup pose) on the anchor bone", onclick: () => ((actor.ground = groundOffset(lib.doc)), changed()) }, 'Feet on anchor') : null,
+      ),
     ),
     h('strong', null, shot ? `Clips in “${shot.name}”` : 'Clips'),
     shot ? null : h('div', { class: 'small weak' }, 'Create a shot (an animation of the scene) to place clips on.'),

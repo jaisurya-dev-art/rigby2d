@@ -462,7 +462,7 @@ Copy animations from one character to another (any format): bones are matched au
 
 ### `add_actor`
 
-Put a character (another .rigby work file) into this scene as an actor. Its whole project is stored inside the scene, and a stage bone and slot named after it are created: the bone places it (animate it to move, turn or scale the actor), the slot sets where it is drawn among the other layers. Optionally give it a first clip. Saves the work file.
+Put a character (another .rigby work file) into this scene as an actor. Its whole project is stored inside the scene, and a stage bone and slot named after it are created: the bone places it (animate it to move, turn or scale the actor), the slot sets where it is drawn among the other layers. The character stands with its feet on the bone (y is the ground line), however it was drawn. Optionally give it a first clip. Saves the work file.
 
 | Parameter | Type | Description |
 | --- | --- | --- |

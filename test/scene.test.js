@@ -130,7 +130,7 @@ test('draw list: actors at their slots, in the stage draw order', () => {
 
 test('the scene round-trips through the project file, and skeleton exports never see it', async () => {
   const st = stage();
-  st.scene.actors.push({ id: 'h', name: 'Hero', bone: 'hero', slot: 'hero', source: 'hero.rigby', skin: null, flip: true, clips: { shot: [{ animation: 'wave', start: 1, in: 0, out: 0.5, speed: 1.5, loops: 2, blend: 0.3 }] } });
+  st.scene.actors.push({ id: 'h', name: 'Hero', bone: 'hero', slot: 'hero', source: 'hero.rigby', skin: null, flip: true, ground: 12.5, clips: { shot: [{ animation: 'wave', start: 1, in: 0, out: 0.5, speed: 1.5, loops: 2, blend: 0.3 }] } });
   st.scene.depth = { far: 800 };
   const back = Skeleton.fromJson(st.toJson());
   assert.deepEqual(back.scene, st.scene);
@@ -176,4 +176,17 @@ test('physics on a placed, scaled actor swings exactly like the character at ful
     const rel = (p) => p.world[braid].rotation() - p.world[nila.bones[braid].parent].rotation();
     near(rel(placed), rel(alone), 1e-6);
   }
+});
+
+test('ground offset: a character drawn above its origin stands on its anchor, at any scale', async () => {
+  const { groundOffset } = await import('../src/core/scene.js');
+  const doc = character();
+  doc.slots[0].attachments[0].offset = transform(50, 40, 0); // the arm image sits 30..50 above the origin
+  near(groundOffset(doc), -30);
+  const st = stage();
+  st.bones[3].setup = { ...st.bones[3].setup, scale_x: 0.5, scale_y: 0.5 };
+  const actor = { id: 'h', name: 'Hero', bone: 'hero', slot: 'hero', skin: null, flip: false, ground: groundOffset(doc), clips: {} };
+  const ap = poseActor(st, new Pose(st), actor, doc, 'shot', -1, new Pose(doc));
+  const low = Math.min(...ap.quads(doc).flatMap((q) => q.positions.map((p) => p[1])));
+  near(low, 0); // feet on the anchor's ground line
 });
