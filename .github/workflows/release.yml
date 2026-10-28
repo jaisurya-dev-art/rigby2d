@@ -1,0 +1,104 @@
+# Builds the Windows release files from the repository on GitHub's machines, so every released file
+# can be traced to this source (SignPath's origin verification needs exactly that), and signs them
+# with SignPath when it is set up:
+#   - Repository variables SIGNPATH_ORGANIZATION_ID and SIGNPATH_PROJECT_SLUG, and the secret
+#     SIGNPATH_API_TOKEN, turn signing on. Without them the files are built unsigned.
+#   - Each signing request waits for a manual approval in SignPath (its policy for open source).
+# Run it from the Actions tab (Run workflow) or by pushing a tag such as v0.3.1. The files are
+# attached to the run as artifacts; publishing the GitHub release stays a deliberate, manual step.
+name: Release build
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            src-tauri
+            runtimes/rust
+
+      - id: version
+        shell: bash
+        run: echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+
+      - run: npm ci
+      - run: npm test
+
+      # Editor: MSI and NSIS installers, and the program itself as the portable editor.
+      - run: npm run build
+      # AI assistant extension.
+      - run: npm run build:mcpb
+      # Godot runtime: the GDExtension library and the addon and demo zips.
+      - run: cargo build --release -p rigby-godot
+        working-directory: runtimes/rust
+      - run: node runtimes/godot/package.mjs windows-x64
+
+      - name: Collect the release files
+        shell: bash
+        env:
+          V: ${{ steps.version.outputs.version }}
+        run: |
+          mkdir -p release
+          cp "src-tauri/target/release/bundle/msi/Rigby2D_${V}_x64_en-US.msi" release/
+          cp "src-tauri/target/release/bundle/nsis/Rigby2D_${V}_x64-setup.exe" release/
+          cp src-tauri/target/release/rigby2d.exe "release/Rigby2D_${V}_x64_portable.exe"
+          cp "dist-mcpb/Rigby2D-AI-${V}.mcpb" release/
+          cp "runtimes/godot/dist/rigby2d-godot-addon-${V}-windows-x64.zip" release/
+          cp "runtimes/godot/dist/rigby2d-godot-demo-${V}-windows-x64.zip" release/
+          ls -la release
+
+      - id: unsigned
+        uses: actions/upload-artifact@v4
+        with:
+          name: rigby2d-${{ steps.version.outputs.version }}-unsigned
+          path: release/
+          if-no-files-found: error
+
+  sign:
+    needs: build
+    runs-on: windows-latest
+    # Signing starts once SignPath is set up (see the top of this file).
+    if: ${{ vars.SIGNPATH_ORGANIZATION_ID != '' }}
+    steps:
+      - name: Find the unsigned artifact
+        id: artifact
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NAME: rigby2d-${{ needs.build.outputs.version }}-unsigned
+        run: |
+          id=$(gh api "repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts" --jq ".artifacts[] | select(.name == \"$NAME\") | .id")
+          echo "id=$id" >> "$GITHUB_OUTPUT"
+      - uses: signpath/github-action-submit-signing-request@v1
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: ${{ vars.SIGNPATH_PROJECT_SLUG }}
+          signing-policy-slug: release-signing
+          artifact-configuration-slug: initial
+          github-artifact-id: ${{ steps.artifact.outputs.id }}
+          wait-for-completion: true
+          wait-for-completion-timeout-in-seconds: 86400
+          output-artifact-directory: signed
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rigby2d-${{ needs.build.outputs.version }}-signed
+          path: signed/
+          if-no-files-found: error
