@@ -83,7 +83,9 @@ The tree has collapsible sections:
 - **Skeleton**: bones in their hierarchy, each with its slots and their attachments. Click a slot's
   attachment to show it (in Animate mode, that sets an image-swap key). **+ Bone** adds a child to
   the selected bone.
-- **Draw order**: slots back to front; *Draw in front* and *Draw behind* move the selected slot.
+- **Draw order**: slots back to front; *Draw in front* and *Draw behind* move the selected slot, or
+  drag a row to drop it anywhere (a side preview shows its image between its new neighbours as you
+  drag). See [Draw order](bones-and-slots.md#draw-order).
 - **Skins**, **Constraints** and **Events**: with **+** buttons to create them. See
   [Skins and events](skins-and-events.md) and [Constraints](constraints.md).
 - **Animations** and **Images**.

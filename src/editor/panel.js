@@ -14,7 +14,7 @@ import * as tree from './tree.js';
 import * as inspector from './inspector.js';
 import { installKeyboard } from './keys.js';
 import { closeMenu, isMenuOpen, widgetState, h } from './widgets.js';
-import { EV_SYNC, EV_CONTROL, EV_CLOSED, PANELS } from './dock.js';
+import { EV_SYNC, EV_CONTROL, EV_CLOSED, EV_IMAGE, PANELS } from './dock.js';
 import { layoutHotkeyDigit, listenForPlacement } from './panelsync.js';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import { emit, listen } from '@tauri-apps/api/event';
@@ -75,6 +75,29 @@ const body = $('#panel-body');
 const view = (BUILDERS[panelId] ?? buildTimeline)(app);
 body.replaceChildren(view.el);
 document.title = `Rigby2D — ${PANELS[panelId]?.label ?? 'Panel'}`;
+
+// Image pixels are not part of the shared state (large, rarely needed), so fetch each one from the
+// editor the first time a thumbnail here needs it, then cache it in this window's store and redraw.
+const requestedImages = new Set();
+app.onMissingImage = (name) => {
+  if (requestedImages.has(name)) return;
+  requestedImages.add(name);
+  emit(EV_CONTROL, { needImage: name });
+};
+listen(EV_IMAGE, (e) => {
+  const { name, url } = e.payload ?? {};
+  if (!name || !url || app.images.contains(name)) return;
+  const img = new Image();
+  img.onload = () => {
+    const c = h('canvas');
+    c.width = img.naturalWidth;
+    c.height = img.naturalHeight;
+    c.getContext('2d').drawImage(img, 0, 0);
+    app.images.insert(name, c);
+    app.changed(); // the image arrived: rebuild so the thumbnail shows it
+  };
+  img.src = url;
+});
 
 // The shared state last seen, so a change coming from the editor is not echoed straight back.
 let lastSync = '';

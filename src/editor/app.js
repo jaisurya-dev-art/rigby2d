@@ -74,6 +74,9 @@ export class App {
     /** Where Ctrl+S writes without asking: { path, fs }, or null. */
     this.saveTarget = null;
     this.images = new Images();
+    /** Mirror windows only: fetch an image's pixels from the authority on demand (images are not in
+     *  the shared state snapshot). Null in the editor window, where every image is already loaded. */
+    this.onMissingImage = null;
     this.sel = null;
     /**
      * Bone the cursor is over in the viewport, the tree or the timeline (index), or null. Shared so
@@ -85,6 +88,14 @@ export class App {
     this.hoverBone = null;
     /** The tree registers a callback here on each rebuild so hover updates track the live DOM. */
     this.onHoverChange = null;
+    /**
+     * Draw-order images to glow in the viewport while a draw-order row is dragged: `{ main, slots }`,
+     * where `slots` are the lit slot indices (the dragged row and its two new neighbours) and `main`
+     * is the dragged one (a stronger glow). Null when not dragging. Transient like `hoverBone` and
+     * shared the same way, so the glow shows in the editor's viewport even while the Tree is detached.
+     * The viewport reads it each frame; set it through `setImageGlow`.
+     */
+    this.imageGlow = null;
     /** Mesh being edited: { slot, name, mode: 'vertices' | 'weights', bone, radius, strength, subtract, selected }. */
     this.meshEdit = null;
     /** Shape being edited (bounding box, clipping or path): { slot, name, selected }. */
@@ -380,6 +391,13 @@ export class App {
     this.onHoverChange?.(b);
   }
 
+  /** Sets which draw-order images glow in the viewport (`{ above, dragged, below }` slot indices, any
+   *  of them null, or the whole thing null to clear). Shared across windows like the bone hover, so
+   *  the editor's viewport lights up from a detached Tree. */
+  setImageGlow(glow) {
+    this.imageGlow = glow && glow.dragged !== null && glow.dragged !== undefined ? glow : null;
+  }
+
   /** Drops unkeyed changes (they only live until the time, animation or mode changes). */
   discardPending(reason = '') {
     if (!this.pending.size) return;
@@ -431,6 +449,11 @@ export class App {
     const s = selSlot(this.sel);
     if ((b !== null && b >= this.doc.bones.length) || (s !== null && s >= this.doc.slots.length)) this.sel = null;
     if (this.hoverBone !== null && this.hoverBone >= this.doc.bones.length) this.hoverBone = null;
+    if (this.imageGlow) {
+      const n = this.doc.slots.length;
+      const g = this.imageGlow;
+      if ([g.above, g.dragged, g.below].some((i) => i !== null && i !== undefined && i >= n)) this.imageGlow = null;
+    }
     if (this.anim !== null && this.anim >= this.doc.animations.length) {
       this.anim = this.doc.animations.length ? this.doc.animations.length - 1 : null;
     }
@@ -761,6 +784,16 @@ export class App {
    * local to each window; viewport-coupled modes (meshEdit/shapeEdit) are shared so a panel can enter
    * them on the authority, whose viewport then responds.
    */
+  /**
+   * Makes sure an image's pixels are available in this window, requesting them from the authority
+   * the first time a detached panel needs to draw one. In the editor window every image is already
+   * loaded, so this is a no-op (`onMissingImage` is null). Image pixels are deliberately not part of
+   * snapshotState (they are large and rarely change), so a mirror window fetches each on demand.
+   */
+  ensureImage(name) {
+    if (name && !this.images.contains(name)) this.onMissingImage?.(name);
+  }
+
   snapshotState() {
     return {
       docJson: this.docJson,
@@ -774,6 +807,7 @@ export class App {
       sel: this.sel,
       multi: [...this.multi],
       hoverBone: this.hoverBone,
+      imageGlow: this.imageGlow,
       meshEdit: this.meshEdit,
       shapeEdit: this.shapeEdit,
     };
@@ -822,6 +856,7 @@ export class App {
     if ('sel' in s) this.sel = s.sel;
     if (s.multi) this.multi = new Set(s.multi);
     if ('hoverBone' in s) this.hoverBone = s.hoverBone;
+    if ('imageGlow' in s) this.imageGlow = s.imageGlow; // shared like hoverBone; read by the viewport each frame
     if ('meshEdit' in s) this.meshEdit = s.meshEdit;
     if ('shapeEdit' in s) this.shapeEdit = s.shapeEdit;
     this.sanitize();

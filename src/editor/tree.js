@@ -5,6 +5,7 @@
 import { listConstraints } from '../core/constraintdata.js';
 import { Mode, selBone, selSlot } from './app.js';
 import { CONSTRAINT_LABELS, createConstraint } from './constraintui.js';
+import { dragOrderRow } from './draworderdnd.js';
 import * as edit from './edit.js';
 import { onionBonePanel, rgbCss } from './onionui.js';
 import { createEvent, createSkin } from './skineventui.js';
@@ -170,16 +171,19 @@ export function render(app, el) {
   };
   const order = [];
   for (let i = n - 1; i >= 0; i--) {
+    const slotRow = row(`▣ ${doc.slots[i].name}`, { selected: selSlot(app.sel) === i, onclick: select({ slot: i }), title: 'Drag to reorder' });
+    dragOrderRow(app, slotRow, i, n);
     order.push(
       h(
         'div',
-        { class: 'order-row' },
+        { class: 'order-row', 'data-slot': i },
         h('button', { class: 'small', disabled: i + 1 >= n, onclick: move(i, i + 1), title: 'Draw in front' }, '▲'),
         h('button', { class: 'small', disabled: i === 0, onclick: move(i, i - 1), title: 'Draw behind' }, '▼'),
-        row(`▣ ${doc.slots[i].name}`, { selected: selSlot(app.sel) === i, onclick: select({ slot: i }) }),
+        slotRow,
       ),
     );
   }
+  const orderList = h('div', { class: 'order-list' }, ...order);
 
   // Skins: the active one shows the dot.
   // Clicking a skin makes it active and shows its settings.
@@ -270,7 +274,7 @@ export function render(app, el) {
   el.replaceChildren(
     h('div', { class: 'tree-scroll scroll' },
       section(app, 'skeleton', doc.name || 'Skeleton', doc.bones.length, skeleton, addBone),
-      section(app, 'draworder', 'Draw order', n, order),
+      section(app, 'draworder', 'Draw order', n, orderList),
       section(app, 'skins', 'Skins', doc.skins.length + 1, skins, newSkin),
       section(app, 'constraints', 'Constraints', constraints.length, constraints, newConstraint),
       section(app, 'events', 'Events', doc.events.length, events, newEvent),
