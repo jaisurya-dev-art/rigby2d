@@ -99,6 +99,10 @@ pub struct Pose {
     pub physics_delta: f64,
     /// Active skin (None = default skin only).
     pub skin: Option<usize>,
+    /// Transform above the root bones (where a scene places this skeleton), None = identity.
+    /// Physics simulates in the skeleton's own units, so a placed character swings like it does at
+    /// full size.
+    pub placement: Option<Affine>,
     steps: Vec<Step>,
     dirty: Vec<u8>,
     /// While a slider applies its animation, keys go to `applied` instead of `local`.
@@ -127,6 +131,7 @@ impl Pose {
             physics: vec![None; sk.constraints.len()],
             physics_delta: 0.0,
             skin: None,
+            placement: None,
             steps: steps.into_iter().map(|s| s.1).collect(),
             dirty: vec![0; sk.bones.len()],
             into_applied: false,
@@ -476,7 +481,10 @@ impl Pose {
     fn update_bone(&mut self, sk: &SkeletonData, i: usize) {
         let local = self.applied[i].to_affine();
         self.world[i] = match sk.bones[i].parent {
-            None => local,
+            None => match &self.placement {
+                Some(pl) => pl.mul(&local),
+                None => local,
+            },
             Some(p) => inherit_world(&self.world[p], &local, self.inherit[i]),
         };
     }
@@ -499,14 +507,17 @@ impl Pose {
 
     /// Sets the world transforms of some bones, updating their applied local transforms to match
     /// and moving their descendants along.
-    fn set_worlds(&mut self, sk: &SkeletonData, desired: &[(usize, Affine)]) {
+    pub(crate) fn set_worlds(&mut self, sk: &SkeletonData, desired: &[(usize, Affine)]) {
         self.dirty.iter_mut().for_each(|d| *d = 0);
         self.dirty.resize(sk.bones.len(), 0);
         let first = desired.iter().map(|d| d.0).min().unwrap_or(sk.bones.len());
         for i in first..sk.bones.len() {
             let p = sk.bones[i].parent;
             if let Some(want) = desired.iter().rev().find(|d| d.0 == i).map(|d| d.1) {
-                self.applied[i] = local_from_world(p.map(|p| &self.world[p]), &want, self.inherit[i]);
+                self.applied[i] = match (p, &self.placement) {
+                    (None, Some(pl)) => local_from_world(Some(pl), &want, Inherit::Normal),
+                    _ => local_from_world(p.map(|p| &self.world[p]), &want, self.inherit[i]),
+                };
                 self.world[i] = want;
                 self.dirty[i] = 1;
             } else if let Some(p) = p {
@@ -854,9 +865,22 @@ impl Pose {
                 h
             }
         };
-        let len = MIN_TIP.max(sk.bones[p.bone].length * axis);
-        let origin = [m.tx, m.ty];
-        let tip = [m.tx + (m.a / axis) * len, m.ty + (m.b / axis) * len];
+        // A placed skeleton simulates in its own units (see `placement`): positions are divided by
+        // the placement's scale going in and the result multiplied by it coming out.
+        let ps = match &self.placement {
+            Some(pl) => {
+                let s = pl.determinant().abs().sqrt();
+                if s == 0.0 || s.is_nan() {
+                    1.0
+                } else {
+                    s
+                }
+            }
+            None => 1.0,
+        };
+        let len = MIN_TIP.max(sk.bones[p.bone].length * axis / ps);
+        let origin = [m.tx / ps, m.ty / ps];
+        let tip = [origin[0] + (m.a / axis) * len, origin[1] + (m.b / axis) * len];
         let sim = self.physics[index].get_or_insert_with(|| PhysicsSim { last_origin: origin, last_tip: tip, ..Default::default() });
         if delta > 0.0 {
             let step = 1.0 / p.fps.max(1.0);
@@ -895,8 +919,8 @@ impl Pose {
             return Solved::None;
         }
         let mut out = m;
-        out.tx += sim.o[0] * p.x * mix;
-        out.ty += sim.o[1] * p.y * mix;
+        out.tx += sim.o[0] * p.x * mix * ps;
+        out.ty += sim.o[1] * p.y * mix * ps;
         if p.rotate != 0.0 || p.scale_x != 0.0 || p.shear_x != 0.0 {
             let from = [tip[0] - origin[0], tip[1] - origin[1]];
             let to = [from[0] + sim.t[0], from[1] + sim.t[1]];

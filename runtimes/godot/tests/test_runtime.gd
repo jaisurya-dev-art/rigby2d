@@ -96,5 +96,37 @@ func _initialize() -> void:
 	root.add_child(broken)
 	check(broken.get_load_error() != "", "a missing file reports an error")
 
+	# Scenes: the demo scene (stage, NILA and Rigbytron) matches the JavaScript runtime.
+	var want_scene: Dictionary = expected.scene
+	var scene := RigbyScene2D.new()
+	scene.playing = false
+	scene.scene_file = "res://demo/scene/scene.scene.json"
+	root.add_child(scene)
+	check(scene.get_load_error() == "", "scene loads without error: " + scene.get_load_error())
+	check(Array(scene.get_actor_names()) == ["NILA", "Rigbytron"], "actor names: %s" % [scene.get_actor_names()])
+	check(scene.get_current_shot() == want_scene.shot, "plays the first shot")
+	check(scene.get_draw_batch_count() > 0, "the scene draws")
+	var sf := 0
+	var scene_frames: Array = want_scene.frames
+	for s in range(1, int(want_scene.steps) + 1):
+		scene.advance(expected.dt)
+		if sf < scene_frames.size() and int(scene_frames[sf].step) == s:
+			var frame: Dictionary = scene_frames[sf]
+			check(near(scene.get_time(), frame.time, 1e-9), "scene step %d time %f, expected %f" % [s, scene.get_time(), frame.time])
+			var cam := scene.get_camera_transform().origin
+			check(near(cam.x, frame.camera[0], 1e-4) and near(cam.y, -frame.camera[1], 1e-4), "scene step %d camera %s" % [s, cam])
+			for actor in frame.actors:
+				for bone in frame.actors[actor]:
+					var want: Array = frame.actors[actor][bone]
+					var got := scene.get_actor_bone_transform(actor, bone).origin
+					check(near(got.x, want[0], 1e-4) and near(got.y, -want[1], 1e-4), "scene step %d %s %s at %s, expected (%f, %f)" % [s, actor, bone, got, want[0], -want[1]])
+			sf += 1
+	check(sf == scene_frames.size(), "all scene frames checked")
+	check(not scene.play("missing", false), "unknown shot is refused")
+	var broken_scene := RigbyScene2D.new()
+	broken_scene.scene_file = "res://missing.scene.json"
+	root.add_child(broken_scene)
+	check(broken_scene.get_load_error() != "", "a missing scene reports an error")
+
 	print("%d checks, %d failed" % [checks, failures.size()])
 	quit(0 if failures.is_empty() else 1)

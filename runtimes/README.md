@@ -4,8 +4,8 @@ Engine runtimes for Rigby2D animations, built on one Rust core.
 
 | Folder | What it is | Status |
 | --- | --- | --- |
-| [`rust/rigby-runtime`](rust/rigby-runtime) | The runtime in Rust: loads skeleton `.json` (3.8, 4.2, 4.3) and binary `.skel` (4.3) with `.atlas`, evaluates poses, constraints and playback, and builds textured, clipped draw batches. No dependencies. | Complete |
-| [`rust/rigby-godot`](rust/rigby-godot) | Godot 4.3+ GDExtension: the `RigbySkeleton2D` node. | Preview: Windows x64 download on [Releases](https://github.com/jaisurya-dev-art/rigby2d/releases); build from source elsewhere |
+| [`rust/rigby-runtime`](rust/rigby-runtime) | The runtime in Rust: loads skeleton `.json` (3.8, 4.2, 4.3) and binary `.skel` (4.3) with `.atlas`, evaluates poses, constraints and playback, plays scenes (`.scene.json`), and builds textured, clipped draw batches. No dependencies. | Complete |
+| [`rust/rigby-godot`](rust/rigby-godot) | Godot 4.3+ GDExtension: the `RigbySkeleton2D` and `RigbyScene2D` nodes. | Preview: Windows x64 download on [Releases](https://github.com/jaisurya-dev-art/rigby2d/releases); build from source elsewhere |
 | [`godot`](godot) | Godot addon (`addons/rigby2d`, with [user guide](godot/addons/rigby2d/README.md)), demo scene and tests. | Preview |
 | Unity | Planned, on the same Rust core. | Next |
 
@@ -14,8 +14,9 @@ Engine runtimes for Rigby2D animations, built on one Rust core.
 `rigby-runtime` is a port of the JavaScript runtime in `src/core` with the same behaviour: bones
 with every inherit mode, region and mesh attachments with weights and deform keys, linked meshes,
 IK (one and two bones, softness, stretch), transform, path, physics and slider constraints, skins,
-image sequences, clipping, draw order keys, two-color tint, events, and `AnimationState` with
-layered tracks, crossfades and queues.
+image sequences, clipping, draw order keys, two-color tint, events, `AnimationState` with
+layered tracks, crossfades and queues, and scenes (`scene::ScenePlayer`: actors placed on stage
+bones, clips with crossfades, ground offsets, flips, camera parallax and the stage's draw order).
 
 ```rust
 use rigby_runtime::{load_skeleton, Atlas, AnimationState, Pose, RegionLookup, RenderOutput};
@@ -42,6 +43,10 @@ crossfade with a layered track and a queued animation, skins) and records bone w
 drawables, draw order and events; `tests/golden.rs` replays them in Rust and compares.
 
 - `tests/golden/rigbytron.golden.json` (checked in) covers the Rigbytron demo.
+- `tests/golden/scene.golden.json`, made by `tests/golden/scene.mjs`, plays the demo scene
+  (`runtimes/godot/demo/scene`: NILA with hair physics and Rigbytron on a parallax stage) with the
+  JavaScript `ScenePlayer` and records the stage, every character and the draw list per frame;
+  Rust matches within 1e-11.
 - Any other skeleton can be checked locally:
 
   ```bash
@@ -83,8 +88,9 @@ godot --headless --path ../godot --script res://tests/test_runtime.gd
 
 `runtimes/godot/tests/test_runtime.gd` checks the node against reference results from the
 JavaScript runtime (`tests/expected.json`, made by `tests/make_expected.mjs`): bone transforms at
-several frames of an animation, event and completion timing, tracks, queues and error handling.
-`tests/capture.gd` renders the demo at fixed times into `tests/output/` (run it without
+several frames of an animation, event and completion timing, tracks, queues, the demo scene's
+camera and character bones through a whole shot, and error handling. `tests/capture.gd` and
+`tests/capture_scene.gd` render the demos at fixed times into `tests/output/` (run them without
 `--headless`).
 
 ### Packaging

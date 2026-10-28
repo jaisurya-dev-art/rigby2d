@@ -130,7 +130,8 @@ A scene saves as one `.rigby` file containing the stage, its images and sounds, 
 character (stored under `actors/` inside it), so it opens anywhere. Each actor keeps its character
 exactly as it was added; to update a character, remove the actor and add the new version.
 
-Scenes are a film feature: skeleton exports (*Export JSON / .skel*) contain the stage only.
+Skeleton exports (*Export JSON / .skel*) contain the stage only; to play a whole scene in a game,
+use *Export scene for runtimes* (see [In games and apps](#in-games-and-apps)).
 
 ## Performance
 
@@ -141,26 +142,50 @@ about 3 seconds.
 
 ## In games and apps
 
-The runtime includes a scene player (`src/core/scene.js`), so the same scenes can play as cutscenes:
+Scenes play in games as cutscenes, intros or living backgrounds, with the camera, parallax, clips
+and crossfades exactly as in the editor. *File ▸ Export scene for runtimes…* writes:
+
+| File | What it is |
+| --- | --- |
+| `name.scene.json` | The scene: actors, their anchor bones and slots, clips per shot, ground offsets, layer depths. |
+| `name.json` + `.atlas` + `.png` | The stage as a skeleton export (backgrounds, camera, anchor bones, shots). |
+| `name.<actor>.json` + `.atlas` + `.png` | Each character, as a skeleton export. |
+
+Every runtime plays it and matches the editor frame by frame: the [Rust runtime](runtimes.md#rust)
+is checked against the JavaScript one on the demo scene, physics included.
+
+**Godot**: add a `RigbyScene2D` node and set *Scene File*. Follow the stage's camera with a
+`Camera2D`:
+
+```gdscript
+func _process(_delta: float) -> void:
+	$Camera2D.position = $Scene.get_camera_transform().origin
+```
+
+![The demo scene playing in Godot with RigbyScene2D](images/godot-scene.png)
+
+**JavaScript**:
 
 ```js
-import { ScenePlayer } from './core/scene.js';
+import { loadScene, readSkeletonJson } from './core/index.js';
 
-// stage: the scene's Skeleton; actors: Map actor id -> the character's Skeleton.
-const player = new ScenePlayer(stage, actors);
-player.play('meet');
+const player = await loadScene(manifest, async (file) => readSkeletonJson(await (await fetch(file)).json()).skeleton);
+player.play('meet', true);
 
 function frame(dt) {
   player.update(dt);
-  renderer.begin(width, height, camera);
-  renderer.drawSkeleton(stage, player.pose, stageTextures, {
+  // Draw the stage in its draw order; at each actor's slot, draw that actor tinted by the slot.
+  renderer.drawSkeleton(player.stage, player.pose, stageTextures, {
     between: (slot) => {
-      // Draw each actor at its slot.
+      const actor = player.scene.actors.find((a) => a.slot === player.stage.slots[slot].name);
+      if (actor) renderer.drawSkeleton(player.actorDocs.get(actor.id), player.actorPoses.get(actor.id), textures[actor.id]);
     },
   });
-  renderer.end();
 }
 ```
+
+**Rust**: `rigby_runtime::scene::load_scene` returns a `ScenePlayer`; `draw_list()` gives the
+stage slots and actors back to front, and `RenderOutput::append` layers their geometry.
 
 ## Through MCP
 

@@ -1,13 +1,15 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 //! Rigby2D runtime for Godot 4: the `RigbySkeleton2D` node plays skeleton JSON / binary `.skel`
-//! exports with their `.atlas`, using the Rust runtime (`rigby-runtime`) for animation and the
-//! RenderingServer for drawing (one mesh per atlas page and blend mode run, two-color tint and
-//! premultiplied-alpha pages handled by a small shader).
+//! exports with their `.atlas`, and `RigbyScene2D` plays scenes exported from the editor
+//! (`.scene.json`: a stage, several characters, clips, camera and parallax). Both use the Rust
+//! runtime (`rigby-runtime`) for animation and the RenderingServer for drawing (one mesh per atlas
+//! page and blend mode run, two-color tint and premultiplied-alpha pages handled by a small shader).
 
 use godot::classes::rendering_server::{ArrayCustomFormat, ArrayFormat, CanvasItemTextureFilter, PrimitiveType};
 use godot::classes::{FileAccess, INode2D, Node2D, RenderingServer, Texture2D};
 use godot::prelude::*;
 use rigby_runtime::model::Blend;
+use rigby_runtime::scene::{load_scene, read_scene_manifest, ScenePlayer};
 use rigby_runtime::{load_skeleton, Atlas, AnimationState, Pose, RegionLookup, RenderOutput, SkeletonData, StateEventKind};
 use std::cell::RefCell;
 use std::collections::HashMap;
@@ -31,13 +33,18 @@ unsafe impl ExtensionLibrary for RigbyExtension {
     }
 }
 
+/// An atlas loaded for a skeleton: where its images are and the page textures.
+struct Pages {
+    lookup: RegionLookup,
+    textures: Vec<Gd<Texture2D>>,
+    pma: Vec<bool>,
+    filters: Vec<CanvasItemTextureFilter>,
+}
+
 /// Loaded skeleton data with its atlas, shared by every node using the same files.
 struct Loaded {
     data: SkeletonData,
-    lookup: RegionLookup,
-    pages: Vec<Gd<Texture2D>>,
-    pma: Vec<bool>,
-    filters: Vec<CanvasItemTextureFilter>,
+    pages: Pages,
 }
 
 thread_local! {
@@ -59,7 +66,18 @@ fn load_files(skeleton: &str, atlas: &str) -> Result<Rc<Loaded>, String> {
     if atlas_text.is_empty() {
         return Err(format!("cannot read '{atlas}'"));
     }
-    let atlas_data = Atlas::parse(&atlas_text);
+    let pages = load_pages(&data, skeleton, atlas, &atlas_text)?;
+    for w in &data.warnings {
+        godot_warn!("Rigby2D: '{skeleton}': {w}");
+    }
+    let loaded = Rc::new(Loaded { data, pages });
+    CACHE.with(|c| c.borrow_mut().insert(key, loaded.clone()));
+    Ok(loaded)
+}
+
+/// Loads the page textures of an atlas (from the atlas's folder) for a skeleton.
+fn load_pages(data: &SkeletonData, skeleton: &str, atlas: &str, atlas_text: &str) -> Result<Pages, String> {
+    let atlas_data = Atlas::parse(atlas_text);
     let dir = atlas.rsplit_once('/').map_or("", |(d, _)| d);
     let mut pages = Vec::new();
     for page in &atlas_data.pages {
@@ -80,17 +98,12 @@ fn load_files(skeleton: &str, atlas: &str) -> Result<Rc<Loaded>, String> {
             }
         })
         .collect();
-    let lookup = RegionLookup::new(&data, &atlas_data);
-    let missing = lookup.missing(&data);
+    let lookup = RegionLookup::new(data, &atlas_data);
+    let missing = lookup.missing(data);
     if !missing.is_empty() {
         godot_warn!("Rigby2D: {} image(s) of '{skeleton}' are not in '{atlas}': {}", missing.len(), missing.join(", "));
     }
-    for w in &data.warnings {
-        godot_warn!("Rigby2D: '{skeleton}': {w}");
-    }
-    let loaded = Rc::new(Loaded { pma: atlas_data.pages.iter().map(|p| p.pma).collect(), data, lookup, pages, filters });
-    CACHE.with(|c| c.borrow_mut().insert(key, loaded.clone()));
-    Ok(loaded)
+    Ok(Pages { pma: atlas_data.pages.iter().map(|p| p.pma).collect(), lookup, textures: pages, filters })
 }
 
 /// Canvas shader: two-color tint (texture c maps to light * c + dark * (1 - c)), straight or
@@ -163,9 +176,7 @@ pub struct RigbySkeleton2D {
     pose: Option<Pose>,
     state: AnimationState,
     out: RenderOutput,
-    items: Vec<Rid>,
-    meshes: Vec<Rid>,
-    materials: HashMap<(Blend, bool), Rid>,
+    canvas: Canvas,
     load_error: Option<String>,
     /// Files of the last load attempt, so `ready` does not load them again.
     attempted: (GString, GString),
@@ -188,9 +199,7 @@ impl INode2D for RigbySkeleton2D {
             pose: None,
             state: AnimationState::new(),
             out: RenderOutput::default(),
-            items: Vec::new(),
-            meshes: Vec::new(),
-            materials: HashMap::new(),
+            canvas: Canvas::default(),
             load_error: None,
             attempted: (GString::new(), GString::new()),
         }
@@ -212,7 +221,7 @@ impl INode2D for RigbySkeleton2D {
     }
 
     fn exit_tree(&mut self) {
-        self.free_render_resources();
+        self.canvas.free();
     }
 
     fn draw(&mut self) {
@@ -489,13 +498,14 @@ impl RigbySkeleton2D {
     /// Applies the animation state, emits queued callbacks as signals and redraws.
     fn refresh(&mut self) {
         let (Some(loaded), Some(mut pose)) = (self.loaded.clone(), self.pose.take()) else {
-            self.clear_items(0);
+            self.canvas.clear_items(0);
             return;
         };
         self.state.apply(&loaded.data, &mut pose);
-        self.out.build(&loaded.data, &pose, &loaded.lookup, [1.0; 4]);
+        self.out.build(&loaded.data, &pose, &loaded.pages.lookup, [1.0; 4]);
         self.pose = Some(pose);
-        self.submit(&loaded);
+        let parent = self.base().get_canvas_item();
+        self.canvas.submit(parent, &self.out, &[&loaded.pages]);
         if self.show_bones {
             self.base_mut().queue_redraw();
         }
@@ -520,7 +530,17 @@ impl RigbySkeleton2D {
             };
         }
     }
+}
 
+/// The RenderingServer items a node draws with: one child canvas item + mesh per batch.
+#[derive(Default)]
+struct Canvas {
+    items: Vec<Rid>,
+    meshes: Vec<Rid>,
+    materials: HashMap<(Blend, bool), Rid>,
+}
+
+impl Canvas {
     fn material(&mut self, blend: Blend, pma: bool) -> Rid {
         *self.materials.entry((blend, pma)).or_insert_with(|| {
             let mut rs = RenderingServer::singleton();
@@ -531,10 +551,10 @@ impl RigbySkeleton2D {
         })
     }
 
-    /// Sends the batches to the RenderingServer: one child canvas item + mesh per batch.
-    fn submit(&mut self, loaded: &Loaded) {
-        let parent = self.base().get_canvas_item();
-        let count = self.out.batches().len();
+    /// Sends the batches to the RenderingServer under `parent`. A batch's `source` picks its atlas
+    /// in `pages`.
+    fn submit(&mut self, parent: Rid, out: &RenderOutput, pages: &[&Pages]) {
+        let count = out.batches().len();
         let mut rs = RenderingServer::singleton();
         while self.items.len() < count {
             let item = rs.canvas_item_create();
@@ -545,13 +565,9 @@ impl RigbySkeleton2D {
         }
         // CUSTOM0 holds RGBA floats (ARRAY_CUSTOM_RGBA_FLOAT << ARRAY_FORMAT_CUSTOM0_SHIFT).
         let custom0 = ArrayFormat::from_ord((ArrayCustomFormat::RGBA_FLOAT.ord() as u64) << 13);
-        for k in 0..count {
-            let (page, blend) = {
-                let b = &self.out.batches()[k];
-                (b.page, b.blend)
-            };
-            let material = self.material(blend, loaded.pma.get(page).copied().unwrap_or(false));
-            let b = &self.out.batches()[k];
+        for (k, b) in out.batches().iter().enumerate() {
+            let Some(atlas) = pages.get(b.source) else { continue };
+            let material = self.material(b.blend, atlas.pma.get(b.page).copied().unwrap_or(false));
             let mut arrays = VarArray::new();
             arrays.resize(13, &Variant::nil());
             arrays.set(0, &b.positions.iter().map(|p| Vector2::new(p[0], -p[1])).collect::<PackedVector2Array>().to_variant());
@@ -564,8 +580,8 @@ impl RigbySkeleton2D {
             rs.mesh_clear(mesh);
             rs.mesh_add_surface_from_arrays_ex(mesh, PrimitiveType::TRIANGLES, &arrays).compress_format(custom0).done();
             rs.canvas_item_set_material(item, material);
-            rs.canvas_item_set_default_texture_filter(item, loaded.filters.get(page).copied().unwrap_or(CanvasItemTextureFilter::LINEAR));
-            let texture = loaded.pages.get(page).map_or(Rid::Invalid, |t| t.get_rid());
+            rs.canvas_item_set_default_texture_filter(item, atlas.filters.get(b.page).copied().unwrap_or(CanvasItemTextureFilter::LINEAR));
+            let texture = atlas.textures.get(b.page).map_or(Rid::Invalid, |t| t.get_rid());
             rs.canvas_item_add_mesh_ex(item, mesh).texture(texture).done();
         }
         self.clear_items(count);
@@ -582,10 +598,335 @@ impl RigbySkeleton2D {
         }
     }
 
-    fn free_render_resources(&mut self) {
+    fn free(&mut self) {
         let mut rs = RenderingServer::singleton();
         for rid in self.items.drain(..).chain(self.meshes.drain(..)).chain(self.materials.drain().map(|(_, m)| m)) {
             rs.free_rid(rid);
         }
+    }
+}
+
+/// Godot's axes (Y down) for a runtime matrix.
+fn to_godot(m: &rigby_runtime::math::Affine) -> Transform2D {
+    Transform2D::from_cols(Vector2::new(m.a as f32, -m.b as f32), Vector2::new(-m.c as f32, m.d as f32), Vector2::new(m.tx as f32, -m.ty as f32))
+}
+
+/// Plays a scene exported from the Rigby2D editor (File > Export scene for runtimes): the stage
+/// (backgrounds, camera, parallax), its characters and their clips, drawn in the stage's order.
+#[derive(GodotClass)]
+#[class(base = Node2D, tool)]
+pub struct RigbyScene2D {
+    base: Base<Node2D>,
+
+    /// Scene manifest (`<name>.scene.json`); the skeletons and atlases it names sit next to it.
+    #[var(set = set_scene_file)]
+    #[export(file = "*.scene.json")]
+    scene_file: GString,
+    /// Shot (stage animation) played when the node starts; empty = the first one.
+    #[var(set = set_shot)]
+    #[export]
+    shot: GString,
+    /// Whether the shot starts again when it ends.
+    #[var(set = set_looping)]
+    #[export]
+    looping: bool,
+    /// Advances the scene every frame (also in the editor, for previews).
+    #[var]
+    #[export]
+    playing: bool,
+    /// Playback speed multiplier.
+    #[var]
+    #[export(range = (0.0, 4.0, 0.01, or_greater))]
+    speed: f64,
+
+    player: Option<ScenePlayer>,
+    /// Atlas of the stage (0) and of each character (1 + its index in the player).
+    pages: Vec<Pages>,
+    out: RenderOutput,
+    canvas: Canvas,
+    load_error: Option<String>,
+    attempted: GString,
+    finished: bool,
+}
+
+#[godot_api]
+impl INode2D for RigbyScene2D {
+    fn init(base: Base<Node2D>) -> Self {
+        RigbyScene2D {
+            base,
+            scene_file: GString::new(),
+            shot: GString::new(),
+            looping: true,
+            playing: true,
+            speed: 1.0,
+            player: None,
+            pages: Vec::new(),
+            out: RenderOutput::default(),
+            canvas: Canvas::default(),
+            load_error: None,
+            attempted: GString::new(),
+            finished: false,
+        }
+    }
+
+    fn ready(&mut self) {
+        if self.attempted != self.scene_file {
+            self.reload();
+        }
+    }
+
+    fn process(&mut self, delta: f64) {
+        if self.player.is_some() && self.playing {
+            self.advance(delta * self.speed);
+        }
+    }
+
+    fn exit_tree(&mut self) {
+        self.canvas.free();
+    }
+}
+
+#[godot_api]
+impl RigbyScene2D {
+    /// The shot reached its end (each time round when looping).
+    #[signal]
+    fn shot_finished(shot: GString);
+
+    #[func]
+    fn set_scene_file(&mut self, path: GString) {
+        self.scene_file = path;
+        self.reload();
+    }
+
+    #[func]
+    fn set_shot(&mut self, name: GString) {
+        self.shot = name;
+        self.start();
+    }
+
+    #[func]
+    fn set_looping(&mut self, looping: bool) {
+        self.looping = looping;
+        if let Some(p) = self.player.as_mut() {
+            p.looping = looping;
+        }
+    }
+
+    /// Plays a shot from its start. Returns false if the stage has no such animation.
+    #[func]
+    fn play(&mut self, shot: GString, looping: bool) -> bool {
+        let Some(p) = self.player.as_mut() else { return false };
+        let name = shot.to_string();
+        if p.stage.find_animation(&name).is_none() {
+            godot_warn!("Rigby2D: no shot '{name}'");
+            return false;
+        }
+        self.looping = looping;
+        p.play(&name, looping);
+        self.finished = false;
+        self.redraw();
+        true
+    }
+
+    /// Advances the scene by `seconds` and redraws (use with `playing` off to drive time yourself).
+    #[func]
+    fn advance(&mut self, seconds: f64) {
+        let Some(p) = self.player.as_mut() else { return };
+        let before = p.time;
+        p.update(seconds);
+        let d = p.duration();
+        let ended = d > 0.0 && if p.looping { p.time < before } else { p.time >= d };
+        let shot = p.shot.clone().unwrap_or_default();
+        self.redraw();
+        // A held (non-looping) shot reports its end once.
+        if ended && (self.looping || !self.finished) {
+            self.finished = true;
+            self.base_mut().emit_signal("shot_finished", &[GString::from(shot.as_str()).to_variant()]);
+        }
+    }
+
+    /// Jumps to `seconds` into the current shot (physics starts again from there).
+    #[func]
+    fn seek(&mut self, seconds: f64) {
+        let Some(p) = self.player.as_mut() else { return };
+        for c in &mut p.characters {
+            c.pose.reset_physics();
+        }
+        p.time = seconds.clamp(0.0, p.duration().max(0.0));
+        p.evaluate(0.0);
+        self.finished = false;
+        self.redraw();
+    }
+
+    #[func]
+    fn get_shot_names(&self) -> PackedStringArray {
+        self.player.as_ref().map_or_else(PackedStringArray::new, |p| p.stage.animations.iter().map(|a| GString::from(a.name.as_str())).collect())
+    }
+
+    /// Name of the shot playing.
+    #[func]
+    fn get_current_shot(&self) -> GString {
+        GString::from(self.player.as_ref().and_then(|p| p.shot.as_deref()).unwrap_or(""))
+    }
+
+    /// Seconds into the shot.
+    #[func]
+    fn get_time(&self) -> f64 {
+        self.player.as_ref().map_or(0.0, |p| p.time)
+    }
+
+    /// Length of the current shot: its stage animation or its last clip, whichever ends later.
+    #[func]
+    fn get_duration(&self) -> f64 {
+        self.player.as_ref().map_or(0.0, |p| p.duration())
+    }
+
+    #[func]
+    fn get_actor_names(&self) -> PackedStringArray {
+        self.player.as_ref().map_or_else(PackedStringArray::new, |p| p.scene.actors.iter().map(|a| GString::from(a.name.as_str())).collect())
+    }
+
+    /// The stage's `camera` bone in this node's space (follow it with a Camera2D), or identity.
+    #[func]
+    fn get_camera_transform(&self) -> Transform2D {
+        self.get_stage_bone_transform(GString::from("camera"))
+    }
+
+    /// A stage bone's transform in this node's space (Godot axes), or identity if not found.
+    #[func]
+    fn get_stage_bone_transform(&self, bone: GString) -> Transform2D {
+        let Some(p) = &self.player else { return Transform2D::IDENTITY };
+        p.stage.find_bone(&bone.to_string()).map_or(Transform2D::IDENTITY, |i| to_godot(&p.pose.world[i]))
+    }
+
+    /// A bone of an actor (by actor name) in this node's space, or identity if not found. Attach
+    /// props or effects to characters with it.
+    #[func]
+    fn get_actor_bone_transform(&self, actor: GString, bone: GString) -> Transform2D {
+        let Some(p) = &self.player else { return Transform2D::IDENTITY };
+        let name = actor.to_string();
+        let Some(c) = p.scene.actors.iter().position(|a| a.name == name).and_then(|a| p.character(a)) else { return Transform2D::IDENTITY };
+        c.data.find_bone(&bone.to_string()).map_or(Transform2D::IDENTITY, |i| to_godot(&c.pose.world[i]))
+    }
+
+    /// Error from loading the files, or empty.
+    #[func]
+    fn get_load_error(&self) -> GString {
+        GString::from(self.load_error.as_deref().unwrap_or(""))
+    }
+
+    /// Number of draw batches in the last frame (for profiling).
+    #[func]
+    fn get_draw_batch_count(&self) -> i64 {
+        self.out.batches().len() as i64
+    }
+}
+
+impl RigbyScene2D {
+    fn reload(&mut self) {
+        self.player = None;
+        self.pages.clear();
+        self.load_error = None;
+        self.attempted = self.scene_file.clone();
+        let file = self.scene_file.to_string();
+        if !file.is_empty() {
+            match Self::load(&file) {
+                Ok((player, pages)) => {
+                    self.player = Some(player);
+                    self.pages = pages;
+                    self.start();
+                }
+                Err(e) => {
+                    godot_error!("Rigby2D: {e}");
+                    self.load_error = Some(e);
+                }
+            }
+        }
+        self.redraw();
+    }
+
+    fn load(file: &str) -> Result<(ScenePlayer, Vec<Pages>), String> {
+        let dir = file.rsplit_once('/').map_or(String::new(), |(d, _)| format!("{d}/"));
+        let manifest = FileAccess::get_file_as_bytes(file);
+        if manifest.is_empty() {
+            return Err(format!("cannot read '{file}'"));
+        }
+        let manifest = manifest.as_slice().to_vec();
+        let read = |f: &str| {
+            let bytes = FileAccess::get_file_as_bytes(&format!("{dir}{f}"));
+            if bytes.is_empty() {
+                Err(format!("cannot read '{dir}{f}'"))
+            } else {
+                Ok(bytes.as_slice().to_vec())
+            }
+        };
+        let player = load_scene(&manifest, read).map_err(|e| format!("'{file}': {e}"))?;
+        // Each skeleton's atlas is `<skeleton without extension>.atlas` next to it (none for a
+        // stage without images).
+        let stage_file = read_scene_manifest(&manifest).map_err(|e| e.to_string())?.stage;
+        let mut files = vec![(stage_file, &player.stage)];
+        for c in &player.characters {
+            let f = player.scene.actors.iter().find(|a| a.id == c.id).and_then(|a| a.skeleton.clone()).unwrap_or_default();
+            files.push((f, &c.data));
+        }
+        let mut pages = Vec::new();
+        for (skeleton, data) in files {
+            let atlas = format!("{dir}{}.atlas", skeleton.rsplit_once('.').map_or(skeleton.as_str(), |(s, _)| s));
+            let text = if FileAccess::file_exists(&atlas) { FileAccess::get_file_as_string(&atlas).to_string() } else { String::new() };
+            pages.push(load_pages(data, &format!("{dir}{skeleton}"), &atlas, &text)?);
+            for w in &data.warnings {
+                godot_warn!("Rigby2D: '{dir}{skeleton}': {w}");
+            }
+        }
+        Ok((player, pages))
+    }
+
+    fn start(&mut self) {
+        let Some(p) = self.player.as_mut() else { return };
+        let name = self.shot.to_string();
+        let shot = if name.is_empty() { p.stage.animations.first().map(|a| a.name.clone()) } else { Some(name.clone()) };
+        match shot {
+            Some(s) if p.stage.find_animation(&s).is_some() => p.play(&s, self.looping),
+            _ => {
+                if !name.is_empty() {
+                    godot_warn!("Rigby2D: no shot '{name}'");
+                }
+                p.evaluate(0.0);
+            }
+        }
+        self.finished = false;
+        self.redraw();
+    }
+
+    /// Builds the stage and characters in the stage's draw order and sends them to the server:
+    /// runs of stage slots between the characters, each character tinted by its slot's color.
+    fn redraw(&mut self) {
+        let Some(p) = &self.player else {
+            self.canvas.clear_items(0);
+            return;
+        };
+        self.out.clear();
+        let mut run: Vec<usize> = Vec::new();
+        for layer in p.draw_list() {
+            let character = layer.actor.and_then(|a| p.characters.iter().position(|c| c.id == p.scene.actors[a].id));
+            let Some(c) = character else {
+                run.push(layer.slot);
+                continue;
+            };
+            if !run.is_empty() {
+                self.out.append(&p.stage, &p.pose, &self.pages[0].lookup, [1.0; 4], &run, 0);
+                run.clear();
+            }
+            let ch = &p.characters[c];
+            if layer.tint[3] > 0.0 {
+                self.out.append(&ch.data, &ch.pose, &self.pages[1 + c].lookup, layer.tint, &ch.pose.draw_order, 1 + c);
+            }
+        }
+        if !run.is_empty() {
+            self.out.append(&p.stage, &p.pose, &self.pages[0].lookup, [1.0; 4], &run, 0);
+        }
+        let parent = self.base().get_canvas_item();
+        let pages: Vec<&Pages> = self.pages.iter().collect();
+        self.canvas.submit(parent, &self.out, &pages);
     }
 }

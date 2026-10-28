@@ -78,10 +78,11 @@ const addon = [
 const demo = [
   { path: 'project.godot', bytes: read('project.godot') },
   ...['demo/main.tscn', 'demo/main.gd', 'demo/rigbytron/rigbytron.skel', 'demo/rigbytron/rigbytron.atlas', 'demo/rigbytron/rigbytron.png'].map((f) => ({ path: f, bytes: read(f) })),
+  ...['demo/scene.tscn', 'demo/scene.gd', ...fs.readdirSync(path.join(here, 'demo/scene')).filter((f) => !f.endsWith('.import')).map((f) => `demo/scene/${f}`)].map((f) => ({ path: f, bytes: read(f) })),
   {
     path: 'README.md',
     bytes: Buffer.from(
-      `# Rigby2D for Godot: demo\n\nOpen this folder in Godot ${'4.3'} or newer and run it: Rigbytron holds; press Space to slash, S\nto show bones. The addon is in \`addons/rigby2d\` (see its README).\n\nRigbytron and the Rigby2D and Hoverlabs names and logos are trademarks of Hoverlabs: use the demo\ncharacter to try the runtime, not in your own products. The code is MIT OR Apache-2.0.\n`,
+      `# Rigby2D for Godot: demo\n\nOpen this folder in Godot ${'4.3'} or newer and run it: Rigbytron holds; press Space to slash, S\nto show bones. Open \`demo/scene.tscn\` for a scene exported from the editor: NILA and\nRigbytron meet on a stage with a moving camera and parallax (the \`RigbyScene2D\` node). The addon is in \`addons/rigby2d\` (see its README).\n\nNILA, Rigbytron and the Rigby2D and Hoverlabs names and logos are trademarks of Hoverlabs: use the\ndemo characters to try the runtime, not in your own products. The code is MIT OR Apache-2.0.\n`,
     ),
   },
   ...addon,

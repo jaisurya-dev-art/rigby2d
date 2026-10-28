@@ -12,6 +12,7 @@ const { readSkeletonJson } = await core('interop.js');
 const { readSkeletonBinary } = await core('binary.js');
 const { Pose } = await core('pose.js');
 const { AnimationState } = await core('state.js');
+const { loadScene } = await core('scene.js');
 
 const sk = readSkeletonJson(readSkeletonBinary(new Uint8Array(fs.readFileSync(path.join(here, '../demo/rigbytron/rigbytron.skel')))), 'rigbytron').skeleton;
 const pose = new Pose(sk);
@@ -40,5 +41,25 @@ for (step = 1; step <= 48; step++) {
     });
   }
 }
-fs.writeFileSync(path.join(here, 'expected.json'), JSON.stringify({ dt: 1 / 30, steps: 48, frames, events }, null, 1) + '\n');
-console.log('expected.json:', frames.length, 'frames,', events.length, 'callbacks');
+// The demo scene: the camera and some bones of each character, by actor name.
+const sceneDir = path.join(here, '../demo/scene');
+const player = await loadScene(JSON.parse(fs.readFileSync(path.join(sceneDir, 'scene.scene.json'), 'utf8')), (f) => readSkeletonJson(JSON.parse(fs.readFileSync(path.join(sceneDir, f), 'utf8')), f).skeleton);
+const SCENE_BONES = { NILA: ['head', 'braid2', 'hand_r'], Rigbytron: ['head', 'hand_r'] };
+const at = (sk, pose, name) => {
+  const m = pose.world[sk.bones.findIndex((b) => b.name === name)];
+  return [m.tx, m.ty];
+};
+const scene = { shot: player.shot, steps: 240, frames: [] };
+player.play(player.shot, true);
+for (let s = 1; s <= scene.steps; s++) {
+  player.update(1 / 30);
+  if (s % 40) continue;
+  const actors = {};
+  for (const a of player.scene.actors) {
+    const sk = player.actorDocs.get(a.id);
+    actors[a.name] = Object.fromEntries((SCENE_BONES[a.name] ?? []).map((b) => [b, at(sk, player.actorPoses.get(a.id), b)]));
+  }
+  scene.frames.push({ step: s, time: player.time, camera: at(player.stage, player.pose, 'camera'), actors });
+}
+fs.writeFileSync(path.join(here, 'expected.json'), JSON.stringify({ dt: 1 / 30, steps: 48, frames, events, scene }, null, 1) + '\n');
+console.log('expected.json:', frames.length, 'frames,', events.length, 'callbacks,', scene.frames.length, 'scene frames');

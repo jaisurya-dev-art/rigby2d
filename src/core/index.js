@@ -26,3 +26,4 @@ export { Pose, applyDrawOrder } from './pose.js';
 export { AnimationState } from './state.js';
 export { isSkeletonJson, readSkeletonJson, writeSkeletonJson } from './interop.js';
 export { parseAtlas, writeAtlas, regionPlacement } from './atlas.js';
+export { ScenePlayer, loadScene, readSceneManifest, sceneDrawList, actorSlots } from './scene.js';

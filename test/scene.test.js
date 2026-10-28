@@ -190,3 +190,29 @@ test('ground offset: a character drawn above its origin stands on its anchor, at
   const low = Math.min(...ap.quads(doc).flatMap((q) => q.positions.map((p) => p[1])));
   near(low, 0); // feet on the anchor's ground line
 });
+
+test('a scene exported for runtimes loads back into a ScenePlayer that plays like the editor', async () => {
+  const { loadScene, readSceneManifest, writeSceneManifest } = await import('../src/core/scene.js');
+  const { readSkeletonJson, writeSkeletonJson } = await import('../src/core/interop.js');
+  const st = stage();
+  st.scene.actors.push({ id: 'h', name: 'Hero', bone: 'hero', slot: 'hero', source: 'hero.rigby', skin: null, flip: true, ground: 5, clips: { shot: [{ animation: 'wave', start: 0, in: 0, out: null, speed: 1, loops: 0, blend: 0 }, { animation: 'nod', start: 1, in: 0, out: null, speed: 2, loops: 1, blend: 0.25 }] } });
+  st.scene.depth = { far: 500 };
+  const files = new Map([
+    ['s.json', JSON.stringify(writeSkeletonJson(st, { version: '4.3' }).json)],
+    ['s.h.json', JSON.stringify(writeSkeletonJson(character(), { version: '4.3' }).json)],
+  ]);
+  const manifest = JSON.parse(JSON.stringify(writeSceneManifest(st.scene, 's.json', new Map([['h', 's.h.json']]))));
+  assert.equal(readSceneManifest(manifest).skeletons.get('h'), 's.h.json');
+  assert.throws(() => readSceneManifest({ stage: 's.json' }), /not a Rigby2D scene/);
+  const player = await loadScene(manifest, (f) => readSkeletonJson(JSON.parse(files.get(f))).skeleton);
+  const editor = new ScenePlayer(st, new Map([['h', character()]]));
+  player.play('shot');
+  editor.play('shot');
+  for (let f = 0; f < 50; f++) {
+    player.update(1 / 30);
+    editor.update(1 / 30);
+    const [a, b] = [player.actorPoses.get('h').world[1], editor.actorPoses.get('h').world[1]];
+    for (const k of ['a', 'b', 'c', 'd', 'tx', 'ty']) near(a[k], b[k]);
+    near(player.pose.world[2].tx, editor.pose.world[2].tx);
+  }
+});

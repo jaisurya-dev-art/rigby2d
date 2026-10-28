@@ -3,13 +3,14 @@
 Rigby2D animations play in games and apps through the included runtimes. All of them load skeleton
 `.json` (3.8, 4.2, 4.3) or binary `.skel` (4.3) with an `.atlas`, and evaluate meshes, weights, skins,
 image sequences, clipping, IK, transform, path, physics and slider constraints, draw order, events and
-layered tracks with crossfades.
+layered tracks with crossfades. They also play [scenes](scenes.md#in-games-and-apps): several
+characters on a stage with a moving camera and parallax.
 
 | Runtime | Language | Status |
 | --- | --- | --- |
 | [JavaScript](#javascript) (`src/core`) + WebGL renderer (`src/webgl`) | JavaScript, no dependencies | Complete |
 | [Rust](#rust) (`runtimes/rust/rigby-runtime`) | Rust, no dependencies; 3 to 4× faster | Complete |
-| [Godot](#godot) (`RigbySkeleton2D`) | GDExtension on the Rust core | Preview |
+| [Godot](#godot) (`RigbySkeleton2D`, `RigbyScene2D`) | GDExtension on the Rust core | Preview |
 | Unity | On the Rust core | Planned |
 
 The landing page of the [website](https://jaisurya-dev-art.github.io/rigby2d/) plays NILA with the
@@ -76,7 +77,10 @@ out.build(&data, &pose, &lookup, [1.0; 4]);
 for batch in out.batches() { /* positions, UVs, colors, indices for atlas page `batch.page` */ }
 ```
 
-It matches the JavaScript runtime frame by frame (golden tests). Build and test with
+Scenes: `rigby_runtime::scene::load_scene(&manifest, |file| std::fs::read(dir.join(file)))` returns a
+`ScenePlayer` (`play`, `update`, `draw_list`).
+
+It matches the JavaScript runtime frame by frame (golden tests, including a scene). Build and test with
 `cargo test --release --workspace` in `runtimes/rust`. See the
 [runtimes README](../runtimes/README.md).
 
@@ -96,7 +100,9 @@ func _ready() -> void:
 	hero.queue(0, "idle", true, 0.3, -1.0)
 ```
 
-See the [Godot guide](../runtimes/godot/addons/rigby2d/README.md) for every property and method.
+For scenes, the `RigbyScene2D` node plays a `.scene.json` export: the stage, every character
+and their clips, with the stage's camera available for a `Camera2D`. See the
+[Godot guide](../runtimes/godot/addons/rigby2d/README.md) for every property and method.
 
 ## Performance
 

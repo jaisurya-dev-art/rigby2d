@@ -24,6 +24,7 @@ pub mod model;
 pub mod pose;
 pub mod reader;
 pub mod render;
+pub mod scene;
 pub mod state;
 
 pub use atlas::Atlas;
@@ -31,6 +32,7 @@ pub use model::SkeletonData;
 pub use pose::Pose;
 pub use reader::LoadError;
 pub use render::{Batch, RegionLookup, RenderOutput};
+pub use scene::{load_scene, Scene, ScenePlayer};
 pub use state::{AnimationState, StateEvent, StateEventKind};
 
 /// Loads skeleton data from file bytes: binary `.skel` or skeleton JSON.

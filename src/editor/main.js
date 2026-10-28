@@ -83,6 +83,7 @@ function menus() {
       { label: 'Export as format 4.2…', action: () => app.exportSkeletonJson('4.2') },
       { label: 'Export as format 4.3…', action: () => app.exportSkeletonJson('4.3') },
       { label: 'Export .skel + atlas (4.3)…', action: () => app.exportSkeletonBinary() },
+      { label: 'Export scene for runtimes…', action: () => app.exportScene() },
       'separator',
       { label: 'Quit', action: () => (inTauri ? getCurrentWindow().close() : window.close()) },
     ],

@@ -1,0 +1,200 @@
+{
+  "skeleton": {
+    "hash": "",
+    "spine": "4.3.0",
+    "x": -2100,
+    "y": -230,
+    "width": 4200,
+    "height": 1810
+  },
+  "bones": [
+    {
+      "name": "root"
+    },
+    {
+      "name": "camera",
+      "parent": "root",
+      "length": 120,
+      "y": 600,
+      "color": "ffd84dff"
+    },
+    {
+      "name": "background",
+      "parent": "root"
+    },
+    {
+      "name": "mountains",
+      "parent": "root"
+    },
+    {
+      "name": "hills",
+      "parent": "root"
+    },
+    {
+      "name": "ground",
+      "parent": "root"
+    },
+    {
+      "name": "NILA",
+      "parent": "root",
+      "x": -380,
+      "scaleX": 0.3,
+      "scaleY": 0.3,
+      "color": "ff8cd9ff"
+    },
+    {
+      "name": "Rigbytron",
+      "parent": "root",
+      "x": 430,
+      "scaleX": 0.48,
+      "scaleY": 0.48,
+      "color": "ff8cd9ff"
+    }
+  ],
+  "slots": [
+    {
+      "name": "background",
+      "bone": "background",
+      "attachment": "background"
+    },
+    {
+      "name": "mountains",
+      "bone": "mountains",
+      "attachment": "mountains"
+    },
+    {
+      "name": "hills",
+      "bone": "hills",
+      "attachment": "hills"
+    },
+    {
+      "name": "ground",
+      "bone": "ground",
+      "attachment": "ground"
+    },
+    {
+      "name": "NILA",
+      "bone": "NILA"
+    },
+    {
+      "name": "Rigbytron",
+      "bone": "Rigbytron"
+    }
+  ],
+  "skins": [
+    {
+      "name": "default",
+      "attachments": {
+        "background": {
+          "background": {
+            "y": 730,
+            "width": 4200,
+            "height": 1700
+          }
+        },
+        "mountains": {
+          "mountains": {
+            "y": 380,
+            "width": 4200,
+            "height": 760
+          }
+        },
+        "hills": {
+          "hills": {
+            "y": 260,
+            "width": 4200,
+            "height": 520
+          }
+        },
+        "ground": {
+          "ground": {
+            "y": -100,
+            "width": 4200,
+            "height": 260
+          }
+        }
+      }
+    }
+  ],
+  "animations": {
+    "meet": {
+      "bones": {
+        "Rigbytron": {
+          "translate": [
+            {
+              "time": 4.8,
+              "curve": [
+                4.86,
+                0,
+                4.88,
+                0,
+                4.86,
+                0,
+                4.88,
+                46
+              ]
+            },
+            {
+              "time": 5,
+              "y": 46,
+              "curve": [
+                5.075,
+                0,
+                5.1,
+                0,
+                5.075,
+                46,
+                5.1,
+                0
+              ]
+            },
+            {
+              "time": 5.25
+            }
+          ]
+        },
+        "camera": {
+          "translate": [
+            {
+              "x": -380,
+              "y": -30,
+              "curve": [
+                4.05,
+                -380,
+                4.95,
+                300,
+                4.05,
+                -30,
+                4.95,
+                0
+              ]
+            },
+            {
+              "time": 9,
+              "x": 300
+            }
+          ],
+          "scale": [
+            {
+              "x": 1.12,
+              "y": 1.12,
+              "curve": [
+                4.05,
+                1.12,
+                4.95,
+                1,
+                4.05,
+                1.12,
+                4.95,
+                1
+              ]
+            },
+            {
+              "time": 9
+            }
+          ]
+        }
+      }
+    }
+  }
+}

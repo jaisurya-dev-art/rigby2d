@@ -253,6 +253,65 @@ export function setupCameraPosition(stage) {
   return cameraPosition(stage, new Pose(stage));
 }
 
+// ---- export for runtimes ---------------------------------------------------------------------
+
+/** Format version of exported scene manifests (`<name>.scene.json`). */
+export const SCENE_FORMAT = 1;
+
+/**
+ * The manifest of a scene exported for runtimes: the scene (actors, clips, depth, focal) with the
+ * file of the stage skeleton and of each actor's skeleton, relative to the manifest. Each skeleton
+ * is an ordinary skeleton export with its own atlas next to it.
+ */
+export function writeSceneManifest(scene, stageFile, actorFiles) {
+  return {
+    rigbyScene: SCENE_FORMAT,
+    stage: stageFile,
+    focal: scene.focal,
+    depth: { ...scene.depth },
+    actors: scene.actors.map((a) => ({
+      id: a.id,
+      name: a.name,
+      bone: a.bone,
+      slot: a.slot,
+      skeleton: actorFiles.get(a.id) ?? null,
+      skin: a.skin,
+      flip: a.flip,
+      ground: a.ground ?? 0,
+      clips: Object.fromEntries(Object.entries(a.clips).map(([shot, list]) => [shot, list.map((c) => ({ ...c }))])),
+    })),
+  };
+}
+
+/** Reads a scene manifest: { stage (file), skeletons (Map actor id -> file), scene }. */
+export function readSceneManifest(o) {
+  if (!o || typeof o !== 'object' || typeof o.rigbyScene !== 'number') throw new Error('not a Rigby2D scene manifest');
+  if (o.rigbyScene > SCENE_FORMAT) throw new Error(`scene format ${o.rigbyScene} is newer than this runtime (${SCENE_FORMAT})`);
+  if (typeof o.stage !== 'string') throw new Error('the scene manifest names no stage skeleton');
+  const skeletons = new Map();
+  for (const a of Array.isArray(o.actors) ? o.actors : []) if (a && typeof a.id === 'string' && typeof a.skeleton === 'string') skeletons.set(a.id, a.skeleton);
+  return { stage: o.stage, skeletons, scene: readScene(o) };
+}
+
+/**
+ * Loads an exported scene and returns a ScenePlayer. `loadSkeleton(file)` returns (or resolves to)
+ * the Skeleton of a file named in the manifest, relative to it.
+ *
+ *   const player = await loadScene(manifest, async (f) => readSkeletonJson(await (await fetch(f)).json()).skeleton);
+ */
+export async function loadScene(manifest, loadSkeleton) {
+  const { stage: stageFile, skeletons, scene } = readSceneManifest(manifest);
+  const stage = await loadSkeleton(stageFile);
+  stage.scene = scene;
+  const docs = new Map();
+  const byFile = new Map();
+  for (const [id, file] of skeletons) {
+    if (!byFile.has(file)) byFile.set(file, await loadSkeleton(file));
+    docs.set(id, byFile.get(file));
+  }
+  return new ScenePlayer(stage, docs);
+}
+
 // ---- playback -----------------------------------------------------------------------------------
 
 /**

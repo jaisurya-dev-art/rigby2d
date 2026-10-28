@@ -45,6 +45,8 @@ impl RegionLookup {
 /// Triangles that share an atlas page and a blend mode, in draw order.
 #[derive(Clone, Debug, Default)]
 pub struct Batch {
+    /// Which skeleton's atlas `page` belongs to: the `source` given to `append` (0 for `build`).
+    pub source: usize,
     pub page: usize,
     pub blend: Blend,
     /// World positions (x, y), Y up.
@@ -63,6 +65,7 @@ pub struct Batch {
 pub struct RenderOutput {
     pub batches: Vec<Batch>,
     used: usize,
+    source: usize,
     scratch_p: Vec<f64>,
     scratch_uv: Vec<f64>,
     clip_p: Vec<f64>,
@@ -80,10 +83,23 @@ impl RenderOutput {
 
     /// Builds the geometry of `pose`. `tint` multiplies every color.
     pub fn build(&mut self, sk: &SkeletonData, pose: &Pose, lookup: &RegionLookup, tint: [f64; 4]) {
+        self.clear();
+        self.append(sk, pose, lookup, tint, &pose.draw_order, 0);
+    }
+
+    /// Empties the output before a series of `append`s.
+    pub fn clear(&mut self) {
         self.used = 0;
+    }
+
+    /// Adds the geometry of some slots of `pose` (`slots`, in draw order) after what is already
+    /// built. Several skeletons can be layered this way (a scene's stage and characters); `source`
+    /// tells their atlases apart in the batches.
+    pub fn append(&mut self, sk: &SkeletonData, pose: &Pose, lookup: &RegionLookup, tint: [f64; 4], slots: &[usize], source: usize) {
+        self.source = source;
         let mut clipper: Option<Clipper> = None;
         let mut clip_end: Option<usize> = None;
-        for &i in &pose.draw_order {
+        for &i in slots {
             let att = pose.slot_attachment(sk, i);
             if let Some(att) = att {
                 match &att.kind {
@@ -175,13 +191,14 @@ impl RenderOutput {
     fn emit(&mut self, page: usize, blend: Blend, positions: &[f64], uvs: &[f64], triangles: &[u32], light: [f32; 4], dark: [f32; 4]) {
         let continues = self.used > 0 && {
             let b = &self.batches[self.used - 1];
-            b.page == page && b.blend == blend
+            b.source == self.source && b.page == page && b.blend == blend
         };
         if !continues {
             if self.batches.len() == self.used {
                 self.batches.push(Batch::default());
             }
             let b = &mut self.batches[self.used];
+            b.source = self.source;
             b.page = page;
             b.blend = blend;
             b.positions.clear();

@@ -14,6 +14,8 @@ the Rigby2D or Hoverlabs names, logos or other brand assets.
   including the demo projects that show it.
 - **NILA**, the Rigby2D female mascot: her name, character design, artwork, voice and animation (the
   files in [`branding/nila/`](branding/nila/)), including the NILA demo project and the promo film.
+- The scene demo (`branding/scene/` and its export in `runtimes/godot/demo/scene/`), with its
+  painted backgrounds.
 - Any other branding that identifies Rigby2D or Hoverlabs as the source of a product.
 
 These are trademarks and brand assets of Hoverlabs. All rights reserved.

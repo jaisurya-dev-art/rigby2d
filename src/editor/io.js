@@ -8,6 +8,7 @@ import { readSkeletonBinary, writeSkeletonBinary } from '../core/binary.js';
 import { isSkeletonJson, readSkeletonJson, writeSkeletonJson } from '../core/interop.js';
 
 import { transform } from '../core/math.js';
+import { writeSceneManifest } from '../core/scene.js';
 import { Pose } from '../core/pose.js';
 import { sequenceFrameName } from '../core/sequence.js';
 import { Skeleton, makeAttachment, makeSlot, uniqueName } from '../core/model.js';
@@ -303,6 +304,38 @@ export async function exportSkeletonBinary(path, fs, doc, images) {
   const atlasPath = await writePackedAtlas(path, fs, doc, images);
   await fs.writeFile(path, bytes);
   return { atlasPath, warnings };
+}
+
+/**
+ * Exports a scene for runtimes: `<name>.scene.json` (the manifest, see core/scene.js), the stage as
+ * `<name>.json` and each character as `<name>.<actor id>.json`, every skeleton (format 4.3) with its
+ * own `.atlas` and `.png`. `actorDocs` lists { id, doc, images } for the characters the scene uses.
+ * Returns { files, warnings }.
+ */
+export async function exportScene(path, fs, doc, images, actorDocs) {
+  const base = path.replace(/(\.scene)?\.json$/i, '');
+  const files = [];
+  const warnings = [];
+  const write = async (file, sk, imgs, label) => {
+    const { json, warnings: w } = writeSkeletonJson(sk, { version: '4.3' });
+    warnings.push(...w.map((x) => `${label}: ${x}`));
+    if (usedImages(sk).length) files.push(await writePackedAtlas(file, fs, sk, imgs));
+    await fs.writeText(file, JSON.stringify(json, null, 2));
+    files.push(file);
+  };
+  await write(`${base}.json`, doc, images, 'stage');
+  const actorFiles = new Map();
+  for (const { id, doc: actorDoc, images: actorImages } of actorDocs) {
+    if (actorFiles.has(id)) continue;
+    actorFiles.set(id, `${basename(base)}.${id}.json`);
+    await write(`${base}.${id}.json`, actorDoc, actorImages, id);
+  }
+  const missing = (doc.scene?.actors ?? []).filter((a) => !actorFiles.has(a.id));
+  if (missing.length) warnings.push(`no character loaded for ${missing.map((a) => a.name).join(', ')}`);
+  const manifest = writeSceneManifest(doc.scene, basename(`${base}.json`), actorFiles);
+  await fs.writeText(`${base}.scene.json`, JSON.stringify(manifest, null, 2));
+  files.unshift(`${base}.scene.json`);
+  return { files, warnings };
 }
 
 /** Packs the used images into `<name>.png` and writes `<name>.atlas`. Returns the atlas path. */

@@ -10,6 +10,7 @@ file stays the source; export again whenever it changes.
 | *File ▸ Export JSON + atlas…* (<kbd>Ctrl</kbd>+<kbd>E</kbd>) | `name.json` in the project's format version, `name.atlas`, `name.png` |
 | *Export as format 3.8… / 4.2… / 4.3…* | The same, in that skeleton JSON version. |
 | *Export .skel + atlas (4.3)…* | Binary `name.skel` (smaller, faster to load), `name.atlas`, `name.png` |
+| *Export scene for runtimes…* | A [scene](scenes.md#in-games-and-apps): `name.scene.json`, plus the stage and each character as skeleton JSON 4.3 with their own atlas |
 
 The images actually used are packed into one atlas page. Its filter follows the project's
 **Textures** setting (`Linear` or, for pixel art, `Nearest`).

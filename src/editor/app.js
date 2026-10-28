@@ -15,7 +15,7 @@ import { WORKSPACES, workspace as workspaceDef } from './workspaces.js';
 import * as onion from './onion.js';
 import { track } from './analytics.js';
 import { DEMOS_REMOTE, demoById } from './demos.js';
-import { actorEntries, actors, loadActors, poseActors } from './actors.js';
+import { actorEntries, actors, imageKey, loadActors, poseActors } from './actors.js';
 import { applyParallax, setupCameraPosition } from '../core/scene.js';
 
 /** Default onion-skin tint colors (future = cool, past = warm), shared with the UI. */
@@ -665,6 +665,25 @@ export class App {
       this.setStatus(`Exported skeleton JSON ${version}: ${target.path} and ${atlasPath}${note}`);
     } catch (e) {
       this.setStatus(`Skeleton JSON export failed: ${errorText(e)}`);
+    }
+  }
+
+  /** Exports the scene for runtimes: a manifest plus the stage and every character as skeleton JSON. */
+  async exportScene() {
+    if (!this.doc.scene) return this.setStatus('This project has no scene to export (File ▸ New scene)');
+    const target = await this.guard(() => platform.pickSaveTarget(`${this.doc.name || 'scene'}.scene.json`, 'Rigby2D scene', 'json'));
+    if (!target) return;
+    try {
+      const list = this.doc.scene.actors
+        .filter((a) => actors.get(a.id))
+        .map((a) => ({ id: a.id, doc: actors.get(a.id).doc, images: { get: (name) => this.images.get(imageKey(a.id, name)) } }));
+      const { files, warnings } = await io.exportScene(target.path, target.fs, this.doc, this.images, list);
+      await target.fs.finish();
+      const note = warnings.length ? ` (warnings: ${warnings.join('; ')})` : '';
+      track('editor-export-scene');
+      this.setStatus(`Exported the scene: ${files.length} files, ${files[0]}${note}`);
+    } catch (e) {
+      this.setStatus(`Scene export failed: ${errorText(e)}`);
     }
   }
 
