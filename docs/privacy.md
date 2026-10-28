@@ -1,0 +1,36 @@
+# Privacy
+
+Rigby2D is built to keep your work on your computer.
+
+## The desktop app
+
+The Rigby2D editor for Windows does not send any information to other networked systems unless you
+ask it to:
+
+- Your projects, images and sounds are read and written only where you choose.
+- There is no account, telemetry, crash reporting or automatic update check.
+- **Lip-sync transcription** downloads Whisper, a speech recognition model, from
+  [Hugging Face](https://huggingface.co/onnx-community/whisper-base_timestamped) the first time you
+  press *Transcribe* or *Generate lip-sync* with automatic transcription. Your audio is transcribed
+  on your computer and never uploaded. Hugging Face's
+  [privacy policy](https://huggingface.co/privacy) applies to that download.
+- Links you click (the website, the documentation, GitHub) open in your browser.
+
+## The AI assistant extension and MCP server
+
+The MCP server reads and writes only inside the folders you allow, on your computer. It does not
+contact any network service itself. What your AI assistant does with the results is governed by
+that assistant's own privacy terms.
+
+## The website and the browser editor
+
+[jaisurya-dev-art.github.io/rigby2d](https://jaisurya-dev-art.github.io/rigby2d/) is hosted on
+GitHub Pages; [GitHub's privacy statement](https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement)
+applies to serving it. Visits to the website, its documentation and its browser editor are counted
+anonymously with [GoatCounter](https://www.goatcounter.com): no cookies, no personal data, and no
+tracking across sites. Projects you open in the browser editor stay in your browser; nothing is
+uploaded.
+
+## Contact
+
+Questions about privacy: [open an issue](https://github.com/jaisurya-dev-art/rigby2d/issues).
