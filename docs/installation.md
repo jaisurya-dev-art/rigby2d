@@ -31,7 +31,8 @@ Download the latest release from the
 The app needs WebView2, which is part of Windows 10 and 11.
 
 > [!WARNING]
-> The downloads are not code-signed yet, so Windows SmartScreen may warn before running them
+> The downloads are not code-signed yet (we have applied to the SignPath Foundation for free code
+> signing; see the [code signing policy](code-signing.md)), so Windows SmartScreen may warn before running them
 > (*More info ▸ Run anyway*). Each release lists the SHA-256 checksum of every file in
 > `SHA256SUMS.txt`. Compare it
 > before running anything:

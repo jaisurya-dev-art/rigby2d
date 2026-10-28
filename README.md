@@ -74,6 +74,8 @@ runtimes and the MCP server. The pages are also in [`docs/`](docs/).
 - **In your browser:** [open the editor](https://jaisurya-dev-art.github.io/rigby2d/editor/), nothing to install.
 - **Windows:** [download the portable editor](https://github.com/jaisurya-dev-art/rigby2d/releases/latest/download/Rigby2D_x64_portable.exe)
   or an installer from [Releases](https://github.com/jaisurya-dev-art/rigby2d/releases).
+  Windows code signing comes from the SignPath Foundation (application under review; see the
+  [code signing policy](https://jaisurya-dev-art.github.io/rigby2d/docs/code-signing.html)).
 - **AI assistants:** install [Rigby2D-AI.mcpb](https://github.com/jaisurya-dev-art/rigby2d/releases/latest/download/Rigby2D-AI.mcpb)
   in Claude Desktop, or see the [MCP guide](https://jaisurya-dev-art.github.io/rigby2d/docs/mcp.html).
 - **From source** (Node.js 20+ and the [Tauri prerequisites](https://tauri.app/start/prerequisites/)):

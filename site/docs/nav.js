@@ -29,7 +29,7 @@ export const NAV = [
   },
   {
     title: 'Reference',
-    pages: ['shortcuts', 'troubleshooting', 'demos', 'privacy'],
+    pages: ['shortcuts', 'troubleshooting', 'demos', 'privacy', 'code-signing'],
   },
 ];
 
