@@ -263,6 +263,9 @@ export class Coach {
                 button.disabled = true;
                 try {
                   await step.action.run(this.ctx);
+                } catch (err) {
+                  // The desktop app downloads the demo and practice characters; say so when that fails.
+                  this.ctx.app.setStatus(`Could not load the lesson's character: ${err?.message ?? err}. The desktop app downloads it from the Rigby2D website: check the internet connection.`);
                 } finally {
                   button.disabled = false;
                   this.check();
