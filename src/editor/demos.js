@@ -40,4 +40,7 @@ export const DEMOS = [
   },
 ];
 
+/** The license of the demo content (branding/DEMO-LICENSE.md), on the website's Demos page. */
+export const DEMO_LICENSE_URL = 'https://jaisurya-dev-art.github.io/rigby2d/demos/#license';
+
 export const demoById = (id) => DEMOS.find((d) => d.id === id) ?? DEMOS[0];

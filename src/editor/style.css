@@ -2210,3 +2210,49 @@ kbd {
   line-height: 1.5;
   color: var(--weak);
 }
+
+/* File ▸ Open demo: the demo content license notice. */
+.demo-license {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  background: rgba(230, 162, 60, 0.08);
+  border: 1px solid rgba(230, 162, 60, 0.28);
+  border-radius: 8px;
+}
+.demo-license p {
+  flex: 1;
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: #c9ccd3;
+}
+.demo-license b {
+  display: inline;
+  color: #f0d3a2;
+}
+.demo-license-mark {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #f0c27a;
+  background: rgba(230, 162, 60, 0.16);
+  border-radius: 50%;
+}
+.demo-license button.link {
+  flex: none;
+  padding: 4px 8px;
+  color: #f0c27a;
+  background: transparent;
+  border: 1px solid rgba(230, 162, 60, 0.35);
+  border-radius: 6px;
+  white-space: nowrap;
+}
+.demo-license button.link:hover:not(:disabled) {
+  background: rgba(230, 162, 60, 0.14);
+}

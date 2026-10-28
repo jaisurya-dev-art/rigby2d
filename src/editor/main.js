@@ -30,6 +30,7 @@ import { openAiConnect } from './aiconnect.js';
 import { installPanelSync } from './panelsync.js';
 import { windowLayoutsMenuItem } from './layoutui.js';
 import { openDemoPicker } from './demoui.js';
+import { DEMOS } from './demos.js';
 import { newScene } from './sceneui.js';
 import { ago, clearRecentProjects, recentProjects, splitPath } from './recent.js';
 import { LINKS, openAbout, openShortcuts } from './helpui.js';
@@ -492,8 +493,11 @@ function frame(now) {
 requestAnimationFrame(frame);
 
 // The editor starts with an empty project (demos are under File > Open demo); new users are
-// offered the tour once.
-setTimeout(() => tutorials.welcome(), 1200);
+// offered the tour once. A link such as editor/?demo=nila (the website's Demos page) opens that
+// demo instead.
+const linkedDemo = new URLSearchParams(location.search).get('demo');
+if (linkedDemo && DEMOS.some((d) => d.id === linkedDemo)) app.openDemo(linkedDemo, false);
+else setTimeout(() => tutorials.welcome(), 1200);
 
 // The window starts hidden while the splash screen plays; the splash opens it when done. Show it
 // anyway if the splash never does.

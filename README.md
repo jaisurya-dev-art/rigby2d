@@ -70,7 +70,9 @@ runtimes and the MCP server. The pages are also in [`docs/`](docs/).
   Claude can inspect, rig and animate your projects.
 - **Lossless skeleton JSON (3.8, 4.2, 4.3) and binary `.skel`** with texture atlases, played by the
   **JavaScript, Rust and Godot runtimes**.
-- Built-in **tutorials** and demo projects (**NILA**, **Rigbytron**, and a **scene** with both).
+- Built-in **tutorials** and demo projects (**NILA**, **Rigbytron**, and a **scene** with both), also on the
+  [Demos page](https://jaisurya-dev-art.github.io/rigby2d/demos/) with their game-ready exports
+  (demo content © Hoverlabs, under its own [demo license](branding/DEMO-LICENSE.md)).
 
 ## Getting started
 

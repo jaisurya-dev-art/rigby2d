@@ -611,7 +611,7 @@ export class App {
       this.playDirection = 1;
       this.frameRequest = true;
       rememberProject({ kind: 'demo', id: demo.id, name: demo.name });
-      this.setStatus(`${demo.name} demo: ${demo.description} Save keeps a copy.`);
+      this.setStatus(`${demo.name} demo: ${demo.description} Save keeps a copy. Demo content © Hoverlabs, for learning and evaluation only (see the demo license in File ▸ Open demo).`);
     } catch (e) {
       this.setStatus(`Could not open the demo: ${errorText(e)}${DEMOS_REMOTE ? ' Demos download from the Rigby2D website: check the internet connection.' : ''}`);
     }

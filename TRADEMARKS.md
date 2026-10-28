@@ -20,6 +20,10 @@ the Rigby2D or Hoverlabs names, logos or other brand assets.
 
 These are trademarks and brand assets of Hoverlabs. All rights reserved.
 
+The demo projects (NILA, Rigbytron and the scene demo) may be used to learn, evaluate and teach
+Rigby2D under the [Rigby2D Demo Content License](branding/DEMO-LICENSE.md), which is included in every
+demo download.
+
 ## What you may do
 
 - Use, modify and redistribute the source code under the MIT or Apache 2.0 license.

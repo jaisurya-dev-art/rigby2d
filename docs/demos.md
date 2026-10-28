@@ -17,5 +17,12 @@ characters' artwork.
 
 ![NILA's expressions](images/expressions.jpg "NILA's face poses")
 
-NILA and Rigbytron are proprietary characters of Hoverlabs: use them to learn and explore, but not
-in your own products. See [TRADEMARKS.md](../TRADEMARKS.md).
+## Downloads and license
+
+The [Demos page](https://jaisurya-dev-art.github.io/rigby2d/demos/) has every demo as a zip: the
+`.rigby` project, its game-ready export (skeleton, atlas and images) and its license.
+
+NILA, Rigbytron and the scene demo are proprietary content of Hoverlabs, shared under the
+[Rigby2D Demo Content License](https://jaisurya-dev-art.github.io/rigby2d/demos/#license): use them to
+learn, evaluate and teach Rigby2D (with credit), but not in your own products, and not to train AI
+models. The demo window in the editor shows the same notice.

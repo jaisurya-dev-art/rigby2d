@@ -6,10 +6,10 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { defineConfig } from 'vite';
 
-import { DOCS, imageFiles, pageHtml, renderAll, searchIndex } from './docs/build.js';
+import { DOCS, imageFiles, pageHtml, renderAll, renderMarkdown, searchIndex } from './docs/build.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const repo = path.resolve(here, '..');
@@ -24,16 +24,118 @@ function socialImage() {
   };
 }
 
-/** The demo projects at fixed URLs (demos/<id>.rigby and .png), which the desktop app downloads. */
-const DEMOS = { rigbytron: 'branding/rigbytron/rigbytron.rigby', nila: 'branding/nila/nila.rigby', scene: 'branding/scene/scene.rigby' };
+/**
+ * The demo projects. Each is published at a fixed URL (demos/<id>.rigby and .png, which the desktop
+ * app downloads) and as a zip for the Demos page: the project, its game-ready export, a README and
+ * the demo content license (branding/DEMO-LICENSE.md).
+ */
+const DEMOS = {
+  rigbytron: {
+    title: 'Rigbytron',
+    credit: 'Rigbytron',
+    file: 'branding/rigbytron/rigbytron.rigby',
+    export: 'branding/rigbytron/export',
+    about: 'The Rigby2D robot mascot: a rig with a meshed body, IK, and its hold and release animations with a slash event.',
+  },
+  nila: {
+    title: 'NILA',
+    credit: 'NILA',
+    file: 'branding/nila/nila.rigby',
+    export: 'branding/nila/export',
+    about: 'A layered character with bending meshes, physics on her braid and jhumkas, face poses, her voice with viseme lip-sync, and the 70-second promo animation (Film workspace).',
+  },
+  scene: {
+    title: 'Scene: NILA meets Rigbytron',
+    credit: 'NILA and Rigbytron',
+    file: 'branding/scene/scene.rigby',
+    export: 'runtimes/godot/demo/scene',
+    about: 'Scene composition: both characters as actors with clips, voices and lip-sync, on a painted multiplane stage with parallax and a moving camera.',
+  },
+};
+const DEMO_LICENSE = 'branding/DEMO-LICENSE.md';
+
+/** Every file under `dir` (relative paths with '/'), skipping Godot's import metadata. */
+function filesIn(dir) {
+  const out = [];
+  const walk = (rel) => {
+    for (const e of fs.readdirSync(path.join(dir, rel), { withFileTypes: true })) {
+      const r = rel ? `${rel}/${e.name}` : e.name;
+      if (e.isDirectory()) walk(r);
+      else if (!/\.(import|uid)$/.test(e.name)) out.push(r);
+    }
+  };
+  walk('');
+  return out.sort();
+}
+
+function demoReadme(id, demo, exported) {
+  const name = path.basename(demo.file);
+  return `# Rigby2D demo: ${demo.title}
+
+${demo.about}
+
+## What's inside
+
+- \`${name}\`: the Rigby2D project. Open it in Rigby2D with *File ▸ Open…*, or open the demo from
+  *File ▸ Open demo…*. The editor runs in your browser too: https://jaisurya-dev-art.github.io/rigby2d/editor/
+- \`export/\`: the same content exported for games (${exported.join(', ')}), ready for the
+  JavaScript, Rust and Godot runtimes: https://jaisurya-dev-art.github.io/rigby2d/docs/runtimes.html
+- \`thumbnail.png\`: a preview.
+- \`LICENSE.md\`: the Rigby2D Demo Content License.
+
+## License
+
+This demo is © Hoverlabs and is **not** open source. You may open, study and modify it to learn
+Rigby2D, use it to evaluate Rigby2D and its runtimes, and show it in tutorials, reviews and videos
+with the credit *"${demo.credit} © Hoverlabs, from the Rigby2D demo projects."* You may not use it in your
+own games, apps, films or other products, or to train AI models. Read \`LICENSE.md\` for the full
+terms.
+
+Rigby2D itself (the editor and runtimes) is open source under MIT OR Apache-2.0:
+https://github.com/jaisurya-dev-art/rigby2d
+`;
+}
+
+/** The demo zip: <id>/ with the project, export/, thumbnail.png, README.md and LICENSE.md. */
+async function demoZip(id, demo) {
+  const { zip } = await import(pathToFileURL(path.join(repo, 'src/editor/zip.js')).href);
+  const dir = path.dirname(demo.file);
+  const exported = filesIn(path.join(repo, demo.export));
+  const read = (p) => new Uint8Array(fs.readFileSync(path.join(repo, p)));
+  const text = (t) => new TextEncoder().encode(t);
+  return zip([
+    { path: `${id}/README.md`, bytes: text(demoReadme(id, demo, exported.filter((f) => !f.includes('/')))) },
+    { path: `${id}/LICENSE.md`, bytes: read(DEMO_LICENSE) },
+    { path: `${id}/${path.basename(demo.file)}`, bytes: read(demo.file) },
+    { path: `${id}/thumbnail.png`, bytes: read(path.join(dir, 'thumbnail.png')) },
+    ...exported.map((f) => ({ path: `${id}/export/${f}`, bytes: read(path.join(demo.export, f)) })),
+  ]);
+}
+
+const zips = new Map();
+const zipOf = (id) => {
+  if (!zips.has(id)) zips.set(id, demoZip(id, DEMOS[id]));
+  return zips.get(id);
+};
+
 function demoFiles() {
   return {
     name: 'rigby-site-demos',
-    generateBundle() {
-      for (const [id, file] of Object.entries(DEMOS)) {
-        this.emitFile({ type: 'asset', fileName: `demos/${id}.rigby`, source: fs.readFileSync(path.join(repo, file)) });
-        this.emitFile({ type: 'asset', fileName: `demos/${id}.png`, source: fs.readFileSync(path.join(repo, path.dirname(file), 'thumbnail.png')) });
+    // The Demos page: the full license rendered from its Markdown, and the size of each zip.
+    async transformIndexHtml(html, ctx) {
+      if (!ctx.filename.replace(/\\/g, '/').endsWith('/demos/index.html')) return html;
+      const license = fs.readFileSync(path.join(repo, DEMO_LICENSE), 'utf8').replace(/^# .*\n/, '');
+      let out = html.replace('<!--demo-license-->', renderMarkdown(license).html);
+      for (const id of Object.keys(DEMOS)) out = out.replace(`{{size:${id}}}`, `${((await zipOf(id)).length / 1048576).toFixed(1)} MB`);
+      return out;
+    },
+    async generateBundle() {
+      for (const [id, demo] of Object.entries(DEMOS)) {
+        this.emitFile({ type: 'asset', fileName: `demos/${id}.rigby`, source: fs.readFileSync(path.join(repo, demo.file)) });
+        this.emitFile({ type: 'asset', fileName: `demos/${id}.png`, source: fs.readFileSync(path.join(repo, path.dirname(demo.file), 'thumbnail.png')) });
+        this.emitFile({ type: 'asset', fileName: `demos/rigby2d-demo-${id}.zip`, source: await zipOf(id) });
       }
+      this.emitFile({ type: 'asset', fileName: 'demos/DEMO-LICENSE.md', source: fs.readFileSync(path.join(repo, DEMO_LICENSE)) });
     },
   };
 }
@@ -103,6 +205,6 @@ export default defineConfig({
     target: 'es2021',
     outDir: path.join(repo, '_site'),
     emptyOutDir: true,
-    rollupOptions: { input: { main: path.join(here, 'index.html'), docs: path.join(here, 'docs/docs.js') } },
+    rollupOptions: { input: { main: path.join(here, 'index.html'), demos: path.join(here, 'demos/index.html'), docs: path.join(here, 'docs/docs.js') } },
   },
 });

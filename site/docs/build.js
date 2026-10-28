@@ -171,6 +171,7 @@ export function pageHtml(page, pages, assets) {
       </div>
       <nav class="top-links" aria-label="Site">
         <a href="../">Home</a>
+        <a href="../demos/">Demos</a>
         <a href="${GITHUB}" rel="noopener">GitHub</a>
         <a class="btn" href="../editor/" data-goatcounter-click="docs-open-editor">Open editor</a>
       </nav>
