@@ -37,6 +37,11 @@ import { LINKS, openAbout, openShortcuts } from './helpui.js';
 import { installRecovery } from './recoveryui.js';
 import { applyInterfaceScale, openPreferences } from './prefsui.js';
 import { AddonManager } from './addonui.js';
+import { languageFor, setLanguage, t } from './i18n.js';
+import { openRuntimes } from './runtimeui.js';
+import { checkForUpdates, scheduleUpdateCheck } from './updateui.js';
+import { openWelcome } from './welcomeui.js';
+import { openMigrationCheck } from './migrationui.js';
 import markUrl from '../../branding/rigby2d-mark.svg?url';
 import { startAnalytics } from './analytics.js';
 
@@ -46,9 +51,19 @@ startAnalytics();
 const app = new App();
 // Errors anywhere in the editor, and status messages, go to the log (View ▸ Log).
 log.installCapture(app);
+// The interface language: the preference, or the system's.
+const applyLanguage = () => setLanguage(app.prefs.get('interface.language') || languageFor(navigator.languages ?? [navigator.language]));
+applyLanguage();
+app.prefs.onChange((key) => {
+  if (key === 'interface.language' || key === null) {
+    applyLanguage();
+    app.changed();
+  }
+});
 const scripts = new Scripts(app);
 const recovery = installRecovery(app);
 const addons = new AddonManager(app, scripts);
+scripts.afterStop = () => addons.loadEnabled();
 const showPreferences = (page) => openPreferences(app, addons, page);
 applyInterfaceScale(app);
 const inTauri = '__TAURI_INTERNALS__' in window;
@@ -73,54 +88,57 @@ function menus() {
   return {
     // Grouped so the menu stays short as features grow: New, Import and Export open submenus.
     File: [
-      submenuItem('New', [
-        { label: 'Game project', action: () => app.newDocument('game') },
-        { label: 'Film project', action: () => app.newDocument('film') },
-        { label: 'Scene (several characters)', action: () => newScene(app) },
+      submenuItem(t('New'), [
+        { label: t('Game project'), action: () => app.newDocument('game') },
+        { label: t('Film project'), action: () => app.newDocument('film') },
+        { label: t('Scene (several characters)'), action: () => newScene(app) },
       ]),
-      { label: 'Open…', shortcut: 'Ctrl+O', title: 'Open a .rigby work file, or import a skeleton .json / .skel', action: () => app.openDialog() },
-      submenuItem('Open recent', recentItems),
-      submenuItem('Recover', () => recovery.menu(), { title: 'Unsaved work kept by auto-save, or discarded at the last quit' }),
-      { label: 'Open demo…', action: () => openDemoPicker(app) },
+      { label: t('Open…'), shortcut: 'Ctrl+O', title: t('Open a .rigby work file, or import a skeleton .json / .skel'), action: () => app.openDialog() },
+      submenuItem(t('Open recent'), recentItems),
+      submenuItem(t('Recover'), () => recovery.menu(), { title: t('Unsaved work kept by auto-save, or discarded at the last quit') }),
+      { label: t('Open demo…'), action: () => openDemoPicker(app) },
       'separator',
-      { label: 'Save', shortcut: 'Ctrl+S', action: () => app.save(false) },
-      { label: 'Save as…', shortcut: 'Ctrl+Shift+S', action: () => app.save(true) },
+      { label: t('Save'), shortcut: 'Ctrl+S', action: () => app.save(false) },
+      { label: t('Save as…'), shortcut: 'Ctrl+Shift+S', action: () => app.save(true) },
       'separator',
-      submenuItem('Import', [
-        { label: 'PSD…', action: () => app.importPsd() },
-        { label: 'PNG images…', action: () => app.importImages() },
-        ...(has(app, 'audio') ? [{ label: 'Audio…', action: () => app.importAudio() }] : []),
+      submenuItem(t('Import'), [
+        { label: t('PSD…'), action: () => app.importPsd() },
+        { label: t('PNG images…'), action: () => app.importImages() },
+        ...(has(app, 'audio') ? [{ label: t('Audio…'), action: () => app.importAudio() }] : []),
+        'separator',
+        { label: t('Check a skeleton file…'), title: t('What a skeleton .json or .skel holds, and how it carries over to Rigby2D'), action: () => openMigrationCheck(app) },
       ]),
-      { label: 'AutoRig artwork…', action: () => openAutoRig(app) },
-      { label: 'Retarget animations…', title: 'Copy animations from another character onto this one', action: () => openRetarget(app) },
+      { label: t('AutoRig artwork…'), action: () => openAutoRig(app) },
+      { label: t('Retarget animations…'), title: t('Copy animations from another character onto this one'), action: () => openRetarget(app) },
       'separator',
       // Film renders video; skeleton exports (for game engines) are in both workspaces.
-      ...(has(app, 'render') ? [{ label: 'Render animation…', title: 'PNG sequence, WebM or MP4', action: () => openRenderDialog(app) }] : []),
-      submenuItem('Export', [
-        { label: 'JSON + atlas…', shortcut: 'Ctrl+E', action: () => app.exportSkeletonJson(app.saveVersion()) },
-        { label: 'Binary .skel + atlas (4.3)…', action: () => app.exportSkeletonBinary() },
+      ...(has(app, 'render') ? [{ label: t('Render animation…'), title: t('PNG sequence, WebM or MP4'), action: () => openRenderDialog(app) }] : []),
+      submenuItem(t('Export'), [
+        { label: t('JSON + atlas…'), shortcut: 'Ctrl+E', action: () => app.exportSkeletonJson(app.saveVersion()) },
+        { label: t('Binary .skel + atlas (4.3)…'), action: () => app.exportSkeletonBinary() },
         'separator',
-        { label: 'JSON format 3.8…', action: () => app.exportSkeletonJson('3.8') },
-        { label: 'JSON format 4.2…', action: () => app.exportSkeletonJson('4.2') },
-        { label: 'JSON format 4.3…', action: () => app.exportSkeletonJson('4.3') },
-        ...(app.doc.scene ? ['separator', { label: 'Scene for runtimes…', title: 'The stage, every character and their clips, for the JavaScript, Rust and Godot runtimes', action: () => app.exportScene() }] : []),
+        { label: t('JSON format 3.8…'), action: () => app.exportSkeletonJson('3.8') },
+        { label: t('JSON format 4.2…'), action: () => app.exportSkeletonJson('4.2') },
+        { label: t('JSON format 4.3…'), action: () => app.exportSkeletonJson('4.3') },
+        ...(app.doc.scene ? ['separator', { label: t('Scene for runtimes…'), title: t('The stage, every character and their clips, for the JavaScript, Rust and Godot runtimes'), action: () => app.exportScene() }] : []),
       ]),
+      { label: t('Get runtimes…'), title: t('Unity, Godot, Phaser, JavaScript and Rust runtimes for this version'), action: () => openRuntimes(app) },
       'separator',
-      { label: 'Quit', action: () => (inTauri ? getCurrentWindow().close() : window.close()) },
+      { label: t('Quit'), action: () => (inTauri ? getCurrentWindow().close() : window.close()) },
     ],
     Edit: [
-      { label: 'Undo', shortcut: sc('edit.undo'), disabled: !app.history.undo.length, action: () => app.undo() },
-      { label: 'Redo', shortcut: sc('edit.redo'), disabled: !app.history.redo.length, action: () => app.redo() },
+      { label: t('Undo'), shortcut: sc('edit.undo'), disabled: !app.history.undo.length, action: () => app.undo() },
+      { label: t('Redo'), shortcut: sc('edit.redo'), disabled: !app.history.redo.length, action: () => app.redo() },
       'separator',
-      { label: 'Key changed properties', shortcut: sc('key.changed'), action: () => edit.keyChanged(app) },
-      { label: "Key the current tool's property", shortcut: sc('key.tool'), action: () => edit.keyTool(app) },
-      { label: 'Key all transforms of the selection', shortcut: sc('key.transforms'), action: () => edit.keyTransforms(app) },
-      { label: 'Key everything shown', shortcut: sc('key.shown'), action: () => edit.keyShown(app) },
+      { label: t('Key changed properties'), shortcut: sc('key.changed'), action: () => edit.keyChanged(app) },
+      { label: t("Key the current tool's property"), shortcut: sc('key.tool'), action: () => edit.keyTool(app) },
+      { label: t('Key all transforms of the selection'), shortcut: sc('key.transforms'), action: () => edit.keyTransforms(app) },
+      { label: t('Key everything shown'), shortcut: sc('key.shown'), action: () => edit.keyShown(app) },
       'separator',
-      { label: 'Deselect', shortcut: sc('select.none'), action: () => app.deselect() },
-      { label: 'Delete selection', shortcut: sc('edit.delete'), action: () => edit.deleteSelection(app) },
+      { label: t('Deselect'), shortcut: sc('select.none'), action: () => app.deselect() },
+      { label: t('Delete selection'), shortcut: sc('edit.delete'), action: () => edit.deleteSelection(app) },
       'separator',
-      { label: 'Preferences…', shortcut: sc('app.preferences'), action: () => showPreferences() },
+      { label: t('Preferences…'), shortcut: sc('app.preferences'), action: () => showPreferences() },
     ],
     View: [
       h(
@@ -134,7 +152,7 @@ function menus() {
             app.changed();
           },
         }),
-        ' Show bones',
+        ` ${t('Show bones')}`,
       ),
       has(app, 'outputFrame') &&
       h(
@@ -148,20 +166,20 @@ function menus() {
             app.changed();
           },
         }),
-        ' Show output frame',
+        ` ${t('Show output frame')}`,
       ),
-      { label: logOpen() ? 'Hide log' : 'Log', action: () => toggleLogWindow() },
+      { label: logOpen() ? t('Hide log') : t('Log'), action: () => toggleLogWindow() },
       // Save and recall where the detached panels sit (desktop only; panels pop out only there).
       ...(inTauri && sync ? [windowLayoutsMenuItem({ app, sync })] : []),
       'separator',
-      { label: 'Fit the skeleton in view', shortcut: sc('view.fit'), action: () => (app.frameRequest = true) },
-      { label: 'Zoom to 100%', shortcut: sc('view.actual'), action: () => zoomActual() },
+      { label: t('Fit the skeleton in view'), shortcut: sc('view.fit'), action: () => (app.frameRequest = true) },
+      { label: t('Zoom to 100%'), shortcut: sc('view.actual'), action: () => zoomActual() },
       'separator',
       ...[
         ['webgl', 'WebGL'],
         ['canvas', 'Canvas 2D'],
       ].map(([id, label]) => ({
-        label: `${app.renderer === id ? '● ' : '○ '}Draw with ${label}`,
+        label: `${app.renderer === id ? '● ' : '○ '}${t('Draw with {renderer}', { renderer: label })}`,
         action: () => {
           app.renderer = id;
           saveSetting('rigby.renderer', id);
@@ -171,7 +189,7 @@ function menus() {
       })),
       'separator',
       ...Object.entries(PRESETS).map(([id, p]) => ({
-        label: `${app.keymap === id ? '● ' : '○ '}Shortcuts: ${p.label}`,
+        label: `${app.keymap === id ? '● ' : '○ '}${t('Shortcuts: {name}', { name: p.label })}`,
         action: () => {
           app.setKeymap(id);
           app.setStatus(`Keyboard shortcuts: ${p.label}`);
@@ -180,17 +198,19 @@ function menus() {
     ],
     Scripts: scripts.menu(),
     Help: [
-      { label: 'Tutorials…', action: () => tutorials.open() },
-      { label: 'Keyboard shortcuts…', action: () => openShortcuts(app) },
-      { label: 'Documentation', shortcut: '↗', action: () => openExternal(LINKS.docs) },
+      { label: t('Welcome screen…'), action: () => openWelcome(app, { tutorials }) },
+      { label: t('Tutorials…'), action: () => tutorials.open() },
+      { label: t('Keyboard shortcuts…'), action: () => openShortcuts(app) },
+      { label: t('Documentation'), shortcut: '↗', action: () => openExternal(LINKS.docs) },
       'separator',
-      { label: 'Connect an AI assistant…', action: () => openAiConnect() },
+      { label: t('Connect an AI assistant…'), action: () => openAiConnect() },
       'separator',
-      { label: "What's new", shortcut: '↗', action: () => openExternal(LINKS.releaseNotes) },
-      { label: 'Report an issue', shortcut: '↗', action: () => openExternal(LINKS.issues) },
-      { label: 'Report a crash…', title: 'A report of the recent errors, to copy or post', action: () => recovery.openCrashReport() },
+      { label: t("What's new"), shortcut: '↗', action: () => openExternal(LINKS.releaseNotes) },
+      { label: t('Report an issue'), shortcut: '↗', action: () => openExternal(LINKS.issues) },
+      { label: t('Report a crash…'), title: t('A report of the recent errors, to copy or post'), action: () => recovery.openCrashReport() },
       'separator',
-      { label: 'About Rigby2D', action: () => openAbout() },
+      ...(inTauri ? [{ label: t('Check for updates…'), action: () => checkForUpdates(app) }] : []),
+      { label: t('About Rigby2D'), action: () => openAbout() },
     ],
   };
 }
@@ -241,7 +261,7 @@ function showMenu(title, button) {
 function buildMenuBar() {
   const bar = $('#menubar');
   const titles = Object.keys(menus()).map((title) => {
-    const btn = h('button', { class: 'menu-title', 'data-tut': `menu:${title}` }, title);
+    const btn = h('button', { class: 'menu-title', 'data-tut': `menu:${title}`, 'data-title': title }, t(title));
     btn.addEventListener('click', () => {
       if (isMenuOpen() && openTitle === title) {
         closeMenu();
@@ -286,7 +306,13 @@ function buildMenuBar() {
   // Called every frame: touch the DOM only when something shown changed.
   let shown = '';
   let shownTitle = '';
+  let shownLanguage = document.documentElement.lang;
   return () => {
+    // Menu titles follow the interface language (Preferences ▸ General).
+    if (document.documentElement.lang !== shownLanguage) {
+      shownLanguage = document.documentElement.lang;
+      for (const b of titles) b.textContent = t(b.dataset.title);
+    }
     // The notice follows the live onion state, independent of the cached menubar state below.
     onionNotice.hidden = !app.onionActive();
     if (docTitle) {
@@ -300,7 +326,7 @@ function buildMenuBar() {
         docTitle.classList.toggle('dirty', dirty);
       }
     }
-    const state = `${app.mode}|${app.workspace}|${app.keymap}`;
+    const state = `${app.mode}|${app.workspace}|${app.keymap}|${document.documentElement.lang}`;
     if (state === shown) return;
     shown = state;
     mode.textContent = app.mode === Mode.Setup ? 'SETUP' : 'ANIMATE';
@@ -525,7 +551,8 @@ requestAnimationFrame(frame);
 // offered the tour once. A link such as editor/?demo=nila (the website's Demos page) opens that
 // demo instead.
 // Work from an editor that crashed is offered back first; otherwise the last project reopens when
-// that preference is on.
+// that preference is on, or the welcome screen shows (Preferences ▸ General). Then, on the desktop,
+// a quiet daily update check.
 const linkedDemo = new URLSearchParams(location.search).get('demo');
 if (linkedDemo && DEMOS.some((d) => d.id === linkedDemo)) app.openDemo(linkedDemo, false);
 else {
@@ -533,7 +560,7 @@ else {
     if (offered) return;
     const last = recentProjects()[0];
     if (inTauri && app.prefs.get('files.reopenLast') && last?.kind === 'file') await app.openRecent(last);
-    else setTimeout(() => tutorials.welcome(), 1200);
+    else if (app.prefs.get('general.welcome')) openWelcome(app, { tutorials });
   });
 }
 
@@ -548,6 +575,7 @@ if (import.meta.env.DEV) window.rigby = { app, memoryFs, dopesheet, graph, viewp
 // Enabled add-ons too (Edit ▸ Preferences ▸ Add-ons).
 if (scripts.library.length) setTimeout(() => scripts.loadAll({ quiet: true }), 1500);
 setTimeout(() => addons.loadEnabled(), 1500);
+scheduleUpdateCheck(app);
 
 $('#status-log').addEventListener('click', () => toggleLogWindow());
 

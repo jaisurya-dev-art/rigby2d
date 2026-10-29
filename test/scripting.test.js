@@ -112,8 +112,8 @@ def nudge():
   const id = toolId('tools.py', 'Nudge arm');
   assert.equal(host.tools.get(id).description, 'Moves the arm 5 units right');
   const steps = app.undoSteps;
-  assert.equal(host.runTool(id).ok, true);
-  assert.equal(host.runTool(id).ok, true);
+  assert.equal((await host.runTool(id)).ok, true);
+  assert.equal((await host.runTool(id)).ok, true);
   assert.equal(app.doc.bones[1].setup.x, 20);
   assert.equal(app.undoSteps, steps + 2);
   // Reloading the script replaces its tools.

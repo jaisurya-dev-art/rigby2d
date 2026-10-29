@@ -29,6 +29,15 @@ The Whisper speech model is not distributed with Rigby2D: the editor downloads i
 (`onnx-community/whisper-base_timestamped`) the first time it is used. Whisper is by OpenAI, MIT
 License: <https://github.com/openai/whisper>.
 
+## Icons
+
+The editor's dialogs use icons from:
+
+- **Lucide**: ISC License, Copyright (c) Lucide Contributors. Source: <https://lucide.dev>.
+- **Simple Icons** (the Unity, Godot, JavaScript and Rust marks): CC0 1.0. Source:
+  <https://simpleicons.org>. The marks are trademarks of their owners and only name the engines the
+  runtimes are for.
+
 ## Godot runtime
 
 The Godot addon includes godot-rust (MPL-2.0); see `THIRD_PARTY_NOTICES.md` inside the addon.

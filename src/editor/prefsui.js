@@ -11,6 +11,8 @@ import { WORKSPACES } from './workspaces.js';
 import { PREFS } from './prefs.js';
 import { h } from './widgets.js';
 import { renderAddonsPage } from './addonui.js';
+import { LANGUAGES, t } from './i18n.js';
+import { icon } from './icons.js';
 
 /** Applies the interface scale (desktop: the window's zoom, like Blender's resolution scale). */
 export async function applyInterfaceScale(app) {
@@ -22,7 +24,7 @@ export async function applyInterfaceScale(app) {
 }
 
 /** A labelled row: label and hint on the left, the control on the right. */
-const row = (label, hint, control) => h('div', { class: 'pref-row' }, h('div', null, h('div', { class: 'pref-label' }, label), hint ? h('div', { class: 'pref-hint' }, hint) : null), control);
+const row = (label, hint, control) => h('div', { class: 'pref-row' }, h('div', null, h('div', { class: 'pref-label' }, t(label)), hint ? h('div', { class: 'pref-hint' }, t(hint)) : null), control);
 
 function choice(options, value, onChange) {
   const el = h('select', { onchange: (e) => onChange(e.target.value) }, ...options.map(([v, label]) => h('option', { value: v, selected: String(v) === String(value) }, label)));
@@ -53,6 +55,19 @@ function number(app, key, unit) {
 }
 
 const PAGES = [
+  {
+    id: 'general',
+    label: 'General',
+    render: (app) => [
+      row(
+        'Language',
+        'The language of menus and dialogs. Some panels are still in English.',
+        choice([['', t('System ({language})', { language: navigator.language })], ...LANGUAGES], app.prefs.get('interface.language'), (v) => app.prefs.set('interface.language', v)),
+      ),
+      row('Welcome screen', 'Show the welcome screen when the editor starts.', checkbox(app.prefs.get('general.welcome'), (v) => app.prefs.set('general.welcome', v))),
+      isDesktop ? row('Check for updates', 'Look for a new version once a day, and offer to install it.', checkbox(app.prefs.get('updates.check'), (v) => app.prefs.set('updates.check', v))) : null,
+    ],
+  },
   {
     id: 'interface',
     label: 'Interface',
@@ -106,19 +121,19 @@ const PAGES = [
         number(app, 'files.backups'),
       ),
       row('Auto-save', 'Keeps a copy of unsaved work in the recovery folder, offered back after a crash (File ▸ Recover).', checkbox(app.prefs.get('files.autosave'), (v) => app.prefs.set('files.autosave', v))),
-      row('Auto-save every', null, number(app, 'files.autosaveMinutes', 'minutes')),
+      row('Auto-save every', null, number(app, 'files.autosaveMinutes', t('minutes'))),
       isDesktop ? row('Reopen the last project', 'Opens the most recent project when the editor starts.', checkbox(app.prefs.get('files.reopenLast'), (v) => app.prefs.set('files.reopenLast', v))) : null,
     ],
   },
   { id: 'addons', label: 'Add-ons' },
 ];
 
-let current = 'interface';
+let current = 'general';
 
 /** Opens the Preferences dialog; `page` picks the page shown first. */
 export function openPreferences(app, addons, page = current) {
   let offAddons = null;
-  const { body } = dialog('prefs-dialog', 'Preferences', 'Saved as you change them, for every project.', { onClose: () => offAddons?.() });
+  const { body } = dialog('prefs-dialog', t('Preferences'), t('Saved as you change them, for every project.'), { onClose: () => offAddons?.() });
   const nav = h('nav', { class: 'prefs-nav' });
   const content = h('div', { class: 'prefs-page' });
   const show = (id) => {
@@ -131,22 +146,23 @@ export function openPreferences(app, addons, page = current) {
     if (id === 'addons') offAddons = renderAddonsPage(addons, content);
     else content.append(...def.render(app).filter(Boolean));
   };
-  for (const p of PAGES) nav.append(h('button', { 'data-page': p.id, onclick: () => show(p.id) }, p.label));
+  const ICONS = { general: 'settings-2', interface: 'monitor', editing: 'keyboard', files: 'save', addons: 'puzzle' };
+  for (const p of PAGES) nav.append(h('button', { 'data-page': p.id, onclick: () => show(p.id) }, icon(ICONS[p.id], 16), h('span', null, t(p.label))));
   const reset = h(
     'button',
     {
       class: 'prefs-reset',
-      title: 'Put the preferences on this page back to their defaults',
+      title: t('Put the preferences on this page back to their defaults'),
       onclick: () => {
-        const prefix = { interface: 'interface.', editing: 'editing.', files: 'files.' }[current];
+        const prefix = { general: 'general.', interface: 'interface.', editing: 'editing.', files: 'files.' }[current];
         if (!prefix) return;
         for (const key of Object.keys(PREFS)) if (key.startsWith(prefix)) app.prefs.reset(key);
         if (current === 'interface') applyInterfaceScale(app);
         show(current);
       },
     },
-    'Reset page',
+    t('Reset page'),
   );
   body.append(h('div', { class: 'prefs-layout' }, h('div', { class: 'prefs-side' }, nav, reset), content));
-  show(PAGES.some((p) => p.id === page) ? page : 'interface');
+  show(PAGES.some((p) => p.id === page) ? page : 'general');
 }

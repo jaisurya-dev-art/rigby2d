@@ -1,6 +1,6 @@
 {
   "name": "rigby2d",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "Rigby2D: open-source 2D skeletal animation for games, films and interactive experiences. Built-in MCP server for AI assistants.",
   "license": "MIT OR Apache-2.0",
   "private": true,
@@ -38,7 +38,7 @@
     "build:mcpb": "node mcpb/build.mjs",
     "build:phaser": "node runtimes/phaser/build.mjs",
     "site:dev": "vite --config site/vite.config.js",
-    "site:build": "vite build --config site/vite.config.js && vite build --base=/editor/ --outDir _site/editor --emptyOutDir"
+    "site:build": "node runtimes/phaser/build.mjs && vite build --config site/vite.config.js && vite build --base=/editor/ --outDir _site/editor --emptyOutDir"
   },
   "engines": {
     "node": ">=20"
@@ -48,7 +48,10 @@
     "@tauri-apps/api": "^2.12.3",
     "@tauri-apps/plugin-dialog": "^2.8.2",
     "@tauri-apps/plugin-fs": "^2.7.0",
+    "@tauri-apps/plugin-http": "^2.8.3",
     "@tauri-apps/plugin-opener": "^2.7.2",
+    "@tauri-apps/plugin-process": "^2.4.0",
+    "@tauri-apps/plugin-updater": "^2.14.1",
     "ag-psd": "^31.0.3",
     "pyodide": "^314.0.7"
   },

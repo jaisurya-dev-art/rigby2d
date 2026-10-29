@@ -7,7 +7,6 @@ import { makeDraggable, openLogWindow } from '../logwindow.js';
 import { isDesktop, pickImportFiles } from '../platform.js';
 import { h } from '../widgets.js';
 import { ScriptHost } from './host.js';
-import moduleSource from './rigby.py?raw';
 
 const STORAGE = 'rigby.scripts';
 
@@ -54,13 +53,6 @@ ERRORS    rigby.RigbyError: unknown names, invalid values
 One run (or one tool run) is one undo step; if it raises, the project is left as it was.
 Full guide: docs/scripting.md in the Rigby2D repository.`;
 
-/** Pyodide, bundled with the editor and loaded on first use. */
-async function loadRuntime() {
-  const base = `${import.meta.env.BASE_URL}pyodide/`;
-  const { loadPyodide } = await import(/* @vite-ignore */ `${base}pyodide.mjs`);
-  return loadPyodide({ indexURL: base });
-}
-
 /** Library entries: { name, source, path (desktop file it was added from, or null) }. */
 function loadLibrary() {
   try {
@@ -83,7 +75,10 @@ export class Scripts {
   constructor(app) {
     this.app = app;
     this.library = loadLibrary();
-    this.host = new ScriptHost(app, { loadRuntime, moduleSource, onChange: () => this.changed() });
+    // Python runs sandboxed in a worker (host.js).
+    this.host = new ScriptHost(app, { onChange: () => this.changed() });
+    /** Called after Stop restarts Python, to load add-ons again. */
+    this.afterStop = null;
     this.window = null;
   }
 
@@ -161,6 +156,14 @@ export class Scripts {
     await this.loadAll();
   }
 
+  /** Stops a script that runs too long; the library's tools load again. */
+  async stop() {
+    this.host.stop();
+    this.app.setStatus('Stopped the script. Python restarts with your library and add-ons.');
+    await this.loadAll({ quiet: true });
+    await this.afterStop?.();
+  }
+
   /** Scripts menu entries. */
   menu() {
     const state = this.host.state;
@@ -170,6 +173,7 @@ export class Scripts {
       { label: 'Add script files (.py)…', action: () => this.addFiles() },
       { label: 'Reload scripts', disabled: !this.library.length, action: () => this.reload() },
       { label: 'Log', action: () => openLogWindow() },
+      ...(this.host.running ? [{ label: 'Stop the running script', action: () => this.stop() }] : []),
       'separator',
       ...(state === 'loading'
         ? [{ label: 'Starting Python…', disabled: true }]

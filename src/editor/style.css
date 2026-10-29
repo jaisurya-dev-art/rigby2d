@@ -2425,3 +2425,500 @@ kbd {
   padding: 10px;
   resize: vertical;
 }
+
+.addon-tabs {
+  flex: none;
+}
+.addon-tabs button.active {
+  background: var(--accent-soft);
+  color: var(--text);
+}
+.addon-badge {
+  margin-left: 8px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: var(--accent-soft);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+/* Welcome screen (welcomeui.js) */
+.modal.welcome {
+  display: flex;
+  flex-direction: row;
+  width: min(1080px, calc(100vw - 32px));
+  height: min(700px, calc(100vh - 48px));
+  padding: 0;
+  overflow: hidden;
+  border-radius: 14px;
+}
+.welcome-side {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: none;
+  width: 260px;
+  padding: 22px 14px;
+  background: linear-gradient(180deg, rgba(90, 143, 214, 0.1), transparent 40%), var(--bg);
+  border-right: 1px solid var(--border);
+  overflow: auto;
+}
+.welcome-brand {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  margin: 0 8px 14px;
+}
+.welcome-brand b {
+  display: block;
+  font-size: 17px;
+  letter-spacing: 0.01em;
+  color: var(--text);
+}
+.welcome-brand small,
+.welcome-action small,
+.welcome-recent small {
+  display: block;
+  color: var(--weak);
+  font-size: 12px;
+  line-height: 1.4;
+}
+.welcome h4 {
+  margin: 16px 8px 6px;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--weak);
+}
+.welcome-action {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  width: 100%;
+  padding: 8px;
+  text-align: left;
+  background: transparent;
+  border-radius: 9px;
+}
+.welcome-action:hover {
+  background: var(--hover);
+}
+.welcome-action b {
+  display: block;
+  color: var(--text);
+  font-weight: 500;
+}
+.welcome-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  color: var(--accent);
+}
+.welcome-action:hover .welcome-icon {
+  border-color: var(--accent);
+}
+.welcome-main {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  padding: 22px 26px;
+  overflow: auto;
+}
+.welcome-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.welcome-head h2 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--text);
+}
+.welcome-recents {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 6px;
+}
+.welcome-recent {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  text-align: left;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  overflow: hidden;
+}
+.welcome-recent:hover {
+  border-color: var(--accent);
+}
+.welcome-recent-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 7px;
+  background: var(--accent-soft);
+  color: var(--text);
+}
+.welcome-recent-text {
+  min-width: 0;
+}
+.welcome-recent b {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text);
+  font-weight: 500;
+}
+.welcome-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 14px;
+}
+.welcome-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 0 0 12px;
+  text-align: left;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  transition:
+    border-color 0.15s,
+    transform 0.15s,
+    box-shadow 0.15s;
+}
+.welcome-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
+}
+.welcome-card img,
+.welcome-card-art {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+  background: var(--bg);
+  margin-bottom: 6px;
+}
+.welcome-card-art {
+  display: grid;
+  place-items: center;
+  color: rgba(255, 255, 255, 0.92);
+}
+.welcome-card-art.tone-blue {
+  background: radial-gradient(circle at 30% 20%, #4f86d6, #1f3557);
+}
+.welcome-card-art.tone-rose {
+  background: radial-gradient(circle at 30% 20%, #d0647e, #4a1f2e);
+}
+.welcome-card-art.tone-violet {
+  background: radial-gradient(circle at 30% 20%, #8a6ad8, #2c2152);
+}
+.welcome-card-art.tone-phaser {
+  background: radial-gradient(circle at 30% 20%, #7b5cd6, #1d2b4f);
+}
+.welcome-tag {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(4px);
+  color: #fff;
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+.welcome-card b,
+.welcome-card small {
+  padding: 0 12px;
+}
+.welcome-card b {
+  color: var(--text);
+  font-weight: 600;
+}
+.welcome-card small {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  color: var(--weak);
+  font-size: 12px;
+  line-height: 1.45;
+}
+.welcome-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: auto;
+  padding-top: 18px;
+}
+@media (max-width: 760px) {
+  .welcome-side {
+    display: none;
+  }
+}
+
+/* File ▸ Get runtimes (runtimeui.js) */
+.modal.runtimes-dialog {
+  width: min(860px, calc(100vw - 32px));
+  max-height: min(720px, calc(100vh - 48px));
+}
+.rt-version {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  align-self: flex-start;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--text);
+  font-size: 12px;
+}
+.rt-dot {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--weak);
+}
+.rt-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 12px;
+}
+.rt-card {
+  display: flex;
+  gap: 14px;
+  padding: 16px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.025), transparent), var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  transition:
+    border-color 0.15s,
+    transform 0.15s;
+}
+.rt-card:hover {
+  border-color: color-mix(in srgb, var(--rt) 55%, var(--border));
+  transform: translateY(-1px);
+}
+.rt-logo {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+  color: var(--rt-fg, #fff);
+  background: var(--rt);
+  box-shadow: 0 6px 18px color-mix(in srgb, var(--rt) 30%, transparent);
+}
+.rt-unity {
+  --rt: #222429;
+  --rt-fg: #f4f4f5;
+}
+.rt-godot {
+  --rt: #478cbf;
+}
+.rt-phaser {
+  --rt: #7b5cd6;
+}
+.rt-javascript {
+  --rt: #f7df1e;
+  --rt-fg: #1b1b1b;
+}
+.rt-rust {
+  --rt: #c4532d;
+}
+.rt-unity .rt-logo {
+  border: 1px solid #3a3d44;
+}
+.rt-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  flex: 1;
+}
+.rt-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.rt-title h4 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+}
+.rt-badge {
+  padding: 1px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  color: var(--weak);
+  font-size: 11px;
+  white-space: nowrap;
+}
+.rt-body p {
+  margin: 0;
+  color: var(--weak);
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+.rt-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+.rt-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 12px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+.rt-btn.primary {
+  background: var(--accent);
+  color: #fff;
+}
+.rt-btn.primary:hover:not(:disabled) {
+  filter: brightness(1.12);
+}
+.rt-btn.secondary {
+  background: var(--widget);
+}
+.rt-btn.ghost {
+  background: transparent;
+  color: var(--weak);
+}
+.rt-btn.ghost:hover:not(:disabled) {
+  color: var(--text);
+  background: var(--hover);
+}
+.rt-btn.busy {
+  opacity: 0.6;
+  cursor: progress;
+}
+.icon {
+  flex: none;
+}
+
+
+/* File ▸ Import ▸ Check a skeleton file (migrationui.js) */
+.modal.migration-dialog {
+  width: min(680px, calc(100vw - 32px));
+}
+.migration-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.migration-table td {
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+.migration-table td:first-child {
+  width: 18px;
+  text-align: center;
+}
+.migration-table .status-ok td:first-child {
+  color: #6fbf73;
+}
+.migration-table .status-partial td:first-child {
+  color: #e0b050;
+}
+.migration-table .status-no td:first-child {
+  color: #e08a8a;
+}
+
+/* Preferences and add-ons polish */
+.modal.prefs-dialog {
+  border-radius: 14px;
+}
+.prefs-nav button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  color: var(--weak);
+}
+.prefs-nav button .icon {
+  color: var(--weak);
+}
+.prefs-nav button.active,
+.prefs-nav button.active .icon {
+  color: var(--text);
+}
+.prefs-nav button.active .icon {
+  color: var(--accent);
+}
+.prefs-side {
+  padding-right: 14px;
+  border-right: 1px solid var(--border);
+}
+.pref-row {
+  padding: 14px 4px;
+}
+.pref-row select,
+.pref-number input {
+  height: 30px;
+  padding: 0 8px;
+  border-radius: 7px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+}
+.addon {
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 10px;
+  background: var(--panel);
+}
+.addon:hover {
+  border-color: color-mix(in srgb, var(--accent) 50%, var(--border));
+}
+.addon-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  background: var(--accent-soft);
+  color: var(--text);
+}
+.addon-icon.official {
+  background: linear-gradient(135deg, #4f86d6, #7b5cd6);
+  color: #fff;
+}
+.addon button {
+  border-radius: 7px;
+}
+.addon button.primary {
+  background: var(--accent);
+  color: #fff;
+}

@@ -40,6 +40,17 @@ The app needs WebView2, which is part of Windows 10 and 11.
 > Get-FileHash .\Rigby2D_x64_portable.exe -Algorithm SHA256
 > ```
 
+## Updates
+
+The desktop app checks for a new version once a day and asks before installing it: **Install and
+restart** downloads the update, checks its signature and restarts into the new version. Your project
+is saved first if it has changes. *Help ▸ Check for updates* checks right away, and *Preferences ▸
+General ▸ Check for updates* turns the daily check off.
+
+Updates are signed with the Rigby2D release key, and the app installs nothing that isn't signed
+with it. On Windows the update uses the installer, so the portable editor becomes an installed one.
+The browser editor is always the latest version.
+
 ## macOS desktop app
 
 Download `Rigby2D_universal.dmg` from the

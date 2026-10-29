@@ -162,5 +162,8 @@ export function createTutorials(app, viewport, { refresh = () => {} } = {}) {
     }
   }
 
-  return { open, welcome, coach, arena };
+  /** Starts the first lesson (the tour). */
+  const tour = () => start(LESSONS[0]);
+
+  return { open, welcome, tour, coach, arena };
 }

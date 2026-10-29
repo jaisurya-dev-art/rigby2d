@@ -336,7 +336,7 @@ export async function pickProject() {
     const backups = ['1', '2', '3', '4', '5', '6', '7', '8', '9'].map((n) => `rigby${n}`);
     const path = await open({
       filters: [
-        { name: 'Rigby2D work file or skeleton (.json, .skel)', extensions: ['rigby', 'json', 'skel'] },
+        { name: 'Rigby2D work file, skeleton (.json, .skel) or DragonBones (_ske.json)', extensions: ['rigby', 'json', 'skel'] },
         { name: 'Rigby2D backup (.rigby1 … .rigby9)', extensions: backups },
       ],
     });
@@ -376,6 +376,54 @@ export async function pickSaveTarget(fileName, filterName, extension, { single =
     }
   }
   return { path: fileName, fs: single ? singleFileFs(fileName) : zipFs(fileName.replace(/\.[^.]+$/, '') + '.zip') };
+}
+
+/**
+ * Downloads `url` (a Rigby2D release file or a rigby2d.com file) as bytes. Desktop: through the
+ * app (no browser limits on cross-site downloads). Browser: fetch, which works for same-site files.
+ */
+export async function fetchBytes(url) {
+  const fetcher = isDesktop ? (await import('@tauri-apps/plugin-http')).fetch : globalThis.fetch;
+  const res = await fetcher(url);
+  if (!res.ok) throw new Error(`${res.status} ${res.statusText || ''} for ${url}`.trim());
+  return new Uint8Array(await res.arrayBuffer());
+}
+
+/**
+ * Saves a downloadable file. Desktop: downloads it and asks where to save it; returns the path, or
+ * null if cancelled. Browser: the browser downloads it; returns the file name.
+ */
+export async function saveDownload(url, fileName) {
+  if (!isDesktop) {
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    a.rel = 'noopener';
+    a.click();
+    return fileName;
+  }
+  const ext = fileName.split('.').pop();
+  const target = await save({ filters: [{ name: fileName, extensions: [ext] }], defaultPath: fileName });
+  if (!target) return null;
+  await tfs.writeFile(target, await fetchBytes(url));
+  return target;
+}
+
+/** Asks for a folder (desktop). Returns its path, or null. */
+export async function pickFolder(title) {
+  if (!isDesktop) return null;
+  const path = await open({ directory: true, title });
+  return typeof path === 'string' ? path : null;
+}
+
+/** Writes files [{ path, bytes }] under the folder `dir` (desktop), creating subfolders. */
+export async function writeFilesTo(dir, files) {
+  const sep = dir.includes('\\') ? '\\' : '/';
+  for (const f of files) {
+    const target = `${dir.replace(/[\\/]$/, '')}${sep}${f.path.split('/').join(sep)}`;
+    await tfs.mkdir(target.replace(/[\\/][^\\/]*$/, ''), { recursive: true });
+    await tfs.writeFile(target, f.bytes);
+  }
 }
 
 /** Asks for files to import. Returns [{ name, bytes }] (empty if cancelled). */

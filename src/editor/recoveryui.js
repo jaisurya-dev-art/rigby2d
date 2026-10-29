@@ -10,6 +10,7 @@
 import * as log from './log.js';
 import * as platform from './platform.js';
 import { LINKS, VERSION, askChoice, dialog } from './helpui.js';
+import { t } from './i18n.js';
 import { h } from './widgets.js';
 import { HEARTBEAT_MS, QUIT_FILE, crashReport, crashedSessions, deadSessions, newSessionId, sessionAutosave } from './recovery.js';
 
@@ -126,11 +127,11 @@ export function installRecovery(app) {
       await endSession();
       return true;
     }
-    const name = baseName(app.path) || 'this project';
-    const choice = await askChoice('Unsaved changes', `Save the changes to ${name} before closing?`, [
-      { id: 'cancel', label: 'Cancel' },
-      { id: 'discard', label: "Don't save" },
-      { id: 'save', label: 'Save', primary: true },
+    const name = baseName(app.path) || t('this project');
+    const choice = await askChoice(t('Unsaved changes'), t('Save the changes to {name} before closing?', { name }), [
+      { id: 'cancel', label: t('Cancel') },
+      { id: 'discard', label: t("Don't save") },
+      { id: 'save', label: t('Save'), primary: true },
     ]);
     if (choice === 'save') {
       await app.save(false);
@@ -199,15 +200,15 @@ export function installRecovery(app) {
     const s = crashed[0];
     const when = dayOf(s.beat);
     const choice = await askChoice(
-      'Recover unsaved work?',
+      t('Recover unsaved work?'),
       [
-        h('p', null, `Rigby2D did not close properly (${when}). Unsaved work on `, h('b', null, s.name || 'untitled'), ' was auto-saved.'),
-        h('p', { class: 'weak' }, crashed.length > 1 ? `${crashed.length - 1} more auto-save(s) are in File ▸ Recover.` : 'Later, it stays in File ▸ Recover until you discard it.'),
+        h('p', null, t('Rigby2D did not close properly ({when}). Unsaved work on {name} was auto-saved.', { when, name: s.name || 'untitled' })),
+        h('p', { class: 'weak' }, crashed.length > 1 ? t('{count} more auto-save(s) are in File ▸ Recover.', { count: crashed.length - 1 }) : t('Later, it stays in File ▸ Recover until you discard it.')),
       ],
       [
-        { id: 'discard', label: 'Discard' },
-        { id: 'later', label: 'Later' },
-        { id: 'recover', label: 'Recover', primary: true },
+        { id: 'discard', label: t('Discard') },
+        { id: 'later', label: t('Later') },
+        { id: 'recover', label: t('Recover'), primary: true },
       ],
     );
     if (choice === 'recover') await recover(at(sessionAutosave(s.id)), s);
@@ -218,7 +219,7 @@ export function installRecovery(app) {
   /** File ▸ Recover entries. */
   function menu() {
     const items = recoverable.map((r) => ({ label: r.label, action: () => recover(r.file, r.session) }));
-    return items.length ? items : [{ label: 'Nothing to recover', disabled: true }];
+    return items.length ? items : [{ label: t('Nothing to recover'), disabled: true }];
   }
 
   // ---- crash manager ----
@@ -250,9 +251,9 @@ export function installRecovery(app) {
     banner = h(
       'div',
       { class: 'crash-banner', role: 'alert' },
-      h('span', null, `Rigby2D ran into an error${saved ? '. Your work was auto-saved' : ''}. Details are in View ▸ Log.`),
-      h('button', { onclick: () => openCrashReport() }, 'Report…'),
-      h('button', { onclick: () => app.save(true) }, 'Save as…'),
+      h('span', null, saved ? t('Rigby2D ran into an error. Your work was auto-saved. Details are in View ▸ Log.') : t('Rigby2D ran into an error. Details are in View ▸ Log.')),
+      h('button', { onclick: () => openCrashReport() }, t('Report…')),
+      h('button', { onclick: () => app.save(true) }, t('Save as…')),
       h('button', { class: 'dialog-close', 'aria-label': 'Dismiss', onclick: () => banner.remove() }, '✕'),
     );
     document.body.append(banner);

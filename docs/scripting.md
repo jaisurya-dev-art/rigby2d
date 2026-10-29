@@ -4,8 +4,11 @@ Rigby2D runs Python scripts inside the editor. Use them to automate rigging and 
 or to build **custom tools**: functions that appear in the **Scripts** menu for you and your team.
 
 Python is built in (CPython 3.14 on [Pyodide](https://pyodide.org), bundled with the editor), so
-there is nothing to install. Scripts work offline and on every platform. They run with the same
-access as the editor itself, so run scripts only from people you trust. To share tools with others,
+there is nothing to install. Scripts work offline and on every platform.
+
+**Scripts run sandboxed.** Python runs in a separate worker with a copy of your project: a script
+can read and change the open project, but it can't reach the rest of the editor, your files or the
+network. When it finishes, its changes come back as one undo step. To share tools with others,
 package them as an [add-on](addons.md).
 
 ## Quick start
@@ -155,4 +158,8 @@ def breathing():
 - Tools take no arguments. Read the selection or the current time to decide what to act on.
 - Scripts edit bones, slots, animations and bone keys. Meshes, constraints, skins and events are
   not in the API yet.
-- Scripts run on the editor's main thread, so a long loop pauses the editor until it finishes.
+- The editor keeps working while a script runs. If a script never finishes, *Scripts ▸ Stop the
+  running script* stops it; Python restarts with your library and add-ons.
+- Edits you make in the editor while a script runs are replaced by the script's result.
+- In the sandbox there is no `js` access to the page, no network and no file access, so packages
+  that need them don't work.

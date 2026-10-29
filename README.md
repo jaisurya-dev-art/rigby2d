@@ -69,9 +69,16 @@ runtimes and the MCP server. The pages are also in [`docs/`](docs/).
 - **Your work is safe**: saves that never leave a half-written file, `.rigby1` backups like Blender's
   `.blend1`, auto-save, and crash recovery that offers unsaved work back at the next start.
   See [Saving and recovery](https://rigby2d.com/docs/recovery.html).
-- **Preferences and add-ons**: *Edit ▸ Preferences* for the interface scale, shortcuts, undo steps,
-  backups and auto-save, and an add-on installer for Python add-ons (`.zip` or `.py`) that add tools.
+- **Preferences and add-ons**: *Edit ▸ Preferences* for the language (English, Japanese, Chinese,
+  Korean, Spanish, Portuguese), interface scale, shortcuts, undo steps, backups and auto-save, and an
+  add-on gallery for sandboxed Python add-ons that add tools.
   See [Add-ons](https://rigby2d.com/docs/addons.html).
+- **Welcome screen, auto-update and runtimes from the editor**: new projects, recent work, starter
+  projects and lessons at startup; signed updates in the desktop app; *File ▸ Get runtimes* for Unity,
+  Godot and Phaser.
+- **Coming from other tools**: opens Spine exports (with a migration checker) and DragonBones
+  projects. See [Coming from Spine](https://rigby2d.com/docs/migrating-from-spine.html) and
+  [Coming from DragonBones](https://rigby2d.com/docs/migrating-from-dragonbones.html).
 - **Python scripting** and custom tools, and a built-in **MCP server** so AI assistants such as
   Claude can inspect, rig and animate your projects.
 - **Lossless skeleton JSON (3.8, 4.2, 4.3) and binary `.skel`** with texture atlases, played by the

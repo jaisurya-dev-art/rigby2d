@@ -17,6 +17,11 @@ characters on a stage with a moving camera and parallax.
 The landing page of the [website](https://rigby2d.com/) plays NILA with the
 JavaScript runtime.
 
+**From the editor:** *File ▸ Get runtimes…* downloads the runtimes that match your editor's version:
+the Unity package (or its git URL), the Godot addon for your system (or installs it straight into a
+Godot project), and the Phaser bundles. The welcome screen also offers a **Phaser game starter**: a
+small playable game with NILA to build on.
+
 ## JavaScript
 
 Copy `src/core/` into your project (and `src/webgl/` for a ready-made renderer):

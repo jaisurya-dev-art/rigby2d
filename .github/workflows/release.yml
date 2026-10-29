@@ -40,8 +40,15 @@ jobs:
       - run: npm ci
       - run: npm test
 
-      # Editor: MSI and NSIS installers, and the program itself as the portable editor.
-      - run: npm run build
+      # Editor: MSI and NSIS installers, and the program itself as the portable editor. With the
+      # updater key (secret TAURI_SIGNING_PRIVATE_KEY) the setup program is signed for auto-update.
+      - name: Build the editor
+        shell: bash
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        run: |
+          if [ -n "$TAURI_SIGNING_PRIVATE_KEY" ]; then npm run build -- --config '{"bundle":{"createUpdaterArtifacts":true}}'; else npm run build; fi
       # AI assistant extension, and the Phaser runtime bundles.
       - run: npm run build:mcpb
       - run: npm run build:phaser
@@ -69,6 +76,8 @@ jobs:
           mkdir -p release
           cp "src-tauri/target/release/bundle/msi/Rigby2D_${V}_x64_en-US.msi" release/
           cp "src-tauri/target/release/bundle/nsis/Rigby2D_${V}_x64-setup.exe" release/
+          sig="src-tauri/target/release/bundle/nsis/Rigby2D_${V}_x64-setup.exe.sig"
+          if [ -f "$sig" ]; then cp "$sig" release/; fi
           cp src-tauri/target/release/rigby2d.exe "release/Rigby2D_${V}_x64_portable.exe"
           cp "dist-mcpb/Rigby2D-AI-${V}.mcpb" release/
           cp "runtimes/godot/dist/rigby2d-godot-addon-${V}-windows-x64.zip" release/
@@ -106,7 +115,12 @@ jobs:
       - id: version
         run: echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
       - run: npm ci
-      - run: npm run build -- --bundles appimage,deb
+      - name: Build the editor
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        run: |
+          if [ -n "$TAURI_SIGNING_PRIVATE_KEY" ]; then npm run build -- --bundles appimage,deb --config '{"bundle":{"createUpdaterArtifacts":true}}'; else npm run build -- --bundles appimage,deb; fi
       - run: cargo build --release -p rigby-godot
         working-directory: runtimes/rust
       - run: node runtimes/godot/package.mjs linux-x64
@@ -116,6 +130,7 @@ jobs:
         run: |
           mkdir -p release
           cp src-tauri/target/release/bundle/appimage/*.AppImage "release/Rigby2D_${V}_amd64.AppImage"
+          for sig in src-tauri/target/release/bundle/appimage/*.AppImage.sig; do [ -f "$sig" ] && cp "$sig" "release/Rigby2D_${V}_amd64.AppImage.sig"; done
           cp src-tauri/target/release/bundle/deb/*.deb "release/Rigby2D_${V}_amd64.deb"
           cp "runtimes/godot/dist/rigby2d-godot-addon-${V}-linux-x64.zip" release/
           cp "runtimes/godot/dist/rigby2d-godot-demo-${V}-linux-x64.zip" release/
@@ -147,7 +162,12 @@ jobs:
       - id: version
         run: echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
       - run: npm ci
-      - run: npm run build -- --target universal-apple-darwin --bundles dmg
+      - name: Build the editor
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        run: |
+          if [ -n "$TAURI_SIGNING_PRIVATE_KEY" ]; then npm run build -- --target universal-apple-darwin --bundles app,dmg --config '{"bundle":{"createUpdaterArtifacts":true}}'; else npm run build -- --target universal-apple-darwin --bundles dmg; fi
       - name: Godot runtime (universal library)
         working-directory: runtimes/rust
         run: |
@@ -162,6 +182,9 @@ jobs:
         run: |
           mkdir -p release
           cp src-tauri/target/universal-apple-darwin/release/bundle/dmg/*.dmg "release/Rigby2D_${V}_universal.dmg"
+          # The auto-update archive and its signature (when the updater key is set).
+          upd=src-tauri/target/universal-apple-darwin/release/bundle/macos/Rigby2D.app.tar.gz
+          if [ -f "$upd.sig" ]; then cp "$upd" "release/Rigby2D_${V}_universal.app.tar.gz"; cp "$upd.sig" "release/Rigby2D_${V}_universal.app.tar.gz.sig"; fi
           cp "runtimes/godot/dist/rigby2d-godot-addon-${V}-macos.zip" release/
           cp "runtimes/godot/dist/rigby2d-godot-demo-${V}-macos.zip" release/
           ls -la release
@@ -170,6 +193,24 @@ jobs:
           name: rigby2d-${{ steps.version.outputs.version }}-macos
           path: release/
           if-no-files-found: error
+
+  # The auto-update manifest (latest.json) from the three builds' signed update files.
+  updater:
+    needs: [build, build-linux, build-macos]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v7
+        with:
+          pattern: rigby2d-${{ needs.build.outputs.version }}-*
+          path: release
+          merge-multiple: true
+      - run: node .github/scripts/updater-manifest.mjs release "${{ needs.build.outputs.version }}"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: rigby2d-${{ needs.build.outputs.version }}-updater
+          path: release/latest.json
+          if-no-files-found: ignore
 
   sign:
     needs: build

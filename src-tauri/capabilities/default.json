@@ -1,7 +1,7 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
-  "description": "Editor window: native file dialogs, read/write of project, image and export files (with safe saves and numbered backups), the recovery and add-on folders in the app data, the interface scale, and opening https links (documentation, website) in the browser.",
+  "description": "Editor window: native file dialogs, read/write of project, image and export files (with safe saves and numbered backups), the recovery and add-on folders in the app data, the interface scale, downloading runtimes, starters and add-ons from the Rigby2D releases and website, checking for and installing updates, and opening https links (documentation, website) in the browser.",
   "windows": [
     "main"
   ],
@@ -47,6 +47,25 @@
       "allow": [
         {
           "path": "**"
+        }
+      ]
+    },
+    "updater:default",
+    "process:allow-restart",
+    {
+      "identifier": "http:default",
+      "allow": [
+        {
+          "url": "https://github.com/jaisurya-dev-art/rigby2d/*"
+        },
+        {
+          "url": "https://release-assets.githubusercontent.com/*"
+        },
+        {
+          "url": "https://objects.githubusercontent.com/*"
+        },
+        {
+          "url": "https://rigby2d.com/*"
         }
       ]
     }

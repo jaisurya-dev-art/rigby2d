@@ -8,6 +8,10 @@ export const STORAGE_KEY = 'rigby.prefs';
 /** Preference definitions: default, plus `min`/`max` for numbers or `options` for choices. */
 export const PREFS = {
   'interface.scale': { default: 1, min: 0.75, max: 2 },
+  /** '' follows the system language. */
+  'interface.language': { default: '', options: ['', 'en', 'ja', 'zh-CN', 'ko', 'es', 'pt-BR'] },
+  'general.welcome': { default: true },
+  'updates.check': { default: true },
   'editing.undoSteps': { default: 200, min: 20, max: 1000 },
   'files.backups': { default: 1, min: 0, max: 9 },
   'files.autosave': { default: true },

@@ -98,6 +98,8 @@ async function runOn(p, args, source) {
     const printed = output.filter((l) => !l.startsWith('error: Script '));
     throw new ToolError([`The script failed: ${r.error}`, r.trace, printed.length ? `Output before the error:\n${printed.join('\n')}` : ''].filter(Boolean).join('\n\n'));
   }
+  // Scripts run on a copy of the project and return the changed one (scripting/engine.js).
+  p.doc = app.doc;
   return { output, tools: r.value, status: app.status || null };
 }
 

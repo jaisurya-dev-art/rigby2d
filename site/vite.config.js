@@ -118,6 +118,68 @@ const zipOf = (id) => {
   return zips.get(id);
 };
 
+/**
+ * Game starters for the editor's welcome screen: starters/rigby2d-phaser-starter.zip holds
+ * runtimes/phaser/starter, the Phaser runtime bundle (npm run build:phaser, run first by site:build)
+ * and NILA's export with the demo license.
+ */
+function starterFiles() {
+  return {
+    name: 'rigby-site-starters',
+    async generateBundle() {
+      const { zip } = await import(pathToFileURL(path.join(repo, 'src/editor/zip.js')).href);
+      const { version } = JSON.parse(fs.readFileSync(path.join(repo, 'package.json'), 'utf8'));
+      const bundle = path.join(repo, `dist-phaser/rigby2d-phaser-${version}.mjs`);
+      if (!fs.existsSync(bundle)) throw new Error('run npm run build:phaser before the site build');
+      const read = (p) => new Uint8Array(fs.readFileSync(path.join(repo, p)));
+      const root = 'rigby2d-phaser-starter';
+      const files = [
+        ...['index.html', 'main.js', 'README.md'].map((f) => ({ path: `${root}/${f}`, bytes: read(`runtimes/phaser/starter/${f}`) })),
+        { path: `${root}/rigby2d-phaser.mjs`, bytes: new Uint8Array(fs.readFileSync(bundle)) },
+        ...['nila.skel', 'nila.atlas', 'nila.png'].map((f) => ({ path: `${root}/assets/${f}`, bytes: read(`branding/nila/export/${f}`) })),
+        { path: `${root}/assets/LICENSE.md`, bytes: read(DEMO_LICENSE) },
+      ];
+      this.emitFile({ type: 'asset', fileName: 'starters/rigby2d-phaser-starter.zip', source: zip(files) });
+    },
+  };
+}
+
+/**
+ * The add-on gallery: addons/index.json (read by the editor's Preferences ▸ Add-ons ▸ Get add-ons),
+ * a zip for each official add-on in addons/<id>/, and the list on the Add-ons page.
+ */
+const GALLERY = 'addons/gallery.json';
+function addonFiles() {
+  const gallery = () => JSON.parse(fs.readFileSync(path.join(repo, GALLERY), 'utf8')).addons;
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+  return {
+    name: 'rigby-site-addons',
+    transformIndexHtml(html, ctx) {
+      if (!ctx.filename.replace(/\\/g, '/').endsWith('/addons/index.html')) return html;
+      const cards = gallery()
+        .map((a) => {
+          const url = a.official ? `./${a.id}.zip` : a.url;
+          return `<article class="card"><h3>${esc(a.name)} <span class="fine">${esc(a.version)}</span></h3><p>${esc(a.description)}</p><p class="fine">${esc(a.author)}${a.official ? ' · official' : ''}${a.repo ? ` · <a href="${esc(a.repo)}" rel="noopener">source</a>` : ''}</p><a class="btn small" href="${esc(url)}" download>Download .zip</a></article>`;
+        })
+        .join('');
+      return html.replace('<!--addon-list-->', cards);
+    },
+    async generateBundle() {
+      const { zip } = await import(pathToFileURL(path.join(repo, 'src/editor/zip.js')).href);
+      const index = [];
+      for (const a of gallery()) {
+        if (a.official) {
+          const dir = path.join(repo, 'addons', a.id);
+          const files = fs.readdirSync(dir, { recursive: true }).filter((f) => fs.statSync(path.join(dir, f)).isFile() && !String(f).includes('__pycache__'));
+          this.emitFile({ type: 'asset', fileName: `addons/${a.id}.zip`, source: zip(files.map((f) => ({ path: `${a.id}/${String(f).split(path.sep).join('/')}`, bytes: new Uint8Array(fs.readFileSync(path.join(dir, f))) }))) });
+        }
+        index.push({ ...a, url: a.official ? `https://rigby2d.com/addons/${a.id}.zip` : a.url });
+      }
+      this.emitFile({ type: 'asset', fileName: 'addons/index.json', source: JSON.stringify({ addons: index }, null, 2) });
+    },
+  };
+}
+
 function demoFiles() {
   return {
     name: 'rigby-site-demos',
@@ -198,13 +260,13 @@ export default defineConfig({
   root: here,
   base: process.env.SITE_BASE ?? '/',
   clearScreen: false,
-  plugins: [socialImage(), documentation(), demoFiles()],
+  plugins: [socialImage(), documentation(), demoFiles(), starterFiles(), addonFiles()],
   // The pages import the runtime, NILA and the docs from outside this folder.
   server: { port: 1430, strictPort: true, fs: { allow: [repo] } },
   build: {
     target: 'es2021',
     outDir: path.join(repo, '_site'),
     emptyOutDir: true,
-    rollupOptions: { input: { main: path.join(here, 'index.html'), demos: path.join(here, 'demos/index.html'), cloud: path.join(here, 'cloud/index.html'), docs: path.join(here, 'docs/docs.js') } },
+    rollupOptions: { input: { main: path.join(here, 'index.html'), demos: path.join(here, 'demos/index.html'), addons: path.join(here, 'addons/index.html'), cloud: path.join(here, 'cloud/index.html'), docs: path.join(here, 'docs/docs.js') } },
   },
 });

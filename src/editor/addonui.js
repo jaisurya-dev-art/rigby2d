@@ -7,8 +7,10 @@
 import * as log from './log.js';
 import * as platform from './platform.js';
 import { VERSION, askChoice } from './helpui.js';
+import { t } from './i18n.js';
+import { icon } from './icons.js';
 import { h } from './widgets.js';
-import { ADDON_EXTENSIONS, MANIFEST_FILE, READ_INFO_PY, addonManifest, disableAddonPy, enableAddonPy, readAddonPackage } from './addons.js';
+import { ADDON_EXTENSIONS, MANIFEST_FILE, addonManifest, disableAddonPy, enableAddonPy, readAddonPackage } from './addons.js';
 
 const DIR = 'addons';
 const scriptName = (id) => `addon:${id}`;
@@ -67,19 +69,16 @@ export class AddonManager {
     if (ids.length) log.info(`Loaded ${ids.length} add-on(s)`, { source: 'add-ons' });
   }
 
-  /** Copies an add-on's files into Python (/addons/<id>/) and runs its register(). */
+  /** Copies an add-on's files into the sandboxed Python (/addons/<id>/) and runs its register(). */
   async load(id) {
     try {
-      const py = await this.host.ready();
-      const root = `/addons/${id}`;
-      removeTree(py.FS, root);
+      const files = [];
       for (const f of await platform.userStore.list(`${DIR}/${id}`)) {
         const rel = f.path.slice(`${DIR}/${id}/`.length);
-        if (rel === MANIFEST_FILE) continue;
-        const target = `${root}/${rel}`;
-        py.FS.mkdirTree(target.slice(0, target.lastIndexOf('/')));
-        py.FS.writeFile(target, await platform.userStore.get(f.path));
+        if (rel !== MANIFEST_FILE) files.push({ path: rel, bytes: await platform.userStore.get(f.path) });
       }
+      const copied = await this.host.request({ type: 'files', root: `/addons/${id}`, files });
+      if (!copied.ok) throw new Error(copied.error);
       const result = await this.host.runScript(scriptName(id), enableAddonPy(id));
       if (!result.ok) throw new Error(result.error);
       this.errors.delete(id);
@@ -111,17 +110,10 @@ export class AddonManager {
   async install(file) {
     const name = String(file.name).split(/[\\/]/).pop();
     const pkg = readAddonPackage(name, file.bytes);
-    const py = await this.host.ready();
     const init = new TextDecoder().decode(pkg.files.get('__init__.py'));
-    py.globals.set('_addon_source', init);
-    let info;
-    try {
-      info = JSON.parse(py.runPython(READ_INFO_PY));
-    } catch (e) {
-      throw new Error(`could not read addon_info: ${String(e?.message ?? e).split('\n').filter(Boolean).pop()}`);
-    } finally {
-      py.globals.delete('_addon_source');
-    }
+    const read = await this.host.request({ type: 'readInfo', source: init });
+    if (!read.ok) throw new Error(`could not read addon_info: ${String(read.error).split('\n').filter(Boolean).pop()}`);
+    const info = read.info;
     const manifest = addonManifest(pkg.id, info, { editorVersion: VERSION, file: name });
     const existing = this.installed.get(pkg.id);
     if (existing) {
@@ -145,77 +137,130 @@ export class AddonManager {
     if (this.enabled(id)) await this.unload(id);
     this.setEnabled(id, false);
     await platform.userStore.remove(`${DIR}/${id}`);
-    if (this.host.py) removeTree(this.host.py.FS, `/addons/${id}`);
+    if (this.host.engine) await this.host.request({ type: 'removeFiles', root: `/addons/${id}` });
     this.installed.delete(id);
     this.changed();
   }
 }
 
-/** Removes a folder and everything in it from Pyodide's file system (if it exists). */
-function removeTree(FS, path) {
-  let stat;
-  try {
-    stat = FS.stat(path);
-  } catch {
-    return;
-  }
-  if (!FS.isDir(stat.mode)) return FS.unlink(path);
-  for (const name of FS.readdir(path)) if (name !== '.' && name !== '..') removeTree(FS, `${path}/${name}`);
-  FS.rmdir(path);
-}
+/** The add-on gallery's index on the website (addons/gallery.json in the repository). */
+export const GALLERY_URL = 'https://rigby2d.com/addons/index.json';
 
-/** The Add-ons page of the Preferences dialog. */
+/** The Add-ons page of the Preferences dialog: installed add-ons, and the gallery. */
 export function renderAddonsPage(manager, el) {
   const app = manager.app;
   let query = '';
+  let tab = 'installed';
+  let gallery = null;
+  let galleryError = null;
   const list = h('div', { class: 'addon-list' });
-  const draw = () => {
-    const items = [...manager.installed.values()]
-      .filter((m) => !query || `${m.name} ${m.description} ${m.author}`.toLowerCase().includes(query))
-      .sort((a, b) => a.name.localeCompare(b.name));
-    list.replaceChildren(
-      ...(items.length
-        ? items.map((m) => {
-            const error = manager.errors.get(m.id);
-            return h(
-              'div',
-              { class: `addon${error ? ' failed' : ''}` },
-              h('input', { type: 'checkbox', checked: manager.enabled(m.id), title: 'Enabled', 'aria-label': `Enable ${m.name}`, onchange: (e) => manager.enable(m.id, e.target.checked) }),
-              h(
-                'div',
-                { class: 'addon-text' },
-                h('div', { class: 'addon-name' }, m.name, h('span', { class: 'weak' }, ` ${m.version}`)),
-                m.description ? h('div', null, m.description) : null,
-                h('div', { class: 'weak' }, [m.author && `by ${m.author}`, `id ${m.id}`].filter(Boolean).join(' · ')),
-                error ? h('div', { class: 'addon-error' }, `Failed to load: ${error} (View ▸ Log)`) : null,
-              ),
-              m.url ? h('button', { title: m.url, onclick: () => platform.openExternal(m.url) }, 'Docs ↗') : null,
-              h(
-                'button',
-                {
-                  onclick: async () => {
-                    const ok = await askChoice('Remove add-on?', `Remove ${m.name}? Its tools leave the Scripts menu.`, [
-                      { id: 'cancel', label: 'Cancel' },
-                      { id: 'remove', label: 'Remove', primary: true },
-                    ]);
-                    if (ok === 'remove') await manager.remove(m.id);
-                  },
-                },
-                'Remove',
-              ),
-            );
-          })
-        : [h('p', { class: 'dialog-empty' }, manager.installed.size ? 'No add-on matches.' : 'No add-ons installed yet.')]),
+  const matches = (m) => !query || `${m.name} ${m.description} ${m.author}`.toLowerCase().includes(query);
+
+  const installedRow = (m) => {
+    const error = manager.errors.get(m.id);
+    return h(
+      'div',
+      { class: `addon${error ? ' failed' : ''}` },
+      h('span', { class: 'addon-icon' }, icon('puzzle', 18)),
+      h('input', { type: 'checkbox', checked: manager.enabled(m.id), title: t('Enabled'), 'aria-label': t('Enable {name}', { name: m.name }), onchange: (e) => manager.enable(m.id, e.target.checked) }),
+      h(
+        'div',
+        { class: 'addon-text' },
+        h('div', { class: 'addon-name' }, m.name, h('span', { class: 'weak' }, ` ${m.version}`)),
+        m.description ? h('div', null, m.description) : null,
+        h('div', { class: 'weak' }, [m.author && t('by {author}', { author: m.author }), `id ${m.id}`].filter(Boolean).join(' · ')),
+        error ? h('div', { class: 'addon-error' }, t('Failed to load: {error} (View ▸ Log)', { error })) : null,
+      ),
+      m.url ? h('button', { title: m.url, onclick: () => platform.openExternal(m.url) }, t('Docs ↗')) : null,
+      h(
+        'button',
+        {
+          onclick: async () => {
+            const ok = await askChoice(t('Remove add-on?'), t('Remove {name}? Its tools leave the Scripts menu.', { name: m.name }), [
+              { id: 'cancel', label: t('Cancel') },
+              { id: 'remove', label: t('Remove'), primary: true },
+            ]);
+            if (ok === 'remove') await manager.remove(m.id);
+          },
+        },
+        t('Remove'),
+      ),
     );
   };
+
+  const galleryRow = (a) => {
+    const have = manager.installed.get(a.id);
+    const current = have && have.version === a.version;
+    return h(
+      'div',
+      { class: 'addon' },
+      h('span', { class: `addon-icon${a.official ? ' official' : ''}` }, icon('puzzle', 18)),
+      h(
+        'div',
+        { class: 'addon-text' },
+        h('div', { class: 'addon-name' }, a.name, h('span', { class: 'weak' }, ` ${a.version}`), a.official ? h('span', { class: 'addon-badge' }, t('Official')) : null),
+        h('div', null, a.description),
+        h('div', { class: 'weak' }, t('by {author}', { author: a.author })),
+      ),
+      a.repo ? h('button', { onclick: () => platform.openExternal(a.repo) }, t('Source ↗')) : null,
+      h(
+        'button',
+        {
+          class: current ? '' : 'primary',
+          disabled: current,
+          onclick: async (e) => {
+            e.target.disabled = true;
+            try {
+              app.setStatus(t('Downloading {name}…', { name: a.name }));
+              const m = await manager.install({ name: `${a.id}.zip`, bytes: await platform.fetchBytes(a.url) });
+              if (m) app.setStatus(t('Installed the add-on {name} {version}', { name: m.name, version: m.version }));
+            } catch (err) {
+              app.setStatus(t('Could not install the add-on: {error}', { error: err?.message ?? err }));
+            }
+            draw();
+          },
+        },
+        current ? t('Installed') : have ? t('Update') : t('Install'),
+      ),
+    );
+  };
+
+  const tabs = h('div', { class: 'segmented addon-tabs' });
+  const draw = () => {
+    for (const b of tabs.children) b.classList.toggle('active', b.dataset.tab === tab);
+    if (tab === 'installed') {
+      const items = [...manager.installed.values()].filter(matches).sort((a, b) => a.name.localeCompare(b.name));
+      list.replaceChildren(...(items.length ? items.map(installedRow) : [h('p', { class: 'dialog-empty' }, manager.installed.size ? t('No add-on matches.') : t('No add-ons installed yet. Get some from the gallery.'))]));
+    } else if (galleryError) list.replaceChildren(h('p', { class: 'dialog-empty' }, t('The gallery could not be loaded: {error}', { error: galleryError })));
+    else if (!gallery) list.replaceChildren(h('p', { class: 'dialog-empty' }, t('Loading the gallery…')));
+    else {
+      const items = gallery.filter(matches);
+      list.replaceChildren(...(items.length ? items.map(galleryRow) : [h('p', { class: 'dialog-empty' }, t('No add-on matches.'))]));
+    }
+  };
+
+  const loadGallery = async () => {
+    if (gallery) return;
+    try {
+      gallery = JSON.parse(new TextDecoder().decode(await platform.fetchBytes(GALLERY_URL))).addons ?? [];
+    } catch (e) {
+      galleryError = e?.message ?? String(e);
+    }
+    draw();
+  };
+
+  tabs.append(
+    h('button', { 'data-tab': 'installed', onclick: () => ((tab = 'installed'), draw()) }, t('Installed')),
+    h('button', { 'data-tab': 'gallery', onclick: () => ((tab = 'gallery'), draw(), loadGallery()) }, t('Get add-ons')),
+  );
   const install = async () => {
-    const [file] = await platform.pickImportFiles('Rigby2D add-on (.zip, .py)', ADDON_EXTENSIONS, false);
+    const [file] = await platform.pickImportFiles(t('Rigby2D add-on (.zip, .py)'), ADDON_EXTENSIONS, false);
     if (!file) return;
     try {
       const m = await manager.install(file);
-      if (m) app.setStatus(`Installed the add-on ${m.name} ${m.version}`);
+      if (m) app.setStatus(t('Installed the add-on {name} {version}', { name: m.name, version: m.version }));
     } catch (e) {
-      app.setStatus(`Could not install the add-on: ${e?.message ?? e}`);
+      app.setStatus(t('Could not install the add-on: {error}', { error: e?.message ?? e }));
     }
   };
   const where = h('code', { class: 'addon-folder' }, '…');
@@ -224,23 +269,22 @@ export function renderAddonsPage(manager, el) {
     h(
       'div',
       { class: 'dialog-toolbar' },
-      h('input', { type: 'search', class: 'dialog-search', placeholder: 'Search add-ons', 'aria-label': 'Search add-ons', oninput: (e) => ((query = e.target.value.trim().toLowerCase()), draw()) }),
-      h('button', { class: 'primary', onclick: install }, 'Install from file…'),
+      tabs,
+      h('input', { type: 'search', class: 'dialog-search', placeholder: t('Search add-ons'), 'aria-label': t('Search add-ons'), oninput: (e) => ((query = e.target.value.trim().toLowerCase()), draw()) }),
+      h('button', { onclick: install }, t('Install from file…')),
     ),
     list,
     h(
       'p',
       { class: 'pref-note' },
-      'Add-ons are Python packages (.zip) or modules (.py) that add tools to the Scripts menu. They run with the same access as the editor, so install add-ons only from people you trust. Installed in ',
+      t('Add-ons are Python packages (.zip) or modules (.py) that add tools to the Scripts menu. They run sandboxed: they can change the open project, but not your files or the network. Installed in'),
+      ' ',
       where,
       '.',
     ),
   );
-  const off = (() => {
-    manager.listeners.add(draw);
-    return () => manager.listeners.delete(draw);
-  })();
+  manager.listeners.add(draw);
   draw();
   manager.refresh();
-  return off;
+  return () => manager.listeners.delete(draw);
 }

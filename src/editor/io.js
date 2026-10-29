@@ -14,6 +14,7 @@ import { sequenceFrameName } from '../core/sequence.js';
 import { Skeleton, makeAttachment, makeSlot, uniqueName } from '../core/model.js';
 import { pack } from './pack.js';
 import { unzip, zip } from './zip.js';
+import { dragonBonesToSkeleton, isDragonBones, isDragonBonesAtlas } from './dragonbones.js';
 
 const IMAGE_DIR = 'images';
 
@@ -96,6 +97,8 @@ export async function openProject(path, fs, images) {
   } catch (e) {
     throw new Error(`invalid JSON: ${e.message}`);
   }
+  if (isDragonBones(parsed)) return { ...(await openDragonBones(path, fs, parsed, images)), imported: true };
+  if (isDragonBonesAtlas(parsed)) throw new Error('this is a DragonBones texture atlas: open the skeleton (_ske.json) next to it');
   if (!isSkeletonJson(parsed)) throw new Error('not a skeleton JSON file');
   return { ...(await openSkeletonJson(path, fs, parsed, images)), imported: true };
 }
@@ -225,6 +228,38 @@ async function findAtlas(path, fs, doc) {
 }
 
 /** Opens skeleton JSON: reads the JSON, then images from a sibling atlas or the images folder. */
+/**
+ * A DragonBones project: `<name>_ske.json` with `<name>_tex.json` and its image next to it. It is
+ * converted to skeleton JSON and an atlas (dragonbones.js), then imported like any skeleton.
+ */
+async function openDragonBones(path, fs, ske, images) {
+  const dir = dirname(path);
+  const candidates = [path.replace(/_ske\.json$/i, '_tex.json'), joinPath(dir, `${ske.name ?? stem(path)}_tex.json`)];
+  for (const name of (await fs.list?.(dir)) ?? []) if (/_tex\.json$/i.test(name)) candidates.push(joinPath(dir, name));
+  let tex = null;
+  for (const c of candidates) {
+    const text = await tryReadText(fs, c);
+    if (text === null) continue;
+    try {
+      const parsed = JSON.parse(text);
+      if (isDragonBonesAtlas(parsed)) {
+        tex = parsed;
+        break;
+      }
+    } catch {
+      // not the atlas
+    }
+  }
+  const { json, atlas, warnings } = dragonBonesToSkeleton(ske, tex);
+  if (!tex) warnings.push('no DragonBones texture atlas (_tex.json) found next to the skeleton: images are looked up by name instead');
+  // The converted atlas stands in for an .atlas file next to the skeleton.
+  const atlasPath = withExtension(path, 'atlas');
+  const overlay = { ...fs, readText: (p) => (atlas !== null && p === atlasPath ? Promise.resolve(atlas) : fs.readText(p)) };
+  const opened = await openSkeletonJson(path, overlay, json, images);
+  opened.doc.name = stem(path).replace(/_ske$/i, '');
+  return { doc: opened.doc, warnings: [...warnings, ...opened.warnings] };
+}
+
 async function openSkeletonJson(path, fs, obj, images) {
   const { skeleton: doc, warnings } = readSkeletonJson(obj, stem(path));
   const dir = dirname(path);

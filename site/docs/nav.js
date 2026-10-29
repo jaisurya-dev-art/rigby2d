@@ -5,7 +5,7 @@
 export const NAV = [
   {
     title: 'Getting started',
-    pages: ['index', 'installation', 'quick-start', 'interface', 'preferences'],
+    pages: ['index', 'installation', 'quick-start', 'interface', 'preferences', 'migrating-from-spine', 'migrating-from-dragonbones'],
   },
   {
     title: 'Rigging',

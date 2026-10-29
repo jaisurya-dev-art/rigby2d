@@ -6,14 +6,34 @@ the editor starts.
 
 ## Installing
 
-1. *Edit ▸ Preferences ▸ Add-ons ▸ Install from file…*
-2. Pick the add-on's `.zip` or `.py` file. It is installed and enabled.
+From the gallery:
+
+1. *Edit ▸ Preferences ▸ Add-ons ▸ Get add-ons*.
+2. Choose **Install** next to an add-on. It is downloaded, installed and enabled. **Update** appears
+   when a newer version is listed.
+
+The gallery is also on the website: [rigby2d.com/addons](https://rigby2d.com/addons/).
+
+From a file: *Edit ▸ Preferences ▸ Add-ons ▸ Install from file…*, then pick the add-on's `.zip` or
+`.py` file.
 
 Turn an add-on off with its checkbox, or delete it with **Remove**. Installing a newer version of an
 add-on asks to replace the old one.
 
-> **Install add-ons only from people you trust.** An add-on runs with the same access as the
-> editor: it can change your projects and, on the desktop, your files.
+Add-ons run in the same sandbox as [scripts](scripting.md): they can change the open project, but
+not your files or the network. They can still change your project in ways you didn't expect, so
+prefer add-ons from people you trust, and keep backups on (Preferences ▸ Files and recovery).
+
+## Official add-ons
+
+| Add-on | What it does |
+| --- | --- |
+| Mirror tools | Mirrors the selected bones across X = 0, and swaps left and right in bone names (`arm_l` ↔ `arm_r`). |
+| Breathing idle | Makes a looping "breathe" animation from the chest, spine or selected bones, with the head following. |
+| Rig report | Lists possible problems before export (empty slots, unused bones, look-alike names, empty animations) in *View ▸ Log*. |
+
+Their source is in the [addons folder](https://github.com/jaisurya-dev-art/rigby2d/tree/develop/addons)
+of the repository, and makes good examples.
 
 ## Where add-ons are installed
 
@@ -88,6 +108,27 @@ tuples.
   go to *View ▸ Log*.
 
 The add-on uses the same `rigby` API as scripts: see the [API reference](scripting.md#api-reference).
+
+### Listing your add-on in the gallery
+
+Publish the `.zip` somewhere stable (a GitHub release is ideal), then open a pull request that adds
+an entry to [addons/gallery.json](https://github.com/jaisurya-dev-art/rigby2d/blob/develop/addons/gallery.json):
+
+```json
+{
+  "id": "my_tool",
+  "name": "My tool",
+  "version": "1.0.0",
+  "author": "Your name",
+  "description": "What it does, in one sentence.",
+  "url": "https://github.com/you/my-tool/releases/download/v1.0.0/my_tool.zip",
+  "repo": "https://github.com/you/my-tool"
+}
+```
+
+The `id` and `version` must match the add-on's folder name and `addon_info`. In the browser editor,
+the gallery can only download add-ons hosted on rigby2d.com; the desktop app downloads from any
+listed address.
 
 ### Testing while you write
 
