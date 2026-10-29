@@ -961,6 +961,10 @@ h3 {
   margin-top: 24px;
   max-width: 520px;
 }
+.waitlist button {
+  font: inherit;
+  cursor: pointer;
+}
 .waitlist .hp {
   display: none;
 }
