@@ -1,0 +1,23 @@
+rigbytron.png
+size: 2048, 2048
+filter: Linear, Linear
+arm_back
+bounds: 2, 547, 209, 476
+forearm
+bounds: 684, 547, 291, 246
+hand
+bounds: 1097, 547, 230, 137
+hand_e
+bounds: 1329, 547, 240, 131
+head
+bounds: 213, 547, 469, 428
+leg_l
+bounds: 1476, 2, 215, 495
+leg_r
+bounds: 1693, 2, 214, 495
+slash_fx
+bounds: 452, 2, 1022, 502
+torso
+bounds: 2, 2, 448, 543
+upperarm
+bounds: 977, 547, 118, 185

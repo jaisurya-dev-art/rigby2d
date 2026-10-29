@@ -10,8 +10,8 @@ characters on a stage with a moving camera and parallax.
 | --- | --- | --- |
 | [JavaScript](#javascript) (`src/core`) + WebGL renderer (`src/webgl`) | JavaScript, no dependencies | Complete |
 | [Rust](#rust) (`runtimes/rust/rigby-runtime`) | Rust, no dependencies; 3 to 4× faster | Complete |
+| [Unity](#unity) (`RigbySkeleton`, `RigbyScene`) | C#, every platform Unity builds for; multi-core, no garbage | Complete |
 | [Godot](#godot) (`RigbySkeleton2D`, `RigbyScene2D`) | GDExtension on the Rust core | Preview |
-| Unity | On the Rust core | Planned |
 
 The landing page of the [website](https://jaisurya-dev-art.github.io/rigby2d/) plays NILA with the
 JavaScript runtime.
@@ -83,6 +83,38 @@ Scenes: `rigby_runtime::scene::load_scene(&manifest, |file| std::fs::read(dir.jo
 It matches the JavaScript runtime frame by frame (golden tests, including a scene). Build and test with
 `cargo test --release --workspace` in `runtimes/rust`. See the
 [runtimes README](../runtimes/README.md).
+
+## Unity
+
+The `com.hoverlabs.rigby2d` package for Unity 2021.3 or newer (Unity 6 included), Built-in or
+Universal render pipeline. In Unity: *Window ▸ Package Manager ▸ + ▸ Install package from git URL…*
+
+```
+https://github.com/jaisurya-dev-art/rigby2d.git?path=/runtimes/unity/com.hoverlabs.rigby2d
+```
+
+Drop an export (`.skel` or `.json`, `.atlas` and its `.png`) into `Assets`: the `.atlas` becomes a
+skeleton asset. Drag it into the scene, pick an animation, and it plays (in the editor too). Scenes
+exported with *File ▸ Export ▸ Scene for runtimes* import the same way and play with the `RigbyScene`
+component, which can drive a camera.
+
+```csharp
+var hero = GetComponent<RigbySkeleton>();
+hero.Play("walk", loop: true, mix: 0.2f);
+hero.AddAnimation(0, "idle", loop: true, mix: 0.3f);
+hero.AnimationEvent += (s, e) => { if (e.Name == "footstep") step.Play(); };
+gun.position = hero.GetBoneWorldPosition("gun-tip");
+```
+
+- **Every core, no garbage**: playing skeletons pose and build their meshes in parallel, and steady
+  playback allocates nothing. 200 NILAs take 6.7 ms per frame in the Editor on 8 cores (16.8 ms on
+  one).
+- **Clean edges in Gamma and Linear color space**: the shader handles straight or premultiplied
+  atlases itself, with two-color tint and every blend mode.
+- **The same animation as the editor**: the C# runtime is tested frame by frame against the
+  JavaScript runtime, like the Rust one.
+
+See the [Unity guide](https://github.com/jaisurya-dev-art/rigby2d/blob/develop/runtimes/unity/com.hoverlabs.rigby2d/README.md) for every component, property and event.
 
 ## Godot
 

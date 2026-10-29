@@ -1,0 +1,14 @@
+{
+  "name": "Rigby2D.Runtime",
+  "rootNamespace": "Rigby2D.Unity",
+  "references": ["Rigby2D.Core"],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

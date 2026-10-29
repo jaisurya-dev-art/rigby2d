@@ -1,0 +1,14 @@
+{
+  "name": "Rigby2D.Editor",
+  "rootNamespace": "Rigby2D.Unity.Editor",
+  "references": ["Rigby2D.Core", "Rigby2D.Runtime"],
+  "includePlatforms": ["Editor"],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

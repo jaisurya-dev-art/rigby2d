@@ -29,7 +29,7 @@ and meshes, animate it for games or film, and play it anywhere with the included
 - **Automate** with [Python scripting](scripting.md) and custom tools, or let an AI assistant work
   through the [MCP server](mcp.md).
 - **Ship** skeleton JSON (3.8, 4.2, 4.3) or binary `.skel` with a texture atlas, and play it with
-  the [JavaScript, Rust and Godot runtimes](runtimes.md).
+  the [JavaScript, Rust, Unity and Godot runtimes](runtimes.md).
 
 ## Where to start
 

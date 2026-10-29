@@ -49,6 +49,17 @@ jobs:
       - run: cargo build --release -p rigby-godot
         working-directory: runtimes/rust
       - run: node runtimes/godot/package.mjs windows-x64
+      # Unity runtime: the C# core against the JavaScript runtime (golden tests), then the package
+      # as a tarball for Unity's "Install package from tarball".
+      - run: node runtimes/unity/com.hoverlabs.rigby2d/Tests~/run.mjs
+      - name: Pack the Unity package
+        shell: bash
+        env:
+          V: ${{ steps.version.outputs.version }}
+        working-directory: runtimes/unity/com.hoverlabs.rigby2d
+        run: |
+          npm version "$V" --no-git-tag-version --allow-same-version
+          npm pack --pack-destination ../../..
 
       - name: Collect the release files
         shell: bash
@@ -62,6 +73,7 @@ jobs:
           cp "dist-mcpb/Rigby2D-AI-${V}.mcpb" release/
           cp "runtimes/godot/dist/rigby2d-godot-addon-${V}-windows-x64.zip" release/
           cp "runtimes/godot/dist/rigby2d-godot-demo-${V}-windows-x64.zip" release/
+          cp "com.hoverlabs.rigby2d-${V}.tgz" "release/rigby2d-unity-${V}.tgz"
           ls -la release
 
       - id: unsigned

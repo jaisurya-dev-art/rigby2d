@@ -7,7 +7,7 @@ Engine runtimes for Rigby2D animations, built on one Rust core.
 | [`rust/rigby-runtime`](rust/rigby-runtime) | The runtime in Rust: loads skeleton `.json` (3.8, 4.2, 4.3) and binary `.skel` (4.3) with `.atlas`, evaluates poses, constraints and playback, plays scenes (`.scene.json`), and builds textured, clipped draw batches. No dependencies. | Complete |
 | [`rust/rigby-godot`](rust/rigby-godot) | Godot 4.3+ GDExtension: the `RigbySkeleton2D` and `RigbyScene2D` nodes. | Preview: Windows x64 download on [Releases](https://github.com/jaisurya-dev-art/rigby2d/releases); build from source elsewhere |
 | [`godot`](godot) | Godot addon (`addons/rigby2d`, with [user guide](godot/addons/rigby2d/README.md)), demo scene and tests. | Preview |
-| Unity | Planned, on the same Rust core. | Next |
+| [`unity/com.hoverlabs.rigby2d`](unity/com.hoverlabs.rigby2d) | Unity 2021.3+ package ([guide](unity/com.hoverlabs.rigby2d/README.md)): `RigbySkeleton`, `RigbyScene`, `RigbyBoneFollower`, importers and a shader. A C# port of the core (`Rigby2D.Core`, no Unity dependency), golden-tested like the Rust one; multi-core and garbage-free. | Complete |
 
 ## The Rust core
 

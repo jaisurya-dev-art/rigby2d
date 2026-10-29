@@ -85,7 +85,7 @@
       <section class="strip" aria-label="At a glance">
         <div class="wrap strip-row">
           <div><b>1 step</b><span>from layered PSD to an editable rig</span></div>
-          <div><b>3 runtimes</b><span>JavaScript, Rust and Godot 4</span></div>
+          <div><b>4 runtimes</b><span>JavaScript, Rust, Unity and Godot 4</span></div>
           <div><b>Lossless</b><span>skeleton JSON 3.8 / 4.2 / 4.3 and .skel</span></div>
           <div><b>MCP built in</b><span>AI assistants work on real projects</span></div>
         </div>
@@ -193,8 +193,9 @@
             <p class="eyebrow">Play it anywhere</p>
             <h2>Small, fast runtimes</h2>
             <p>
-              A dependency-free JavaScript runtime with a reference WebGL renderer, and a Rust port that matches it frame by frame,
-              3 to 4× faster, powering the Godot 4 node <code>RigbySkeleton2D</code>. Unity is next.
+              A dependency-free JavaScript runtime with a reference WebGL renderer, a Rust port that matches it frame by frame,
+              3 to 4× faster, powering the Godot 4 node <code>RigbySkeleton2D</code>, and a Unity package in C#: multi-core,
+              garbage-free, clean edges in any color space, scenes included.
             </p>
             <p>The animation at the top of this page is that JavaScript runtime, drawing NILA live: mesh deformation, physics on her braid and earrings, face swaps and lip-sync, all from one exported <code>.skel</code>.</p>
             <a class="btn" href="./docs/runtimes.html">Runtime guide</a>
@@ -234,16 +235,16 @@ state.apply(skeleton, pose);
               <b>AI extension</b>
               <span>The MCP server as a one-file .mcpb install.</span>
             </a>
+            <a class="dl" href="https://github.com/jaisurya-dev-art/rigby2d/blob/develop/runtimes/unity/com.hoverlabs.rigby2d/README.md" data-goatcounter-click="site-unity-runtime">
+              <b>Unity runtime</b>
+              <span>Package for Unity 2021.3+ and Unity 6: add it from its git URL in the Package Manager.</span>
+            </a>
             <a class="dl" href="https://github.com/jaisurya-dev-art/rigby2d/blob/develop/runtimes/godot/addons/rigby2d/README.md" data-goatcounter-click="site-godot-runtime">
               <b>Godot runtime</b>
               <span>Addon and demo for Godot 4.3+, on the Releases page.</span>
             </a>
-            <a class="dl" href="https://github.com/jaisurya-dev-art/rigby2d#getting-started" data-goatcounter-click="site-build-from-source">
-              <b>Build from source</b>
-              <span>Windows, macOS and Linux with Node.js 20+ and Tauri.</span>
-            </a>
           </div>
-          <p class="fine">Windows code signing comes from the SignPath Foundation (application under review; see the <a href="./docs/code-signing.html">code signing policy</a>). Until then downloads are not signed: each release lists SHA-256 checksums, so compare them before running anything.</p>
+          <p class="fine">On macOS or Linux, <a href="https://github.com/jaisurya-dev-art/rigby2d#getting-started" data-goatcounter-click="site-build-from-source">build the editor from source</a> (Node.js 20+ and Tauri) or use the browser editor. Windows code signing comes from the SignPath Foundation (application under review; see the <a href="./docs/code-signing.html">code signing policy</a>). Until then downloads are not signed: each release lists SHA-256 checksums, so compare them before running anything.</p>
         </div>
       </section>
     </main>
