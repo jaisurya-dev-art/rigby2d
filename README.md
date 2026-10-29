@@ -3,6 +3,10 @@
 </p>
 
 <p align="center">
+  <b>English</b> · <a href="README.ja.md">日本語</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.ko.md">한국어</a> · <a href="README.es.md">Español</a> · <a href="README.pt-BR.md">Português (Brasil)</a>
+</p>
+
+<p align="center">
   <strong>Open-source 2D skeletal animation for games, films and interactive experiences.</strong><br>
   Rig your art with bones and meshes, animate it, and play it anywhere with the included runtime.<br>
   Built-in <a href="docs/mcp.md">MCP server</a>: AI assistants can inspect, validate and animate your projects.
