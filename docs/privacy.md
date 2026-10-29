@@ -33,6 +33,11 @@ anonymously with [GoatCounter](https://www.goatcounter.com): no cookies, no pers
 tracking across sites. Projects you open in the browser editor stay in your browser; nothing is
 uploaded.
 
+The [Rigby2D Cloud waitlist](https://rigby2d.com/cloud/) is the one place the website asks for
+personal data. The email address you enter is stored with the date in a database in our Cloudflare
+account and used only to tell you when Rigby2D Cloud opens. It is never shared or sold. To be removed
+from the list, open an issue or reply to that email, and the address is deleted.
+
 ## Contact
 
 Questions about privacy: [open an issue](https://github.com/jaisurya-dev-art/rigby2d/issues).

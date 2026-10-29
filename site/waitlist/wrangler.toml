@@ -1,0 +1,12 @@
+# The Rigby2D Cloud waitlist: a Cloudflare Worker at rigby2d.com/api/waitlist that stores emails in D1.
+# Deploy: npx wrangler deploy --config site/waitlist/wrangler.toml
+name = "rigby2d-waitlist"
+main = "worker.js"
+compatibility_date = "2026-10-01"
+workers_dev = false
+routes = [{ pattern = "rigby2d.com/api/waitlist", zone_name = "rigby2d.com" }]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "rigby2d-waitlist"
+database_id = "8f0c7f88-1b23-4b02-9a2a-6a01efc6dc00"

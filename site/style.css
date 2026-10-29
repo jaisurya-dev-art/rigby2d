@@ -961,6 +961,9 @@ h3 {
   margin-top: 24px;
   max-width: 520px;
 }
+.waitlist .hp {
+  display: none;
+}
 .waitlist label {
   position: absolute;
   width: 1px;
