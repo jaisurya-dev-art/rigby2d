@@ -21,7 +21,10 @@
   <img alt="Status: public beta" src="https://img.shields.io/badge/status-public%20beta-blue">
   <a href="https://upstar.dev/r/jaisurya-dev-art/rigby2d"><img alt="Upstar" src="https://upstar.dev/badge/jaisurya-dev-art/rigby2d.svg"></a>
   <a href="https://youtu.be/3StZlHwZeSo"><img alt="Watch the NILA promo on YouTube" src="https://img.shields.io/badge/watch-NILA%20promo-ff0000?logo=youtube&logoColor=white"></a>
+  <a href="runtimes/unity/com.rigby2d.unity/README.md"><img alt="Runtime ready: Unity" src="https://img.shields.io/badge/runtime%20ready-Unity-222429?logo=unity&logoColor=white"></a>
   <a href="runtimes/godot/addons/rigby2d/README.md"><img alt="Runtime ready: Godot" src="https://img.shields.io/badge/runtime%20ready-Godot-478cbf?logo=godotengine&logoColor=white"></a>
+  <a href="runtimes/phaser/README.md"><img alt="Runtime ready: Phaser" src="https://img.shields.io/badge/runtime%20ready-Phaser-7b5cd6"></a>
+  <a href="docs/runtimes.md"><img alt="Runtimes: JavaScript and Rust" src="https://img.shields.io/badge/runtimes-JavaScript%20%7C%20Rust-f7df1e?labelColor=555"></a>
   <a href="docs/mcp.md"><img alt="MCP server built in" src="https://img.shields.io/badge/MCP-server%20built%20in-7c3aed"></a>
   <a href="#license"><img alt="License: MIT or Apache-2.0" src="https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue.svg"></a>
   <img alt="Platforms" src="https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey">
