@@ -106,8 +106,10 @@ export class ScriptHost {
   runTool(id) {
     const t = this.tools.get(id);
     if (!t || !this.rigby) return { ok: false, error: 'No such tool' };
+    const before = this.app.status;
     const result = this.transaction(t.script, `Tool '${t.label}' failed`, () => this.rigby._run(t.script, t.label));
-    if (result.ok) this.app.setStatus(`Ran ${t.label}`);
+    // A tool that reports its own result (rigby.status) keeps it in the status bar.
+    if (result.ok && this.app.status === before) this.app.setStatus(`Ran ${t.label}`);
     return result;
   }
 

@@ -232,10 +232,8 @@ export function installPanelSync(app, { inTauri, appEl, runForwardedAction }) {
       applyFromPanel(p);
     });
     listen(EV_CLOSED, (e) => dockPanel(e.payload?.panel));
-    // Closing the editor closes the whole program: tear down any detached panel windows too.
-    getCurrentWindow().onCloseRequested(() => {
-      for (const [, win] of detachedWindows) win?.destroy().catch(() => {});
-    });
+    // Closing the editor closes the whole program: main.js tears down the detached panel windows
+    // with closePanels() once the close is confirmed (unsaved changes can cancel it).
     // Ctrl+Alt+<digit> loads the layout bound to that digit (also forwarded from panel windows).
     // Capture phase: text fields stopPropagation() keydown, so a bubble-phase listener would miss
     // the shortcut whenever an input/select had focus.
@@ -245,7 +243,12 @@ export function installPanelSync(app, { inTauri, appEl, runForwardedAction }) {
     }, true);
   }
 
-  return { syncPanels, detachPanel, dockPanel, detachedIds, captureLayout, applyLayout, activeLayout, setActiveLayout };
+  /** Closes every detached panel window (the editor is closing). */
+  function closePanels() {
+    for (const [, win] of detachedWindows) win?.destroy().catch(() => {});
+  }
+
+  return { syncPanels, detachPanel, dockPanel, detachedIds, captureLayout, applyLayout, activeLayout, setActiveLayout, closePanels };
 }
 
 /** A detached panel window positions itself when the editor sends EV_PLACE (loading a layout). */

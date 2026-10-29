@@ -18,6 +18,8 @@ import { forgetProject, rememberProject } from './recent.js';
 import { DEMOS_REMOTE, demoById } from './demos.js';
 import { actorEntries, actors, imageKey, loadActors, poseActors } from './actors.js';
 import { applyParallax, setupCameraPosition } from '../core/scene.js';
+import { createPrefs } from './prefs.js';
+import { isBackup } from './recovery.js';
 
 /** Default onion-skin tint colors (future = cool, past = warm), shared with the UI. */
 export const ONION_DEFAULTS = { futureColor: [0.55, 0.75, 1], pastColor: [1, 0.55, 0.55] };
@@ -201,6 +203,8 @@ export class App {
     };
     /** Playback speed multiplier (1 = real time). */
     this.playSpeed = 1;
+    /** Edit ▸ Preferences (prefs.js). */
+    this.prefs = createPrefs();
     /** Viewport drawing: 'webgl' (default when available) or 'canvas'. */
     this.renderer = loadSetting('rigby.renderer', 'webgl');
     this.frameRequest = false;
@@ -539,7 +543,7 @@ export class App {
       this.history.undo.push(this.baseline);
       this.baseline = this.docJson;
       this.history.redo = [];
-      if (this.history.undo.length > 200) this.history.undo.shift();
+      while (this.history.undo.length > this.prefs.get('editing.undoSteps')) this.history.undo.shift();
     }
   }
 
@@ -555,11 +559,14 @@ export class App {
       if (imported) doc.workspace = WORKSPACES.game.id;
       // Imported files are not work files: the first Save asks where to put the .rigby file.
       this.loadDocument(doc, imported ? null : path);
-      this.saveTarget = !imported && fs.reusable ? { path, fs } : null;
-      const what = imported ? 'Imported' : 'Opened';
+      // A backup (walk.rigby1) opens as a copy: Save asks where to keep it instead of overwriting it.
+      const backup = isBackup(path);
+      this.saveTarget = !imported && !backup && fs.reusable ? { path, fs } : null;
+      const what = imported ? 'Imported' : backup ? 'Opened the backup' : 'Opened';
       if (platform.isDesktop && fs.reusable) rememberProject({ kind: 'file', path });
       track(imported ? 'editor-import-skeleton' : 'editor-open');
-      this.setStatus(warnings.length ? `${what} with warnings: ${warnings.join('; ')}` : `${what} ${path}`);
+      const note = backup ? ' (Save asks where to keep it)' : '';
+      this.setStatus(warnings.length ? `${what} with warnings: ${warnings.join('; ')}` : `${what} ${path}${note}`);
     } catch (e) {
       this.setStatus(`Could not open ${path}: ${errorText(e)}`);
     }
@@ -652,9 +659,7 @@ export class App {
       if (!target) return;
     }
     try {
-      const used = new Set(this.doc.audio.map((t) => t.sound));
-      const audioFiles = [...sounds].filter(([name]) => used.has(name)).map(([name, s]) => ({ path: `audio/${name}`, bytes: s.bytes }));
-      const { warnings } = await io.saveWorkfile(target.path, target.fs, this.doc, this.images, [...audioFiles, ...actorEntries(this.doc)]);
+      const { warnings } = await this.writeWorkfile(target.path, target.fs, { backups: this.prefs.get('files.backups') });
       await target.fs.finish();
       this.path = target.path;
       this.saveTarget = target.fs.reusable ? target : null;
@@ -667,6 +672,16 @@ export class App {
     } catch (e) {
       this.setStatus(`Save failed: ${errorText(e)}`);
     }
+  }
+
+  /**
+   * Writes the open project as a `.rigby` work file with its sounds and scene characters (Save, and
+   * the auto-saves in recoveryui.js). `backups`: previous versions to keep (desktop).
+   */
+  writeWorkfile(path, fs, { backups = 0 } = {}) {
+    const used = new Set(this.doc.audio.map((t) => t.sound));
+    const audioFiles = [...sounds].filter(([name]) => used.has(name)).map(([name, s]) => ({ path: `audio/${name}`, bytes: s.bytes }));
+    return io.saveWorkfile(path, fs, this.doc, this.images, [...audioFiles, ...actorEntries(this.doc)], { backups });
   }
 
   /** Writes skeleton JSON (.json + .atlas + .png). `version` is "3.8" or "4.2". */
@@ -932,7 +947,7 @@ export class App {
       if (opts.undo) {
         this.syncJson();
         this.history.undo.push(this.docJson);
-        if (this.history.undo.length > 200) this.history.undo.shift();
+        while (this.history.undo.length > this.prefs.get('editing.undoSteps')) this.history.undo.shift();
         this.history.redo = [];
       }
       const prev = this.doc;

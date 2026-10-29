@@ -2256,3 +2256,172 @@ kbd {
 .demo-license button.link:hover:not(:disabled) {
   background: rgba(230, 162, 60, 0.14);
 }
+
+/* Choice dialogs (Save / Don't save / Cancel, Recover) */
+.modal.choice-dialog {
+  width: min(460px, calc(100vw - 32px));
+}
+.choice-dialog p {
+  margin: 0;
+  line-height: 1.5;
+}
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.dialog-actions button {
+  padding: 6px 14px;
+}
+
+/* Edit ▸ Preferences */
+.modal.prefs-dialog {
+  width: min(820px, calc(100vw - 32px));
+  height: min(600px, calc(100vh - 48px));
+}
+.prefs-layout {
+  display: flex;
+  gap: 18px;
+  min-height: 0;
+  flex: 1;
+}
+.prefs-side {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  flex: none;
+  width: 170px;
+}
+.prefs-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.prefs-nav button {
+  text-align: left;
+  padding: 7px 10px;
+  background: transparent;
+  border-radius: var(--radius);
+}
+.prefs-nav button:hover {
+  background: var(--hover);
+}
+.prefs-nav button.active {
+  background: var(--accent-soft);
+  color: var(--text);
+}
+.prefs-reset {
+  align-self: flex-start;
+}
+.prefs-page {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  overflow: auto;
+}
+.pref-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 10px 2px;
+  border-bottom: 1px solid var(--border);
+}
+.pref-label {
+  color: var(--text);
+}
+.pref-hint {
+  margin-top: 3px;
+  color: var(--weak);
+  font-size: 12px;
+  line-height: 1.45;
+}
+.pref-row select,
+.pref-number input {
+  flex: none;
+}
+.pref-number input {
+  width: 70px;
+}
+.pref-note {
+  color: var(--weak);
+  font-size: 12px;
+  line-height: 1.5;
+  margin: 8px 0 0;
+}
+.addon-folder {
+  word-break: break-all;
+}
+.addon-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.addon {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.addon.failed {
+  border-color: #a14a4a;
+}
+.addon input[type='checkbox'] {
+  margin-top: 3px;
+}
+.addon-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  line-height: 1.4;
+}
+.addon-name {
+  color: var(--text);
+  font-weight: 600;
+}
+.addon-error {
+  color: #e08a8a;
+}
+
+/* Crash manager */
+.crash-banner {
+  position: fixed;
+  top: 44px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: calc(100vw - 32px);
+  padding: 8px 8px 8px 14px;
+  background: #4a2626;
+  border: 1px solid #a14a4a;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-pop);
+  color: var(--text);
+}
+.crash-banner button {
+  flex: none;
+  white-space: nowrap;
+}
+.modal.crash-dialog {
+  width: min(680px, calc(100vw - 32px));
+}
+.crash-report {
+  width: 100%;
+  box-sizing: border-box;
+  font: 12px/1.45 ui-monospace, Consolas, monospace;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px;
+  resize: vertical;
+}

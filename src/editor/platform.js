@@ -11,11 +11,13 @@ import { ask, open, save } from '@tauri-apps/plugin-dialog';
 import * as tfs from '@tauri-apps/plugin-fs';
 import { openUrl } from '@tauri-apps/plugin-opener';
 
+import { replaceWithBackups } from './recovery.js';
 import { zip } from './zip.js';
 
 export const isDesktop = typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window;
 
 const encoder = new TextEncoder();
+const decoder = new TextDecoder();
 
 // ---- desktop ----------------------------------------------------------------------------------
 
@@ -23,6 +25,8 @@ const desktopFs = {
   readFile: (p) => tfs.readFile(p),
   readText: (p) => tfs.readTextFile(p),
   writeFile: (p, bytes) => tfs.writeFile(p, bytes),
+  /** Saves through a temporary file, keeping `backups` previous versions (recovery.js). */
+  writeFileSafe: (path, bytes, { backups = 0 } = {}) => replaceWithBackups(tfs, path, bytes, backups),
   writeText: (p, text) => tfs.writeTextFile(p, text),
   mkdir: (p) => tfs.mkdir(p, { recursive: true }),
   list: async (dir) => {
@@ -172,6 +176,140 @@ function pickWithInput({ accept, multiple = false, directory = false }) {
   });
 }
 
+// ---- user data --------------------------------------------------------------------------------
+// The editor's own files (auto-saves, add-ons) under relative paths such as "recovery/x.rigby":
+// in the app's data folder on desktop (Windows: %LOCALAPPDATA%\io.github.jaisurya-dev-art.rigby2d),
+// in IndexedDB in the browser. list(prefix) returns every file below `prefix`, with its time.
+
+let dataRoot = null;
+async function dataPath(rel = '') {
+  if (!dataRoot) {
+    const { appLocalDataDir } = await import('@tauri-apps/api/path');
+    dataRoot = (await appLocalDataDir()).replace(/[\\/]$/, '');
+  }
+  const sep = dataRoot.includes('\\') ? '\\' : '/';
+  return rel ? `${dataRoot}${sep}${rel.split('/').join(sep)}` : dataRoot;
+}
+
+const desktopStore = {
+  location: (rel) => dataPath(rel),
+  async put(rel, bytes) {
+    const path = await dataPath(rel);
+    await tfs.mkdir(path.replace(/[\\/][^\\/]*$/, ''), { recursive: true });
+    await tfs.writeFile(path, bytes);
+  },
+  async get(rel) {
+    try {
+      return await tfs.readFile(await dataPath(rel));
+    } catch {
+      return null;
+    }
+  },
+  async remove(rel) {
+    try {
+      await tfs.remove(await dataPath(rel), { recursive: true });
+    } catch {
+      // Already gone.
+    }
+  },
+  async list(prefix) {
+    const out = [];
+    const walk = async (rel) => {
+      let entries = [];
+      try {
+        entries = await tfs.readDir(await dataPath(rel));
+      } catch {
+        return;
+      }
+      for (const e of entries) {
+        const child = `${rel}/${e.name}`;
+        if (e.isDirectory) await walk(child);
+        else if (e.isFile) {
+          const info = await tfs.stat(await dataPath(child)).catch(() => null);
+          out.push({ path: child, modified: info?.mtime ? new Date(info.mtime).getTime() : 0 });
+        }
+      }
+    };
+    await walk(prefix);
+    return out;
+  },
+};
+
+let database = null;
+function idb() {
+  database ??= new Promise((resolve, reject) => {
+    const request = indexedDB.open('rigby2d', 1);
+    request.onupgradeneeded = () => request.result.createObjectStore('files');
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+  return database;
+}
+async function idbRequest(mode, fn) {
+  const db = await idb();
+  return new Promise((resolve, reject) => {
+    const t = db.transaction('files', mode);
+    const request = fn(t.objectStore('files'));
+    t.oncomplete = () => resolve(request?.result);
+    t.onerror = () => reject(t.error);
+  });
+}
+/** Keys of `rel` and of everything below it. */
+const below = (rel) => IDBKeyRange.bound(`${rel}/`, `${rel}/￿`);
+
+const browserStore = {
+  location: async () => 'browser storage',
+  put: (rel, bytes) => idbRequest('readwrite', (s) => s.put({ bytes, modified: Date.now() }, rel)),
+  get: async (rel) => (await idbRequest('readonly', (s) => s.get(rel)).catch(() => null))?.bytes ?? null,
+  remove: (rel) =>
+    idbRequest('readwrite', (s) => {
+      s.delete(below(rel));
+      return s.delete(rel);
+    }).catch(() => {}),
+  async list(prefix) {
+    const out = [];
+    await idbRequest('readonly', (s) => {
+      const request = s.openCursor(below(prefix));
+      request.onsuccess = () => {
+        const cursor = request.result;
+        if (!cursor) return;
+        out.push({ path: cursor.key, modified: cursor.value.modified ?? 0 });
+        cursor.continue();
+      };
+      return request;
+    }).catch(() => {});
+    return out;
+  },
+};
+
+/** The editor's own data store (see above), with text helpers. */
+export const userStore = {
+  ...(isDesktop ? desktopStore : browserStore),
+  putText(rel, text) {
+    return this.put(rel, encoder.encode(text));
+  },
+  async getText(rel) {
+    const bytes = await this.get(rel);
+    return bytes ? decoder.decode(bytes) : null;
+  },
+};
+
+/** A read-only file system over userStore, so work files in it open like any other. */
+export const userStoreFs = {
+  readFile: async (p) => {
+    const bytes = await userStore.get(p);
+    if (!bytes) throw new Error(`file not found: ${p}`);
+    return bytes;
+  },
+  readText: async (p) => decoder.decode(await userStoreFs.readFile(p)),
+  writeFile: (p, bytes) => userStore.put(p, bytes),
+  writeText: (p, text) => userStore.putText(p, text),
+  mkdir: async () => {},
+  list: async () => [],
+  finish: async () => {},
+  reusable: false,
+};
+
 // ---- public API -------------------------------------------------------------------------------
 
 /** Opens an https link in the browser (the system browser on desktop, a new tab on the web). */
@@ -195,11 +333,17 @@ export async function confirmDialog(message, title) {
  */
 export async function pickProject() {
   if (isDesktop) {
-    const path = await open({ filters: [{ name: 'Rigby2D work file or skeleton (.json, .skel)', extensions: ['rigby', 'json', 'skel'] }] });
+    const backups = ['1', '2', '3', '4', '5', '6', '7', '8', '9'].map((n) => `rigby${n}`);
+    const path = await open({
+      filters: [
+        { name: 'Rigby2D work file or skeleton (.json, .skel)', extensions: ['rigby', 'json', 'skel'] },
+        { name: 'Rigby2D backup (.rigby1 … .rigby9)', extensions: backups },
+      ],
+    });
     return path ? { path, fs: desktopFs } : null;
   }
   const files = await pickWithInput({ directory: true });
-  const projects = files.filter((f) => /\.(rigby|json|skel)$/i.test(f.name));
+  const projects = files.filter((f) => /\.(rigby\d?|json|skel)$/i.test(f.name));
   if (!projects.length) return files.length ? Promise.reject(new Error('no .rigby, .json or .skel file in that folder')) : null;
   projects.sort((a, b) => Number(/\.rigby$/i.test(b.name)) - Number(/\.rigby$/i.test(a.name)));
   let chosen = projects[0];

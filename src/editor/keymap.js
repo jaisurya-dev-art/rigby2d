@@ -41,6 +41,7 @@ export const ACTIONS = [
   ['file.saveAs', 'Save as'],
   ['file.export', 'Export'],
   ['menu.close', 'Close menus'],
+  ['app.preferences', 'Preferences'],
 ];
 
 const COMMON = {
@@ -52,6 +53,7 @@ const COMMON = {
   'file.export': ['ctrl+e'],
   'edit.delete': ['delete', 'backspace'],
   'menu.close': ['escape'],
+  'app.preferences': ['ctrl+,'],
 };
 
 /** Keymap presets: action id -> list of bindings. */

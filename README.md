@@ -66,6 +66,12 @@ runtimes and the MCP server. The pages are also in [`docs/`](docs/).
   and they play in games through every runtime. See [Scenes](https://rigby2d.com/docs/scenes.html).
 - **A focused editor**: Game and Film workspaces, panels you can resize or pop out to a second
   monitor, *Open recent*, and a searchable shortcut reference with Reference and Blender-like keys.
+- **Your work is safe**: saves that never leave a half-written file, `.rigby1` backups like Blender's
+  `.blend1`, auto-save, and crash recovery that offers unsaved work back at the next start.
+  See [Saving and recovery](https://rigby2d.com/docs/recovery.html).
+- **Preferences and add-ons**: *Edit ▸ Preferences* for the interface scale, shortcuts, undo steps,
+  backups and auto-save, and an add-on installer for Python add-ons (`.zip` or `.py`) that add tools.
+  See [Add-ons](https://rigby2d.com/docs/addons.html).
 - **Python scripting** and custom tools, and a built-in **MCP server** so AI assistants such as
   Claude can inspect, rig and animate your projects.
 - **Lossless skeleton JSON (3.8, 4.2, 4.3) and binary `.skel`** with texture atlases, played by the

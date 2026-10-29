@@ -5,7 +5,7 @@
 export const NAV = [
   {
     title: 'Getting started',
-    pages: ['index', 'installation', 'quick-start', 'interface'],
+    pages: ['index', 'installation', 'quick-start', 'interface', 'preferences'],
   },
   {
     title: 'Rigging',
@@ -21,7 +21,7 @@ export const NAV = [
   },
   {
     title: 'Automation',
-    pages: ['scripting', 'mcp', 'mcp-tools'],
+    pages: ['scripting', 'addons', 'mcp', 'mcp-tools'],
   },
   {
     title: 'Shipping',
@@ -29,7 +29,7 @@ export const NAV = [
   },
   {
     title: 'Reference',
-    pages: ['shortcuts', 'troubleshooting', 'demos', 'privacy'],
+    pages: ['shortcuts', 'recovery', 'troubleshooting', 'demos', 'privacy'],
   },
 ];
 

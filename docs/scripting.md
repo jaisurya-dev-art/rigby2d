@@ -4,8 +4,9 @@ Rigby2D runs Python scripts inside the editor. Use them to automate rigging and 
 or to build **custom tools**: functions that appear in the **Scripts** menu for you and your team.
 
 Python is built in (CPython 3.14 on [Pyodide](https://pyodide.org), bundled with the editor), so
-there is nothing to install. Scripts work offline and on every platform, and run sandboxed: they
-can change the open project, but not your files or the network.
+there is nothing to install. Scripts work offline and on every platform. They run with the same
+access as the editor itself, so run scripts only from people you trust. To share tools with others,
+package them as an [add-on](addons.md).
 
 ## Quick start
 

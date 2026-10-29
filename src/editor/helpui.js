@@ -21,12 +21,17 @@ export const LINKS = {
   releaseNotes: VERSION ? `${REPO}/releases/tag/v${VERSION}` : `${REPO}/releases`,
 };
 
-/** A modal dialog; returns { body, close }. Escape and a click outside close it. */
-function dialog(className, title, subtitle) {
+/**
+ * A modal dialog; returns { body, close }. Escape and a click outside close it; `onClose` runs
+ * however it closes.
+ */
+export function dialog(className, title, subtitle, { onClose } = {}) {
   const overlay = h('div', { class: 'modal-backdrop' });
   const close = () => {
+    if (!overlay.isConnected) return;
     overlay.remove();
     document.removeEventListener('keydown', onKey, true);
+    onClose?.();
   };
   const onKey = (e) => {
     if (e.key === 'Escape') {
@@ -52,6 +57,24 @@ function dialog(className, title, subtitle) {
   document.addEventListener('keydown', onKey, true);
   document.body.append(overlay);
   return { body, close };
+}
+
+/**
+ * Asks a question with buttons [{ id, label, primary }]; resolves with the chosen id, or null when
+ * the dialog is dismissed (Escape, a click outside).
+ */
+export function askChoice(title, message, buttons) {
+  return new Promise((resolve) => {
+    let answer = null;
+    const { body, close } = dialog('choice-dialog', title, null, { onClose: () => resolve(answer) });
+    const row = h('div', { class: 'dialog-actions' });
+    for (const b of buttons) {
+      const button = h('button', { class: b.primary ? 'primary' : '', onclick: () => ((answer = b.id), close()) }, b.label);
+      row.append(button);
+    }
+    body.append(...(Array.isArray(message) ? message : [h('p', null, message)]), row);
+    row.querySelector('.primary')?.focus();
+  });
 }
 
 /** Key chips for a shortcut label such as "Ctrl+Shift+S". */

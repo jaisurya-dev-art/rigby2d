@@ -81,7 +81,8 @@ export const WORKFILE_EXT = 'rigby';
  * images from the skeleton's images folder). Returns { doc, warnings, imported }.
  */
 export async function openProject(path, fs, images) {
-  if (path.toLowerCase().endsWith(`.${WORKFILE_EXT}`)) return { ...(await openWorkfile(path, fs, images)), imported: false };
+  // Numbered backups (walk.rigby1, see recovery.js) are work files too.
+  if (/\.rigby\d?$/i.test(path)) return { ...(await openWorkfile(path, fs, images)), imported: false };
   if (path.toLowerCase().endsWith('.skel')) {
     const obj = readSkeletonBinary(await fs.readFile(path));
     return { ...(await openSkeletonJson(path, fs, obj, images)), imported: true };
@@ -103,8 +104,8 @@ export async function openProject(path, fs, images) {
  * `.rigby` work file: a ZIP holding `project.json` (the complete editor document) and every image
  * as `images/<name>.png`. It keeps everything, including data the export formats cannot hold.
  */
-/** `extra`: more files to store, [{ path, bytes }] (sounds as audio/<name>). */
-export async function saveWorkfile(path, fs, doc, images, extra = []) {
+/** `extra`: more files to store, [{ path, bytes }] (sounds as audio/<name>); `backups`: see platform.js writeFileSafe. */
+export async function saveWorkfile(path, fs, doc, images, extra = [], { backups = 0 } = {}) {
   const enc = new TextEncoder();
   const entries = [{ path: 'project.json', bytes: enc.encode(doc.toJson()) }, ...extra];
   const warnings = [];
@@ -113,7 +114,9 @@ export async function saveWorkfile(path, fs, doc, images, extra = []) {
     if (canvas) entries.push({ path: `images/${name}.png`, bytes: await encodePng(canvas) });
     else warnings.push(`image '${name}' is missing`);
   }
-  await fs.writeFile(path, zip(entries)).catch((e) => {
+  // A file system that can replace files safely (the desktop's) keeps `backups` previous versions.
+  const bytes = zip(entries);
+  await (fs.writeFileSafe ? fs.writeFileSafe(path, bytes, { backups }) : fs.writeFile(path, bytes)).catch((e) => {
     throw new Error(`writing ${path}: ${e}`);
   });
   return { warnings };

@@ -34,6 +34,9 @@ import { DEMOS } from './demos.js';
 import { newScene } from './sceneui.js';
 import { ago, clearRecentProjects, recentProjects, splitPath } from './recent.js';
 import { LINKS, openAbout, openShortcuts } from './helpui.js';
+import { installRecovery } from './recoveryui.js';
+import { applyInterfaceScale, openPreferences } from './prefsui.js';
+import { AddonManager } from './addonui.js';
 import markUrl from '../../branding/rigby2d-mark.svg?url';
 import { startAnalytics } from './analytics.js';
 
@@ -44,6 +47,10 @@ const app = new App();
 // Errors anywhere in the editor, and status messages, go to the log (View ▸ Log).
 log.installCapture(app);
 const scripts = new Scripts(app);
+const recovery = installRecovery(app);
+const addons = new AddonManager(app, scripts);
+const showPreferences = (page) => openPreferences(app, addons, page);
+applyInterfaceScale(app);
 const inTauri = '__TAURI_INTERNALS__' in window;
 const $ = (sel) => document.querySelector(sel);
 
@@ -73,6 +80,7 @@ function menus() {
       ]),
       { label: 'Open…', shortcut: 'Ctrl+O', title: 'Open a .rigby work file, or import a skeleton .json / .skel', action: () => app.openDialog() },
       submenuItem('Open recent', recentItems),
+      submenuItem('Recover', () => recovery.menu(), { title: 'Unsaved work kept by auto-save, or discarded at the last quit' }),
       { label: 'Open demo…', action: () => openDemoPicker(app) },
       'separator',
       { label: 'Save', shortcut: 'Ctrl+S', action: () => app.save(false) },
@@ -111,6 +119,8 @@ function menus() {
       'separator',
       { label: 'Deselect', shortcut: sc('select.none'), action: () => app.deselect() },
       { label: 'Delete selection', shortcut: sc('edit.delete'), action: () => edit.deleteSelection(app) },
+      'separator',
+      { label: 'Preferences…', shortcut: sc('app.preferences'), action: () => showPreferences() },
     ],
     View: [
       h(
@@ -178,6 +188,7 @@ function menus() {
       'separator',
       { label: "What's new", shortcut: '↗', action: () => openExternal(LINKS.releaseNotes) },
       { label: 'Report an issue', shortcut: '↗', action: () => openExternal(LINKS.issues) },
+      { label: 'Report a crash…', title: 'A report of the recent errors, to copy or post', action: () => recovery.openCrashReport() },
       'separator',
       { label: 'About Rigby2D', action: () => openAbout() },
     ],
@@ -368,16 +379,34 @@ sync = installPanelSync(app, {
 });
 const dopesheet = new Dopesheet(app, $('#dopesheet'), $('#dopesheet canvas'));
 const graph = new GraphEditor(app, $('#graph'), $('#graph canvas'));
-installKeyboard(app, { viewport, zoomActual, deleteSelectedKeys, closeMenu, isMenuOpen });
+installKeyboard(app, { viewport, zoomActual, deleteSelectedKeys, closeMenu, isMenuOpen, openPreferences: () => showPreferences() });
 const renderMenuBar = buildMenuBar();
 
 // In the browser, leaving the page (the home link, closing the tab) asks first when there are unsaved
-// changes; nothing is kept otherwise. The desktop app asks through its own window close.
+// changes; a page closed with unsaved work keeps its auto-save for File ▸ Recover. The desktop
+// app asks Save / Don't save / Cancel when its window closes (File ▸ Quit too).
 if (!inTauri) {
   window.addEventListener('beforeunload', (e) => {
     if (!app.dirty()) return;
     e.preventDefault();
     e.returnValue = '';
+  });
+  window.addEventListener('pagehide', () => {
+    if (!app.dirty()) recovery.endSession();
+  });
+} else {
+  let closing = false;
+  getCurrentWindow().onCloseRequested(async (e) => {
+    e.preventDefault();
+    if (closing) return;
+    closing = true;
+    try {
+      if (!(await recovery.confirmQuit())) return;
+      sync.closePanels();
+      await getCurrentWindow().destroy();
+    } finally {
+      closing = false;
+    }
   });
 }
 const tutorials = createTutorials(app, viewport, { refresh: () => renderNow() });
@@ -495,19 +524,30 @@ requestAnimationFrame(frame);
 // The editor starts with an empty project (demos are under File > Open demo); new users are
 // offered the tour once. A link such as editor/?demo=nila (the website's Demos page) opens that
 // demo instead.
+// Work from an editor that crashed is offered back first; otherwise the last project reopens when
+// that preference is on.
 const linkedDemo = new URLSearchParams(location.search).get('demo');
 if (linkedDemo && DEMOS.some((d) => d.id === linkedDemo)) app.openDemo(linkedDemo, false);
-else setTimeout(() => tutorials.welcome(), 1200);
+else {
+  recovery.offerRecovery().then(async (offered) => {
+    if (offered) return;
+    const last = recentProjects()[0];
+    if (inTauri && app.prefs.get('files.reopenLast') && last?.kind === 'file') await app.openRecent(last);
+    else setTimeout(() => tutorials.welcome(), 1200);
+  });
+}
 
 // The window starts hidden while the splash screen plays; the splash opens it when done. Show it
 // anyway if the splash never does.
 if (inTauri) setTimeout(() => getCurrentWindow().show().catch(() => {}), 10000);
 
 // Development builds expose the editor for debugging from the console.
-if (import.meta.env.DEV) window.rigby = { app, memoryFs, dopesheet, graph, viewport, scripts, log, tutorials };
+if (import.meta.env.DEV) window.rigby = { app, memoryFs, dopesheet, graph, viewport, scripts, log, tutorials, recovery, addons };
 
 // Scripts in the library load in the background, adding their tools to the Scripts menu.
+// Enabled add-ons too (Edit ▸ Preferences ▸ Add-ons).
 if (scripts.library.length) setTimeout(() => scripts.loadAll({ quiet: true }), 1500);
+setTimeout(() => addons.loadEnabled(), 1500);
 
 $('#status-log').addEventListener('click', () => toggleLogWindow());
 
