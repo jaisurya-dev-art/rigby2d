@@ -1,7 +1,7 @@
 # Installation
 
-Rigby2D runs in your browser with nothing to install, as a desktop app for Windows, or from source
-on Windows, macOS and Linux.
+Rigby2D runs in your browser with nothing to install, as a desktop app for Windows, macOS and
+Linux, or from source.
 
 ## In the browser
 
@@ -39,6 +39,39 @@ The app needs WebView2, which is part of Windows 10 and 11.
 > ```powershell
 > Get-FileHash .\Rigby2D_x64_portable.exe -Algorithm SHA256
 > ```
+
+## macOS desktop app
+
+Download `Rigby2D_universal.dmg` from the
+[Releases page](https://github.com/jaisurya-dev-art/rigby2d/releases/latest). It runs natively on
+Apple silicon and Intel Macs (macOS 10.15 or newer). Open the `.dmg` and drag Rigby2D into
+*Applications*.
+
+The app is not signed with an Apple Developer ID yet, so the first time macOS blocks it:
+
+1. Open *Applications*, **right-click** Rigby2D and choose **Open**, then **Open** again. Or open it
+   once, then go to *System Settings ▸ Privacy & Security* and click **Open Anyway**.
+2. If macOS says the app "is damaged", it only means it was downloaded and is not signed. Clear the
+   download flag in Terminal, then open it again:
+
+   ```bash
+   xattr -cr /Applications/Rigby2D.app
+   ```
+
+The Godot runtime for macOS is `rigby2d-godot-addon-<version>-macos.zip` (Apple silicon and Intel).
+
+## Linux desktop app
+
+Download from the [Releases page](https://github.com/jaisurya-dev-art/rigby2d/releases/latest):
+
+| File | What it is |
+| --- | --- |
+| `Rigby2D_amd64.AppImage` | Runs on most x86-64 distributions. Make it executable, then run it: `chmod +x Rigby2D_amd64.AppImage && ./Rigby2D_amd64.AppImage` |
+| `Rigby2D_<version>_amd64.deb` | For Debian and Ubuntu: `sudo apt install ./Rigby2D_<version>_amd64.deb` |
+| `rigby2d-godot-addon-<version>-linux-x64.zip` | The Godot runtime for Linux. |
+
+The app uses WebKitGTK 4.1 (Ubuntu 22.04 or newer, Debian 12, Fedora 36 and similar). The AppImage
+needs FUSE: on Ubuntu 24.04, `sudo apt install libfuse2t64`.
 
 ## Build from source
 

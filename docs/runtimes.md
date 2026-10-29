@@ -10,6 +10,7 @@ characters on a stage with a moving camera and parallax.
 | --- | --- | --- |
 | [JavaScript](#javascript) (`src/core`) + WebGL renderer (`src/webgl`) | JavaScript, no dependencies | Complete |
 | [Rust](#rust) (`runtimes/rust/rigby-runtime`) | Rust, no dependencies; 3 to 4× faster | Complete |
+| [Phaser](#phaser) (`this.add.rigby`) | Phaser 3.60+ plugin on the JavaScript runtime, WebGL | Complete |
 | [Unity](#unity) (`RigbySkeleton`, `RigbyScene`) | C#, every platform Unity builds for; multi-core, no garbage | Complete |
 | [Godot](#godot) (`RigbySkeleton2D`, `RigbyScene2D`) | GDExtension on the Rust core | Preview |
 
@@ -83,6 +84,31 @@ Scenes: `rigby_runtime::scene::load_scene(&manifest, |file| std::fs::read(dir.jo
 It matches the JavaScript runtime frame by frame (golden tests, including a scene). Build and test with
 `cargo test --release --workspace` in `runtimes/rust`. See the
 [runtimes README](../runtimes/README.md).
+
+## Phaser
+
+A plugin for [Phaser](https://phaser.io) 3.60 or newer (WebGL). Download `rigby2d-phaser-<version>.mjs`
+or the script-tag `rigby2d-phaser-<version>.js` from the
+[latest release](https://github.com/jaisurya-dev-art/rigby2d/releases/latest):
+
+```js
+import { rigbyPhaser } from './rigby2d-phaser-0.4.0.mjs';
+const { RigbyPlugin } = rigbyPhaser(Phaser);
+// game config: plugins: { scene: [{ key: 'RigbyPlugin', plugin: RigbyPlugin, mapping: 'rigby' }] }
+
+// in a scene:
+preload() { this.load.rigby('hero', 'assets/hero.skel', 'assets/hero.atlas'); }
+create() {
+  const hero = this.add.rigby(400, 500, 'hero', 'idle');
+  hero.play('run', true, 0.2);                       // crossfade over 0.2 s
+  hero.on('event', (entry, e) => console.log(e.name));
+}
+```
+
+A `RigbySkeleton` is an ordinary Phaser game object (position, scale, rotation, alpha, depth, flips,
+input) with the full animation state: tracks, crossfades, queues, skins, events and bone positions
+for attaching objects. It plays exactly as the editor does. See the
+[Phaser guide](https://github.com/jaisurya-dev-art/rigby2d/blob/develop/runtimes/phaser/README.md).
 
 ## Unity
 

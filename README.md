@@ -75,7 +75,7 @@ runtimes and the MCP server. The pages are also in [`docs/`](docs/).
 - **Python scripting** and custom tools, and a built-in **MCP server** so AI assistants such as
   Claude can inspect, rig and animate your projects.
 - **Lossless skeleton JSON (3.8, 4.2, 4.3) and binary `.skel`** with texture atlases, played by the
-  **JavaScript, Rust, Unity and Godot runtimes**.
+  **JavaScript, Phaser, Rust, Unity and Godot runtimes**.
 - Built-in **tutorials** and demo projects (**NILA**, **Rigbytron**, and a **scene** with both), also on the
   [Demos page](https://rigby2d.com/demos/) with their game-ready exports
   (demo content © Rigby2D, under its own [demo license](branding/DEMO-LICENSE.md)).
@@ -85,6 +85,10 @@ runtimes and the MCP server. The pages are also in [`docs/`](docs/).
 - **In your browser:** [open the editor](https://rigby2d.com/editor/), nothing to install.
 - **Windows:** [download the portable editor](https://github.com/jaisurya-dev-art/rigby2d/releases/latest/download/Rigby2D_x64_portable.exe)
   or an installer from [Releases](https://github.com/jaisurya-dev-art/rigby2d/releases).
+- **macOS:** [download the .dmg](https://github.com/jaisurya-dev-art/rigby2d/releases/latest/download/Rigby2D_universal.dmg)
+  (Apple silicon and Intel). **Linux:** [download the AppImage](https://github.com/jaisurya-dev-art/rigby2d/releases/latest/download/Rigby2D_amd64.AppImage)
+  or the `.deb` from [Releases](https://github.com/jaisurya-dev-art/rigby2d/releases). See
+  [Installation](https://rigby2d.com/docs/installation.html) for the first start.
 - **AI assistants:** install [Rigby2D-AI.mcpb](https://github.com/jaisurya-dev-art/rigby2d/releases/latest/download/Rigby2D-AI.mcpb)
   in Claude Desktop, or see the [MCP guide](https://rigby2d.com/docs/mcp.html).
 - **From source** (Node.js 20+ and the [Tauri prerequisites](https://tauri.app/start/prerequisites/)):

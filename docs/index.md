@@ -34,7 +34,7 @@ and meshes, animate it for games or film, and play it anywhere with the included
 ## Where to start
 
 <div class="cards">
-<a href="installation.html"><strong>Installation</strong>Use it in the browser, download the Windows app, or build from source.</a>
+<a href="installation.html"><strong>Installation</strong>Use it in the browser, download the app for Windows, macOS or Linux, or build from source.</a>
 <a href="quick-start.html"><strong>Quick start</strong>From a layered PSD to a moving character in ten minutes.</a>
 <a href="interface.html"><strong>The interface</strong>A tour of the viewport, tree, inspector and timeline.</a>
 <a href="autorig.html"><strong>AutoRig</strong>Rig layered artwork in one step.</a>

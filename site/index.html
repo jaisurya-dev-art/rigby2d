@@ -53,7 +53,7 @@
             </p>
             <div class="cta">
               <a class="btn primary" href="./editor/" data-goatcounter-click="site-open-editor-hero">Open the editor in your browser</a>
-              <a class="btn" href="https://github.com/jaisurya-dev-art/rigby2d/releases/latest/download/Rigby2D_x64_portable.exe" data-goatcounter-click="site-download-portable-hero">Download for Windows</a>
+              <a class="btn" href="#download" data-goatcounter-click="site-download-hero">Download for Windows, macOS, Linux</a>
             </div>
             <p class="fine">Free · MIT or Apache-2.0 · No account, no install for the browser editor</p>
           </div>
@@ -86,7 +86,7 @@
       <section class="strip" aria-label="At a glance">
         <div class="wrap strip-row">
           <div><b>1 step</b><span>from layered PSD to an editable rig</span></div>
-          <div><b>4 runtimes</b><span>JavaScript, Rust, Unity and Godot 4</span></div>
+          <div><b>5 runtimes</b><span>JavaScript, Phaser, Rust, Unity and Godot 4</span></div>
           <div><b>Lossless</b><span>skeleton JSON 3.8 / 4.2 / 4.3 and .skel</span></div>
           <div><b>MCP built in</b><span>AI assistants work on real projects</span></div>
         </div>
@@ -232,6 +232,14 @@ state.apply(skeleton, pose);
               <b>Windows installer</b>
               <span>MSI or setup .exe, on the Releases page.</span>
             </a>
+            <a class="dl" href="https://github.com/jaisurya-dev-art/rigby2d/releases/latest/download/Rigby2D_universal.dmg" data-goatcounter-click="site-download-macos">
+              <b>macOS</b>
+              <span>One .dmg for Apple silicon and Intel. See the docs for the first start.</span>
+            </a>
+            <a class="dl" href="https://github.com/jaisurya-dev-art/rigby2d/releases/latest/download/Rigby2D_amd64.AppImage" data-goatcounter-click="site-download-linux">
+              <b>Linux</b>
+              <span>AppImage for most distributions, or a .deb on the Releases page.</span>
+            </a>
             <a class="dl" href="https://github.com/jaisurya-dev-art/rigby2d/releases/latest/download/Rigby2D-AI.mcpb" data-goatcounter-click="site-download-ai-extension">
               <b>AI extension</b>
               <span>The MCP server as a one-file .mcpb install.</span>
@@ -242,10 +250,14 @@ state.apply(skeleton, pose);
             </a>
             <a class="dl" href="https://github.com/jaisurya-dev-art/rigby2d/blob/develop/runtimes/godot/addons/rigby2d/README.md" data-goatcounter-click="site-godot-runtime">
               <b>Godot runtime</b>
-              <span>Addon and demo for Godot 4.3+, on the Releases page.</span>
+              <span>Addon and demo for Godot 4.3+ on Windows, macOS and Linux.</span>
+            </a>
+            <a class="dl" href="https://github.com/jaisurya-dev-art/rigby2d/blob/develop/runtimes/phaser/README.md" data-goatcounter-click="site-phaser-runtime">
+              <b>Phaser runtime</b>
+              <span>Plugin for Phaser 3.60+: this.add.rigby(). One .js file on the Releases page.</span>
             </a>
           </div>
-          <p class="fine">On macOS or Linux, <a href="https://github.com/jaisurya-dev-art/rigby2d#getting-started" data-goatcounter-click="site-build-from-source">build the editor from source</a> (Node.js 20+ and Tauri) or use the browser editor. Downloads are not code-signed: each release lists SHA-256 checksums, so compare them before running anything.</p>
+          <p class="fine">Downloads are not code-signed yet: Windows may warn and macOS needs a right-click ▸ Open the first time (<a href="./docs/installation.html">installation guide</a>). Each release lists SHA-256 checksums, so compare them before running anything.</p>
         </div>
       </section>
     </main>
