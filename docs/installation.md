@@ -5,7 +5,7 @@ on Windows, macOS and Linux.
 
 ## In the browser
 
-**[Open the editor](https://jaisurya-dev-art.github.io/rigby2d/editor/)**. It is the full editor,
+**[Open the editor](https://rigby2d.com/editor/)**. It is the full editor,
 including the demos, the tutorials, Python scripting and lip-sync transcription.
 
 - Files open and save through your browser: in Chrome and Edge you can give the editor a folder to
@@ -31,8 +31,7 @@ Download the latest release from the
 The app needs WebView2, which is part of Windows 10 and 11.
 
 > [!WARNING]
-> The downloads are not code-signed yet (we have applied to the SignPath Foundation for free code
-> signing; see the [code signing policy](code-signing.md)), so Windows SmartScreen may warn before running them
+> The downloads are not code-signed, so Windows SmartScreen may warn before running them
 > (*More info ▸ Run anyway*). Each release lists the SHA-256 checksum of every file in
 > `SHA256SUMS.txt`. Compare it
 > before running anything:

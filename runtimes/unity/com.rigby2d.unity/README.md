@@ -1,6 +1,6 @@
 # Rigby2D for Unity
 
-Play [Rigby2D](https://jaisurya-dev-art.github.io/rigby2d/) skeletons and scenes in Unity 2021.3 or
+Play [Rigby2D](https://rigby2d.com/) skeletons and scenes in Unity 2021.3 or
 newer (Unity 6 included), with the Built-in or the Universal render pipeline, on every platform
 Unity builds for, with IL2CPP or Mono. The runtime is pure C# and matches the Rigby2D editor frame
 by frame. Tested in Unity 6.3 (Built-in and URP, Gamma and Linear) and 2022.3, and in Windows
@@ -11,7 +11,7 @@ players built with IL2CPP and Mono.
 In Unity, open **Window ▸ Package Manager ▸ + ▸ Install package from git URL…** and enter:
 
 ```
-https://github.com/jaisurya-dev-art/rigby2d.git?path=/runtimes/unity/com.hoverlabs.rigby2d
+https://github.com/jaisurya-dev-art/rigby2d.git?path=/runtimes/unity/com.rigby2d.unity
 ```
 
 Add `#v0.3.4` (or any release tag) to the end to pin a version. Each release also has the package as
@@ -73,7 +73,7 @@ cutscene.ShotFinished += shot => SceneManager.LoadScene("Level1");
 cutscene.Play("intro", loop: false);
 ```
 
-The [Demos page](https://jaisurya-dev-art.github.io/rigby2d/demos/) has the NILA and Rigbytron scene
+The [Demos page](https://rigby2d.com/demos/) has the NILA and Rigbytron scene
 as an export, ready to drop in.
 
 ## Components
@@ -141,7 +141,7 @@ as an export, ready to drop in.
   file's import settings.
 - The core runtime (`Rigby2D.Core`, namespace `Rigby2D`) has no Unity dependency and runs in any
   .NET runtime: Godot (C#), MonoGame, Stride, servers or tools.
-- NILA and Rigbytron (the demo) are demo content © Hoverlabs, for learning and evaluating only; see
+- NILA and Rigbytron (the demo) are demo content © Rigby2D, for learning and evaluating only; see
   the sample's `LICENSE.md`. The code is MIT OR Apache-2.0.
 
 ## Development
@@ -149,9 +149,9 @@ as an export, ready to drop in.
 `Tests~` (not imported by Unity) holds the tests:
 
 ```bash
-node runtimes/unity/com.hoverlabs.rigby2d/Tests~/run.mjs                    # golden tests (uses Unity's bundled .NET)
-node runtimes/unity/com.hoverlabs.rigby2d/Tests~/run.mjs --bench <skeleton> <atlas>
-node runtimes/unity/com.hoverlabs.rigby2d/Tests~/run-unity.mjs <unity project>   # in the Unity Editor: import, play, render, crowd
-node runtimes/unity/com.hoverlabs.rigby2d/Tests~/run-unity.mjs <unity project> --player il2cpp   # build and run the player benchmark
-RIGBY_URP=1 node runtimes/unity/com.hoverlabs.rigby2d/Tests~/run-unity.mjs <URP project>         # the same check in the Universal render pipeline
+node runtimes/unity/com.rigby2d.unity/Tests~/run.mjs                    # golden tests (uses Unity's bundled .NET)
+node runtimes/unity/com.rigby2d.unity/Tests~/run.mjs --bench <skeleton> <atlas>
+node runtimes/unity/com.rigby2d.unity/Tests~/run-unity.mjs <unity project>   # in the Unity Editor: import, play, render, crowd
+node runtimes/unity/com.rigby2d.unity/Tests~/run-unity.mjs <unity project> --player il2cpp   # build and run the player benchmark
+RIGBY_URP=1 node runtimes/unity/com.rigby2d.unity/Tests~/run-unity.mjs <URP project>         # the same check in the Universal render pipeline
 ```

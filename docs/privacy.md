@@ -26,7 +26,7 @@ that assistant's own privacy terms.
 
 ## The website and the browser editor
 
-[jaisurya-dev-art.github.io/rigby2d](https://jaisurya-dev-art.github.io/rigby2d/) is hosted on
+[rigby2d.com](https://rigby2d.com/) is hosted on
 GitHub Pages; [GitHub's privacy statement](https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement)
 applies to serving it. Visits to the website, its documentation and its browser editor are counted
 anonymously with [GoatCounter](https://www.goatcounter.com): no cookies, no personal data, and no

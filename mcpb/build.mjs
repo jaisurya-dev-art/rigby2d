@@ -109,7 +109,7 @@ const manifest = {
   description: 'Let Claude open, rig, animate, check and convert your Rigby2D 2D animation projects.',
   long_description:
     'Connects Claude to your Rigby2D projects (.rigby work files and skeleton .json / .skel exports). Ask Claude to explain a rig, find missing images, add bones and animations, set eased keys, rig a layered PSD with AutoRig, reuse animations on other characters, set up film output, poses, face controls and lip-sync, or run Python scripts. Claude only reads and writes files inside the project folders you choose here.',
-  author: { name: 'Hoverlabs', url: 'https://github.com/jaisurya-dev-art/rigby2d' },
+  author: { name: 'Rigby2D', url: 'https://github.com/jaisurya-dev-art/rigby2d' },
   homepage: 'https://github.com/jaisurya-dev-art/rigby2d',
   documentation: 'https://github.com/jaisurya-dev-art/rigby2d/blob/main/docs/mcp.md',
   support: 'https://github.com/jaisurya-dev-art/rigby2d/issues',

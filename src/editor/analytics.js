@@ -8,7 +8,7 @@
 export const GOATCOUNTER_CODE = 'rigby2d';
 
 /** Hosts that count. Anything else (localhost, the desktop app, forks' Pages sites) does not. */
-const HOSTS = ['jaisurya-dev-art.github.io'];
+const HOSTS = ['rigby2d.com', 'jaisurya-dev-art.github.io'];
 
 let started = false;
 const queued = [];

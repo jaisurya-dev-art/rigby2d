@@ -13,7 +13,7 @@ characters on a stage with a moving camera and parallax.
 | [Unity](#unity) (`RigbySkeleton`, `RigbyScene`) | C#, every platform Unity builds for; multi-core, no garbage | Complete |
 | [Godot](#godot) (`RigbySkeleton2D`, `RigbyScene2D`) | GDExtension on the Rust core | Preview |
 
-The landing page of the [website](https://jaisurya-dev-art.github.io/rigby2d/) plays NILA with the
+The landing page of the [website](https://rigby2d.com/) plays NILA with the
 JavaScript runtime.
 
 ## JavaScript
@@ -86,11 +86,11 @@ It matches the JavaScript runtime frame by frame (golden tests, including a scen
 
 ## Unity
 
-The `com.hoverlabs.rigby2d` package for Unity 2021.3 or newer (Unity 6 included), Built-in or
+The `com.rigby2d.unity` package for Unity 2021.3 or newer (Unity 6 included), Built-in or
 Universal render pipeline. In Unity: *Window ▸ Package Manager ▸ + ▸ Install package from git URL…*
 
 ```
-https://github.com/jaisurya-dev-art/rigby2d.git?path=/runtimes/unity/com.hoverlabs.rigby2d
+https://github.com/jaisurya-dev-art/rigby2d.git?path=/runtimes/unity/com.rigby2d.unity
 ```
 
 Drop an export (`.skel` or `.json`, `.atlas` and its `.png`) into `Assets`: the `.atlas` becomes a
@@ -116,7 +116,7 @@ gun.position = hero.GetBoneWorldPosition("gun-tip");
 - **The same animation as the editor**: the C# runtime is tested frame by frame against the
   JavaScript runtime, like the Rust one.
 
-See the [Unity guide](https://github.com/jaisurya-dev-art/rigby2d/blob/develop/runtimes/unity/com.hoverlabs.rigby2d/README.md) for every component, property and event.
+See the [Unity guide](https://github.com/jaisurya-dev-art/rigby2d/blob/develop/runtimes/unity/com.rigby2d.unity/README.md) for every component, property and event.
 
 ## Godot
 

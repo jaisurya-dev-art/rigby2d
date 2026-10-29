@@ -30,14 +30,14 @@ test('off on localhost and in the desktop app, even with a code', () => {
     assert.equal(analyticsEnabled(), false);
     startAnalytics();
   });
-  withWindow({ location: { hostname: 'jaisurya-dev-art.github.io' }, __TAURI_INTERNALS__: {} }, () => {
+  withWindow({ location: { hostname: 'rigby2d.com' }, __TAURI_INTERNALS__: {} }, () => {
     assert.equal(analyticsEnabled(), false);
     startAnalytics();
   });
 });
 
 test('on the website only once a code is set', () => {
-  withWindow({ location: { hostname: 'jaisurya-dev-art.github.io' } }, () => {
+  withWindow({ location: { hostname: 'rigby2d.com' } }, () => {
     assert.equal(analyticsEnabled(), GOATCOUNTER_CODE !== '');
   });
 });

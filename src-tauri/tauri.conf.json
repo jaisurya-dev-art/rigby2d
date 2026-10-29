@@ -33,7 +33,7 @@
       }
     ],
     "security": {
-      "csp": "default-src 'self' ipc: http://ipc.localhost; script-src 'self' 'wasm-unsafe-eval'; img-src 'self' blob: data: https://jaisurya-dev-art.github.io; style-src 'self' 'unsafe-inline'; connect-src 'self' ipc: http://ipc.localhost https://jaisurya-dev-art.github.io https://huggingface.co https://*.huggingface.co https://*.hf.co"
+      "csp": "default-src 'self' ipc: http://ipc.localhost; script-src 'self' 'wasm-unsafe-eval'; img-src 'self' blob: data: https://rigby2d.com https://jaisurya-dev-art.github.io; style-src 'self' 'unsafe-inline'; connect-src 'self' ipc: http://ipc.localhost https://rigby2d.com https://jaisurya-dev-art.github.io https://huggingface.co https://*.huggingface.co https://*.hf.co"
     }
   },
   "bundle": {
@@ -43,10 +43,10 @@
       "nsis"
     ],
     "publisher": "jaisurya-dev-art",
-    "copyright": "Copyright (c) 2026 jaisurya-dev-art. Code licensed MIT OR Apache-2.0. Rigby2D and Hoverlabs names and logos are trademarks of Hoverlabs.",
+    "copyright": "Copyright (c) 2026 jaisurya-dev-art. Code licensed MIT OR Apache-2.0. Rigby2D names and logos are trademarks of the Rigby2D project.",
     "category": "GraphicsAndDesign",
     "shortDescription": "2D skeletal animation for games, films and interactive experiences",
-    "longDescription": "Rigby2D by Hoverlabs: open-source 2D skeletal animation for games, films and interactive experiences.",
+    "longDescription": "Rigby2D: open-source 2D skeletal animation for games, films and interactive experiences.",
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",

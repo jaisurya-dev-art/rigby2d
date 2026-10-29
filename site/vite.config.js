@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
-// The project website (GitHub Pages, https://jaisurya-dev-art.github.io/rigby2d/): the landing page
+// The project website (GitHub Pages, https://rigby2d.com/): the landing page
 // is built from this folder into _site/, the documentation from docs/*.md into _site/docs/ (see
 // docs/build.js), and the browser editor into _site/editor/ (see package.json "site:build"). The
 // landing page plays NILA with the real runtime from src/core.
@@ -77,17 +77,17 @@ ${demo.about}
 ## What's inside
 
 - \`${name}\`: the Rigby2D project. Open it in Rigby2D with *File ▸ Open…*, or open the demo from
-  *File ▸ Open demo…*. The editor runs in your browser too: https://jaisurya-dev-art.github.io/rigby2d/editor/
+  *File ▸ Open demo…*. The editor runs in your browser too: https://rigby2d.com/editor/
 - \`export/\`: the same content exported for games (${exported.join(', ')}), ready for the
-  JavaScript, Rust and Godot runtimes: https://jaisurya-dev-art.github.io/rigby2d/docs/runtimes.html
+  JavaScript, Rust and Godot runtimes: https://rigby2d.com/docs/runtimes.html
 - \`thumbnail.png\`: a preview.
 - \`LICENSE.md\`: the Rigby2D Demo Content License.
 
 ## License
 
-This demo is © Hoverlabs and is **not** open source. You may open, study and modify it to learn
+This demo is © Rigby2D and is **not** open source. You may open, study and modify it to learn
 Rigby2D, use it to evaluate Rigby2D and its runtimes, and show it in tutorials, reviews and videos
-with the credit *"${demo.credit} © Hoverlabs, from the Rigby2D demo projects."* You may not use it in your
+with the credit *"${demo.credit} © Rigby2D, from the Rigby2D demo projects."* You may not use it in your
 own games, apps, films or other products, or to train AI models. Read \`LICENSE.md\` for the full
 terms.
 
@@ -140,7 +140,7 @@ function demoFiles() {
   };
 }
 
-const OG = 'https://jaisurya-dev-art.github.io/rigby2d/og.jpg';
+const OG = 'https://rigby2d.com/og.jpg';
 const MIME = { '.mp4': 'video/mp4', '.webm': 'video/webm', '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.webp': 'image/webp', '.gif': 'image/gif', '.svg': 'image/svg+xml' };
 const BRAND = { 'mark.svg': 'branding/rigby2d-mark.svg', 'icon.svg': 'branding/rigby2d-icon-dark.svg' };
 
@@ -196,7 +196,7 @@ function documentation() {
 
 export default defineConfig({
   root: here,
-  base: process.env.SITE_BASE ?? '/rigby2d/',
+  base: process.env.SITE_BASE ?? '/',
   clearScreen: false,
   plugins: [socialImage(), documentation(), demoFiles()],
   // The pages import the runtime, NILA and the docs from outside this folder.

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 // Runs the Unity integration check (Integration/RigbyUnityCheck.cs) in a Unity project: adds this
 // package (by path) and the demo exports, imports them, plays and renders them, measures a crowd.
-//   node runtimes/unity/com.hoverlabs.rigby2d/Tests~/run-unity.mjs <unity project> [Unity executable]
+//   node runtimes/unity/com.rigby2d.unity/Tests~/run-unity.mjs <unity project> [Unity executable]
 // Create the project once with: Unity -batchmode -quit -createProject <unity project>
 // Renders and rigby-check.json go to <unity project>/CheckOutput.
 import { spawnSync } from 'node:child_process';
@@ -29,10 +29,10 @@ function unityExe() {
 // The package, by path.
 const manifestPath = path.join(project, 'Packages/manifest.json');
 const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
-manifest.dependencies['com.hoverlabs.rigby2d'] = `file:${pkg.split(path.sep).join('/')}`;
+manifest.dependencies['com.rigby2d.unity'] = `file:${pkg.split(path.sep).join('/')}`;
 fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
 
-// Demo exports (demo content (c) Hoverlabs; see branding/DEMO-LICENSE.md).
+// Demo exports (demo content (c) Rigby2D; see branding/DEMO-LICENSE.md).
 const copy = (from, to, filter = () => true) => {
   fs.mkdirSync(to, { recursive: true });
   for (const f of fs.readdirSync(from)) {

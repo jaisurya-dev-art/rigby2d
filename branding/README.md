@@ -1,7 +1,7 @@
 # Rigby2D brand assets
 
 The Rigby2D name, logo, lockups and icons in this folder, and the Rigbytron and NILA characters, are
-proprietary trademarks and brand assets of Hoverlabs.
+proprietary trademarks and brand assets of the Rigby2D project.
 They are **not** covered by the MIT or Apache 2.0 licenses that apply to the source code. See
 [TRADEMARKS.md](../TRADEMARKS.md) for what is allowed.
 

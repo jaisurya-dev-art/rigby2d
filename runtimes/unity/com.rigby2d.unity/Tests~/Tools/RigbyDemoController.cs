@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 // Rigby2D demo: Rigbytron holds; Space slashes (an event key fires mid-swing), F flips him, and the
-// last events show on screen. Demo content (c) Hoverlabs, for learning only (see LICENSE.md).
+// last events show on screen. Demo content (c) Rigby2D, for learning only (see LICENSE.md).
 
 using Rigby2D.Unity;
 using UnityEngine;

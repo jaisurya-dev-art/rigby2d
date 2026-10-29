@@ -35,7 +35,7 @@ namespace Rigby2D.Unity
     [DisallowMultipleComponent]
     [RequireComponent(typeof(MeshFilter), typeof(MeshRenderer))]
     [AddComponentMenu("Rigby2D/Rigby Skeleton")]
-    [HelpURL("https://jaisurya-dev-art.github.io/rigby2d/docs/runtimes.html#unity")]
+    [HelpURL("https://rigby2d.com/docs/runtimes.html#unity")]
     public sealed class RigbySkeleton : MonoBehaviour
     {
         [Tooltip("The imported skeleton (made from a .atlas with its .json or .skel next to it).")]

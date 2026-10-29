@@ -17,7 +17,7 @@ namespace Rigby2D.Unity
     [DisallowMultipleComponent]
     [RequireComponent(typeof(MeshFilter), typeof(MeshRenderer))]
     [AddComponentMenu("Rigby2D/Rigby Scene")]
-    [HelpURL("https://jaisurya-dev-art.github.io/rigby2d/docs/scenes.html#in-games-and-apps")]
+    [HelpURL("https://rigby2d.com/docs/scenes.html#in-games-and-apps")]
     public sealed class RigbyScene : MonoBehaviour
     {
         [SerializeField] RigbySceneAsset sceneAsset;

@@ -10,7 +10,7 @@ import markUrl from '../../branding/rigby2d-mark.svg?url';
 /* global __RIGBY_VERSION__ */
 export const VERSION = typeof __RIGBY_VERSION__ === 'string' ? __RIGBY_VERSION__ : '';
 
-const SITE = 'https://jaisurya-dev-art.github.io/rigby2d/';
+const SITE = 'https://rigby2d.com/';
 const REPO = 'https://github.com/jaisurya-dev-art/rigby2d';
 
 export const LINKS = {
@@ -156,7 +156,7 @@ export function openAbout() {
     h(
       'p',
       { class: 'about-fine' },
-      'Code: MIT OR Apache-2.0, by Hoverlabs and Rigby2D contributors. Includes open-source components listed in THIRD_PARTY_NOTICES.md. The Rigby2D, Hoverlabs, NILA and Rigbytron names, logos and artwork are trademarks of Hoverlabs.',
+      'Code: MIT OR Apache-2.0, by the Rigby2D contributors. Includes open-source components listed in THIRD_PARTY_NOTICES.md. The Rigby2D, NILA and Rigbytron names, logos and artwork are trademarks of the Rigby2D project.',
     ),
   );
 }

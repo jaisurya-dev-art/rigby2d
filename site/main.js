@@ -2,7 +2,7 @@
 // Rigby2D website: the hero plays NILA, the Rigby2D mascot, with the same runtime and WebGL renderer
 // that games use (src/core, src/webgl), and shows what a frame costs. Each expression button plays a
 // clip from her promo with its line (subtitled, and voiced when sound is on). NILA and the logos are
-// Hoverlabs trademarks (TRADEMARKS.md).
+// Rigby2D trademarks (TRADEMARKS.md).
 
 import { parseAtlas } from '../src/core/atlas.js';
 import { readSkeletonBinary } from '../src/core/binary.js';

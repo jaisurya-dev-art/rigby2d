@@ -1,22 +1,22 @@
 {
-  "name": "com.hoverlabs.rigby2d",
+  "name": "com.rigby2d.unity",
   "version": "0.3.3",
   "displayName": "Rigby2D",
   "description": "Runtime for Rigby2D 2D skeletal animation: drop in skeleton exports (.json / .skel + .atlas) or scenes exported from the Rigby2D editor and play them. Matches the Rigby2D editor frame by frame: meshes, weights, IK, transform, path, physics and slider constraints, skins, sequences, clipping, events, crossfades and layered tracks.",
   "unity": "2021.3",
-  "documentationUrl": "https://jaisurya-dev-art.github.io/rigby2d/docs/runtimes.html",
+  "documentationUrl": "https://rigby2d.com/docs/runtimes.html",
   "changelogUrl": "https://github.com/jaisurya-dev-art/rigby2d/releases",
   "licensesUrl": "https://github.com/jaisurya-dev-art/rigby2d/blob/develop/LICENSE-MIT",
   "license": "MIT OR Apache-2.0",
   "keywords": ["2d", "animation", "skeletal", "rigging", "spine", "bones", "cutscene"],
   "author": {
-    "name": "Hoverlabs",
-    "url": "https://jaisurya-dev-art.github.io/rigby2d/"
+    "name": "Rigby2D",
+    "url": "https://rigby2d.com/"
   },
   "samples": [
     {
       "displayName": "Demo: Rigbytron and the NILA scene",
-      "description": "Rigbytron playing his animations, and the scene where NILA meets Rigbytron (demo content (c) Hoverlabs, for learning only; see its LICENSE.md).",
+      "description": "Rigbytron playing his animations, and the scene where NILA meets Rigbytron (demo content (c) Rigby2D, for learning only; see its LICENSE.md).",
       "path": "Samples~/Demo"
     }
   ]

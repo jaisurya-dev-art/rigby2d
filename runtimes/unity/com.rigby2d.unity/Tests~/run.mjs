@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 // Builds the C# runtime core (Runtime/Core) with the golden tests and runs them, using the C#
 // compiler and .NET runtime that ship with Unity (no .NET SDK needed). Exits non-zero on failure.
-//   node runtimes/unity/com.hoverlabs.rigby2d/Tests~/run.mjs [path to the Unity Editor's Data folder]
+//   node runtimes/unity/com.rigby2d.unity/Tests~/run.mjs [path to the Unity Editor's Data folder]
 // The Data folder defaults to $UNITY_EDITOR_DATA, else the newest Unity in the Hub's default path.
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';

@@ -2,7 +2,7 @@
 // Golden tests: the C# runtime must reproduce the JavaScript runtime (src/core) frame by frame, like
 // the Rust runtime does (runtimes/rust/rigby-runtime/tests/golden.rs, whose scenarios this mirrors).
 // Golden files come from runtimes/rust/rigby-runtime/tests/golden/*.golden.json.
-// Run: node runtimes/unity/com.hoverlabs.rigby2d/Tests~/run.mjs
+// Run: node runtimes/unity/com.rigby2d.unity/Tests~/run.mjs
 
 using System;
 using System.Collections.Generic;

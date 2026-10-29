@@ -9,7 +9,7 @@ and meshes, animate it for games or film, and play it anywhere with the included
 > [!TIP]
 > Watch [Meet NILA](https://youtu.be/3StZlHwZeSo), our mascot's 70-second promo, animated and rendered in Rigby2D.
 >
-> The fastest way to try it: [open the editor in your browser](https://jaisurya-dev-art.github.io/rigby2d/editor/),
+> The fastest way to try it: [open the editor in your browser](https://rigby2d.com/editor/),
 > choose *File ▸ Open demo* and pick NILA. Nothing to install.
 
 ## What you can do with it
@@ -65,6 +65,6 @@ never change the animation data, so exports are identical either way.
 
 Rigby2D is in **public beta**: ready for real projects, and still moving quickly. These pages
 describe the current `develop` branch,
-which is what the [website](https://jaisurya-dev-art.github.io/rigby2d/) and its browser editor run.
+which is what the [website](https://rigby2d.com/) and its browser editor run.
 Found something wrong or missing? [Open an issue](https://github.com/jaisurya-dev-art/rigby2d/issues)
 or use *Edit this page on GitHub* below.

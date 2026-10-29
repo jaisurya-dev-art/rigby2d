@@ -153,5 +153,5 @@ a `Camera2D` framed like the editor's film output.
   Normal, additive and multiply match the Rigby2D editor.
 - The library includes [godot-rust](https://github.com/godot-rust/gdext) (MPL-2.0) for the Godot
   bindings; keep its notice when you distribute the library.
-- Rigby2D, Hoverlabs, NILA and Rigbytron names and artwork (including the demo characters) are trademarks
-  of Hoverlabs; see `TRADEMARKS.md` in the Rigby2D repository. The code is MIT OR Apache-2.0.
+- Rigby2D, NILA and Rigbytron names and artwork (including the demo characters) are trademarks
+  of the Rigby2D project; see `TRADEMARKS.md` in the Rigby2D repository. The code is MIT OR Apache-2.0.

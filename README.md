@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="branding/rigby2d-lockup-dark.svg" alt="Rigby2D by Hoverlabs" width="460">
+  <img src="branding/rigby2d-lockup-dark.svg" alt="Rigby2D" width="460">
 </p>
 
 <p align="center">
@@ -9,8 +9,8 @@
 </p>
 
 <p align="center">
-  <a href="https://jaisurya-dev-art.github.io/rigby2d/"><img alt="Try it in your browser: the full editor, nothing to install" src="https://img.shields.io/badge/%E2%96%B6%20Try%20it%20in%20your%20browser-the%20full%20editor%2C%20nothing%20to%20install-b5d3e7?style=for-the-badge&labelColor=0a0a0b" height="40"></a><br>
-  <sub><a href="https://jaisurya-dev-art.github.io/rigby2d/editor/"><b>Open the editor</b></a> with the Rigbytron and NILA demos, tutorials and Python scripting · <a href="https://jaisurya-dev-art.github.io/rigby2d/">Website</a> · <a href="https://jaisurya-dev-art.github.io/rigby2d/docs/">Documentation</a></sub>
+  <a href="https://rigby2d.com/"><img alt="Try it in your browser: the full editor, nothing to install" src="https://img.shields.io/badge/%E2%96%B6%20Try%20it%20in%20your%20browser-the%20full%20editor%2C%20nothing%20to%20install-b5d3e7?style=for-the-badge&labelColor=0a0a0b" height="40"></a><br>
+  <sub><a href="https://rigby2d.com/editor/"><b>Open the editor</b></a> with the Rigbytron and NILA demos, tutorials and Python scripting · <a href="https://rigby2d.com/">Website</a> · <a href="https://rigby2d.com/docs/">Documentation</a></sub>
 </p>
 
 <p align="center">
@@ -42,15 +42,15 @@
 
 ## Documentation
 
-**[Read the documentation](https://jaisurya-dev-art.github.io/rigby2d/docs/)**: guides with screenshots for every part of the editor, the
+**[Read the documentation](https://rigby2d.com/docs/)**: guides with screenshots for every part of the editor, the
 runtimes and the MCP server. The pages are also in [`docs/`](docs/).
 
 | Get started | Rig | Animate | Ship and automate |
 | --- | --- | --- | --- |
-| [Installation](https://jaisurya-dev-art.github.io/rigby2d/docs/installation.html) | [Importing art](https://jaisurya-dev-art.github.io/rigby2d/docs/importing-art.html) | [Animating](https://jaisurya-dev-art.github.io/rigby2d/docs/animating.html) | [Export](https://jaisurya-dev-art.github.io/rigby2d/docs/export.html) |
-| [Quick start](https://jaisurya-dev-art.github.io/rigby2d/docs/quick-start.html) | [AutoRig](https://jaisurya-dev-art.github.io/rigby2d/docs/autorig.html) | [Graph editor](https://jaisurya-dev-art.github.io/rigby2d/docs/graph-editor.html) | [Runtimes](https://jaisurya-dev-art.github.io/rigby2d/docs/runtimes.html) |
-| [The interface](https://jaisurya-dev-art.github.io/rigby2d/docs/interface.html) | [Bones and slots](https://jaisurya-dev-art.github.io/rigby2d/docs/bones-and-slots.html) | [Poses and faces](https://jaisurya-dev-art.github.io/rigby2d/docs/poses-and-faces.html) | [Python scripting](https://jaisurya-dev-art.github.io/rigby2d/docs/scripting.html) |
-| [Demo projects](https://jaisurya-dev-art.github.io/rigby2d/docs/demos.html) | [Meshes](https://jaisurya-dev-art.github.io/rigby2d/docs/meshes.html) · [Constraints](https://jaisurya-dev-art.github.io/rigby2d/docs/constraints.html) | [Film](https://jaisurya-dev-art.github.io/rigby2d/docs/film.html) · [Scenes](https://jaisurya-dev-art.github.io/rigby2d/docs/scenes.html) · [Lip-sync](https://jaisurya-dev-art.github.io/rigby2d/docs/lip-sync.html) | [AI assistants (MCP)](https://jaisurya-dev-art.github.io/rigby2d/docs/mcp.html) |
+| [Installation](https://rigby2d.com/docs/installation.html) | [Importing art](https://rigby2d.com/docs/importing-art.html) | [Animating](https://rigby2d.com/docs/animating.html) | [Export](https://rigby2d.com/docs/export.html) |
+| [Quick start](https://rigby2d.com/docs/quick-start.html) | [AutoRig](https://rigby2d.com/docs/autorig.html) | [Graph editor](https://rigby2d.com/docs/graph-editor.html) | [Runtimes](https://rigby2d.com/docs/runtimes.html) |
+| [The interface](https://rigby2d.com/docs/interface.html) | [Bones and slots](https://rigby2d.com/docs/bones-and-slots.html) | [Poses and faces](https://rigby2d.com/docs/poses-and-faces.html) | [Python scripting](https://rigby2d.com/docs/scripting.html) |
+| [Demo projects](https://rigby2d.com/docs/demos.html) | [Meshes](https://rigby2d.com/docs/meshes.html) · [Constraints](https://rigby2d.com/docs/constraints.html) | [Film](https://rigby2d.com/docs/film.html) · [Scenes](https://rigby2d.com/docs/scenes.html) · [Lip-sync](https://rigby2d.com/docs/lip-sync.html) | [AI assistants (MCP)](https://rigby2d.com/docs/mcp.html) |
 
 ## Features
 
@@ -63,7 +63,7 @@ runtimes and the MCP server. The pages are also in [`docs/`](docs/).
   on-device Whisper transcription, and renders to PNG sequences, WebM with alpha and MP4.
 - **Scene composition** (new in 0.3): several characters on one stage as actors with NLE-style clips
   (trim, speed, loops, crossfades, their own audio), painted layers with parallax, and a camera,
-  and they play in games through every runtime. See [Scenes](https://jaisurya-dev-art.github.io/rigby2d/docs/scenes.html).
+  and they play in games through every runtime. See [Scenes](https://rigby2d.com/docs/scenes.html).
 - **A focused editor**: Game and Film workspaces, panels you can resize or pop out to a second
   monitor, *Open recent*, and a searchable shortcut reference with Reference and Blender-like keys.
 - **Python scripting** and custom tools, and a built-in **MCP server** so AI assistants such as
@@ -71,18 +71,16 @@ runtimes and the MCP server. The pages are also in [`docs/`](docs/).
 - **Lossless skeleton JSON (3.8, 4.2, 4.3) and binary `.skel`** with texture atlases, played by the
   **JavaScript, Rust, Unity and Godot runtimes**.
 - Built-in **tutorials** and demo projects (**NILA**, **Rigbytron**, and a **scene** with both), also on the
-  [Demos page](https://jaisurya-dev-art.github.io/rigby2d/demos/) with their game-ready exports
-  (demo content © Hoverlabs, under its own [demo license](branding/DEMO-LICENSE.md)).
+  [Demos page](https://rigby2d.com/demos/) with their game-ready exports
+  (demo content © Rigby2D, under its own [demo license](branding/DEMO-LICENSE.md)).
 
 ## Getting started
 
-- **In your browser:** [open the editor](https://jaisurya-dev-art.github.io/rigby2d/editor/), nothing to install.
+- **In your browser:** [open the editor](https://rigby2d.com/editor/), nothing to install.
 - **Windows:** [download the portable editor](https://github.com/jaisurya-dev-art/rigby2d/releases/latest/download/Rigby2D_x64_portable.exe)
   or an installer from [Releases](https://github.com/jaisurya-dev-art/rigby2d/releases).
-  Windows code signing comes from the SignPath Foundation (application under review; see the
-  [code signing policy](https://jaisurya-dev-art.github.io/rigby2d/docs/code-signing.html)).
 - **AI assistants:** install [Rigby2D-AI.mcpb](https://github.com/jaisurya-dev-art/rigby2d/releases/latest/download/Rigby2D-AI.mcpb)
-  in Claude Desktop, or see the [MCP guide](https://jaisurya-dev-art.github.io/rigby2d/docs/mcp.html).
+  in Claude Desktop, or see the [MCP guide](https://rigby2d.com/docs/mcp.html).
 - **From source** (Node.js 20+ and the [Tauri prerequisites](https://tauri.app/start/prerequisites/)):
 
 ```bash
@@ -92,7 +90,7 @@ npm install
 npm run dev        # desktop app; npm run web:dev for the browser, npm test for the tests
 ```
 
-See [Installation](https://jaisurya-dev-art.github.io/rigby2d/docs/installation.html) for every option.
+See [Installation](https://rigby2d.com/docs/installation.html) for every option.
 
 ## Project structure
 
@@ -131,8 +129,8 @@ The editor distributes Pyodide and CPython for Python scripting under their own 
 
 ## Trademarks
 
-**Rigby2D**, **Hoverlabs**, **Rigbytron** and **NILA**, and the Rigby2D logo, lockups, icons and the Rigbytron
-and NILA mascots in [`branding/`](branding/), are proprietary trademarks of Hoverlabs. They are not covered by the MIT or Apache 2.0 licenses. Forks
+**Rigby2D**, **Rigbytron** and **NILA**, and the Rigby2D logo, lockups, icons and the Rigbytron
+and NILA mascots in [`branding/`](branding/), are proprietary trademarks of the Rigby2D project. They are not covered by the MIT or Apache 2.0 licenses. Forks
 and modified versions must use their own name and branding. See [TRADEMARKS.md](TRADEMARKS.md).
 
 ## Disclaimer

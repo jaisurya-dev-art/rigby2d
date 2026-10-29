@@ -37,7 +37,7 @@
     "test": "node --test \"test/*.test.js\"",
     "build:mcpb": "node mcpb/build.mjs",
     "site:dev": "vite --config site/vite.config.js",
-    "site:build": "vite build --config site/vite.config.js && vite build --base=/rigby2d/editor/ --outDir _site/editor --emptyOutDir"
+    "site:build": "vite build --config site/vite.config.js && vite build --base=/editor/ --outDir _site/editor --emptyOutDir"
   },
   "engines": {
     "node": ">=20"

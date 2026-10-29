@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
-// The demo projects (File > Open demo): Hoverlabs characters, proprietary (see TRADEMARKS.md). The
+// The demo projects (File > Open demo): Rigby2D demo characters, proprietary (see TRADEMARKS.md). The
 // browser editor bundles them; the desktop app downloads them from the website when one is opened,
 // so the signed app contains no character artwork ('@demo-sources' is chosen in vite.config.js).
 // Adding one: its .rigby and a 480x360 thumbnail in branding/, an entry here and in both sources,
@@ -41,6 +41,6 @@ export const DEMOS = [
 ];
 
 /** The license of the demo content (branding/DEMO-LICENSE.md), on the website's Demos page. */
-export const DEMO_LICENSE_URL = 'https://jaisurya-dev-art.github.io/rigby2d/demos/#license';
+export const DEMO_LICENSE_URL = 'https://rigby2d.com/demos/#license';
 
 export const demoById = (id) => DEMOS.find((d) => d.id === id) ?? DEMOS[0];

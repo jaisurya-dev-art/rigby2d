@@ -1,5 +1,5 @@
 # Builds the project website and the browser editor, and publishes them on GitHub Pages:
-# https://jaisurya-dev-art.github.io/rigby2d/ (landing page) and /rigby2d/editor/ (the editor).
+# https://rigby2d.com/ (landing page) and /rigby2d/editor/ (the editor).
 name: Website
 
 on:

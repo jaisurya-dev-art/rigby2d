@@ -191,7 +191,7 @@ export function pageHtml(page, pages, assets) {
       ${outline(page.toc)}
     </div>
     <footer class="foot">
-      <p>Rigby2D source code is licensed MIT OR Apache-2.0. The Rigby2D, Hoverlabs, NILA and Rigbytron names, logos and artwork are trademarks of Hoverlabs (<a href="${GITHUB}/blob/${BRANCH}/TRADEMARKS.md" rel="noopener">TRADEMARKS.md</a>). <a href="privacy.html">Privacy</a></p>
+      <p>Rigby2D source code is licensed MIT OR Apache-2.0. The Rigby2D, NILA and Rigbytron names, logos and artwork are trademarks of the Rigby2D project (<a href="${GITHUB}/blob/${BRANCH}/TRADEMARKS.md" rel="noopener">TRADEMARKS.md</a>). <a href="privacy.html">Privacy</a></p>
     </footer>
     <script type="module" src="${assets.js}"></script>
   </body>
