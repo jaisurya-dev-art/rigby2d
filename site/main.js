@@ -12,6 +12,7 @@ import { AnimationState } from '../src/core/state.js';
 import { WebGLRenderer } from '../src/webgl/renderer.js';
 import { animationBounds } from '../src/editor/output.js';
 import { startAnalytics } from '../src/editor/analytics.js';
+import { installMobileNav } from './nav.js';
 import skelUrl from '../branding/nila/export/nila.skel?url&no-inline';
 import atlasText from '../branding/nila/export/nila.atlas?raw';
 import pageUrl from '../branding/nila/export/nila.png?url';
@@ -24,6 +25,7 @@ const VOICE = Object.fromEntries(
 
 // Anonymous visit counts; links marked data-goatcounter-click count their clicks (analytics.js).
 startAnalytics();
+installMobileNav();
 
 const $ = (s) => document.querySelector(s);
 const canvas = $('#hero');

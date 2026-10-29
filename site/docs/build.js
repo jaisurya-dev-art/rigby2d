@@ -119,7 +119,11 @@ export async function renderAll({ fresh = false } = {}) {
   });
 }
 
+// On phones the header keeps only the search, so the site links lead the sidebar there.
+const SITE_LINKS = `<div class="nav-section sidebar-site"><p class="nav-title">Rigby2D</p><ul><li><a href="../">Home</a></li><li><a href="../demos/">Demos</a></li><li><a href="../editor/" data-goatcounter-click="docs-open-editor-menu">Open the editor</a></li><li><a href="${GITHUB}" rel="noopener">GitHub</a></li></ul></div>`;
+
 const sidebar = (pages, current) =>
+  SITE_LINKS +
   NAV.map(
     (s) =>
       `<div class="nav-section"><p class="nav-title">${esc(s.title)}</p><ul>${s.pages

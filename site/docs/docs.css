@@ -688,6 +688,10 @@ kbd {
 
 /* ---- narrow screens ---- */
 
+.sidebar-site {
+  display: none;
+}
+
 @media (max-width: 1240px) {
   .layout {
     grid-template-columns: 250px minmax(0, 1fr);
@@ -729,6 +733,11 @@ kbd {
     border-right: 1px solid var(--line);
     transform: translateX(-102%);
     transition: transform 0.2s ease;
+  }
+  .sidebar-site {
+    display: block;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--line);
   }
   body.nav-open .sidebar {
     transform: none;
