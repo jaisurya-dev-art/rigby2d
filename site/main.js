@@ -83,9 +83,30 @@ async function start() {
   let reel = 0;
   let idleFor = 0;
 
+  // Voices load once, up front, so a line starts with its animation instead of after a download.
+  const voices = new Map();
+  const voiceFor = (name) => {
+    if (!VOICE[name]) return null;
+    if (!voices.has(name)) {
+      const a = new Audio(VOICE[name]);
+      a.preload = 'auto';
+      voices.set(name, a);
+    }
+    return voices.get(name);
+  };
   const stopVoice = () => {
-    voice?.pause();
+    const a = voice;
     voice = null;
+    if (!a || a.paused) return;
+    // A short fade, so a line cut at the end of its animation doesn't click.
+    const fade = setInterval(() => {
+      a.volume = Math.max(0, a.volume - 0.2);
+      if (a.volume <= 0) {
+        clearInterval(fade);
+        a.pause();
+        a.volume = 1;
+      }
+    }, 25);
   };
 
   /** Plays expression `name` once, then settles back into the idle loop. */
@@ -98,9 +119,12 @@ async function start() {
     state.addAnimation(sk, 0, 'idle', true, 0.35);
     idleFor = 0;
     if (subtitle) subtitle.textContent = LINES[name] ? `\u201c${LINES[name]}\u201d` : '';
-    if (sound && VOICE[name]) {
-      voice = new Audio(VOICE[name]);
-      voice.play().catch(() => {});
+    const line = sound ? voiceFor(name) : null;
+    if (line) {
+      line.volume = 1;
+      line.currentTime = 0;
+      voice = line;
+      line.play().catch(() => {});
     }
     if (reducedMotion) {
       // A single still frame, part-way into the chosen expression.
@@ -112,6 +136,8 @@ async function start() {
   state.addListener({
     start: (entry) => {
       if (entry.name !== 'idle') return;
+      // The line ends with its animation: no words past the clip.
+      stopVoice();
       current = 'idle';
       for (const b of buttons) b.setAttribute('aria-pressed', 'false');
       if (subtitle) subtitle.textContent = '';
@@ -120,6 +146,7 @@ async function start() {
 
   soundButton?.addEventListener('click', () => {
     sound = !sound;
+    if (sound) for (const name of Object.keys(VOICE)) voiceFor(name)?.load();
     soundButton.setAttribute('aria-pressed', String(sound));
     soundButton.textContent = sound ? 'Sound on' : 'Sound off';
     if (!sound) stopVoice();
