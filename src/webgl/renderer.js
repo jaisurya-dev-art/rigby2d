@@ -144,11 +144,19 @@ export class WebGLRenderer {
    * (x, y) with `zoom` pixels per unit; world Y points up.
    */
   begin(width, height, camera = { x: 0, y: 0, zoom: 1 }) {
-    const gl = this.gl;
     const sx = (2 * camera.zoom) / width;
     const sy = (2 * camera.zoom) / height;
+    this.beginMatrix([sx, 0, 0, 0, sy, 0, -camera.x * sx, -camera.y * sy, 1]);
+  }
+
+  /**
+   * Starts a frame with any projection: `matrix` is a column-major 3x3 matrix from world
+   * coordinates to clip space (engine integrations such as the Phaser plugin use it).
+   */
+  beginMatrix(matrix) {
+    const gl = this.gl;
     gl.useProgram(this.program);
-    gl.uniformMatrix3fv(this.uniforms.projection, false, new Float32Array([sx, 0, 0, 0, sy, 0, -camera.x * sx, -camera.y * sy, 1]));
+    gl.uniformMatrix3fv(this.uniforms.projection, false, new Float32Array(matrix));
     gl.uniform1i(this.uniforms.texture, 0);
     gl.enable(gl.BLEND);
     gl.disable(gl.DEPTH_TEST);

@@ -1,0 +1,33 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Rigby2D for Phaser</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        background: #1b1b1b;
+        color: #cfcfcf;
+        font: 14px system-ui, sans-serif;
+      }
+      #game {
+        display: flex;
+        justify-content: center;
+      }
+      p {
+        text-align: center;
+      }
+    </style>
+    <!-- Phaser from its CDN; in a game, install it with npm (npm install phaser). -->
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.90.0/dist/phaser.min.js"></script>
+  </head>
+  <body>
+    <div id="game"></div>
+    <p>Click NILA for the next animation. Rigbytron's slash event flashes the text. Run <code>npm run web:dev</code> and open /examples/phaser.html.</p>
+    <script type="module" src="./phaser.js"></script>
+  </body>
+</html>

@@ -1,5 +1,5 @@
-# Builds the Windows release files from the repository on GitHub's machines, so every released file
-# can be traced to this source, and signs them when signing is set up:
+# Builds the release files from the repository on GitHub's machines (Windows, Linux and macOS), so
+# every released file can be traced to this source, and signs the Windows files when signing is set up:
 #   - Repository variables SIGNPATH_ORGANIZATION_ID and SIGNPATH_PROJECT_SLUG, and the secret
 #     SIGNPATH_API_TOKEN, turn signing on. Without them the files are built unsigned.
 #   - Each signing request waits for a manual approval in SignPath (its policy for open source).
@@ -42,8 +42,9 @@ jobs:
 
       # Editor: MSI and NSIS installers, and the program itself as the portable editor.
       - run: npm run build
-      # AI assistant extension.
+      # AI assistant extension, and the Phaser runtime bundles.
       - run: npm run build:mcpb
+      - run: npm run build:phaser
       # Godot runtime: the GDExtension library and the addon and demo zips.
       - run: cargo build --release -p rigby-godot
         working-directory: runtimes/rust
@@ -73,12 +74,100 @@ jobs:
           cp "runtimes/godot/dist/rigby2d-godot-addon-${V}-windows-x64.zip" release/
           cp "runtimes/godot/dist/rigby2d-godot-demo-${V}-windows-x64.zip" release/
           cp "com.rigby2d.unity-${V}.tgz" "release/rigby2d-unity-${V}.tgz"
+          cp dist-phaser/* release/
           ls -la release
 
       - id: unsigned
         uses: actions/upload-artifact@v7
         with:
           name: rigby2d-${{ steps.version.outputs.version }}-unsigned
+          path: release/
+          if-no-files-found: error
+
+  # Linux: the editor as an AppImage and a .deb, and the Godot runtime for Linux.
+  build-linux:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            src-tauri
+            runtimes/rust
+      - name: System libraries for Tauri
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev patchelf file
+      - id: version
+        run: echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+      - run: npm ci
+      - run: npm run build -- --bundles appimage,deb
+      - run: cargo build --release -p rigby-godot
+        working-directory: runtimes/rust
+      - run: node runtimes/godot/package.mjs linux-x64
+      - name: Collect the release files
+        env:
+          V: ${{ steps.version.outputs.version }}
+        run: |
+          mkdir -p release
+          cp src-tauri/target/release/bundle/appimage/*.AppImage "release/Rigby2D_${V}_amd64.AppImage"
+          cp src-tauri/target/release/bundle/deb/*.deb "release/Rigby2D_${V}_amd64.deb"
+          cp "runtimes/godot/dist/rigby2d-godot-addon-${V}-linux-x64.zip" release/
+          cp "runtimes/godot/dist/rigby2d-godot-demo-${V}-linux-x64.zip" release/
+          ls -la release
+      - uses: actions/upload-artifact@v7
+        with:
+          name: rigby2d-${{ steps.version.outputs.version }}-linux
+          path: release/
+          if-no-files-found: error
+
+  # macOS: one universal editor (Apple silicon and Intel) as a .dmg, and the Godot runtime as a
+  # universal library. Not signed with an Apple Developer ID yet: see docs/installation.md.
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin,x86_64-apple-darwin
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            src-tauri
+            runtimes/rust
+      - id: version
+        run: echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+      - run: npm ci
+      - run: npm run build -- --target universal-apple-darwin --bundles dmg
+      - name: Godot runtime (universal library)
+        working-directory: runtimes/rust
+        run: |
+          cargo build --release -p rigby-godot --target aarch64-apple-darwin
+          cargo build --release -p rigby-godot --target x86_64-apple-darwin
+          mkdir -p target/release
+          lipo -create -output target/release/librigby_godot.dylib target/aarch64-apple-darwin/release/librigby_godot.dylib target/x86_64-apple-darwin/release/librigby_godot.dylib
+      - run: node runtimes/godot/package.mjs macos
+      - name: Collect the release files
+        env:
+          V: ${{ steps.version.outputs.version }}
+        run: |
+          mkdir -p release
+          cp src-tauri/target/universal-apple-darwin/release/bundle/dmg/*.dmg "release/Rigby2D_${V}_universal.dmg"
+          cp "runtimes/godot/dist/rigby2d-godot-addon-${V}-macos.zip" release/
+          cp "runtimes/godot/dist/rigby2d-godot-demo-${V}-macos.zip" release/
+          ls -la release
+      - uses: actions/upload-artifact@v7
+        with:
+          name: rigby2d-${{ steps.version.outputs.version }}-macos
           path: release/
           if-no-files-found: error
 

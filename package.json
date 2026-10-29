@@ -36,6 +36,7 @@
     "web:build": "vite build",
     "test": "node --test \"test/*.test.js\"",
     "build:mcpb": "node mcpb/build.mjs",
+    "build:phaser": "node runtimes/phaser/build.mjs",
     "site:dev": "vite --config site/vite.config.js",
     "site:build": "vite build --config site/vite.config.js && vite build --base=/editor/ --outDir _site/editor --emptyOutDir"
   },

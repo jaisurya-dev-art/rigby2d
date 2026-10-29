@@ -2,6 +2,7 @@ node_modules/
 dist/
 build/
 dist-mcpb/
+dist-phaser/
 src-tauri/target/
 src-tauri/gen/schemas/
 *.swp
