@@ -12,7 +12,9 @@ import { fileURLToPath } from 'node:url';
 const here = path.dirname(fileURLToPath(import.meta.url));
 const pkg = path.resolve(here, '..');
 const repo = path.resolve(pkg, '../../..');
-const [project, unityArg] = process.argv.slice(2);
+// Positional arguments only (flags such as --player take their own value).
+const positional = process.argv.slice(2).filter((a, i, all) => !a.startsWith('--') && !(all[i - 1] ?? '').startsWith('--player'));
+const [project, unityArg] = positional;
 if (!project) throw new Error('usage: run-unity.mjs <unity project> [Unity executable]');
 
 function unityExe() {
@@ -62,6 +64,33 @@ if (process.argv.includes('--make-sample')) {
   fs.rmSync(target, { recursive: true, force: true });
   copy(demo, target);
   console.log(`sample written to ${target}: ${fs.readdirSync(target).join(', ')}`);
+  process.exit(0);
+}
+
+// --player il2cpp|mono: build the player benchmark (Player/RigbyPlayerBench.cs) for Windows x64 and
+// run it: 200 characters on screen through the runtime, all cores then one core, then the core alone.
+const playerArg = process.argv.indexOf('--player');
+if (playerArg >= 0) {
+  const backend = process.argv[playerArg + 1] ?? 'il2cpp';
+  copy(path.join(here, 'Player'), path.join(assets, 'Bench'));
+  fs.copyFileSync(path.join(here, 'Tools/RigbyBuildPlayer.cs'), path.join(assets, 'Editor/RigbyBuildPlayer.cs'));
+  const build = path.join(project, `Build-${backend}`);
+  fs.rmSync(build, { recursive: true, force: true });
+  const log = path.join(project, `rigby-build-${backend}.log`);
+  const t0 = Date.now();
+  const b = spawnSync(unityExe(), ['-batchmode', '-quit', '-projectPath', project, '-executeMethod', 'RigbyBuildPlayer.Run', '-rigbyBackend', backend, '-rigbyBuild', build, '-logFile', log], { stdio: 'inherit' });
+  const lines = fs.existsSync(log) ? fs.readFileSync(log, 'utf8').split(/\r?\n/) : [];
+  for (const l of lines) if (/rigby-build|error CS|Build Finished|IL2CPP error|error:/i.test(l)) console.log(l);
+  if (b.status !== 0) process.exit(1);
+  console.log(`built in ${((Date.now() - t0) / 1000).toFixed(0)} s`);
+  const result = path.join(project, `bench-${backend}.json`);
+  fs.rmSync(result, { force: true });
+  spawnSync(path.join(build, 'RigbyBench.exe'), ['-screen-fullscreen', '0', '-screen-width', '1280', '-screen-height', '720', '-rigbyOut', result, '-logFile', path.join(project, `bench-${backend}.log`)], { stdio: 'inherit', timeout: 300000 });
+  if (!fs.existsSync(result)) {
+    console.log('the benchmark wrote no result');
+    process.exit(1);
+  }
+  console.log(fs.readFileSync(result, 'utf8'));
   process.exit(0);
 }
 

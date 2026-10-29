@@ -2,7 +2,9 @@
 
 Play [Rigby2D](https://jaisurya-dev-art.github.io/rigby2d/) skeletons and scenes in Unity 2021.3 or
 newer (Unity 6 included), with the Built-in or the Universal render pipeline, on every platform
-Unity builds for. The runtime is pure C# and matches the Rigby2D editor frame by frame.
+Unity builds for, with IL2CPP or Mono. The runtime is pure C# and matches the Rigby2D editor frame
+by frame. Tested in Unity 6.3 (Built-in and URP, Gamma and Linear) and 2022.3, and in Windows
+players built with IL2CPP and Mono.
 
 ## Install
 
@@ -102,12 +104,24 @@ as an export, ready to drop in.
 
 - **Every core.** Playing skeletons update together after your scripts' `Update`: time, poses
   (animation, IK, constraints, physics) and mesh geometry run in parallel on worker threads, then
-  meshes upload on the main thread. Your callbacks always run on the main thread. 200 NILAs (39
-  bones, 1,002 skinned vertices each) take 6.7 ms per frame in the Editor on 8 cores, against 16.8
-  ms on one; built players (IL2CPP) are faster still. Set `RigbySettings.WorkerThreads = 0` to use
-  the main thread only. WebGL always does.
+  meshes upload on the main thread. Your callbacks always run on the main thread. Set
+  `RigbySettings.WorkerThreads = 0` to use the main thread only. WebGL always does.
 - **No garbage.** Steady playback allocates nothing, so there are no garbage collector pauses: one
-  interleaved vertex buffer and one sub-mesh per atlas page and blend mode, reused every frame.
+  compact vertex buffer (28 bytes a vertex) and one sub-mesh per atlas page and blend mode, reused
+  every frame; triangles upload only when they change.
+- **Measured.** 200 NILAs on screen (39 bones, 1,002 skinned vertices, physics on her braid each), in
+  a Windows player on a laptop (Core i5-10300H, 4 cores and 8 threads, GTX 1650):
+
+  | 200 NILAs per frame | IL2CPP, all cores | IL2CPP, one core | Mono, all cores |
+  | --- | ---: | ---: | ---: |
+  | Animation, constraints, physics | 0.73 ms | 2.88 ms | 1.43 ms |
+  | Mesh geometry | 1.79 ms | 6.40 ms | 3.45 ms |
+  | Upload to the GPU | 2.46 ms | 2.00 ms | 3.23 ms |
+  | **Total** | **5.0 ms (25 µs a character)** | 11.3 ms | 8.2 ms |
+  | Garbage | 0 bytes | 0 bytes | 0 bytes |
+
+  `RigbyStats` gives these timings for your own frames, and Unity's Profiler shows them as
+  `Rigby2D.Pose`, `Rigby2D.Events`, `Rigby2D.Geometry` and `Rigby2D.Upload`.
 - **Off screen, nearly free.** Skeletons no camera sees keep their time (and fire events) but skip
   posing and geometry, unless *Update When Invisible* is on.
 - **Clean edges in Gamma and Linear.** Atlas pages import as raw pixels and the shader handles
@@ -138,4 +152,6 @@ as an export, ready to drop in.
 node runtimes/unity/com.hoverlabs.rigby2d/Tests~/run.mjs                    # golden tests (uses Unity's bundled .NET)
 node runtimes/unity/com.hoverlabs.rigby2d/Tests~/run.mjs --bench <skeleton> <atlas>
 node runtimes/unity/com.hoverlabs.rigby2d/Tests~/run-unity.mjs <unity project>   # in the Unity Editor: import, play, render, crowd
+node runtimes/unity/com.hoverlabs.rigby2d/Tests~/run-unity.mjs <unity project> --player il2cpp   # build and run the player benchmark
+RIGBY_URP=1 node runtimes/unity/com.hoverlabs.rigby2d/Tests~/run-unity.mjs <URP project>         # the same check in the Universal render pipeline
 ```

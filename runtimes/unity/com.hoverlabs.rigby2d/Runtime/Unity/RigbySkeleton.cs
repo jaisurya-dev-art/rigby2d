@@ -337,12 +337,13 @@ namespace Rigby2D.Unity
         }
 
         /// <summary>Main thread: uploads the mesh.</summary>
-        internal void Upload()
+        internal bool Upload()
         {
             if (frameError != null) Debug.LogException(frameError, this);
-            if (!frameDraw || this == null) return;
+            if (!frameDraw || this == null) return false;
             dirty = false;
             UploadMesh();
+            return true;
         }
 
         void UploadMesh()

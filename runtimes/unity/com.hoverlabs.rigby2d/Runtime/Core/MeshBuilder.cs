@@ -96,11 +96,14 @@ namespace Rigby2D
         public float MinX, MinY, MaxX, MaxY;
 
         /// <summary>Interleaved output for engines that upload one vertex buffer: when on, the separate
-        /// arrays are left empty and Interleaved holds, per vertex, x, y, 0 (scaled by ScaleX / ScaleY),
-        /// light r, g, b, a, u, v (v flipped when FlipV), dark r, g, b, a: InterleavedStride floats.</summary>
+        /// arrays are left empty and Interleaved holds InterleavedStride 32-bit words per vertex
+        /// (28 bytes): x, y, 0 as floats (scaled by ScaleX / ScaleY), the light color as 4 bytes
+        /// (r, g, b, a, 0..255), u, v as floats (v flipped when FlipV), and the dark color as 4 bytes
+        /// (r, g, b, and 255 when the slot has one). Floats are stored by their bits, so the buffer
+        /// copies to the GPU as it is.</summary>
         public bool Interleave;
-        public const int InterleavedStride = 13;
-        public float[] Interleaved = new float[13 * 64];
+        public const int InterleavedStride = 7;
+        public int[] Interleaved = new int[7 * 64];
         public float ScaleX = 1f, ScaleY = 1f;
         public bool FlipV;
 
@@ -355,6 +358,11 @@ namespace Rigby2D
             Batches[Batches.Count - 1] = batch;
         }
 
+        static int Byte(float v) => v <= 0f ? 0 : v >= 1f ? 255 : (int)(v * 255f + 0.5f);
+
+        /// <summary>A color as 4 bytes r, g, b, a in memory order.</summary>
+        static int Pack(float r, float g, float b, float a) => Byte(r) | (Byte(g) << 8) | (Byte(b) << 16) | (Byte(a) << 24);
+
         void EmitInterleaved(double[] positions, float[] uvs, int n, int baseVertex, float lr, float lg, float lb, float la, float dr, float dg, float db, float da)
         {
             int need = (baseVertex + n) * InterleavedStride;
@@ -364,6 +372,7 @@ namespace Rigby2D
             float minX = MinX, minY = MinY, maxX = MaxX, maxY = MaxY;
             int uvLen = uvs.Length;
             bool flipV = FlipV;
+            int light = Pack(lr, lg, lb, la), dark = Pack(dr, dg, db, da);
             int w = baseVertex * InterleavedStride;
             for (int k = 0; k < n; k++)
             {
@@ -372,25 +381,19 @@ namespace Rigby2D
                 if (x > maxX) maxX = x;
                 if (y < minY) minY = y;
                 if (y > maxY) maxY = y;
-                o[w] = x * sx;
-                o[w + 1] = y * sy;
-                o[w + 2] = 0f;
-                o[w + 3] = lr;
-                o[w + 4] = lg;
-                o[w + 5] = lb;
-                o[w + 6] = la;
+                o[w] = BitConverter.SingleToInt32Bits(x * sx);
+                o[w + 1] = BitConverter.SingleToInt32Bits(y * sy);
+                o[w + 2] = 0;
+                o[w + 3] = light;
                 float u = 0f, v = 0f;
                 if (2 * k + 1 < uvLen)
                 {
                     u = uvs[2 * k];
                     v = uvs[2 * k + 1];
                 }
-                o[w + 7] = u;
-                o[w + 8] = flipV ? 1f - v : v;
-                o[w + 9] = dr;
-                o[w + 10] = dg;
-                o[w + 11] = db;
-                o[w + 12] = da;
+                o[w + 4] = BitConverter.SingleToInt32Bits(u);
+                o[w + 5] = BitConverter.SingleToInt32Bits(flipV ? 1f - v : v);
+                o[w + 6] = dark;
                 w += InterleavedStride;
             }
             MinX = minX;

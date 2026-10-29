@@ -11,6 +11,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using UnityEngine;
 
@@ -23,6 +24,24 @@ namespace Rigby2D.Unity
         public static int WorkerThreads = Math.Min(Math.Max(Environment.ProcessorCount - 1, 0), 8);
         /// <summary>Fewer playing skeletons than this run on the main thread (threads would cost more than they save).</summary>
         public static int ParallelThreshold = 8;
+    }
+
+    /// <summary>What the last frame cost (main-thread milliseconds of each phase), for your own HUD or
+    /// tests. The same phases show in Unity's Profiler as "Rigby2D.Pose", "Rigby2D.Events",
+    /// "Rigby2D.Geometry" and "Rigby2D.Upload".</summary>
+    public static class RigbyStats
+    {
+        /// <summary>Skeletons updated in the last frame (playing, automatic update mode).</summary>
+        public static int Skeletons { get; internal set; }
+        /// <summary>Of those, the ones posed and drawn (visible, or updating when invisible).</summary>
+        public static int Drawn { get; internal set; }
+        public static double PoseMilliseconds { get; internal set; }
+        public static double EventsMilliseconds { get; internal set; }
+        public static double GeometryMilliseconds { get; internal set; }
+        public static double UploadMilliseconds { get; internal set; }
+        public static double TotalMilliseconds => PoseMilliseconds + EventsMilliseconds + GeometryMilliseconds + UploadMilliseconds;
+        /// <summary>Whether the last frame used the worker threads.</summary>
+        public static bool Parallel { get; internal set; }
     }
 
     [DefaultExecutionOrder(-1000)]
@@ -66,17 +85,44 @@ namespace Rigby2D.Unity
                 if (frame.Length <= frameCount) Array.Resize(ref frame, frame.Length * 2);
                 frame[frameCount++] = s;
             }
-            if (frameCount == 0) return;
+            RigbyStats.Skeletons = frameCount;
+            if (frameCount == 0)
+            {
+                RigbyStats.Drawn = 0;
+                RigbyStats.PoseMilliseconds = RigbyStats.EventsMilliseconds = RigbyStats.GeometryMilliseconds = RigbyStats.UploadMilliseconds = 0;
+                return;
+            }
             bool parallel = frameCount >= RigbySettings.ParallelThreshold && RigbySettings.WorkerThreads > 0;
 #if UNITY_WEBGL && !UNITY_EDITOR
             parallel = false;
 #endif
-            Run(PosePhase, parallel);
-            for (int i = 0; i < frameCount; i++) frame[i].AfterPose();
-            Run(GeometryPhase, parallel);
-            for (int i = 0; i < frameCount; i++) frame[i].Upload();
+            RigbyStats.Parallel = parallel;
+            long t0 = Stopwatch.GetTimestamp();
+            using (PoseMarker.Auto()) Run(PosePhase, parallel);
+            long t1 = Stopwatch.GetTimestamp();
+            using (EventsMarker.Auto())
+                for (int i = 0; i < frameCount; i++) frame[i].AfterPose();
+            long t2 = Stopwatch.GetTimestamp();
+            using (GeometryMarker.Auto()) Run(GeometryPhase, parallel);
+            long t3 = Stopwatch.GetTimestamp();
+            int drawn = 0;
+            using (UploadMarker.Auto())
+                for (int i = 0; i < frameCount; i++)
+                    if (frame[i].Upload()) drawn++;
+            long t4 = Stopwatch.GetTimestamp();
             Array.Clear(frame, 0, frameCount);
+            double ms = 1000.0 / Stopwatch.Frequency;
+            RigbyStats.Drawn = drawn;
+            RigbyStats.PoseMilliseconds = (t1 - t0) * ms;
+            RigbyStats.EventsMilliseconds = (t2 - t1) * ms;
+            RigbyStats.GeometryMilliseconds = (t3 - t2) * ms;
+            RigbyStats.UploadMilliseconds = (t4 - t3) * ms;
         }
+
+        static readonly global::Unity.Profiling.ProfilerMarker PoseMarker = new global::Unity.Profiling.ProfilerMarker("Rigby2D.Pose");
+        static readonly global::Unity.Profiling.ProfilerMarker EventsMarker = new global::Unity.Profiling.ProfilerMarker("Rigby2D.Events");
+        static readonly global::Unity.Profiling.ProfilerMarker GeometryMarker = new global::Unity.Profiling.ProfilerMarker("Rigby2D.Geometry");
+        static readonly global::Unity.Profiling.ProfilerMarker UploadMarker = new global::Unity.Profiling.ProfilerMarker("Rigby2D.Upload");
 
         static readonly Action<int> PosePhase = i => frame[i].StepPose();
         static readonly Action<int> GeometryPhase = i => frame[i].StepGeometry();

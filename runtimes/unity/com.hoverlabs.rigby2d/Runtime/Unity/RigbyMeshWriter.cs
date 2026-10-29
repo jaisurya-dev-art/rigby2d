@@ -15,10 +15,11 @@ namespace Rigby2D.Unity
     {
         static readonly VertexAttributeDescriptor[] Layout =
         {
+            // 28 bytes per vertex: colors as bytes, as in MeshBuilder's interleaved output.
             new VertexAttributeDescriptor(VertexAttribute.Position, VertexAttributeFormat.Float32, 3),
-            new VertexAttributeDescriptor(VertexAttribute.Color, VertexAttributeFormat.Float32, 4),
+            new VertexAttributeDescriptor(VertexAttribute.Color, VertexAttributeFormat.UNorm8, 4),
             new VertexAttributeDescriptor(VertexAttribute.TexCoord0, VertexAttributeFormat.Float32, 2),
-            new VertexAttributeDescriptor(VertexAttribute.TexCoord1, VertexAttributeFormat.Float32, 4),
+            new VertexAttributeDescriptor(VertexAttribute.TexCoord1, VertexAttributeFormat.UNorm8, 4),
         };
 
         public readonly Mesh Mesh;
@@ -59,12 +60,15 @@ namespace Rigby2D.Unity
             }
             Mesh.SetVertexBufferData(b.Interleaved, 0, 0, n * MeshBuilder.InterleavedStride, 0, quiet);
             int ic = Math.Max(b.IndexCount, 3);
+            bool topology = !SameTopology(b);
             if (ic > indexCapacity || ic < indexCapacity / 4)
             {
                 indexCapacity = Mathf.NextPowerOfTwo(ic);
                 Mesh.SetIndexBufferParams(indexCapacity, IndexFormat.UInt32);
+                topology = true;
             }
-            Mesh.SetIndexBufferData(b.Indices, 0, 0, b.IndexCount, quiet);
+            // Most frames only move vertices: the triangles and sub-meshes upload only when they change.
+            if (topology) Mesh.SetIndexBufferData(b.Indices, 0, 0, b.IndexCount, quiet);
 
             // Sub-meshes: count and ranges in one call (the subMeshCount setter would resize the index buffer).
             int batches = b.Batches.Count;
@@ -81,13 +85,46 @@ namespace Rigby2D.Unity
                 descriptors[k] = new SubMeshDescriptor(batch.IndexStart, batch.IndexCount) { bounds = bounds, firstVertex = 0, vertexCount = n };
                 wanted.Add(material(batch.Source, batch.Page, batch.Blend));
             }
-            Mesh.SetSubMeshes(descriptors, 0, subMeshes, quiet);
+            if (topology)
+            {
+                Mesh.SetSubMeshes(descriptors, 0, subMeshes, quiet);
+                Remember(b);
+            }
             Mesh.bounds = bounds;
             if (!SameMaterials())
             {
                 materials = wanted.ToArray();
             }
             return materials;
+        }
+
+        int[] lastIndices = new int[0];
+        int lastIndexCount = -1, lastVertexCount = -1;
+        readonly List<MeshBatch> lastBatches = new List<MeshBatch>();
+
+        bool SameTopology(MeshBuilder b)
+        {
+            if (b.IndexCount != lastIndexCount || b.VertexCount != lastVertexCount || b.Batches.Count != lastBatches.Count) return false;
+            for (int i = 0; i < lastBatches.Count; i++)
+            {
+                MeshBatch x = b.Batches[i], y = lastBatches[i];
+                if (x.IndexStart != y.IndexStart || x.IndexCount != y.IndexCount) return false;
+            }
+            var idx = b.Indices;
+            for (int i = 0; i < lastIndexCount; i++)
+                if (idx[i] != lastIndices[i]) return false;
+            return true;
+        }
+
+        void Remember(MeshBuilder b)
+        {
+            // Sized like the GPU index buffer (a power of two), so it is reallocated as rarely as that.
+            if (lastIndices.Length < b.IndexCount) lastIndices = new int[Math.Max(Math.Max(b.IndexCount, indexCapacity), lastIndices.Length * 2)];
+            Array.Copy(b.Indices, lastIndices, b.IndexCount);
+            lastIndexCount = b.IndexCount;
+            lastVertexCount = b.VertexCount;
+            lastBatches.Clear();
+            lastBatches.AddRange(b.Batches);
         }
 
         bool SameMaterials()

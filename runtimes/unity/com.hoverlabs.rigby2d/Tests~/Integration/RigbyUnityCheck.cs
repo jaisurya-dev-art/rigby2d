@@ -13,6 +13,7 @@ using Rigby2D;
 using Rigby2D.Unity;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Rendering;
 using Debug = UnityEngine.Debug;
 
 public static class RigbyUnityCheck
@@ -33,6 +34,7 @@ public static class RigbyUnityCheck
         try
         {
             AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
+            UseUrpIfAsked();
             Skeleton(outDir);
             Scene(outDir, "");
             Crowd();
@@ -235,6 +237,32 @@ public static class RigbyUnityCheck
         foreach (var s in list) UnityEngine.Object.DestroyImmediate(s.gameObject);
     }
 
+    /// <summary>With RIGBY_URP=1: switches the project to the Universal render pipeline (created by
+    /// reflection, so this file also compiles without URP).</summary>
+    static void UseUrpIfAsked()
+    {
+        if (Environment.GetEnvironmentVariable("RIGBY_URP") != "1") return;
+        var type = Type.GetType("UnityEngine.Rendering.Universal.UniversalRenderPipelineAsset, Unity.RenderPipelines.Universal.Runtime");
+        Check(type != null, "URP is installed");
+        if (type == null) return;
+        // A saved renderer and pipeline asset, reused across runs, so they survive reimports.
+        var asset = AssetDatabase.LoadAssetAtPath<RenderPipelineAsset>("Assets/URP.asset");
+        if (asset == null)
+        {
+            var dataType = Type.GetType("UnityEngine.Rendering.Universal.UniversalRendererData, Unity.RenderPipelines.Universal.Runtime");
+            var data = ScriptableObject.CreateInstance(dataType);
+            AssetDatabase.CreateAsset(data, "Assets/URP_Renderer.asset");
+            var create = type.GetMethods().First(m => m.Name == "Create" && m.GetParameters().Length == 1);
+            asset = (RenderPipelineAsset)create.Invoke(null, new object[] { data });
+            AssetDatabase.CreateAsset(asset, "Assets/URP.asset");
+            AssetDatabase.SaveAssets();
+        }
+        GraphicsSettings.defaultRenderPipeline = asset;
+        QualitySettings.renderPipeline = asset;
+        Check(GraphicsSettings.currentRenderPipeline != null, "the Universal render pipeline is active");
+        notes.Add("render pipeline: " + GraphicsSettings.currentRenderPipeline.GetType().Name);
+    }
+
     static Camera NewCamera()
     {
         var cam = new GameObject("Camera").AddComponent<Camera>();
@@ -252,7 +280,17 @@ public static class RigbyUnityCheck
         cam.orthographicSize = size;
         var rt = new RenderTexture(1280, 720, 24, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB) { antiAliasing = 4 };
         cam.targetTexture = rt;
-        cam.Render();
+#if UNITY_2023_2_OR_NEWER
+        if (GraphicsSettings.currentRenderPipeline != null)
+        {
+            // URP renders through a render request; Camera.Render is the Built-in pipeline's path.
+            var request = new RenderPipeline.StandardRequest { destination = rt };
+            Check(RenderPipeline.SupportsRenderRequest(cam, request), "the render pipeline accepts the render request");
+            RenderPipeline.SubmitRenderRequest(cam, request);
+        }
+        else
+#endif
+            cam.Render();
         RenderTexture.active = rt;
         var tex = new Texture2D(1280, 720, TextureFormat.RGB24, false);
         tex.ReadPixels(new Rect(0, 0, 1280, 720), 0, 0);

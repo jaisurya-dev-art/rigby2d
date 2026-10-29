@@ -107,8 +107,10 @@ gun.position = hero.GetBoneWorldPosition("gun-tip");
 ```
 
 - **Every core, no garbage**: playing skeletons pose and build their meshes in parallel, and steady
-  playback allocates nothing. 200 NILAs take 6.7 ms per frame in the Editor on 8 cores (16.8 ms on
-  one).
+  playback allocates nothing. 200 NILAs (39 bones, 1,002 skinned vertices each) take 5.0 ms a frame
+  in an IL2CPP player on a 4-core laptop, upload included: 25 µs a character.
+- **Tested** in Unity 6.3 (Built-in and Universal render pipelines) and 2022.3, in IL2CPP and Mono
+  players.
 - **Clean edges in Gamma and Linear color space**: the shader handles straight or premultiplied
   atlases itself, with two-color tint and every blend mode.
 - **The same animation as the editor**: the C# runtime is tested frame by frame against the
