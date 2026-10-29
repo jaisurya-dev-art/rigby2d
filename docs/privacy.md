@@ -36,8 +36,8 @@ uploaded.
 The [Rigby2D Cloud waitlist](https://rigby2d.com/cloud/) is the one place the website asks for
 personal data. The email address you enter is stored with the date in a database in our Cloudflare
 account and used only to tell you when Rigby2D Cloud opens. It is never shared or sold. To be removed
-from the list, open an issue or reply to that email, and the address is deleted.
+from the list, email [hello@rigby2d.com](mailto:hello@rigby2d.com) or reply to that email, and the address is deleted.
 
 ## Contact
 
-Questions about privacy: [open an issue](https://github.com/jaisurya-dev-art/rigby2d/issues).
+Questions about privacy: email [hello@rigby2d.com](mailto:hello@rigby2d.com).

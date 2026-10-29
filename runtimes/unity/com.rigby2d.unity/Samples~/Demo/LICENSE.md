@@ -45,6 +45,6 @@ claim or damage arising from its use.
 ## Anything else
 
 For other uses (for example featuring NILA or Rigbytron in your project, or press and event use), ask
-first: open an issue at https://github.com/jaisurya-dev-art/rigby2d/issues. See also
+first: email hello@rigby2d.com. See also
 [TRADEMARKS.md](https://github.com/jaisurya-dev-art/rigby2d/blob/develop/TRADEMARKS.md) for the
 Rigby2D names and logos.
