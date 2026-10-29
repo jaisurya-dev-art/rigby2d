@@ -3,6 +3,10 @@
 </p>
 
 <p align="center">
+  <b>English</b> · <a href="README.ja.md">日本語</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.ko.md">한국어</a> · <a href="README.es.md">Español</a> · <a href="README.pt-BR.md">Português (Brasil)</a>
+</p>
+
+<p align="center">
   <a href="README.md">English</a> · <a href="README.ja.md">日本語</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.ko.md">한국어</a> · <b>Español</b> · <a href="README.pt-BR.md">Português (Brasil)</a>
 </p>
 
@@ -20,7 +24,7 @@
 <p align="center">
   <img alt="Status: public beta" src="https://img.shields.io/badge/status-public%20beta-blue">
   <a href="https://upstar.dev/r/jaisurya-dev-art/rigby2d"><img alt="Upstar" src="https://upstar.dev/badge/jaisurya-dev-art/rigby2d.svg"></a>
-  <a href="https://youtu.be/3StZlHwZeSo"><img alt="Watch the NILA promo on YouTube" src="https://img.shields.io/badge/watch-NILA%20promo-ff0000?logo=youtube&logoColor=white"></a>
+  <a href="https://youtu.be/T1MdcD_rxeQ"><img alt="Watch the Rigby2D 0.4 film on YouTube" src="https://img.shields.io/badge/watch-Rigby2D%200.4%20film-ff0000?logo=youtube&logoColor=white"></a>
   <a href="runtimes/unity/com.rigby2d.unity/README.md"><img alt="Runtime ready: Unity" src="https://img.shields.io/badge/runtime%20ready-Unity-222429?logo=unity&logoColor=white"></a>
   <a href="runtimes/godot/addons/rigby2d/README.md"><img alt="Runtime ready: Godot" src="https://img.shields.io/badge/runtime%20ready-Godot-478cbf?logo=godotengine&logoColor=white"></a>
   <a href="runtimes/phaser/README.md"><img alt="Runtime ready: Phaser" src="https://img.shields.io/badge/runtime%20ready-Phaser-7b5cd6"></a>
@@ -38,8 +42,8 @@
 </p>
 
 <p align="center">
-  <a href="https://youtu.be/3StZlHwZeSo"><img src="docs/images/nila-promo.jpg" alt="Mira Meet NILA en YouTube: la mascota de Rigby2D, animada en Rigby2D" width="800"></a><br>
-  <sub>▶ <a href="https://youtu.be/3StZlHwZeSo">Mira <b>Meet NILA</b></a>: nuestra nueva mascota, montada, animada, con sincronía labial y renderizada en Rigby2D · También: <a href="https://www.youtube.com/watch?v=KK3WT9YzhAE">el resumen de 75 segundos</a></sub>
+  <a href="https://youtu.be/T1MdcD_rxeQ"><img src="docs/images/promo-0.4.jpg" alt="Mira el vídeo de Rigby2D 0.4 en YouTube" width="800"></a><br>
+  <sub>▶ <a href="https://youtu.be/T1MdcD_rxeQ">Mira <b>Rigby2D 0.4</b></a>: todas las novedades en 45 segundos · También: <a href="https://youtu.be/3StZlHwZeSo">Meet NILA</a>, nuestra mascota animada en Rigby2D</sub>
 </p>
 
 <p align="center">

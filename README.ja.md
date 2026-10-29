@@ -3,6 +3,10 @@
 </p>
 
 <p align="center">
+  <b>English</b> · <a href="README.ja.md">日本語</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.ko.md">한국어</a> · <a href="README.es.md">Español</a> · <a href="README.pt-BR.md">Português (Brasil)</a>
+</p>
+
+<p align="center">
   <a href="README.md">English</a> · <b>日本語</b> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.ko.md">한국어</a> · <a href="README.es.md">Español</a> · <a href="README.pt-BR.md">Português (Brasil)</a>
 </p>
 
@@ -20,7 +24,7 @@
 <p align="center">
   <img alt="Status: public beta" src="https://img.shields.io/badge/status-public%20beta-blue">
   <a href="https://upstar.dev/r/jaisurya-dev-art/rigby2d"><img alt="Upstar" src="https://upstar.dev/badge/jaisurya-dev-art/rigby2d.svg"></a>
-  <a href="https://youtu.be/3StZlHwZeSo"><img alt="Watch the NILA promo on YouTube" src="https://img.shields.io/badge/watch-NILA%20promo-ff0000?logo=youtube&logoColor=white"></a>
+  <a href="https://youtu.be/T1MdcD_rxeQ"><img alt="Watch the Rigby2D 0.4 film on YouTube" src="https://img.shields.io/badge/watch-Rigby2D%200.4%20film-ff0000?logo=youtube&logoColor=white"></a>
   <a href="runtimes/unity/com.rigby2d.unity/README.md"><img alt="Runtime ready: Unity" src="https://img.shields.io/badge/runtime%20ready-Unity-222429?logo=unity&logoColor=white"></a>
   <a href="runtimes/godot/addons/rigby2d/README.md"><img alt="Runtime ready: Godot" src="https://img.shields.io/badge/runtime%20ready-Godot-478cbf?logo=godotengine&logoColor=white"></a>
   <a href="runtimes/phaser/README.md"><img alt="Runtime ready: Phaser" src="https://img.shields.io/badge/runtime%20ready-Phaser-7b5cd6"></a>
@@ -38,8 +42,8 @@
 </p>
 
 <p align="center">
-  <a href="https://youtu.be/3StZlHwZeSo"><img src="docs/images/nila-promo.jpg" alt="YouTube で「Meet NILA」を見る：Rigby2D で作られたマスコット" width="800"></a><br>
-  <sub>▶ <a href="https://youtu.be/3StZlHwZeSo"><b>Meet NILA</b> を見る</a>：新しいマスコットを Rigby2D でリグ、アニメーション、リップシンク、レンダリング · <a href="https://www.youtube.com/watch?v=KK3WT9YzhAE">75 秒の紹介動画</a></sub>
+  <a href="https://youtu.be/T1MdcD_rxeQ"><img src="docs/images/promo-0.4.jpg" alt="YouTube で Rigby2D 0.4 の紹介映像を見る" width="800"></a><br>
+  <sub>▶ <a href="https://youtu.be/T1MdcD_rxeQ"><b>Rigby2D 0.4</b> を見る</a>：新機能を 45 秒で · <a href="https://youtu.be/3StZlHwZeSo">Meet NILA</a>：Rigby2D でアニメーションしたマスコット</sub>
 </p>
 
 <p align="center">

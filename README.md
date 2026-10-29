@@ -20,7 +20,7 @@
 <p align="center">
   <img alt="Status: public beta" src="https://img.shields.io/badge/status-public%20beta-blue">
   <a href="https://upstar.dev/r/jaisurya-dev-art/rigby2d"><img alt="Upstar" src="https://upstar.dev/badge/jaisurya-dev-art/rigby2d.svg"></a>
-  <a href="https://youtu.be/3StZlHwZeSo"><img alt="Watch the NILA promo on YouTube" src="https://img.shields.io/badge/watch-NILA%20promo-ff0000?logo=youtube&logoColor=white"></a>
+  <a href="https://youtu.be/T1MdcD_rxeQ"><img alt="Watch the Rigby2D 0.4 film on YouTube" src="https://img.shields.io/badge/watch-Rigby2D%200.4%20film-ff0000?logo=youtube&logoColor=white"></a>
   <a href="runtimes/unity/com.rigby2d.unity/README.md"><img alt="Runtime ready: Unity" src="https://img.shields.io/badge/runtime%20ready-Unity-222429?logo=unity&logoColor=white"></a>
   <a href="runtimes/godot/addons/rigby2d/README.md"><img alt="Runtime ready: Godot" src="https://img.shields.io/badge/runtime%20ready-Godot-478cbf?logo=godotengine&logoColor=white"></a>
   <a href="runtimes/phaser/README.md"><img alt="Runtime ready: Phaser" src="https://img.shields.io/badge/runtime%20ready-Phaser-7b5cd6"></a>
@@ -38,8 +38,8 @@
 </p>
 
 <p align="center">
-  <a href="https://youtu.be/3StZlHwZeSo"><img src="docs/images/nila-promo.jpg" alt="Watch Meet NILA on YouTube: the Rigby2D mascot, animated in Rigby2D" width="800"></a><br>
-  <sub>▶ <a href="https://youtu.be/3StZlHwZeSo">Watch <b>Meet NILA</b></a>: our new mascot, rigged, animated, lip-synced and rendered in Rigby2D · Also: <a href="https://www.youtube.com/watch?v=KK3WT9YzhAE">the 75-second overview</a></sub>
+  <a href="https://youtu.be/T1MdcD_rxeQ"><img src="docs/images/promo-0.4.jpg" alt="Watch the Rigby2D 0.4 film on YouTube" width="800"></a><br>
+  <sub>▶ <a href="https://youtu.be/T1MdcD_rxeQ">Watch <b>Rigby2D 0.4</b></a>: everything new in 45 seconds · Also: <a href="https://youtu.be/3StZlHwZeSo">Meet NILA</a>, our mascot, animated in Rigby2D</sub>
 </p>
 
 <p align="center">
