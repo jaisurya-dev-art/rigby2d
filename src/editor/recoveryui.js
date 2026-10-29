@@ -50,7 +50,10 @@ export function installRecovery(app) {
 
   const record = (extra = {}) => {
     const sessions = readSessions();
-    sessions[id] = { id, started, beat: Date.now(), path: app.path ?? null, name: app.doc.name || 'untitled', version: VERSION, clean: false, ...extra };
+    // `path`: where Save writes (none for a backup or demo opened as a copy); `name`: what to call the work.
+    const path = app.saveTarget?.fs?.reusable ? app.saveTarget.path : null;
+    const name = baseName(app.path) || app.doc.name || 'untitled';
+    sessions[id] = { id, started, beat: Date.now(), path, name, version: VERSION, clean: false, ...extra };
     writeSessions(sessions);
   };
 
@@ -152,7 +155,7 @@ export function installRecovery(app) {
     app.saveTarget = original ? platform.desktopFile(original) : null;
     app.saved = ''; // unsaved until saved again
     app.changed();
-    app.setStatus(`Recovered ${baseName(original) || session?.name || 'the project'} from ${file.endsWith(QUIT_FILE) ? 'the last session' : 'an auto-save'}. Save to keep it.`);
+    app.setStatus(`Recovered ${session?.name || baseName(original) || 'the project'} from ${file.endsWith(QUIT_FILE) ? 'the last session' : 'an auto-save'}. Save to keep it.`);
     await autosave('recovered');
     if (session) forget(session);
   }
@@ -198,7 +201,7 @@ export function installRecovery(app) {
     const choice = await askChoice(
       'Recover unsaved work?',
       [
-        h('p', null, `Rigby2D did not close properly (${when}). Unsaved work on `, h('b', null, s.path ? baseName(s.path) : s.name || 'untitled'), ' was auto-saved.'),
+        h('p', null, `Rigby2D did not close properly (${when}). Unsaved work on `, h('b', null, s.name || 'untitled'), ' was auto-saved.'),
         h('p', { class: 'weak' }, crashed.length > 1 ? `${crashed.length - 1} more auto-save(s) are in File ▸ Recover.` : 'Later, it stays in File ▸ Recover until you discard it.'),
       ],
       [
