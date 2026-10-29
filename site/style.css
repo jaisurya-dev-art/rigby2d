@@ -953,3 +953,32 @@ h3 {
     transition: none;
   }
 }
+
+.waitlist {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 24px;
+  max-width: 520px;
+}
+.waitlist label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+.waitlist input {
+  flex: 1 1 220px;
+  min-width: 0;
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+}
+.waitlist input:focus {
+  outline: 2px solid var(--steel);
+  outline-offset: 1px;
+}

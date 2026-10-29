@@ -205,6 +205,6 @@ export default defineConfig({
     target: 'es2021',
     outDir: path.join(repo, '_site'),
     emptyOutDir: true,
-    rollupOptions: { input: { main: path.join(here, 'index.html'), demos: path.join(here, 'demos/index.html'), docs: path.join(here, 'docs/docs.js') } },
+    rollupOptions: { input: { main: path.join(here, 'index.html'), demos: path.join(here, 'demos/index.html'), cloud: path.join(here, 'cloud/index.html'), docs: path.join(here, 'docs/docs.js') } },
   },
 });

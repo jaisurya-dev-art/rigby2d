@@ -92,6 +92,8 @@ explaining the reasoning when it isn't obvious.
 
 ## License
 
-By contributing, you agree that your contributions are licensed under both the [MIT License](LICENSE-MIT)
+Before your first pull request can be merged, please sign the
+[Contributor License Agreement](CLA.md): a bot asks you on the pull request, and signing takes one
+comment. You keep the copyright to your work. By contributing, you agree that your contributions are licensed under both the [MIT License](LICENSE-MIT)
 and the [Apache License 2.0](LICENSE-APACHE), so users can choose either. The Rigby2D, NILA and
 Rigbytron names, logos and artwork are not part of that grant; see [TRADEMARKS.md](TRADEMARKS.md).
