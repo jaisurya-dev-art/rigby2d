@@ -44,6 +44,11 @@
 </p>
 
 <p align="center">
+  <a href="https://www.reddit.com/r/rigby2d/"><img alt="Join r/rigby2d" src="https://img.shields.io/badge/%F0%9F%92%AC%20Join-r%2Frigby2d-ff4500?style=for-the-badge&logo=reddit&logoColor=white" height="36"></a><br>
+  <sub>작품을 보여 주고, 도움을 받고, 모든 릴리스를 가장 먼저 알아보세요.</sub>
+</p>
+
+<p align="center">
   <a href="https://youtu.be/T1MdcD_rxeQ"><img src="docs/images/promo-0.4.jpg" alt="YouTube에서 Rigby2D 0.4 영상 보기" width="800"></a><br>
   <sub>▶ <a href="https://youtu.be/T1MdcD_rxeQ"><b>Rigby2D 0.4</b> 보기</a>: 45초에 담은 새 기능 · <a href="https://youtu.be/3StZlHwZeSo">Meet NILA</a>: Rigby2D로 애니메이션한 마스코트</sub>
 </p>

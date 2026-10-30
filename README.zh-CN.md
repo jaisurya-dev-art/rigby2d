@@ -44,6 +44,11 @@
 </p>
 
 <p align="center">
+  <a href="https://www.reddit.com/r/rigby2d/"><img alt="Join r/rigby2d" src="https://img.shields.io/badge/%F0%9F%92%AC%20Join-r%2Frigby2d-ff4500?style=for-the-badge&logo=reddit&logoColor=white" height="36"></a><br>
+  <sub>展示你的作品、获得帮助，并第一时间了解每个版本。</sub>
+</p>
+
+<p align="center">
   <a href="https://youtu.be/T1MdcD_rxeQ"><img src="docs/images/promo-0.4.jpg" alt="在 YouTube 上观看 Rigby2D 0.4 影片" width="800"></a><br>
   <sub>▶ <a href="https://youtu.be/T1MdcD_rxeQ">观看 <b>Rigby2D 0.4</b></a>：45 秒看完全部新功能 · 另见：<a href="https://youtu.be/3StZlHwZeSo">Meet NILA</a>，用 Rigby2D 制作动画的吉祥物</sub>
 </p>

@@ -44,6 +44,11 @@
 </p>
 
 <p align="center">
+  <a href="https://www.reddit.com/r/rigby2d/"><img alt="Join r/rigby2d" src="https://img.shields.io/badge/%F0%9F%92%AC%20Join-r%2Frigby2d-ff4500?style=for-the-badge&logo=reddit&logoColor=white" height="36"></a><br>
+  <sub>Muestra lo que has hecho, pide ayuda y entérate primero de cada versión.</sub>
+</p>
+
+<p align="center">
   <a href="https://youtu.be/T1MdcD_rxeQ"><img src="docs/images/promo-0.4.jpg" alt="Mira el vídeo de Rigby2D 0.4 en YouTube" width="800"></a><br>
   <sub>▶ <a href="https://youtu.be/T1MdcD_rxeQ">Mira <b>Rigby2D 0.4</b></a>: todas las novedades en 45 segundos · También: <a href="https://youtu.be/3StZlHwZeSo">Meet NILA</a>, nuestra mascota animada en Rigby2D</sub>
 </p>

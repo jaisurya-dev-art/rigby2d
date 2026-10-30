@@ -100,7 +100,7 @@ export function openWelcome(app, { tutorials, onClose } = {}) {
           h(
             'button',
             { class: 'welcome-post', title: item.url, onclick: () => openExternal(item.url) },
-            item.image ? h('img', { src: item.image, alt: '', loading: 'lazy', onerror: (e) => e.target.remove() }) : null,
+            item.image ? h('img', { src: item.image, alt: '', onerror: (e) => e.target.remove() }) : null,
             h('span', { class: 'welcome-post-text' }, h('small', null, item.date, isNew(item) ? h('span', { class: 'welcome-new' }, t('New')) : null), h('b', null, item.title)),
           ),
         ),
@@ -139,6 +139,13 @@ export function openWelcome(app, { tutorials, onClose } = {}) {
         'main',
         { class: 'welcome-main' },
         h('header', { class: 'welcome-head' }, h('h2', null, t('Welcome to Rigby2D')), h('button', { class: 'dialog-close', 'aria-label': t('Close'), title: t('Close (Esc)'), onclick: close }, '✕')),
+        h(
+          'button',
+          { class: 'welcome-community', onclick: () => openExternal(COMMUNITY_URL) },
+          h('span', { class: 'welcome-community-mark' }, engineIcon('reddit', 26)),
+          h('span', { class: 'welcome-community-text' }, h('b', null, t('Join r/rigby2d')), h('small', null, t('Show your work, get help, and hear about every release first.'))),
+          h('span', { class: 'welcome-community-join' }, t('Join')),
+        ),
         newsRow,
         h('h4', null, t('Recent')),
         h('div', { class: 'welcome-recents' }, ...recentList),

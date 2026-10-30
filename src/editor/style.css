@@ -2983,3 +2983,59 @@ kbd {
   font-size: 10px;
   font-weight: 600;
 }
+
+/* r/rigby2d in the editor */
+.welcome-community {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  margin-top: 14px;
+  padding: 12px 14px;
+  text-align: left;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 69, 0, 0.45);
+  background: linear-gradient(100deg, rgba(255, 69, 0, 0.16), rgba(255, 69, 0, 0.04));
+}
+.welcome-community:hover {
+  border-color: #ff4500;
+}
+.welcome-community-mark {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 42px;
+  height: 42px;
+  border-radius: 11px;
+  background: #ff4500;
+  color: #fff;
+}
+.welcome-community-text {
+  flex: 1;
+  min-width: 0;
+}
+.welcome-community-text b {
+  display: block;
+  color: var(--text);
+  font-size: 14px;
+}
+.welcome-community-text small {
+  color: var(--weak);
+  font-size: 12px;
+}
+.welcome-community-join {
+  flex: none;
+  padding: 6px 16px;
+  border-radius: 999px;
+  background: #ff4500;
+  color: #fff;
+  font-weight: 600;
+  font-size: 12.5px;
+}
+#status-community {
+  margin-right: 6px;
+  color: #ff7a45;
+}
+#status-community:hover {
+  color: #ff4500;
+}

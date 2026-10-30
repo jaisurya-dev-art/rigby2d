@@ -581,6 +581,7 @@ setTimeout(() => addons.loadEnabled(), 1500);
 scheduleUpdateCheck(app);
 
 $('#status-log').addEventListener('click', () => toggleLogWindow());
+$('#status-community').addEventListener('click', () => openExternal(COMMUNITY_URL));
 
 // Each panel pops out into its own window from the ⧉ button at its top-right (desktop only).
 for (const btn of document.querySelectorAll('.panel-detach-btn')) {

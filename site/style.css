@@ -1089,3 +1089,70 @@ h3 {
   font-size: 19px;
   letter-spacing: -0.01em;
 }
+
+/* r/rigby2d: the community, everywhere */
+.btn.reddit {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #ff4500;
+  border-color: #ff4500;
+  color: #fff;
+}
+.btn.reddit:hover {
+  background: #ff5f24;
+  border-color: #ff5f24;
+}
+.community {
+  background: radial-gradient(60% 120% at 12% 50%, rgba(255, 69, 0, 0.16), transparent 70%);
+}
+.community-row {
+  display: flex;
+  align-items: center;
+  gap: 40px;
+}
+.community-mark {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 150px;
+  height: 150px;
+  border-radius: 36px;
+  background: #ff4500;
+  color: #fff;
+  box-shadow: 0 24px 60px rgba(255, 69, 0, 0.3);
+}
+.community-callout {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 28px 0;
+  padding: 16px 20px;
+  border-radius: var(--radius);
+  border: 1px solid rgba(255, 69, 0, 0.45);
+  background: rgba(255, 69, 0, 0.08);
+}
+.community-callout p {
+  margin: 0;
+  flex: 1;
+}
+@media (max-width: 720px) {
+  .community-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 20px;
+  }
+  .community-mark {
+    width: 90px;
+    height: 90px;
+    border-radius: 22px;
+  }
+  .community-mark svg {
+    width: 56px;
+    height: 56px;
+  }
+  .community-callout {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

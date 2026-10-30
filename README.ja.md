@@ -44,6 +44,11 @@
 </p>
 
 <p align="center">
+  <a href="https://www.reddit.com/r/rigby2d/"><img alt="Join r/rigby2d" src="https://img.shields.io/badge/%F0%9F%92%AC%20Join-r%2Frigby2d-ff4500?style=for-the-badge&logo=reddit&logoColor=white" height="36"></a><br>
+  <sub>作品を見せたり、質問したり、リリースをいち早く知ったりできます。</sub>
+</p>
+
+<p align="center">
   <a href="https://youtu.be/T1MdcD_rxeQ"><img src="docs/images/promo-0.4.jpg" alt="YouTube で Rigby2D 0.4 の紹介映像を見る" width="800"></a><br>
   <sub>▶ <a href="https://youtu.be/T1MdcD_rxeQ"><b>Rigby2D 0.4</b> を見る</a>：新機能を 45 秒で · <a href="https://youtu.be/3StZlHwZeSo">Meet NILA</a>：Rigby2D でアニメーションしたマスコット</sub>
 </p>
