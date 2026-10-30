@@ -30,7 +30,9 @@ const moveLabel = (name) =>
     .replace(/_/g, ' ')
     .replace(/^\w/, (c) => c.toUpperCase());
 
-/** Loads one character: { sk, textures, bounds }. */
+const union = (a, b) => (a && b ? [Math.min(a[0], b[0]), Math.min(a[1], b[1]), Math.max(a[2], b[2]), Math.max(a[3], b[3])] : (a ?? b));
+
+/** Loads one character: { sk, textures, idle, frames }: the idle framing and each move's. */
 async function load(renderer, c) {
   const [ske, tex, page] = await Promise.all([
     fetch(file(c.id, '_ske.json')).then((r) => r.json()),
@@ -43,14 +45,15 @@ async function load(renderer, c) {
   const sk = readSkeletonJson(json, c.id).skeleton;
   const atlas = parseAtlas(atlasText);
   const textures = renderer.atlasTextures(atlas, new Map([[atlas.pages[0].name, page]]));
-  // One frame for every move, so the camera never jumps between them.
-  let b = animationBounds(sk, null, 30);
-  sk.animations.forEach((a, i) => {
-    if (a.name !== 'idle' && !c.moves.includes(a.name)) return;
-    const ab = animationBounds(sk, i, 30);
-    if (ab) b = b ? [Math.min(b[0], ab[0]), Math.min(b[1], ab[1]), Math.max(b[2], ab[2]), Math.max(b[3], ab[3])] : ab;
-  });
-  return { sk, textures, bounds: b };
+  // A framing per move (with the idle pose, which it starts from and returns to), so each move
+  // fills the stage; the camera glides between them.
+  const boundsOf = (name) => {
+    const i = sk.animations.findIndex((a) => a.name === name);
+    return i < 0 ? null : animationBounds(sk, i, 30);
+  };
+  const idle = union(animationBounds(sk, null, 30), boundsOf('idle'));
+  const frames = new Map(c.moves.map((m) => [m, union(idle, boundsOf(m))]));
+  return { sk, textures, idle, frames };
 }
 
 export async function startDragonBonesStage(root) {
@@ -66,6 +69,7 @@ export async function startDragonBonesStage(root) {
   let pose = null;
   let state = null;
   let chosenAt = -Infinity;
+  let camera = null; // [x, y, zoom], eased toward the framing of the move playing
   let idleFor = 0;
   let reel = 0;
 
@@ -90,6 +94,7 @@ export async function startDragonBonesStage(root) {
     const ch = { ...(await loaded.get(c.id)), c };
     root.classList.remove('loading');
     current = ch;
+    camera = null; // a new character: frame it at once
     pose = new Pose(ch.sk);
     state = new AnimationState();
     state.setAnimation(ch.sk, 0, 'idle', true, 0);
@@ -125,11 +130,15 @@ export async function startDragonBonesStage(root) {
     // A move now and then while nobody is choosing: the stage shows what the characters can do.
     idleFor += dt;
     if (!reducedMotion && current.c.moves.length && idleFor > 2.6 && performance.now() - chosenAt > 15000) play(current.c.moves[reel++ % current.c.moves.length]);
-    const [x0, y0, x1, y1] = current.bounds;
-    const zoom = Math.min((0.9 * cw) / (x1 - x0), (0.86 * ch) / (y1 - y0));
+    // Glide toward the framing of the move playing (or the idle one).
+    const [x0, y0, x1, y1] = current.frames.get(state.tracks[0]?.name) ?? current.idle;
+    const target = [(x0 + x1) / 2, (y0 + y1) / 2, Math.min((0.9 * cw) / (x1 - x0), (0.86 * ch) / (y1 - y0))];
+    const k = camera ? 1 - Math.exp(-dt * 5) : 1;
+    camera = camera ? camera.map((v, i) => v + (target[i] - v) * k) : target;
+    const [cx, cy, zoom] = camera;
     state.update(current.sk, dt);
     state.apply(current.sk, pose);
-    renderer.begin(w, h, { x: (x0 + x1) / 2, y: (y0 + y1) / 2, zoom: zoom * dpr });
+    renderer.begin(w, h, { x: cx, y: cy, zoom: zoom * dpr });
     renderer.drawSkeleton(current.sk, pose, current.textures);
     renderer.end();
   };
