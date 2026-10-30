@@ -141,7 +141,7 @@ test('looping and crossfade', () => {
 });
 
 test('atlas region UVs undo whitespace stripping and rotation', async () => {
-  const { regionEntry } = await import('../src/webgl/renderer.js');
+  const { regionEntry } = await import('../src/core/draw.js');
   const page = { width: 100, height: 100 };
   // 20x10 image stripped to 16x6 (2 px of whitespace on each side), stored unrotated at (10, 20).
   const plain = regionEntry(null, { x: 10, y: 20, width: 16, height: 6, rotate: 0, offsetX: 2, offsetY: 2, originalWidth: 20, originalHeight: 10 }, page.width, page.height);

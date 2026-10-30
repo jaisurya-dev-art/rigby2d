@@ -15,6 +15,8 @@
 //   for (const quad of pose.quads(skeleton)) {
 //     // draw quad.positions with quad.uvs from the atlas region named quad.attachment.image
 //   }
+//   // or, with clipping, atlas UVs and two-color tint worked out for you:
+//   drawSkeletonGeometry(skeleton, pose, atlasLookup(atlas, textureOfPage), emitTriangles);
 //
 // Licensed under MIT OR Apache-2.0 so it can be embedded in any game.
 
@@ -26,4 +28,6 @@ export { Pose, applyDrawOrder } from './pose.js';
 export { AnimationState } from './state.js';
 export { isSkeletonJson, readSkeletonJson, writeSkeletonJson } from './interop.js';
 export { parseAtlas, writeAtlas, regionPlacement } from './atlas.js';
+export { isSkeletonBinary, readSkeletonBinary } from './binary.js';
+export { atlasLookup, imageLookup, drawSkeletonGeometry, regionEntry, QUAD } from './draw.js';
 export { ScenePlayer, loadScene, readSceneManifest, sceneDrawList, actorSlots } from './scene.js';

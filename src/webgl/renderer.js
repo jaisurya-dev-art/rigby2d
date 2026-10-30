@@ -11,12 +11,12 @@
 //
 // Works with WebGL 1 and 2.
 
-import { regionPlacement } from '../core/atlas.js';
-import { Clipper } from '../core/clipping.js';
+import { atlasLookup, drawSkeletonGeometry, imageLookup, regionEntry } from '../core/draw.js';
+
+export { regionEntry };
 
 const FLOATS = 12; // x, y, u, v, light rgba, dark rgb + dark flag
 const MAX_VERTICES = 65535;
-const QUAD = [0, 1, 2, 0, 2, 3];
 
 const VERTEX_SHADER = `
 attribute vec2 a_position;
@@ -117,26 +117,17 @@ export class WebGLRenderer {
    * from image name to a texture entry (or null).
    */
   atlasTextures(atlas, pageImages) {
-    const regions = new Map();
-    for (const page of atlas.pages) {
+    return atlasLookup(atlas, (page) => {
       const image = pageImages instanceof Map ? pageImages.get(page.name) : pageImages[page.name];
-      if (!image) continue;
-      const tex = this.createTexture(image, { pma: page.pma, linear: !page.filter?.[0]?.startsWith('Nearest') });
-      const pw = page.width || image.width;
-      const ph = page.height || image.height;
-      for (const r of page.regions) regions.set(r.index >= 0 ? `${r.name}${r.index}` : r.name, regionEntry(tex, r, pw, ph));
-    }
-    return (name) => regions.get(name) ?? null;
+      return image ? this.createTexture(image, { pma: page.pma, linear: !page.filter?.[0]?.startsWith('Nearest') }) : null;
+    });
   }
 
   /** Texture lookup for loose images: `images` maps image names to images (no trimming). */
   imageTextures(images, options = {}) {
-    const entries = new Map();
-    for (const [name, image] of images instanceof Map ? images : Object.entries(images)) {
-      const tex = this.createTexture(image, options);
-      entries.set(name, { tex, trim: [0, 0, 1, 1], map: (u, v, out) => ((out[0] = u), (out[1] = v), out) });
-    }
-    return (name) => entries.get(name) ?? null;
+    const textures = new Map();
+    for (const [name, image] of images instanceof Map ? images : Object.entries(images)) textures.set(name, this.createTexture(image, options));
+    return imageLookup(textures);
   }
 
   /**
@@ -178,72 +169,17 @@ export class WebGLRenderer {
    * as each slot's turn comes, before its attachment, to draw something else there (a scene draws
    * its actors at their slots this way).
    */
-  drawSkeleton(sk, pose, lookup, { tint = [1, 1, 1, 1], skip = null, between = null } = {}) {
-    let clipper = null;
-    let clipEnd = null;
-    const uv = [0, 0];
-    for (const i of pose.drawOrder) {
-      const slot = sk.slots[i];
-      between?.(i);
-      const att = slot ? pose.slotAttachment(sk, i) : null;
-      const type = att ? (att.type ?? 'region') : null;
-      if (att && type === 'clipping' && !skip?.(i, att)) {
-        clipper = new Clipper(pose.worldVertices(sk, i, att));
-        clipEnd = att.end === i ? null : (att.end ?? null); // ending at its own slot means: to the end
-      } else if (att && (type === 'region' || type === 'mesh' || type === 'linkedmesh') && !skip?.(i, att)) {
-        this.drawAttachment(sk, pose, i, att, type, lookup, tint, clipper, uv);
-      }
-      if (clipper && clipEnd === i) clipper = null;
-    }
-  }
-
-  drawAttachment(sk, pose, i, att, type, lookup, tint, clipper, uv) {
-    const source = type === 'region' ? att : sk.meshSource(i, att);
-    if (!source) return;
-    const entry = lookup(pose.imageOf(i, type === 'mesh' ? source : att));
-    if (!entry) return;
-    const c = pose.color[i];
-    const ac = att.color ?? [1, 1, 1, 1];
-    const light = [c[0] * ac[0] * tint[0], c[1] * ac[1] * tint[1], c[2] * ac[2] * tint[2], c[3] * ac[3] * tint[3]];
-    const dark = pose.dark[i];
-    this.use(entry.tex, sk.slots[i].blend ?? 'normal');
-    let positions;
-    let uvs;
-    let triangles;
-    if (type === 'region') {
-      // The packed (trimmed) part of the image, as corners of the attachment quad.
-      const m = pose.attachmentWorld(sk, i, att);
-      const [u0, v0, u1, v1] = entry.trim;
-      const hw = att.width / 2;
-      const hh = att.height / 2;
-      positions = [];
-      uvs = [];
-      for (const [u, v] of [
-        [u0, v0],
-        [u1, v0],
-        [u1, v1],
-        [u0, v1],
-      ]) {
-        const lx = -hw + u * att.width;
-        const ly = hh - v * att.height;
-        positions.push(m.a * lx + m.c * ly + m.tx, m.b * lx + m.d * ly + m.ty);
-        entry.map(u, v, uv);
-        uvs.push(uv[0], uv[1]);
-      }
-      triangles = QUAD;
-    } else {
-      positions = pose.worldVertices(sk, i, att);
-      const n = positions.length / 2;
-      uvs = new Array(n * 2);
-      for (let k = 0; k < n; k++) {
-        entry.map(source.uvs[2 * k], source.uvs[2 * k + 1], uv);
-        uvs[2 * k] = uv[0];
-        uvs[2 * k + 1] = uv[1];
-      }
-      triangles = source.triangles;
-    }
-    if (clipper) clipper.clip(positions, uvs, triangles, (p, t, tri) => this.emit(p, t, tri, light, dark));
-    else this.emit(positions, uvs, triangles, light, dark);
+  drawSkeleton(sk, pose, lookup, options = {}) {
+    drawSkeletonGeometry(
+      sk,
+      pose,
+      lookup,
+      (tex, blend, positions, uvs, triangles, light, dark) => {
+        this.use(tex, blend);
+        this.emit(positions, uvs, triangles, light, dark);
+      },
+      options,
+    );
   }
 
   /** Appends a triangle mesh (flat positions and page UVs) to the batch. */
@@ -368,34 +304,4 @@ export class WebGLRenderer {
     gl.deleteProgram(this.program);
     if (this.whiteTexture) gl.deleteTexture(this.whiteTexture.texture);
   }
-}
-
-/**
- * A region's texture entry: `trim` is the packed part of the image in normalized image
- * coordinates (u right, v down) and `map(u, v, out)` turns image coordinates into page UVs,
- * undoing whitespace stripping and rotation.
- */
-export function regionEntry(tex, r, pageWidth, pageHeight) {
-  const p = regionPlacement(r);
-  const ow = Math.max(1, p.originalWidth);
-  const oh = Math.max(1, p.originalHeight);
-  const { x: dx, y: dy, width: w, height: h } = p.dst;
-  // Rotation: the page holds the packed image rotated by -rotate degrees about its center.
-  const rad = (-p.rotate * Math.PI) / 180;
-  const cos = Math.round(Math.cos(rad) * 1e6) / 1e6;
-  const sin = Math.round(Math.sin(rad) * 1e6) / 1e6;
-  const cx = p.src.width / 2;
-  const cy = p.src.height / 2;
-  return {
-    tex,
-    trim: [dx / ow, dy / oh, (dx + w) / ow, (dy + h) / oh],
-    map(u, v, out) {
-      // Pixel in the packed image, clamped so UVs never reach neighbouring regions.
-      const qx = Math.min(w, Math.max(0, u * ow - dx)) - w / 2;
-      const qy = Math.min(h, Math.max(0, v * oh - dy)) - h / 2;
-      out[0] = (p.src.x + cx + qx * cos - qy * sin) / pageWidth;
-      out[1] = (p.src.y + cy + qx * sin + qy * cos) / pageHeight;
-      return out;
-    },
-  };
 }
