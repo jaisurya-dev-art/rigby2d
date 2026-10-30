@@ -3039,3 +3039,50 @@ kbd {
 #status-community:hover {
   color: #ff4500;
 }
+
+/* Add-on gallery: tags and the way to the marketplace */
+.addon-tag {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 0 7px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 10.5px;
+}
+.addon-market-note {
+  margin: 10px 2px 0;
+  color: var(--weak);
+  font-size: 12px;
+}
+
+/* Share to r/rigby2d (shareui.js) */
+.share-dialog {
+  width: min(520px, calc(100vw - 32px));
+}
+.share-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.share-head h3 {
+  margin: 0;
+}
+.share-mark {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 11px;
+  background: #ff4500;
+  color: #fff;
+}
+.share-title {
+  width: 100%;
+}
+.share-steps {
+  margin: 8px 0 16px;
+  padding-left: 20px;
+  line-height: 1.7;
+}

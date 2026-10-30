@@ -1,0 +1,43 @@
+name: Submit an add-on
+description: List your add-on on rigby2d.com/addons and in the editor's add-on gallery (free).
+title: "Add-on: "
+labels: [addon-submission]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for building for Rigby2D! Your add-on stays in your own GitHub repository; the registry lists it and picks up each new release by itself.
+        Automatic checks run as soon as you submit, and the result appears below as a comment. Guide: https://rigby2d.com/docs/addons.html#publishing
+  - type: input
+    id: repo
+    attributes:
+      label: Repository
+      description: The public GitHub repository of the add-on. `__init__.py` with `addon_info` must be at its top (or in one folder).
+      placeholder: https://github.com/you/rigby-mirror-tools
+    validations:
+      required: true
+  - type: input
+    id: id
+    attributes:
+      label: Add-on id
+      description: Optional. Lowercase letters, digits and `_`. Left empty, it comes from the repository's name.
+      placeholder: mirror_tools
+  - type: dropdown
+    id: tags
+    attributes:
+      label: Tags
+      multiple: true
+      options: [rigging, animation, mesh, export, import, film, workflow, utility]
+    validations:
+      required: true
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I wrote this add-on or may publish it, and its repository has a LICENSE.
+          required: true
+        - label: It does only what its description says, with readable (not obfuscated) code.
+          required: true
+        - label: I agree that rigby2d.com may mirror its releases and list it.
+          required: true

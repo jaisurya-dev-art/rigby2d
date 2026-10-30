@@ -10,7 +10,8 @@ import { VERSION, askChoice } from './helpui.js';
 import { t } from './i18n.js';
 import { icon } from './icons.js';
 import { h } from './widgets.js';
-import { ADDON_EXTENSIONS, MANIFEST_FILE, addonManifest, disableAddonPy, enableAddonPy, readAddonPackage } from './addons.js';
+import { ADDON_EXTENSIONS, MANIFEST_FILE, addonManifest, compareVersions, disableAddonPy, enableAddonPy, readAddonPackage } from './addons.js';
+import { searchText } from './registry.js';
 
 const DIR = 'addons';
 const scriptName = (id) => `addon:${id}`;
@@ -143,8 +144,20 @@ export class AddonManager {
   }
 }
 
-/** The add-on gallery's index on the website (addons/gallery.json in the repository). */
+/** The add-on gallery: the registry's add-ons as the website mirrors them (registry/ in the repository). */
 export const GALLERY_URL = 'https://rigby2d.com/addons/index.json';
+export const MARKETPLACE_URL = 'https://rigby2d.com/addons/';
+const PUBLISH_URL = 'https://rigby2d.com/addons/#publish';
+
+/** Downloads a gallery add-on and checks it is the file the website listed. */
+async function downloadAddon(a) {
+  const bytes = await platform.fetchBytes(a.url);
+  if (a.sha256 && globalThis.crypto?.subtle) {
+    const hex = [...new Uint8Array(await crypto.subtle.digest('SHA-256', bytes))].map((b) => b.toString(16).padStart(2, '0')).join('');
+    if (hex !== a.sha256) throw new Error(t('the download does not match the gallery (checksum differs)'));
+  }
+  return bytes;
+}
 
 /** The Add-ons page of the Preferences dialog: installed add-ons, and the gallery. */
 export function renderAddonsPage(manager, el) {
@@ -154,7 +167,7 @@ export function renderAddonsPage(manager, el) {
   let gallery = null;
   let galleryError = null;
   const list = h('div', { class: 'addon-list' });
-  const matches = (m) => !query || `${m.name} ${m.description} ${m.author}`.toLowerCase().includes(query);
+  const matches = (m) => !query || searchText(m).includes(query);
 
   const installedRow = (m) => {
     const error = manager.errors.get(m.id);
@@ -190,7 +203,8 @@ export function renderAddonsPage(manager, el) {
 
   const galleryRow = (a) => {
     const have = manager.installed.get(a.id);
-    const current = have && have.version === a.version;
+    const current = have && compareVersions(have.version, a.version) >= 0;
+    const tooNew = a.rigby && VERSION && compareVersions(VERSION, a.rigby) < 0;
     return h(
       'div',
       { class: 'addon' },
@@ -200,19 +214,24 @@ export function renderAddonsPage(manager, el) {
         { class: 'addon-text' },
         h('div', { class: 'addon-name' }, a.name, h('span', { class: 'weak' }, ` ${a.version}`), a.official ? h('span', { class: 'addon-badge' }, t('Official')) : null),
         h('div', null, a.description),
-        h('div', { class: 'weak' }, t('by {author}', { author: a.author })),
+        h(
+          'div',
+          { class: 'weak' },
+          [t('by {author}', { author: a.author }), a.stars ? `★ ${a.stars}` : '', tooNew ? t('needs Rigby2D {version}', { version: a.rigby }) : ''].filter(Boolean).join(' · '),
+          ...(a.tags ?? []).map((tag) => h('span', { class: 'addon-tag' }, tag)),
+        ),
       ),
-      a.repo ? h('button', { onclick: () => platform.openExternal(a.repo) }, t('Source ↗')) : null,
+      a.page || a.repo ? h('button', { title: a.page ?? a.repo, onclick: () => platform.openExternal(a.page ?? a.repo) }, t('Details ↗')) : null,
       h(
         'button',
         {
-          class: current ? '' : 'primary',
-          disabled: current,
+          class: current || tooNew ? '' : 'primary',
+          disabled: current || tooNew,
           onclick: async (e) => {
             e.target.disabled = true;
             try {
               app.setStatus(t('Downloading {name}…', { name: a.name }));
-              const m = await manager.install({ name: `${a.id}.zip`, bytes: await platform.fetchBytes(a.url) });
+              const m = await manager.install({ name: `${a.id}.zip`, bytes: await downloadAddon(a) });
               if (m) app.setStatus(t('Installed the add-on {name} {version}', { name: m.name, version: m.version }));
             } catch (err) {
               app.setStatus(t('Could not install the add-on: {error}', { error: err?.message ?? err }));
@@ -234,8 +253,17 @@ export function renderAddonsPage(manager, el) {
     } else if (galleryError) list.replaceChildren(h('p', { class: 'dialog-empty' }, t('The gallery could not be loaded: {error}', { error: galleryError })));
     else if (!gallery) list.replaceChildren(h('p', { class: 'dialog-empty' }, t('Loading the gallery…')));
     else {
-      const items = gallery.filter(matches);
-      list.replaceChildren(...(items.length ? items.map(galleryRow) : [h('p', { class: 'dialog-empty' }, t('No add-on matches.'))]));
+      const items = gallery.filter(matches).sort((a, b) => (b.official ? 1 : 0) - (a.official ? 1 : 0) || (b.stars ?? 0) - (a.stars ?? 0) || a.name.localeCompare(b.name));
+      list.replaceChildren(
+        ...(items.length ? items.map(galleryRow) : [h('p', { class: 'dialog-empty' }, t('No add-on matches.'))]),
+        h(
+          'p',
+          { class: 'addon-market-note' },
+          h('button', { class: 'link', onclick: () => platform.openExternal(MARKETPLACE_URL) }, `${t('Browse all add-ons on rigby2d.com')} ↗`),
+          ' · ',
+          h('button', { class: 'link', onclick: () => platform.openExternal(PUBLISH_URL) }, `${t('Publish your own')} ↗`),
+        ),
+      );
     }
   };
 

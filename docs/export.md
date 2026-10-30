@@ -35,3 +35,18 @@ tracks and the workspace. What they produced (keys) is exported.
 in the Game workspace. Save them as `.rigby` to keep working.
 
 Next: [play the export in your game](runtimes.md).
+
+## Share to r/rigby2d
+
+*File ▸ Share to r/rigby2d…* turns an animation into a clip for the community in one step:
+
+1. Pick the animation, **GIF** (plays everywhere) or **MP4** (sharper and smaller, where the
+   browser can encode video), the size (360 to 720 pixels on the longer side) and the frame rate.
+   **Fit the animation** frames the character itself; a project with a fixed framing can keep it.
+   GIFs sit on a background colour, or are transparent with hard edges.
+2. Choose where to save the file. The clip is rendered (up to 20 seconds) and saved.
+3. The new-post page of [r/rigby2d](https://www.reddit.com/r/rigby2d/) opens in your browser with
+   the title filled in. Drop the file in, pick the **Showcase** flair and post.
+
+GIFs use one palette for the whole clip and store only what changes between frames, so a short
+loop is usually well under a megabyte.

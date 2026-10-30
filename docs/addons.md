@@ -12,7 +12,9 @@ From the gallery:
 2. Choose **Install** next to an add-on. It is downloaded, installed and enabled. **Update** appears
    when a newer version is listed.
 
-The gallery is also on the website: [rigby2d.com/addons](https://rigby2d.com/addons/).
+The gallery is also on the website, with search, tags and a page for each add-on:
+[rigby2d.com/addons](https://rigby2d.com/addons/). Downloads from the gallery are checked against the
+checksum the website lists.
 
 From a file: *Edit ▸ Preferences ▸ Add-ons ▸ Install from file…*, then pick the add-on's `.zip` or
 `.py` file.
@@ -94,7 +96,7 @@ def unregister():
 | --- | --- | --- |
 | `name` | yes | Shown in the Add-ons page. |
 | `version` | no | A tuple such as `(1, 2, 0)`, or a string. |
-| `author`, `description` | no | Shown in the Add-ons page. |
+| `author`, `description` | no | Shown in the Add-ons page. Needed to [publish](#publishing). |
 | `rigby` | no | The oldest editor version the add-on needs. Older editors refuse to install it. |
 | `url` | no | A documentation link, shown as **Docs**. |
 
@@ -109,28 +111,58 @@ tuples.
 
 The add-on uses the same `rigby` API as scripts: see the [API reference](scripting.md#api-reference).
 
-### Listing your add-on in the gallery
-
-Publish the `.zip` somewhere stable (a GitHub release is ideal), then open a pull request that adds
-an entry to [addons/gallery.json](https://github.com/jaisurya-dev-art/rigby2d/blob/develop/addons/gallery.json):
-
-```json
-{
-  "id": "my_tool",
-  "name": "My tool",
-  "version": "1.0.0",
-  "author": "Your name",
-  "description": "What it does, in one sentence.",
-  "url": "https://github.com/you/my-tool/releases/download/v1.0.0/my_tool.zip",
-  "repo": "https://github.com/you/my-tool"
-}
-```
-
-The `id` and `version` must match the add-on's folder name and `addon_info`. In the browser editor,
-the gallery can only download add-ons hosted on rigby2d.com; the desktop app downloads from any
-listed address.
-
 ### Testing while you write
 
 Develop the code in the script editor (*Scripts ▸ Script editor…*). Then zip the folder and install
 it. Installing the zip again replaces the add-on with your new version.
+
+## Publishing
+
+Publishing is free. Your add-on stays in your own GitHub repository; the add-on registry lists it on
+[rigby2d.com/addons](https://rigby2d.com/addons/) and in every editor's gallery, and picks up each
+new release by itself, the way the ComfyUI registry follows custom nodes.
+
+1. **Put it on GitHub.** A public repository with `__init__.py` (and `addon_info`) at its top, or in
+   one folder, and a `LICENSE` file. A `README.md` becomes the add-on's page on the website.
+2. **Publish a release.** Tag it (`v1.0.0`) and publish a GitHub release. Attach a `.zip` of the
+   package, or attach nothing and the tag's source zip is used. A repository without releases offers
+   its default branch instead.
+3. **Submit it** with the [Submit an add-on](https://github.com/jaisurya-dev-art/rigby2d/issues/new?template=addon-submission.yml)
+   form: the repository, an optional id, and tags. Checks run at once and answer in a comment.
+4. **Review.** A maintainer reads the code and labels the issue `approved`. The add-on is added to
+   the registry and appears on the website and in the editor after the next site build.
+5. **Updates.** Raise `version` in `addon_info` and publish a new release. The registry checks new
+   releases every six hours.
+
+### What the checks look at
+
+Every version is checked before it is listed, without running it:
+
+- `__init__.py` has an `addon_info` with `name`, `author`, `description` and a numeric `version`
+  such as `(1, 2, 0)`.
+- Only Python, text, data and image files (no native libraries, which cannot load in the sandbox
+  anyway), at most 300 files and 5 MB.
+- The id is 2-40 lowercase letters, digits and `_`, and not taken by another add-on.
+
+A release that fails the checks is skipped, and earlier versions stay listed. The website mirrors
+the newest good version and records a hash of its files, so the copy that people install is the one
+that was checked; the editor verifies the download against the gallery's checksum.
+
+### The registry files
+
+The registry lives in [registry/](https://github.com/jaisurya-dev-art/rigby2d/tree/develop/registry)
+in the Rigby2D repository. Each add-on has an entry, `registry/addons/<id>.json`:
+
+```json
+{
+  "repo": "you/my-tool",
+  "publisher": "you",
+  "tags": ["rigging", "export"],
+  "added": "2026-11-02"
+}
+```
+
+Tags are `rigging`, `animation`, `mesh`, `export`, `import`, `film`, `workflow` and `utility`.
+`registry/index.json` holds the versions found, written by `node registry/sync.mjs`. You can also
+open a pull request that adds an entry instead of using the form; the same checks run on it.
+

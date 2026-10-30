@@ -318,6 +318,31 @@ export async function renderJob(doc, images, job, progress = () => true) {
 }
 
 /**
+ * Renders a job as an animated GIF: { name, bytes }. GIF has one-bit transparency: with a
+ * background colour in the settings frames are opaque (and smaller), without one the see-through
+ * pixels stay see-through. `progress(done, total)` may return false to cancel (then null).
+ */
+export async function renderGif(doc, images, job, progress = () => true) {
+  const { encodeGif } = await import('../gif.js');
+  const range = frameRange(doc, job.animation, job.settings.fps, job.start, job.end);
+  const r = new FrameRenderer(doc, images, job);
+  try {
+    const frames = [];
+    const scratch = {};
+    for (let f = range.start; f <= range.end; f++) {
+      r.render(f);
+      frames.push(readFrame(r.gl, r.width, r.height, scratch).slice());
+      if (progress(f - range.start + 1, range.count) === false) return null;
+      // Let the progress bar draw.
+      if (f % 4 === 0) await new Promise((resolve) => setTimeout(resolve, 0));
+    }
+    return { name: `${job.name}.gif`, bytes: encodeGif({ width: r.width, height: r.height, frames, fps: job.settings.fps, transparent: !job.settings.background }) };
+  } finally {
+    r.dispose();
+  }
+}
+
+/**
  * Renders several jobs (animations and skins) one after another into a single video named
  * `name` (format, quality and settings from the first job), with their audio joined in the same
  * order. Returns [{ name, bytes }]: the video, and a WAV of the joined audio when there is any.

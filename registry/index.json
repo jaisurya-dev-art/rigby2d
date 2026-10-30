@@ -1,0 +1,81 @@
+{
+  "updated": "2026-10-30T09:31:01.495Z",
+  "addons": [
+    {
+      "id": "breathing_idle",
+      "tags": [
+        "animation"
+      ],
+      "publisher": "jaisurya-dev-art",
+      "added": "2026-10-29",
+      "official": true,
+      "name": "Breathing idle",
+      "description": "Makes a looping 'breathe' animation: the chest rises and falls, the head follows a little.",
+      "author": "Rigby2D",
+      "url": "https://github.com/jaisurya-dev-art/rigby2d/tree/develop/addons/breathing_idle",
+      "repo": "jaisurya-dev-art/rigby2d",
+      "path": "addons/breathing_idle",
+      "readme": "# Breathing idle\r\n\r\nA looping \"breathe\" animation in one click, ready to play under other animations.\r\n\r\n## Tools\r\n\r\nIn the **Scripts** menu:\r\n\r\n- **Make a breathing idle**: adds a 2.4-second animation named `breathe` (or `breathe 2`, … when\r\n  that name is taken). The selected bones swell and settle; with nothing selected, it uses the bones\r\n  named chest, spine, torso or body. Head and neck bones tilt a little with each breath.\r\n\r\nThe animation starts and ends on the same pose, so it loops cleanly. Play it on its own track to\r\nkeep a character alive while it stands still.\r\n",
+      "problems": [],
+      "versions": [
+        {
+          "version": "1.0.0",
+          "rigby": "0.4.1",
+          "published": "2026-10-29",
+          "digest": "sha256-6d7ed5a63e028a0e55a68e2292438d749e14d1005aa36966b6aa13131ef2ebfd"
+        }
+      ]
+    },
+    {
+      "id": "mirror_tools",
+      "tags": [
+        "rigging"
+      ],
+      "publisher": "jaisurya-dev-art",
+      "added": "2026-10-29",
+      "official": true,
+      "name": "Mirror tools",
+      "description": "Mirror the selected bones across X = 0, and swap left and right in their names.",
+      "author": "Rigby2D",
+      "url": "https://github.com/jaisurya-dev-art/rigby2d/tree/develop/addons/mirror_tools",
+      "repo": "jaisurya-dev-art/rigby2d",
+      "path": "addons/mirror_tools",
+      "readme": "# Mirror tools\r\n\r\nBuild one side of a rig, then mirror it.\r\n\r\n## Tools\r\n\r\nIn the **Scripts** menu:\r\n\r\n- **Mirror selected bones**: flips the setup position and rotation of the selected bones across\r\n  X = 0.\r\n- **Swap left/right in names**: renames the selected bones (or every bone, when none is selected)\r\n  to the other side: `arm_l` ↔ `arm_r`, `hand.L` ↔ `hand.R`, `leftEye` ↔ `rightEye`. A name that\r\n  is already taken is left alone.\r\n\r\nEach tool is one undo step.\r\n",
+      "problems": [],
+      "versions": [
+        {
+          "version": "1.0.0",
+          "rigby": "0.4.1",
+          "published": "2026-10-29",
+          "digest": "sha256-3c7b3fed7d2780dbedb7be7bcb2d74a70978f46a2743b6fd5df5786c74f88c54"
+        }
+      ]
+    },
+    {
+      "id": "rig_report",
+      "tags": [
+        "rigging",
+        "export"
+      ],
+      "publisher": "jaisurya-dev-art",
+      "added": "2026-10-29",
+      "official": true,
+      "name": "Rig report",
+      "description": "Checks the rig before export: empty slots, unused bones, duplicate-looking names and empty animations, listed in the log.",
+      "author": "Rigby2D",
+      "url": "https://github.com/jaisurya-dev-art/rigby2d/tree/develop/addons/rig_report",
+      "repo": "jaisurya-dev-art/rigby2d",
+      "path": "addons/rig_report",
+      "readme": "# Rig report\n\nCatches rigging mistakes before you export.\n\n## Tools\n\nIn the **Scripts** menu:\n\n- **Rig report**: checks the open project and lists what it finds in *View ▸ Log*:\n  - bones with no children and no slots (often leftovers)\n  - slots with no attachments\n  - bones whose names differ only by case, spaces or `_` (`Arm_L` and `arm l`)\n  - empty animations\n\nIt only reads the project: nothing is changed.\n",
+      "problems": [],
+      "versions": [
+        {
+          "version": "1.0.0",
+          "rigby": "0.4.1",
+          "published": "2026-10-29",
+          "digest": "sha256-a13648d0a42105d8a9fa5064d2d265e539b7974c0ec4ea53205c2b409a765e29"
+        }
+      ]
+    }
+  ]
+}

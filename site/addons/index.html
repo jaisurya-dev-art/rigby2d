@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Add-ons · Rigby2D</title>
-    <meta name="description" content="Python add-ons for the Rigby2D editor: install them from Edit ▸ Preferences ▸ Add-ons, or download them here." />
+    <meta name="description" content="Free community add-ons for the Rigby2D editor: browse, install from the editor, or publish your own." />
     <meta name="theme-color" content="#0a0a0b" />
     <meta property="og:title" content="Rigby2D add-ons" />
     <meta property="og:description" content="Python add-ons that add tools to the Rigby2D editor." />
@@ -17,70 +17,52 @@
   </head>
   <body>
     <a class="skip" href="#main">Skip to content</a>
-    <header class="nav">
-      <div class="wrap nav-row">
-        <a class="brand" href="../" aria-label="Rigby2D home">
-          <img src="../../branding/rigby2d-mark.svg" alt="" width="28" height="28" />
-          <span>Rigby<b>2D</b></span>
-        </a>
-        <nav id="site-nav" aria-label="Sections">
-          <a href="../#features">Features</a>
-          <a href="../demos/">Demos</a>
-          <a href="../cloud/">Cloud</a>
-          <a href="../#runtimes">Runtimes</a>
-          <a href="../#download">Download</a>
-          <a href="../blog/">Devlog</a>
-          <a href="../docs/">Docs</a>
-          <a href="https://www.reddit.com/r/rigby2d/" rel="noopener" data-goatcounter-click="site-community-nav">Community</a>
-          <a href="https://github.com/jaisurya-dev-art/rigby2d" rel="noopener" data-goatcounter-click="site-github-nav">GitHub</a>
-        </nav>
-        <a class="btn small primary" href="../editor/" data-goatcounter-click="site-open-editor-nav">Open editor</a>
-        <button class="nav-toggle" type="button" aria-label="Open the menu" aria-expanded="false" aria-controls="site-nav">
-          <span></span><span></span><span></span>
-        </button>
-      </div>
-    </header>
+    <!--site-header:addons-->
 
     <main id="main">
-      <section class="page-head">
+      <section class="page-head market-head">
         <div class="wrap">
           <p class="eyebrow">Add-ons</p>
-          <h1>Add tools to the editor</h1>
+          <h1>Add-ons for Rigby2D</h1>
           <p class="section-lede">
-            Add-ons are small Python packages that add tools to the Scripts menu. Install them in the editor from
-            <b>Edit ▸ Preferences ▸ Add-ons ▸ Get add-ons</b>, or download one here and choose <b>Install from file…</b>.
-            They run sandboxed: they can change the open project, but not your files or the network.
+            Python tools made by the community, free to install. Get them in the editor from <b>Edit ▸ Preferences ▸ Add-ons ▸ Get add-ons</b>,
+            or download one here. They run sandboxed: they can change the open project, but not your files or the network.
           </p>
+          <div class="cta">
+            <a class="btn primary" href="#publish">Publish your add-on</a>
+            <a class="btn" href="../docs/addons.html">How add-ons work</a>
+          </div>
         </div>
       </section>
-      <section class="section">
+      <section class="section market">
         <div class="wrap">
-          <div class="cards"><!--addon-list--></div>
-          <p class="fine">Made an add-on? <a href="https://rigby2d.com/docs/addons.html">Write one</a>, then list it with a pull request to <a href="https://github.com/jaisurya-dev-art/rigby2d/blob/develop/addons/gallery.json" rel="noopener">addons/gallery.json</a>.</p>
+          <div class="market-bar">
+            <input type="search" id="market-search" placeholder="Search add-ons" aria-label="Search add-ons" autocomplete="off" />
+            <div class="chips" role="group" aria-label="Filter by tag"><!--addon-tags--></div>
+            <label class="market-sort">Sort <select id="market-sort" aria-label="Sort add-ons"><option value="popular">Popular</option><option value="new">Newest</option><option value="name">Name</option></select></label>
+          </div>
+          <p class="market-count fine" aria-live="polite"><!--addon-count--></p>
+          <div class="addon-grid" id="market-grid"><!--addon-list--></div>
+          <p class="market-empty" hidden>No add-on matches. <a href="#publish">Make the first one?</a></p>
+        </div>
+      </section>
+      <section class="section alt" id="publish">
+        <div class="wrap">
+          <p class="eyebrow">Publish</p>
+          <h2>Share your add-on</h2>
+          <p class="section-lede">Publishing is free. Your code stays in your own GitHub repository; the registry lists it here and in every editor's gallery, and picks up each new release by itself.</p>
+          <ol class="steps">
+            <li><b>Write it</b><span>A Python package with <code>addon_info</code> and <code>register()</code>. Start from an <a href="https://github.com/jaisurya-dev-art/rigby2d/tree/develop/addons" rel="noopener">official add-on</a> and the <a href="../docs/addons.html#writing-an-add-on">guide</a>.</span></li>
+            <li><b>Put it on GitHub</b><span>A public repository with a LICENSE. Publish a release (attach a .zip, or let GitHub zip the tag).</span></li>
+            <li><b>Submit it</b><span>Fill in the form. Automatic checks run at once; after a quick review it is listed here and in the editor.</span></li>
+            <li><b>Ship updates</b><span>Bump the version in <code>addon_info</code> and publish a release. The registry picks it up within a few hours.</span></li>
+          </ol>
+          <div class="cta"><a class="btn primary" href="https://github.com/jaisurya-dev-art/rigby2d/issues/new?template=addon-submission.yml" rel="noopener" data-goatcounter-click="addon-submit">Submit an add-on</a><a class="btn" href="../docs/addons.html#publishing">Publishing guide</a></div>
         </div>
       </section>
     </main>
 
-    <footer class="foot">
-      <div class="wrap foot-row">
-        <img src="../../branding/rigby2d-lockup-transparent.svg" alt="Rigby2D" width="176" height="66" />
-        <p>
-          Source code licensed MIT OR Apache-2.0. The Rigby2D, NILA and Rigbytron names, logos and artwork are trademarks of
-          the Rigby2D project; see <a href="https://github.com/jaisurya-dev-art/rigby2d/blob/develop/TRADEMARKS.md" rel="noopener">TRADEMARKS.md</a>.
-          Visits are counted anonymously with <a href="https://www.goatcounter.com" rel="noopener">GoatCounter</a>: no cookies, no personal data. See the <a href="../docs/privacy.html">privacy statement</a>.
-        </p>
-        <nav aria-label="Project links">
-          <a href="../blog/">Devlog</a>
-          <a href="https://www.reddit.com/r/rigby2d/" rel="noopener">r/rigby2d</a>
-          <a href="../docs/">Documentation</a>
-          <a href="../demos/">Demos</a>
-          <a href="../docs/privacy.html">Privacy</a>
-          <a href="mailto:hello@rigby2d.com">Contact</a>
-          <a href="https://github.com/jaisurya-dev-art/rigby2d" rel="noopener">GitHub</a>
-          <a href="https://github.com/jaisurya-dev-art/rigby2d/issues" rel="noopener">Issues</a>
-        </nav>
-      </div>
-    </footer>
-    <script type="module" src="../demos/demos.js"></script>
+    <!--site-footer-->
+    <script type="module" src="./market.js"></script>
   </body>
 </html>

@@ -1,0 +1,98 @@
+# The add-on registry (registry/): checks add-ons submitted with the "Submit an add-on" issue form,
+# adds them once a maintainer labels the issue `approved`, and picks up new releases of listed
+# add-ons every six hours. A change to the index redeploys the website, which mirrors the add-ons.
+name: Add-on registry
+
+on:
+  issues:
+    types: [opened, edited, labeled]
+  schedule:
+    - cron: '17 */6 * * *'
+  workflow_dispatch:
+  pull_request:
+    paths: ['registry/**', 'src/editor/registry.js']
+
+permissions:
+  contents: write
+  issues: write
+  actions: write
+
+concurrency:
+  group: addon-registry
+  cancel-in-progress: false
+
+jobs:
+  submission:
+    if: github.event_name == 'issues' && contains(github.event.issue.labels.*.name, 'addon-submission') && github.event.issue.state == 'open'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: develop
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      # The issue text is untrusted: it reaches the script only through the environment.
+      - id: check
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          ISSUE_AUTHOR: ${{ github.event.issue.user.login }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          APPROVE: ${{ github.event.action == 'labeled' && github.event.label.name == 'approved' }}
+        run: node registry/submit.mjs "$RUNNER_TEMP/report.md" $([ "$APPROVE" = true ] && echo --approve) >> "$GITHUB_OUTPUT"
+      - name: Comment
+        if: github.event.action != 'labeled' || github.event.label.name == 'approved'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh issue comment ${{ github.event.issue.number }} --repo ${{ github.repository }} --body-file "$RUNNER_TEMP/report.md"
+      - name: Add to the registry
+        if: github.event.action == 'labeled' && github.event.label.name == 'approved' && steps.check.outputs.ok == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ADDON_ID: ${{ steps.check.outputs.id }}
+        run: |
+          git config user.name "rigby2d-registry[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add registry
+          git commit -m "Add-on registry: add $ADDON_ID"
+          git push origin develop
+          gh workflow run pages.yml --repo ${{ github.repository }} --ref develop
+          gh issue close ${{ github.event.issue.number }} --repo ${{ github.repository }} --reason completed
+
+  sync:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: develop
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          node registry/sync.mjs
+          if [ -n "$(git status --porcelain registry)" ]; then
+            git config user.name "rigby2d-registry[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add registry
+            git commit -m "Add-on registry: new versions"
+            git push origin develop
+            gh workflow run pages.yml --repo ${{ github.repository }} --ref develop
+          fi
+
+  check:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node registry/sync.mjs --check

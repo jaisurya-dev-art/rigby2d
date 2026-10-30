@@ -6,6 +6,7 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
+import { NAV_SCRIPT, siteFooter, siteHeader } from '../chrome.js';
 import { renderMarkdown } from '../docs/build.js';
 
 const SITE = 'https://rigby2d.com';
@@ -60,46 +61,10 @@ function shell({ title, description, url, image, main }) {
   </head>
   <body>
     <a class="skip" href="#main">Skip to content</a>
-    <header class="nav">
-      <div class="wrap nav-row">
-        <a class="brand" href="/" aria-label="Rigby2D home"><img src="/blog/mark.svg" alt="" width="28" height="28" /><span>Rigby<b>2D</b></span></a>
-        <nav id="site-nav" aria-label="Sections">
-          <a href="/#features">Features</a>
-          <a href="/demos/">Demos</a>
-          <a href="/blog/" aria-current="page">Devlog</a>
-          <a href="/#runtimes">Runtimes</a>
-          <a href="/#download">Download</a>
-          <a href="/docs/">Docs</a>
-          <a href="https://www.reddit.com/r/rigby2d/" rel="noopener">Community</a>
-          <a href="https://github.com/jaisurya-dev-art/rigby2d" rel="noopener">GitHub</a>
-        </nav>
-        <a class="btn small primary" href="/editor/">Open editor</a>
-        <button class="nav-toggle" type="button" aria-label="Open the menu" aria-expanded="false" aria-controls="site-nav"><span></span><span></span><span></span></button>
-      </div>
-    </header>
+    ${siteHeader({ active: 'blog' })}
     <main id="main">${main}</main>
-    <footer class="foot">
-      <div class="wrap foot-row">
-        <img src="/blog/lockup.svg" alt="Rigby2D" width="176" height="66" />
-        <p>Source code licensed MIT OR Apache-2.0. The Rigby2D, NILA and Rigbytron names, logos and artwork are trademarks of the Rigby2D project; see <a href="https://github.com/jaisurya-dev-art/rigby2d/blob/develop/TRADEMARKS.md" rel="noopener">TRADEMARKS.md</a>.</p>
-        <nav aria-label="Project links">
-          <a href="/docs/">Documentation</a>
-          <a href="/blog/feed.xml">RSS</a>
-          <a href="https://www.reddit.com/r/rigby2d/" rel="noopener">r/rigby2d</a>
-          <a href="/docs/privacy.html">Privacy</a>
-          <a href="mailto:hello@rigby2d.com">Contact</a>
-        </nav>
-      </div>
-    </footer>
-    <script>
-      // The phone menu (the same behaviour as the rest of the website).
-      const toggle = document.querySelector('.nav-toggle');
-      toggle.addEventListener('click', () => {
-        const open = toggle.getAttribute('aria-expanded') !== 'true';
-        toggle.setAttribute('aria-expanded', String(open));
-        document.querySelector('.nav').classList.toggle('open', open);
-      });
-    </script>
+    ${siteFooter()}
+    ${NAV_SCRIPT}
   </body>
 </html>
 `;

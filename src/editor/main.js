@@ -10,6 +10,7 @@ import { App, Mode, saveSetting } from './app.js';
 import { PRESETS, shortcutLabel } from './keymap.js';
 import { installKeyboard, isTyping, runAction } from './keys.js';
 import { openRenderDialog } from './renderui.js';
+import { openShareDialog } from './shareui.js';
 import { openAutoRig, openRetarget } from './rigui.js';
 import { startAudio, stopAudio } from './audio.js';
 import { clipTracks } from './actors.js';
@@ -114,6 +115,7 @@ function menus() {
       'separator',
       // Film renders video; skeleton exports (for game engines) are in both workspaces.
       ...(has(app, 'render') ? [{ label: t('Render animation…'), title: t('PNG sequence, WebM or MP4'), action: () => openRenderDialog(app) }] : []),
+      { label: t('Share to r/rigby2d…'), title: t('Render a GIF or MP4 and post it to the community'), action: () => openShareDialog(app) },
       submenuItem(t('Export'), [
         { label: t('JSON + atlas…'), shortcut: 'Ctrl+E', action: () => app.exportSkeletonJson(app.saveVersion()) },
         { label: t('Binary .skel + atlas (4.3)…'), action: () => app.exportSkeletonBinary() },

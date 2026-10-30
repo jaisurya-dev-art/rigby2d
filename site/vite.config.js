@@ -4,12 +4,14 @@
 // docs/build.js), and the browser editor into _site/editor/ (see package.json "site:build"). The
 // landing page plays NILA with the real runtime from src/core.
 
+import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { defineConfig } from 'vite';
 
 import { DOCS, imageFiles, pageHtml, renderAll, renderMarkdown, searchIndex } from './docs/build.js';
+import { siteFooter, siteHeader } from './chrome.js';
 import { feedXml, indexPage, newsJson, postPage, readPosts } from './blog/devlog.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -146,37 +148,102 @@ function starterFiles() {
 }
 
 /**
- * The add-on gallery: addons/index.json (read by the editor's Preferences ▸ Add-ons ▸ Get add-ons),
- * a zip for each official add-on in addons/<id>/, and the list on the Add-ons page.
+ * The add-on marketplace (registry/, see registry/registry.mjs): the Add-ons page, a page for each
+ * add-on at addons/<id>/, the newest version of each mirrored as addons/files/<id>-<version>.zip
+ * (checked against the digest the registry recorded when it vetted that version), and
+ * addons/index.json, the editor's gallery (Preferences ▸ Add-ons ▸ Get add-ons).
  */
-const GALLERY = 'addons/gallery.json';
 function addonFiles() {
-  const gallery = () => JSON.parse(fs.readFileSync(path.join(repo, GALLERY), 'utf8')).addons;
-  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+  const registry = () => import(pathToFileURL(path.join(repo, 'registry/registry.mjs')).href);
+  let listing = null;
+  const load = () =>
+    (listing ??= (async () => {
+      const { inspect, readEntries, readIndex } = await registry();
+      const index = new Map(readIndex().addons.map((a) => [a.id, a]));
+      const out = [];
+      for (const entry of readEntries()) {
+        const a = entry.path ? await inspect(entry) : index.get(entry.id);
+        if (a?.versions?.length) out.push(a);
+      }
+      return out;
+    })());
   return {
     name: 'rigby-site-addons',
-    transformIndexHtml(html, ctx) {
+    async transformIndexHtml(html, ctx) {
       if (!ctx.filename.replace(/\\/g, '/').endsWith('/addons/index.html')) return html;
-      const cards = gallery()
-        .map((a) => {
-          const url = a.official ? `./${a.id}.zip` : a.url;
-          return `<article class="card"><h3>${esc(a.name)} <span class="fine">${esc(a.version)}</span></h3><p>${esc(a.description)}</p><p class="fine">${esc(a.author)}${a.official ? ' · official' : ''}${a.repo ? ` · <a href="${esc(a.repo)}" rel="noopener">source</a>` : ''}</p><a class="btn small" href="${esc(url)}" download>Download .zip</a></article>`;
-        })
-        .join('');
-      return html.replace('<!--addon-list-->', cards);
+      const addons = await load();
+      const { addonCard } = await import('./addons/pages.js');
+      const { TAGS } = await import(pathToFileURL(path.join(repo, 'src/editor/registry.js')).href);
+      const chips = ['<button type="button" data-tag="" aria-pressed="true">All</button>', ...TAGS.filter((t) => addons.some((a) => a.tags.includes(t))).map((t) => `<button type="button" data-tag="${t}" aria-pressed="false">${t[0].toUpperCase()}${t.slice(1)}</button>`)];
+      return html
+        .replace('<!--addon-list-->', addons.map(addonCard).join(''))
+        .replace('<!--addon-tags-->', chips.join(''))
+        .replace('<!--addon-count-->', `${addons.length} add-ons`);
     },
     async generateBundle() {
       const { zip } = await import(pathToFileURL(path.join(repo, 'src/editor/zip.js')).href);
-      const index = [];
-      for (const a of gallery()) {
-        if (a.official) {
-          const dir = path.join(repo, 'addons', a.id);
-          const files = fs.readdirSync(dir, { recursive: true }).filter((f) => fs.statSync(path.join(dir, f)).isFile() && !String(f).includes('__pycache__'));
-          this.emitFile({ type: 'asset', fileName: `addons/${a.id}.zip`, source: zip(files.map((f) => ({ path: `${a.id}/${String(f).split(path.sep).join('/')}`, bytes: new Uint8Array(fs.readFileSync(path.join(dir, f))) }))) });
+      const { downloadPackage, localPackage, packageDigest } = await registry();
+      const { addonPage } = await import('./addons/pages.js');
+      const gallery = [];
+      for (const a of await load()) {
+        let found = null;
+        for (const v of a.versions) {
+          try {
+            const files = a.path ? localPackage(a.path) : await downloadPackage(v.source, a.id);
+            if (packageDigest(files) !== v.digest) throw new Error('its files changed since the registry checked them');
+            found = { v, files };
+            break;
+          } catch (e) {
+            this.warn(`add-on ${a.id} ${v.version} is not mirrored: ${e.message}`);
+          }
         }
-        index.push({ ...a, url: a.official ? `https://rigby2d.com/addons/${a.id}.zip` : a.url });
+        let download = null;
+        if (found) {
+          const { v, files } = found;
+          const bytes = zip([...files].map(([p, b]) => ({ path: `${a.id}/${p}`, bytes: b })), new Date('2026-01-01T00:00:00Z'));
+          const fileName = `addons/files/${a.id}-${v.version}.zip`;
+          this.emitFile({ type: 'asset', fileName, source: bytes });
+          download = `/${fileName}`;
+          gallery.push({
+            id: a.id,
+            name: a.name,
+            version: v.version,
+            author: a.author,
+            description: a.description,
+            tags: a.tags,
+            official: a.official,
+            publisher: a.publisher,
+            rigby: v.rigby,
+            license: a.license || (a.official ? 'MIT OR Apache-2.0' : ''),
+            stars: a.stars ?? 0,
+            url: `https://rigby2d.com/${fileName}`,
+            sha256: crypto.createHash('sha256').update(bytes).digest('hex'),
+            size: bytes.length,
+            page: `https://rigby2d.com/addons/${a.id}/`,
+            repo: a.path ? `https://github.com/${a.repo}/tree/develop/${a.path}` : `https://github.com/${a.repo}`,
+          });
+        }
+        this.emitFile({ type: 'asset', fileName: `addons/${a.id}/index.html`, source: addonPage(a, download) });
       }
-      this.emitFile({ type: 'asset', fileName: 'addons/index.json', source: JSON.stringify({ addons: index }, null, 2) });
+      this.emitFile({ type: 'asset', fileName: 'addons/index.json', source: JSON.stringify({ updated: new Date().toISOString(), addons: gallery }, null, 2) });
+    },
+  };
+}
+
+/** The shared header and footer (chrome.js) in place of the pages' <!--site-header:…--> and <!--site-footer--> markers. */
+function siteChrome() {
+  return {
+    name: 'rigby-site-chrome',
+    transformIndexHtml: {
+      order: 'pre',
+      handler(html, ctx) {
+        const depth = path.relative(here, ctx.filename).split(path.sep).length - 1;
+        const base = depth ? '../'.repeat(depth) : './';
+        const up = '../'.repeat(depth + 1);
+        return html
+          .replace(/<!--site-header:(\w*)-->/, (_, active) => siteHeader({ base, active, mark: `${up}branding/rigby2d-mark.svg` }))
+          .replace('<!--site-footer-->', siteFooter({ base, lockup: `${up}branding/rigby2d-lockup-transparent.svg` }));
+      },
     },
   };
 }
@@ -286,7 +353,7 @@ export default defineConfig({
   root: here,
   base: process.env.SITE_BASE ?? '/',
   clearScreen: false,
-  plugins: [socialImage(), documentation(), demoFiles(), starterFiles(), addonFiles(), devlogFiles()],
+  plugins: [siteChrome(), socialImage(), documentation(), demoFiles(), starterFiles(), addonFiles(), devlogFiles()],
   // The pages import the runtime, NILA and the docs from outside this folder.
   server: { port: 1430, strictPort: true, fs: { allow: [repo] } },
   build: {
