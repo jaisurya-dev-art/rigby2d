@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-30T09:31:01.495Z",
+  "updated": "2026-10-30T09:56:22.230Z",
   "addons": [
     {
       "id": "breathing_idle",
@@ -23,6 +23,42 @@
           "rigby": "0.4.1",
           "published": "2026-10-29",
           "digest": "sha256-6d7ed5a63e028a0e55a68e2292438d749e14d1005aa36966b6aa13131ef2ebfd"
+        }
+      ]
+    },
+    {
+      "id": "hierarchy_select",
+      "tags": [
+        "rigging",
+        "workflow"
+      ],
+      "publisher": "jaisurya-dev-art",
+      "added": "2026-10-30",
+      "official": false,
+      "name": "Hierarchy select",
+      "description": "Select a bone's whole chain, its parent, or its siblings, from the Scripts menu.",
+      "author": "jaisurya-dev-art",
+      "url": "https://github.com/jaisurya-dev-art/rigby2d-hierarchy-select",
+      "repo": "jaisurya-dev-art/rigby2d-hierarchy-select",
+      "homepage": "",
+      "license": "MIT",
+      "stars": 0,
+      "archived": false,
+      "readme": "# Hierarchy select\n\nA [Rigby2D](https://rigby2d.com) add-on for moving around a rig quickly.\n\n## Tools\n\nIn the **Scripts** menu:\n\n- **Select chain**: adds every bone below the selected bones to the selection. Select the\n  shoulder, run it, and the whole arm is selected, ready to key.\n- **Select parent**: moves the selection up one level.\n- **Select siblings**: selects the bones that share a parent with the selected ones (all the\n  fingers of a hand, for example).\n\nThey only change the selection, never the rig.\n\n## Install\n\nIn Rigby2D, *Edit ▸ Preferences ▸ Add-ons ▸ Get add-ons*, search for **Hierarchy select** and\nchoose **Install**. Or download it from [rigby2d.com/addons](https://rigby2d.com/addons/).\n\n## Use this as a template\n\nThis repository is a small, complete add-on. To make your own:\n\n1. Copy it, rename the repository, and edit `addon_info` in `__init__.py`.\n2. Add tools inside `register()` with `@rigby.tool(...)`. The API is in the\n   [scripting docs](https://rigby2d.com/docs/scripting.html#api-reference).\n3. Publish a GitHub release, then [submit it](https://rigby2d.com/addons/#publish).\n\n## License\n\nMIT\n",
+      "problems": [],
+      "skipped": [],
+      "versions": [
+        {
+          "version": "1.0.0",
+          "tag": "v1.0.0",
+          "published": "2026-10-30T09:53:50Z",
+          "rigby": "0.4.1",
+          "source": "https://codeload.github.com/jaisurya-dev-art/rigby2d-hierarchy-select/zip/refs/tags/v1.0.0",
+          "digest": "sha256-e9bce4c86e18032d745b17d73f3eb1dcb6c971b0262551f96f56badbe44d1673",
+          "name": "Hierarchy select",
+          "description": "Select a bone's whole chain, its parent, or its siblings, from the Scripts menu.",
+          "author": "jaisurya-dev-art",
+          "url": "https://github.com/jaisurya-dev-art/rigby2d-hierarchy-select"
         }
       ]
     },
