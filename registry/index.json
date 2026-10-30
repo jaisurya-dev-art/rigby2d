@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-30T09:56:22.230Z",
+  "updated": "2026-10-30T18:00:33.075Z",
   "addons": [
     {
       "id": "breathing_idle",
@@ -15,14 +15,14 @@
       "url": "https://github.com/jaisurya-dev-art/rigby2d/tree/develop/addons/breathing_idle",
       "repo": "jaisurya-dev-art/rigby2d",
       "path": "addons/breathing_idle",
-      "readme": "# Breathing idle\r\n\r\nA looping \"breathe\" animation in one click, ready to play under other animations.\r\n\r\n## Tools\r\n\r\nIn the **Scripts** menu:\r\n\r\n- **Make a breathing idle**: adds a 2.4-second animation named `breathe` (or `breathe 2`, … when\r\n  that name is taken). The selected bones swell and settle; with nothing selected, it uses the bones\r\n  named chest, spine, torso or body. Head and neck bones tilt a little with each breath.\r\n\r\nThe animation starts and ends on the same pose, so it loops cleanly. Play it on its own track to\r\nkeep a character alive while it stands still.\r\n",
+      "readme": "# Breathing idle\n\nA looping \"breathe\" animation in one click, ready to play under other animations.\n\n## Tools\n\nIn the **Scripts** menu:\n\n- **Make a breathing idle**: adds a 2.4-second animation named `breathe` (or `breathe 2`, … when\n  that name is taken). The selected bones swell and settle; with nothing selected, it uses the bones\n  named chest, spine, torso or body. Head and neck bones tilt a little with each breath.\n\nThe animation starts and ends on the same pose, so it loops cleanly. Play it on its own track to\nkeep a character alive while it stands still.\n",
       "problems": [],
       "versions": [
         {
           "version": "1.0.0",
           "rigby": "0.4.1",
           "published": "2026-10-29",
-          "digest": "sha256-6d7ed5a63e028a0e55a68e2292438d749e14d1005aa36966b6aa13131ef2ebfd"
+          "digest": "sha256-f4a0e82dec0ec374e03c47583b0224fae9cfa79992418186b2fd6afc5338fad0"
         }
       ]
     },
@@ -76,14 +76,14 @@
       "url": "https://github.com/jaisurya-dev-art/rigby2d/tree/develop/addons/mirror_tools",
       "repo": "jaisurya-dev-art/rigby2d",
       "path": "addons/mirror_tools",
-      "readme": "# Mirror tools\r\n\r\nBuild one side of a rig, then mirror it.\r\n\r\n## Tools\r\n\r\nIn the **Scripts** menu:\r\n\r\n- **Mirror selected bones**: flips the setup position and rotation of the selected bones across\r\n  X = 0.\r\n- **Swap left/right in names**: renames the selected bones (or every bone, when none is selected)\r\n  to the other side: `arm_l` ↔ `arm_r`, `hand.L` ↔ `hand.R`, `leftEye` ↔ `rightEye`. A name that\r\n  is already taken is left alone.\r\n\r\nEach tool is one undo step.\r\n",
+      "readme": "# Mirror tools\n\nBuild one side of a rig, then mirror it.\n\n## Tools\n\nIn the **Scripts** menu:\n\n- **Mirror selected bones**: flips the setup position and rotation of the selected bones across\n  X = 0.\n- **Swap left/right in names**: renames the selected bones (or every bone, when none is selected)\n  to the other side: `arm_l` ↔ `arm_r`, `hand.L` ↔ `hand.R`, `leftEye` ↔ `rightEye`. A name that\n  is already taken is left alone.\n\nEach tool is one undo step.\n",
       "problems": [],
       "versions": [
         {
           "version": "1.0.0",
           "rigby": "0.4.1",
           "published": "2026-10-29",
-          "digest": "sha256-3c7b3fed7d2780dbedb7be7bcb2d74a70978f46a2743b6fd5df5786c74f88c54"
+          "digest": "sha256-c576c87c3548ee1ec48589442a0c4fb851072e2c49bad1b283685fd6f8ba9817"
         }
       ]
     },
