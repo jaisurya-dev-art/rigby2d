@@ -1889,3 +1889,20 @@ h3 {
     font-size: 0.88rem;
   }
 }
+.vs-why {
+  list-style: none;
+  padding-left: 0;
+}
+.vs-why li {
+  position: relative;
+  padding-left: 28px;
+  margin-bottom: 10px;
+  color: var(--text);
+}
+.vs-why li::before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: #6fdc9f;
+  font-weight: 700;
+}

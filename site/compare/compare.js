@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 // The comparison pages (rigby2d.com/vs/<tool>/): Rigby2D next to Spine, DragonBones, Moho and Toon
-// Boom Harmony, for people looking for an alternative. They stay honest: each says where the other
-// tool is stronger. Facts about other tools were checked on their own sites (October 2026); prices
+// Boom Harmony, for people looking for an alternative: why switch, and how. Facts about other tools were checked on their own sites (October 2026); prices
 // change, so each page links to the source. Written by vite.config.js as vs/<slug>/index.html.
 
 import { brandIcon, NAV_SCRIPT, siteFooter, siteHeader } from '../chrome.js';
@@ -39,9 +38,13 @@ export const COMPARISONS = [
       ['Your Spine files', 'Opens Spine JSON and .skel (3.8 to 4.3) and writes them back without loss', '-'],
       ['Automation', RIGBY.automation, 'Command line export'],
     ],
-    stronger: [
-      'A mature ecosystem: over a decade of use in shipped games, a large community, and many official runtimes, including engines Rigby2D does not cover yet.',
-      'Long-standing documentation, examples and third-party tutorials.',
+    why: [
+      'Keep the money. Meshes and IK need Spine Professional at $379; in Rigby2D every feature is free, forever.',
+      'Ship without asking. No editor license to use the runtimes, no revenue cap, no Enterprise tier.',
+      'Bring everything. Your Spine exports open without loss, and Rigby2D can write them back.',
+      'Rig in one step. AutoRig turns a layered PSD into a working rig with bones, meshes and IK.',
+      'Animate for games and film. The same rig renders 4K film with a camera, audio and lip-sync.',
+      'Work with AI. A built-in MCP server lets assistants inspect, rig and animate your projects.',
     ],
     switching: 'Export from Spine as JSON or binary (.skel) with your atlas, then open it in Rigby2D with File ▸ Open. Rigby2D reads Spine 3.8 to 4.3 data and keeps everything it reads; File ▸ Import ▸ Check a skeleton file reports what carries over before you switch.',
     guide: 'migrating-from-spine.html',
@@ -67,14 +70,20 @@ export const COMPARISONS = [
       ['Runtimes', RIGBY.runtimes, 'DragonBones runtimes for several engines'],
       ['Automation', RIGBY.automation, '-'],
     ],
-    stronger: ['Existing DragonBones runtimes are already built into some engines (such as Cocos Creator), so a game that uses them needs no new runtime.', 'LoongBones runs in the browser with nothing to install (Rigby2D also has a browser editor).'],
+    why: [
+      'A desktop editor that keeps moving. New features every release on Windows, macOS and Linux.',
+      'Your characters, exactly. Checked against the DragonBones runtime: bones, weapons, effects, images and colors match.',
+      'Modern runtimes. Ship to Godot, Unity, Phaser, the web and Rust, all free and open source.',
+      'More than you had. Physics, clipping, AutoRig, a film workspace and lip-sync on top of what DragonBones did.',
+      'Free and open source. No account, no lock-in, MIT OR Apache-2.0.',
+    ],
     switching: 'Open the _ske.json in Rigby2D with File ▸ Open, with its _tex.json and _tex.png next to it. The character becomes a Rigby2D project; export it to any Rigby2D runtime.',
     guide: 'migrating-from-dragonbones.html',
     source: 'https://github.com/DragonBones',
     faq: [
       ['Does Rigby2D open DragonBones projects?', 'Yes: DragonBones 4.5 and 5.x data with its texture atlas, including meshes, weights, IK, skins, nested armatures (weapons and effects in slots) and every animation timeline.'],
       ['How close is the result?', 'Rigby2D was compared with the official DragonBones runtime on DragonBones\' demo characters: across 55 animations every bone, nested bone, image and color matches within rounding.'],
-      ['Is DragonBones still developed?', 'The DragonBones Pro desktop editor is no longer updated. Its team now makes LoongBones, a web editor. Rigby2D gives DragonBones projects a desktop editor that keeps moving forward.'],
+      ['Why move from DragonBones Pro?', 'The DragonBones Pro desktop editor is no longer updated. Rigby2D gives your DragonBones projects a desktop editor that keeps moving forward, with physics, AutoRig, film output and modern engine runtimes on top.'],
     ],
   },
   {
@@ -92,7 +101,13 @@ export const COMPARISONS = [
       ['Game engines', RIGBY.runtimes, 'Mainly built for video output'],
       ['Automation', RIGBY.automation, 'Lua scripting'],
     ],
-    stronger: ['Vector drawing tools: draw and animate shapes in the same app (Rigby2D animates images you draw elsewhere).', 'Smart bones and frame-by-frame drawing for traditional animation.'],
+    why: [
+      'Free instead of $399.99, with every feature included.',
+      'Rig in one step. AutoRig turns a layered PSD into a working rig.',
+      'Lip-sync from your audio, transcribed on your computer: nothing uploaded.',
+      'One rig, every screen. Render 4K film, then ship the same character to a game engine.',
+      'Runs everywhere: Windows, macOS, Linux and the browser.',
+    ],
     switching: 'Export your character\'s layers as a PSD (or PNGs) from your art tool, then use File ▸ AutoRig artwork in Rigby2D to get an editable rig in one step.',
     guide: 'quick-start.html',
     source: 'https://moho.lostmarble.com/',
@@ -116,7 +131,13 @@ export const COMPARISONS = [
       ['Game engines', RIGBY.runtimes, 'Mainly built for TV and film production'],
       ['Automation', RIGBY.automation, 'Scripting'],
     ],
-    stronger: ['A complete production pipeline: drawing, paint, node compositing and effects, used by TV and film studios.', 'Frame-by-frame and paperless traditional animation.'],
+    why: [
+      'No subscription. Rigging, animation, lip-sync and 4K rendering, free.',
+      'Rig in one step. AutoRig turns a layered PSD into a working rig with bones, meshes and IK.',
+      'Physics on hair, cloth and accessories, built in.',
+      'One rig for film and games: the same character plays in Godot, Unity, Phaser and the web.',
+      'Open source: your pipeline is never locked to a vendor.',
+    ],
     switching: 'Export your character\'s layers as a PSD, then use File ▸ AutoRig artwork in Rigby2D. Render in the Film workspace, or ship the same rig to a game.',
     guide: 'film.html',
     source: 'https://shop.toonboom.com/en/products/harmony',
@@ -160,8 +181,8 @@ export function comparePage(c) {
 
           <div class="vs-columns">
             <div>
-              <h2>Where ${esc(c.name)} is stronger</h2>
-              <ul class="vs-list">${c.stronger.map((s) => `<li>${esc(s)}</li>`).join('')}</ul>
+              <h2>Why switch to Rigby2D</h2>
+              <ul class="vs-list vs-why">${c.why.map((s) => `<li>${esc(s)}</li>`).join('')}</ul>
             </div>
             <div>
               <h2>Switching</h2>
