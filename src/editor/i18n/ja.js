@@ -64,6 +64,7 @@ export default {
   "Download addon": "アドオンをダウンロード",
   "Download addon ({platform})": "アドオンをダウンロード（{platform}）",
   "Download cancelled": "ダウンロードをキャンセルしました",
+  "Download ↗": "ダウンロード ↗",
   "Downloading Rigby2D {version}… {percent}": "Rigby2D {version} をダウンロード中… {percent}",
   "Downloading {file}…": "{file} をダウンロード中…",
   "Downloading {name}…": "{name} をダウンロード中…",

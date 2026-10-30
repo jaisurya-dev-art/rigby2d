@@ -64,6 +64,7 @@ export default {
   "Download addon": "Baixar addon",
   "Download addon ({platform})": "Baixar addon ({platform})",
   "Download cancelled": "Download cancelado",
+  "Download ↗": "Baixar ↗",
   "Downloading Rigby2D {version}… {percent}": "Baixando o Rigby2D {version}… {percent}",
   "Downloading {file}…": "Baixando {file}…",
   "Downloading {name}…": "Baixando {name}…",

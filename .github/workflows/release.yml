@@ -76,8 +76,11 @@ jobs:
           mkdir -p release
           cp "src-tauri/target/release/bundle/msi/Rigby2D_${V}_x64_en-US.msi" release/
           cp "src-tauri/target/release/bundle/nsis/Rigby2D_${V}_x64-setup.exe" release/
-          sig="src-tauri/target/release/bundle/nsis/Rigby2D_${V}_x64-setup.exe.sig"
-          if [ -f "$sig" ]; then cp "$sig" release/; fi
+          # Update signatures for both installers: an MSI install updates with the MSI, an NSIS
+          # install with the setup program (latest.json), so neither asks to uninstall the other.
+          for sig in "src-tauri/target/release/bundle/nsis/Rigby2D_${V}_x64-setup.exe.sig" "src-tauri/target/release/bundle/msi/Rigby2D_${V}_x64_en-US.msi.sig"; do
+            if [ -f "$sig" ]; then cp "$sig" release/; fi
+          done
           cp src-tauri/target/release/rigby2d.exe "release/Rigby2D_${V}_x64_portable.exe"
           cp "dist-mcpb/Rigby2D-AI-${V}.mcpb" release/
           cp "runtimes/godot/dist/rigby2d-godot-addon-${V}-windows-x64.zip" release/

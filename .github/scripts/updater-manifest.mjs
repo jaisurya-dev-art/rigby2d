@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 // Writes latest.json, the manifest the desktop app's auto-update reads
 // (releases/latest/download/latest.json): the version, the release notes link, and for each
-// platform the update file's address and signature.
+// platform the update file's address and signature. The app looks for `{os}-{arch}-{installer}`
+// first, so an MSI install updates with the MSI and an NSIS install with the setup program (mixing
+// them makes the installer ask to uninstall the other), then for `{os}-{arch}`.
 // Usage: node .github/scripts/updater-manifest.mjs <folder with the release files> <version>
 
 import fs from 'node:fs';
@@ -18,16 +20,24 @@ function entry(file) {
   return { signature: fs.readFileSync(sig, 'utf8').trim(), url: `${base}/${file}` };
 }
 
-const windows = entry(`Rigby2D_${version}_x64-setup.exe`);
+const nsis = entry(`Rigby2D_${version}_x64-setup.exe`);
+const msi = entry(`Rigby2D_${version}_x64_en-US.msi`);
 const mac = entry(`Rigby2D_${version}_universal.app.tar.gz`);
 const linux = entry(`Rigby2D_${version}_amd64.AppImage`);
 const platforms = {};
-if (windows) platforms['windows-x86_64'] = windows;
+if (nsis) {
+  platforms['windows-x86_64'] = nsis;
+  platforms['windows-x86_64-nsis'] = nsis;
+}
+if (msi) platforms['windows-x86_64-msi'] = msi;
 if (mac) {
   platforms['darwin-aarch64'] = mac;
   platforms['darwin-x86_64'] = mac;
 }
-if (linux) platforms['linux-x86_64'] = linux;
+if (linux) {
+  platforms['linux-x86_64'] = linux;
+  platforms['linux-x86_64-appimage'] = linux;
+}
 if (!Object.keys(platforms).length) {
   console.log('No signed update files: latest.json not written (set the TAURI_SIGNING_PRIVATE_KEY secret)');
   process.exit(0);

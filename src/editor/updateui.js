@@ -65,8 +65,29 @@ export async function checkForUpdates(app, { quiet = false } = {}) {
   await offerUpdate(app, update);
 }
 
-/** The update dialog: what's new, later, or install and restart. */
+/**
+ * How this copy of the editor was installed ('nsis', 'msi', 'appimage', 'app', 'deb', 'rpm'), or
+ * '' for the portable Windows program and development builds.
+ */
+async function bundleType() {
+  try {
+    return (await (await import('@tauri-apps/api/app')).getBundleType()) ?? '';
+  } catch {
+    return '';
+  }
+}
+
+/** Installs the update can replace in place; the others download the new version instead. */
+const SELF_UPDATING = ['nsis', 'msi', 'appimage', 'app'];
+
+/** Where a copy that cannot update itself gets the new version. */
+const downloadUrl = (version, bundle) =>
+  bundle === '' && navigator.userAgent.includes('Windows') ? `${LINKS.repo}/releases/download/v${version}/Rigby2D_${version}_x64_portable.exe` : `${LINKS.repo}/releases/tag/v${version}`;
+
+/** The update dialog: what's new, later, or install and restart (or download, for copies that cannot update themselves). */
 async function offerUpdate(app, update) {
+  const bundle = await bundleType();
+  const inPlace = SELF_UPDATING.includes(bundle);
   const notes = String(update.body ?? '').split('\n').find((l) => l.trim() && !l.startsWith('#')) ?? '';
   const choice = await askChoice(
     t('Update available'),
@@ -74,10 +95,11 @@ async function offerUpdate(app, update) {
     [
       { id: 'later', label: t('Later') },
       { id: 'notes', label: t("What's new ↗") },
-      { id: 'install', label: t('Install and restart'), primary: true },
+      inPlace ? { id: 'install', label: t('Install and restart'), primary: true } : { id: 'download', label: t('Download ↗'), primary: true },
     ],
   );
   if (choice === 'notes') return openExternal(`${LINKS.repo}/releases/tag/v${update.version}`);
+  if (choice === 'download') return openExternal(downloadUrl(update.version, bundle));
   if (choice !== 'install') return;
   if (app.dirty()) {
     const save = await askChoice(t('Unsaved changes'), t('Save your project before updating?'), [

@@ -64,6 +64,7 @@ export default {
   "Download addon": "下载插件",
   "Download addon ({platform})": "下载插件（{platform}）",
   "Download cancelled": "已取消下载",
+  "Download ↗": "下载 ↗",
   "Downloading Rigby2D {version}… {percent}": "正在下载 Rigby2D {version}… {percent}",
   "Downloading {file}…": "正在下载 {file}…",
   "Downloading {name}…": "正在下载 {name}…",

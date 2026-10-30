@@ -64,6 +64,7 @@ export default {
   "Download addon": "애드온 다운로드",
   "Download addon ({platform})": "애드온 다운로드({platform})",
   "Download cancelled": "다운로드 취소됨",
+  "Download ↗": "다운로드 ↗",
   "Downloading Rigby2D {version}… {percent}": "Rigby2D {version} 다운로드 중… {percent}",
   "Downloading {file}…": "{file} 다운로드 중…",
   "Downloading {name}…": "{name} 다운로드 중…",
