@@ -2,7 +2,8 @@
 // The devlog: release posts and news written as Markdown in site/blog/posts/<date>-<slug>.md,
 // with a small front matter (title, date, summary, image, video, tag). The website build turns them
 // into blog/<slug>.html pages, the blog/ index, the blog/feed.xml RSS feed, and news.json, which
-// the editor's welcome screen reads ("What's new").
+// the editor's welcome screen reads ("What's new"). Each published release gets a post written
+// from its notes (.github/workflows/release-post.yml) unless one was written by hand first.
 
 import fs from 'node:fs';
 import path from 'node:path';

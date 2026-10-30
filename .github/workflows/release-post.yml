@@ -1,0 +1,55 @@
+# Every published release gets a devlog post (site/blog/posts), written from its release notes by
+# .github/scripts/release-post.mjs, so it reaches rigby2d.com/blog, the RSS feed and the editor's
+# What's new. A post written by hand for the version first is kept as it is. The post is committed
+# to develop and the website is rebuilt.
+name: Release devlog post
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag (e.g. v0.5.0)
+        required: true
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: release-post
+  cancel-in-progress: false
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: develop
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - name: Write the post
+        id: write
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.event.release.tag_name || inputs.tag }}
+        run: |
+          gh release view "$TAG" --repo "${{ github.repository }}" --json body,name,publishedAt,isPrerelease > "$RUNNER_TEMP/release.json"
+          if [ "$(jq -r .isPrerelease "$RUNNER_TEMP/release.json")" = true ]; then echo "pre-release: no post"; exit 0; fi
+          jq -r .body "$RUNNER_TEMP/release.json" > "$RUNNER_TEMP/notes.md"
+          node .github/scripts/release-post.mjs "$TAG" "$(jq -r .publishedAt "$RUNNER_TEMP/release.json")" "$RUNNER_TEMP/notes.md" "$(jq -r .name "$RUNNER_TEMP/release.json")"
+      - name: Publish it
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.event.release.tag_name || inputs.tag }}
+        run: |
+          if [ -z "$(git status --porcelain site/blog/posts)" ]; then echo "nothing new"; exit 0; fi
+          git config user.name "rigby2d-devlog[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add site/blog/posts
+          git commit -m "Devlog: $TAG"
+          git push origin develop
+          gh workflow run pages.yml --repo "${{ github.repository }}" --ref develop
