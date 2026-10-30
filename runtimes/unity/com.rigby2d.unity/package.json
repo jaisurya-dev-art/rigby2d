@@ -1,6 +1,6 @@
 {
   "name": "com.rigby2d.unity",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "displayName": "Rigby2D",
   "description": "Runtime for Rigby2D 2D skeletal animation: drop in skeleton exports (.json / .skel + .atlas) or scenes exported from the Rigby2D editor and play them. Matches the Rigby2D editor frame by frame: meshes, weights, IK, transform, path, physics and slider constraints, skins, sequences, clipping, events, crossfades and layered tracks.",
   "unity": "2021.3",
