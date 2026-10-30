@@ -12,6 +12,7 @@ import { defineConfig } from 'vite';
 
 import { DOCS, imageFiles, pageHtml, renderAll, renderMarkdown, searchIndex } from './docs/build.js';
 import { siteFooter, siteHeader } from './chrome.js';
+import { icon, mark } from './icons.js';
 import { feedXml, indexPage, newsJson, postPage, readPosts } from './blog/devlog.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -230,7 +231,11 @@ function addonFiles() {
   };
 }
 
-/** The shared header and footer (chrome.js) in place of the pages' <!--site-header:…--> and <!--site-footer--> markers. */
+/**
+ * The shared header and footer (chrome.js) in place of the pages' <!--site-header:…--> and
+ * <!--site-footer--> markers, and icons (icons.js) in place of <i data-icon="…"></i> and
+ * <i data-mark="…"></i>.
+ */
 function siteChrome() {
   return {
     name: 'rigby-site-chrome',
@@ -242,7 +247,8 @@ function siteChrome() {
         const up = '../'.repeat(depth + 1);
         return html
           .replace(/<!--site-header:(\w*)-->/, (_, active) => siteHeader({ base, active, mark: `${up}branding/rigby2d-mark.svg` }))
-          .replace('<!--site-footer-->', siteFooter({ base, lockup: `${up}branding/rigby2d-lockup-transparent.svg` }));
+          .replace('<!--site-footer-->', siteFooter({ base, lockup: `${up}branding/rigby2d-lockup-transparent.svg` }))
+          .replace(/<i data-(icon|mark)="([\w-]+)"><\/i>/g, (_, kind, name) => (kind === 'icon' ? icon(name) : mark(name)));
       },
     },
   };

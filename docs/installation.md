@@ -3,6 +3,13 @@
 Rigby2D runs in your browser with nothing to install, as a desktop app for Windows, macOS and
 Linux, or from source.
 
+<div class="cards compact">
+<a href="#in-the-browser" data-icon="globe"><strong>Browser</strong>The full editor, nothing to install.</a>
+<a href="#windows-desktop-app" data-mark="windows"><strong>Windows</strong>Portable .exe, installer or MSI.</a>
+<a href="#macos-desktop-app" data-mark="apple"><strong>macOS</strong>One .dmg for Apple silicon and Intel.</a>
+<a href="#linux-desktop-app" data-mark="linux"><strong>Linux</strong>AppImage or .deb.</a>
+</div>
+
 ## In the browser
 
 **[Open the editor](https://rigby2d.com/editor/)**. It is the full editor,

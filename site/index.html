@@ -65,10 +65,10 @@
 
       <section class="strip" aria-label="At a glance">
         <div class="wrap strip-row">
-          <div><b>1 step</b><span>from layered PSD to an editable rig</span></div>
-          <div><b>5 runtimes</b><span>JavaScript, Phaser, Rust, Unity and Godot 4</span></div>
-          <div><b>Lossless</b><span>skeleton JSON 3.8 / 4.2 / 4.3 and .skel</span></div>
-          <div><b>MCP built in</b><span>AI assistants work on real projects</span></div>
+          <div><i data-icon="wand-sparkles"></i><b>1 step</b><span>from layered PSD to an editable rig</span></div>
+          <div><i data-icon="gamepad-2"></i><b>5 runtimes</b><span>JavaScript, Phaser, Rust, Unity and Godot 4</span></div>
+          <div><i data-icon="file-check"></i><b>Lossless</b><span>skeleton JSON 3.8 / 4.2 / 4.3 and .skel</span></div>
+          <div><i data-icon="bot"></i><b>MCP built in</b><span>AI assistants work on real projects</span></div>
         </div>
       </section>
 
@@ -78,52 +78,64 @@
           <p class="section-lede">One editor for game characters and animated film, with the tools that usually take three apps. Every card links to its guide in the <a href="./docs/">documentation</a>.</p>
           <div class="cards">
             <article class="card">
+              <span class="card-icon"><i data-icon="wand-sparkles"></i></span>
               <h3><a href="./docs/autorig.html">AutoRig</a></h3>
-              <p>Import a layered PSD and get an editable rig: body parts found from the layer names, joints where parts meet, weighted meshes for bending parts and IK for arms and legs.</p>
+              <p>Import a layered PSD and get an editable rig: bones, joints, bending meshes and IK, in one step.</p>
             </article>
             <article class="card">
+              <span class="card-icon"><i data-icon="repeat-2"></i></span>
               <h3><a href="./docs/retargeting.html">Retargeting</a></h3>
-              <p>Animate once, reuse on other characters. Bones are matched automatically (<code>L_UpperArm</code> finds <code>upperarm_l</code>) and movement is scaled to each character's size.</p>
+              <p>Animate once, reuse on every character. Bones are matched by name and motion scales to fit.</p>
             </article>
             <article class="card">
+              <span class="card-icon"><i data-icon="bone"></i></span>
               <h3><a href="./docs/bones-and-slots.html">Full rigging toolset</a></h3>
-              <p>Bones, weighted meshes, linked meshes, image sequences, skins, events, clipping and paths, with IK, transform, path, physics and slider constraints.</p>
+              <p>Weighted meshes, skins, events, clipping and paths, with IK, physics and slider constraints.</p>
             </article>
             <article class="card">
+              <span class="card-icon"><i data-icon="chart-spline"></i></span>
               <h3><a href="./docs/animating.html">Animate with confidence</a></h3>
-              <p>Setup and Animate modes, dopesheet and graph editor with Bézier handles, onion skinning, a pose library and face controls that blend between poses.</p>
+              <p>Dopesheet, graph editor with Bézier handles, onion skin, a pose library and face controls.</p>
             </article>
             <article class="card">
+              <span class="card-icon"><i data-icon="clapperboard"></i></span>
               <h3><a href="./docs/film.html">Film workspace</a></h3>
-              <p>Render transparent PNG sequences, WebM with alpha and MP4 at 4K, with timecode, frame-rate presets, an animatable camera and audio tracks mixed into the video.</p>
+              <p>An animated camera and audio tracks, rendered to PNG, WebM with alpha or MP4 at 4K.</p>
             </article>
             <article class="card">
+              <span class="card-icon"><i data-icon="audio-lines"></i></span>
               <h3><a href="./docs/lip-sync.html">Lip-sync from audio</a></h3>
-              <p>Drop in a voice line and the mouth is keyed shape by shape with the nine viseme mouths, each landing just before its sound and never flickering. Whisper transcribes the speech on your computer, nothing uploaded; or use ElevenLabs, Rhubarb or Papagayo timings.</p>
+              <p>Drop in a voice line and the mouth is keyed for you. Transcription runs on your computer.</p>
             </article>
             <article class="card">
+              <span class="card-icon"><i data-icon="drama"></i></span>
               <h3><a href="./docs/scenes.html">Scenes</a></h3>
-              <p>Put several characters on one stage. Each plays clips of its animations, trimmed, looped and crossfaded, with its own voice, in front of painted layers with parallax and a moving camera.</p>
+              <p>Several characters on one stage, with clips, voices, parallax layers and a moving camera.</p>
             </article>
             <article class="card">
-              <h3><a href="./docs/scripting.html">Python scripting</a></h3>
-              <p>Python 3 is built in. Write scripts against the open project and turn them into tools in the Scripts menu. Each run is one undo step; failures leave the project untouched.</p>
+              <span class="card-icon"><i data-icon="code"></i></span>
+              <h3><a href="./docs/scripting.html">Python and add-ons</a></h3>
+              <p>Python 3 built in. Turn scripts into tools, or install add-ons from the community.</p>
             </article>
             <article class="card">
+              <span class="card-icon"><i data-icon="panels-top-left"></i></span>
               <h3><a href="./docs/interface.html">Made for your setup</a></h3>
-              <p>Pop the Timeline, Tree and Inspector out onto a second monitor and recall saved window layouts with a shortcut. Pixel-art projects stay sharp end to end.</p>
+              <p>Pop panels out onto a second monitor and recall saved layouts. Pixel art stays sharp.</p>
             </article>
             <article class="card">
+              <span class="card-icon"><i data-icon="graduation-cap"></i></span>
               <h3><a href="./docs/quick-start.html">Learn by doing</a></h3>
-              <p>Interactive lessons with a practice character take you from a drawing to a moving character, right inside the editor.</p>
+              <p>Interactive lessons take you from a drawing to a moving character, inside the editor.</p>
             </article>
             <article class="card">
+              <span class="card-icon"><i data-icon="ruler"></i></span>
               <h3><a href="./docs/guides.html">Guides and precision</a></h3>
-              <p>Pixel rulers and guide lines, real-time guides that trace each rotate, move, scale and shear, drag-and-drop draw order with a live preview, and the hovered bone lit up in every panel.</p>
+              <p>Rulers, guide lines and live guides for every move, rotate and scale.</p>
             </article>
             <article class="card">
+              <span class="card-icon"><i data-icon="globe"></i></span>
               <h3><a href="./docs/installation.html">Runs anywhere</a></h3>
-              <p>The full editor runs in your browser with nothing to install, or as a Windows app. Projects are one <code>.rigby</code> file; exports are standard skeleton JSON and <code>.skel</code>.</p>
+              <p>In your browser with nothing to install, or as an app for Windows, macOS and Linux.</p>
             </article>
           </div>
 
@@ -169,29 +181,26 @@
       </section>
 
       <section id="runtimes" class="section">
-        <div class="wrap split">
+        <div class="wrap split runtimes-split">
           <div>
             <p class="eyebrow">Play it anywhere</p>
-            <h2>Small, fast runtimes</h2>
+            <h2>Runtimes for every engine</h2>
             <p>
-              A dependency-free JavaScript runtime with a reference WebGL renderer, a Rust port that matches it frame by frame,
-              3 to 4× faster, powering the Godot 4 node <code>RigbySkeleton2D</code>, and a Unity package in C#: multi-core,
-              garbage-free, clean edges in any color space, scenes included.
+              Export once and play the same animation in Godot, Unity, Phaser, the browser or Rust. The runtimes are free, open
+              source and match each other frame by frame: meshes, physics, IK, skins, events and whole scenes.
             </p>
-            <p>The animation at the top of this page is that JavaScript runtime, drawing NILA live: mesh deformation, physics on her braid and earrings, face swaps and lip-sync, all from one exported <code>.skel</code>.</p>
+            <div class="engines"><a class="engine engine-godot" href="./docs/runtimes.html#godot"><i data-mark="godot"></i><span><b>Godot</b><small>Godot 4.3+</small></span></a><a class="engine engine-unity" href="./docs/runtimes.html#unity"><i data-mark="unity"></i><span><b>Unity</b><small>Unity 2021.3+ and 6</small></span></a><a class="engine engine-phaser" href="./docs/runtimes.html#phaser"><i data-mark="phaser"></i><span><b>Phaser</b><small>Phaser 3.60+</small></span></a><a class="engine engine-javascript" href="./docs/runtimes.html#javascript"><i data-mark="javascript"></i><span><b>JavaScript</b><small>Any browser, WebGL</small></span></a><a class="engine engine-rust" href="./docs/runtimes.html#rust"><i data-mark="rust"></i><span><b>Rust</b><small>No dependencies</small></span></a></div>
+            <p class="fine">NILA at the top of this page is the JavaScript runtime, live in your browser.</p>
             <a class="btn" href="./docs/runtimes.html">Runtime guide</a>
           </div>
-          <pre class="code" aria-label="JavaScript runtime example"><code><span class="k">const</span> skeleton = Skeleton.fromJson(json);
-<span class="k">const</span> pose = <span class="k">new</span> Pose(skeleton);
-<span class="k">const</span> state = <span class="k">new</span> AnimationState();
-state.play(skeleton, <span class="s">'walk'</span>, <span class="k">true</span>, <span class="n">0.2</span>);
-
-<span class="c">// every frame:</span>
-state.update(skeleton, <span class="n">1</span> / <span class="n">60</span>);
-state.apply(skeleton, pose);
-<span class="k">for</span> (<span class="k">const</span> quad <span class="k">of</span> pose.quads(skeleton)) {
-  <span class="c">// draw quad.positions with quad.uvs</span>
-}</code></pre>
+          <div class="runtime-art" aria-hidden="true">
+            <img src="./art/rigbytron.webp" alt="" width="390" height="833" loading="lazy" />
+            <span class="orbit o1"><i data-mark="godot"></i></span>
+            <span class="orbit o2"><i data-mark="unity"></i></span>
+            <span class="orbit o3"><i data-mark="phaser"></i></span>
+            <span class="orbit o4"><i data-mark="javascript"></i></span>
+            <span class="orbit o5"><i data-mark="rust"></i></span>
+          </div>
         </div>
       </section>
 
@@ -207,6 +216,7 @@ state.apply(skeleton, pose);
               <a class="btn" href="./blog/" data-goatcounter-click="site-devlog-section">Read the devlog</a>
             </div>
           </div>
+          <img class="community-art" src="./art/nila-happy.webp" alt="" width="342" height="832" loading="lazy" />
         </div>
       </section>
 
@@ -215,39 +225,48 @@ state.apply(skeleton, pose);
           <h2>Get Rigby2D</h2>
           <p class="section-lede">Latest release: <a data-release href="https://github.com/jaisurya-dev-art/rigby2d/releases/latest">see all files</a></p>
           <div class="downloads">
-            <a class="dl" href="./editor/" data-goatcounter-click="site-open-editor-downloads">
+            <a class="dl with-icon" href="./editor/" data-goatcounter-click="site-open-editor-downloads">
+              <span class="dl-icon dl-globe"><i data-icon="globe"></i></span>
               <b>Browser editor</b>
               <span>Runs right here. Open and save files through your browser.</span>
             </a>
-            <a class="dl" href="https://github.com/jaisurya-dev-art/rigby2d/releases/latest/download/Rigby2D_x64_portable.exe" data-goatcounter-click="site-download-portable">
+            <a class="dl with-icon" href="https://github.com/jaisurya-dev-art/rigby2d/releases/latest/download/Rigby2D_x64_portable.exe" data-goatcounter-click="site-download-portable">
+              <span class="dl-icon dl-windows"><i data-mark="windows"></i></span>
               <b>Windows, portable</b>
               <span>One .exe, no install. Needs WebView2 (included in Windows 10 and 11).</span>
             </a>
-            <a class="dl" href="https://github.com/jaisurya-dev-art/rigby2d/releases/latest" data-goatcounter-click="site-download-installer">
+            <a class="dl with-icon" href="https://github.com/jaisurya-dev-art/rigby2d/releases/latest" data-goatcounter-click="site-download-installer">
+              <span class="dl-icon dl-windows"><i data-mark="windows"></i></span>
               <b>Windows installer</b>
               <span>MSI or setup .exe, on the Releases page.</span>
             </a>
-            <a class="dl" href="https://github.com/jaisurya-dev-art/rigby2d/releases/latest/download/Rigby2D_universal.dmg" data-goatcounter-click="site-download-macos">
+            <a class="dl with-icon" href="https://github.com/jaisurya-dev-art/rigby2d/releases/latest/download/Rigby2D_universal.dmg" data-goatcounter-click="site-download-macos">
+              <span class="dl-icon dl-apple"><i data-mark="apple"></i></span>
               <b>macOS</b>
               <span>One .dmg for Apple silicon and Intel. See the docs for the first start.</span>
             </a>
-            <a class="dl" href="https://github.com/jaisurya-dev-art/rigby2d/releases/latest/download/Rigby2D_amd64.AppImage" data-goatcounter-click="site-download-linux">
+            <a class="dl with-icon" href="https://github.com/jaisurya-dev-art/rigby2d/releases/latest/download/Rigby2D_amd64.AppImage" data-goatcounter-click="site-download-linux">
+              <span class="dl-icon dl-linux"><i data-mark="linux"></i></span>
               <b>Linux</b>
               <span>AppImage for most distributions, or a .deb on the Releases page.</span>
             </a>
-            <a class="dl" href="https://github.com/jaisurya-dev-art/rigby2d/releases/latest/download/Rigby2D-AI.mcpb" data-goatcounter-click="site-download-ai-extension">
+            <a class="dl with-icon" href="https://github.com/jaisurya-dev-art/rigby2d/releases/latest/download/Rigby2D-AI.mcpb" data-goatcounter-click="site-download-ai-extension">
+              <span class="dl-icon dl-bot"><i data-icon="bot"></i></span>
               <b>AI extension</b>
               <span>The MCP server as a one-file .mcpb install.</span>
             </a>
-            <a class="dl" href="https://github.com/jaisurya-dev-art/rigby2d/blob/develop/runtimes/unity/com.rigby2d.unity/README.md" data-goatcounter-click="site-unity-runtime">
+            <a class="dl with-icon" href="https://github.com/jaisurya-dev-art/rigby2d/blob/develop/runtimes/unity/com.rigby2d.unity/README.md" data-goatcounter-click="site-unity-runtime">
+              <span class="dl-icon dl-unity"><i data-mark="unity"></i></span>
               <b>Unity runtime</b>
               <span>Package for Unity 2021.3+ and Unity 6: add it from its git URL in the Package Manager.</span>
             </a>
-            <a class="dl" href="https://github.com/jaisurya-dev-art/rigby2d/blob/develop/runtimes/godot/addons/rigby2d/README.md" data-goatcounter-click="site-godot-runtime">
+            <a class="dl with-icon" href="https://github.com/jaisurya-dev-art/rigby2d/blob/develop/runtimes/godot/addons/rigby2d/README.md" data-goatcounter-click="site-godot-runtime">
+              <span class="dl-icon dl-godot"><i data-mark="godot"></i></span>
               <b>Godot runtime</b>
               <span>Addon and demo for Godot 4.3+ on Windows, macOS and Linux.</span>
             </a>
-            <a class="dl" href="https://github.com/jaisurya-dev-art/rigby2d/blob/develop/runtimes/phaser/README.md" data-goatcounter-click="site-phaser-runtime">
+            <a class="dl with-icon" href="https://github.com/jaisurya-dev-art/rigby2d/blob/develop/runtimes/phaser/README.md" data-goatcounter-click="site-phaser-runtime">
+              <span class="dl-icon dl-phaser"><i data-mark="phaser"></i></span>
               <b>Phaser runtime</b>
               <span>Plugin for Phaser 3.60+: this.add.rigby(). One .js file on the Releases page.</span>
             </a>

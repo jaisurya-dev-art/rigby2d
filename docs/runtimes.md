@@ -6,13 +6,13 @@ image sequences, clipping, IK, transform, path, physics and slider constraints, 
 layered tracks with crossfades. They also play [scenes](scenes.md#in-games-and-apps): several
 characters on a stage with a moving camera and parallax.
 
-| Runtime | Language | Status |
-| --- | --- | --- |
-| [JavaScript](#javascript) (`src/core`) + WebGL renderer (`src/webgl`) | JavaScript, no dependencies | Complete |
-| [Rust](#rust) (`runtimes/rust/rigby-runtime`) | Rust, no dependencies; 3 to 4× faster | Complete |
-| [Phaser](#phaser) (`this.add.rigby`) | Phaser 3.60+ plugin on the JavaScript runtime, WebGL | Complete |
-| [Unity](#unity) (`RigbySkeleton`, `RigbyScene`) | C#, every platform Unity builds for; multi-core, no garbage | Complete |
-| [Godot](#godot) (`RigbySkeleton2D`, `RigbyScene2D`) | GDExtension on the Rust core | Preview |
+<div class="cards engines">
+<a href="#godot" data-mark="godot"><strong>Godot <span class="status preview">Preview</span></strong><code>RigbySkeleton2D</code> and <code>RigbyScene2D</code> nodes, a GDExtension on the Rust core. <small>Godot 4.3+ · Windows, macOS, Linux</small></a>
+<a href="#unity" data-mark="unity"><strong>Unity <span class="status">Complete</span></strong><code>RigbySkeleton</code> and <code>RigbyScene</code> components in C#, multi-core, no garbage. <small>Unity 2021.3+ and Unity 6 · every platform</small></a>
+<a href="#phaser" data-mark="phaser"><strong>Phaser <span class="status">Complete</span></strong>A plugin: <code>this.add.rigby()</code>, on the JavaScript runtime. <small>Phaser 3.60+ · WebGL</small></a>
+<a href="#javascript" data-mark="javascript"><strong>JavaScript <span class="status">Complete</span></strong>No dependencies, with a ready-made WebGL renderer. <small><code>src/core</code> · <code>src/webgl</code></small></a>
+<a href="#rust" data-mark="rust"><strong>Rust <span class="status">Complete</span></strong>No dependencies; matches the JavaScript runtime frame by frame, 3 to 4× faster. <small><code>runtimes/rust/rigby-runtime</code></small></a>
+</div>
 
 The landing page of the [website](https://rigby2d.com/) plays NILA with the
 JavaScript runtime.
@@ -151,10 +151,10 @@ See the [Unity guide](https://github.com/jaisurya-dev-art/rigby2d/blob/develop/r
 
 ## Godot
 
-The `RigbySkeleton2D` node for Godot 4.3+ (preview; prebuilt for Windows x64, build from source
-elsewhere). Install the `rigby2d-godot-addon` zip from the
-[Releases](https://github.com/jaisurya-dev-art/rigby2d/releases) into your project, add the node, and
-set *Skeleton File*, *Atlas File* and *Animation*.
+The `RigbySkeleton2D` node for Godot 4.3+ (preview; prebuilt for Windows x64, macOS and Linux x64).
+Install the `rigby2d-godot-addon` zip for your system from the
+[Releases](https://github.com/jaisurya-dev-art/rigby2d/releases), or with *File ▸ Get runtimes…* in
+the editor, into your project, add the node, and set *Skeleton File*, *Atlas File* and *Animation*.
 
 ```gdscript
 @onready var hero: RigbySkeleton2D = $Hero

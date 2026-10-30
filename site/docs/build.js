@@ -13,7 +13,8 @@ import hljs from 'highlight.js';
 import { Marked } from 'marked';
 
 import { fillGenerated, generatedSections } from './generate.js';
-import { NAV, PAGES } from './nav.js';
+import { icon, mark } from '../icons.js';
+import { NAV, PAGE_ICONS, PAGES } from './nav.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 export const REPO = path.resolve(here, '../..');
@@ -57,6 +58,29 @@ function linkTarget(href) {
   return `${GITHUB}/${isDir ? 'tree' : 'blob'}/${BRANCH}/${rel.replace(/\/$/, '')}${anchor}`;
 }
 
+/**
+ * Cards (`<div class="cards">` links in the Markdown) with `data-icon="name"` or `data-mark="name"`
+ * get that icon or engine / platform mark from site/icons.js. GitHub ignores the attributes.
+ */
+function cardIcons(html) {
+  return html.replace(/<a ([^>]*?)data-(icon|mark)="([\w-]+)"([^>]*)>([\s\S]*?)<\/a>/g, (all, before, kind, name, after, inner) => {
+    const svg = kind === 'icon' ? icon(name, 20) : mark(name, 22);
+    return `<a ${`${before} ${after}`.trim()} class="card-${kind} card-${esc(name)}"><span class="card-art">${svg}</span><span class="card-body">${inner}</span></a>`;
+  });
+}
+
+const OS_MARKS = { Windows: 'windows', macOS: 'apple', Linux: 'linux' };
+
+/** The engine or platform mark for a section heading such as "Godot" or "macOS desktop app", or ''. */
+function headingMark(text) {
+  const engine = /^(JavaScript|Rust|Phaser|Unity|Godot)$/.exec(text)?.[1].toLowerCase();
+  if (engine) return `<span class="h-mark card-${engine}">${mark(engine, 22)}</span>`;
+  const os = OS_MARKS[/^(Windows|macOS|Linux) desktop app$/.exec(text)?.[1]];
+  if (os) return `<span class="h-mark card-${os}">${mark(os, 20)}</span>`;
+  if (text === 'In the browser') return `<span class="h-mark card-globe">${icon('globe', 20)}</span>`;
+  return '';
+}
+
 /** Renders one Markdown page: { title, html, toc: [{ depth, id, text }], text }. */
 export function renderMarkdown(md) {
   const toc = [];
@@ -77,7 +101,8 @@ export function renderMarkdown(md) {
         used.set(id, n + 1);
         if (n) id = `${id}-${n}`;
         if (depth <= 3) toc.push({ depth, id, text: plain });
-        return `<h${depth} id="${id}"><a class="anchor" href="#${id}" aria-label="Link to this section">#</a>${inner}</h${depth}>\n`;
+        const art = depth === 2 ? headingMark(plain) : '';
+        return `<h${depth} id="${id}"${art ? ' class="with-mark"' : ''}><a class="anchor" href="#${id}" aria-label="Link to this section">#</a>${art}${inner}</h${depth}>\n`;
       },
       link({ href, title: t, tokens }) {
         const target = linkTarget(href);
@@ -103,7 +128,7 @@ export function renderMarkdown(md) {
       },
     },
   });
-  const html = marked.parse(alerts(md));
+  const html = cardIcons(marked.parse(alerts(md)));
   return { title, html, toc, text: stripTags(html).replace(/\s+/g, ' ').trim() };
 }
 
@@ -129,7 +154,7 @@ const sidebar = (pages, current) =>
       `<div class="nav-section"><p class="nav-title">${esc(s.title)}</p><ul>${s.pages
         .map((slug) => {
           const p = pages.find((x) => x.slug === slug);
-          return `<li><a href="${slug}.html"${slug === current ? ' aria-current="page"' : ''}>${esc(p?.title ?? slug)}</a></li>`;
+          return `<li><a href="${slug}.html"${slug === current ? ' aria-current="page"' : ''}>${icon(PAGE_ICONS[slug], 15)}${esc(p?.title ?? slug)}</a></li>`;
         })
         .join('')}</ul></div>`,
   ).join('');
@@ -185,7 +210,7 @@ export function pageHtml(page, pages, assets) {
       <aside id="sidebar" class="sidebar" aria-label="Documentation">${sidebar(pages, page.slug)}</aside>
       <main id="content" class="content">
         <p class="crumb">${esc(page.section)}</p>
-        <article class="doc">${page.html}</article>
+        <article class="doc">${page.html.replace(/<h1>/, `<h1><span class="title-icon">${icon(PAGE_ICONS[page.slug], 26)}</span>`)}</article>
         <p class="edit"><a href="${GITHUB}/edit/${BRANCH}/docs/${page.slug}.md" rel="noopener">Edit this page on GitHub</a></p>
         ${pager}
       </main>
@@ -207,7 +232,7 @@ export function searchIndex(pages) {
     // Split the page's text at its headings, so a hit links straight to its section.
     const parts = p.html.split(/(?=<h[23] id=")/);
     for (const part of parts) {
-      const m = /^<h([23]) id="([^"]+)">(.*?)<\/h\1>/s.exec(part);
+      const m = /^<h([23]) id="([^"]+)"[^>]*>(.*?)<\/h\1>/s.exec(part);
       entries.push({
         page: p.slug,
         title: p.title,

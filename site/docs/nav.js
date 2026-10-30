@@ -34,3 +34,41 @@ export const NAV = [
 ];
 
 export const PAGES = NAV.flatMap((s) => s.pages.map((slug) => ({ slug, section: s.title })));
+
+/** Each page's icon (a name in site/icons.js), in the sidebar and next to its title. */
+export const PAGE_ICONS = {
+  index: 'book-open',
+  installation: 'download',
+  'quick-start': 'rocket',
+  interface: 'panels-top-left',
+  preferences: 'settings',
+  'migrating-from-spine': 'arrow-right-left',
+  'migrating-from-dragonbones': 'arrow-right-left',
+  'importing-art': 'image',
+  autorig: 'wand-sparkles',
+  'bones-and-slots': 'bone',
+  meshes: 'shapes',
+  constraints: 'link',
+  'skins-and-events': 'shirt',
+  animating: 'play',
+  'graph-editor': 'chart-spline',
+  'onion-skin': 'layers',
+  guides: 'ruler',
+  'poses-and-faces': 'smile',
+  retargeting: 'repeat-2',
+  film: 'clapperboard',
+  scenes: 'drama',
+  'lip-sync': 'audio-lines',
+  scripting: 'code',
+  addons: 'puzzle',
+  mcp: 'bot',
+  'mcp-tools': 'wrench',
+  export: 'package',
+  runtimes: 'gamepad-2',
+  'file-formats': 'file-code',
+  shortcuts: 'keyboard',
+  recovery: 'life-buoy',
+  troubleshooting: 'bug',
+  demos: 'sparkles',
+  privacy: 'shield',
+};

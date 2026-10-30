@@ -1564,3 +1564,188 @@ h3 {
     flex-direction: column;
   }
 }
+
+/* ---- icons and artwork on the landing page (icons.js, site/art) ---- */
+
+.strip-row div {
+  position: relative;
+  padding-left: 64px;
+}
+.strip-row div > .i {
+  position: absolute;
+  left: 20px;
+  top: 26px;
+  width: 28px;
+  height: 28px;
+  color: var(--steel);
+}
+.card-icon {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  margin-bottom: 14px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(94, 162, 255, 0.2), rgba(143, 123, 255, 0.2));
+  border: 1px solid rgba(123, 167, 199, 0.3);
+  color: var(--ice);
+  transition: transform 0.2s ease;
+}
+.card:hover .card-icon {
+  transform: translateY(-2px) rotate(-4deg);
+}
+.card h3 {
+  margin-top: 0;
+}
+
+/* Engines: brand marks in their colours. */
+.engine-godot { --brand: #478cbf; }
+.engine-unity { --brand: #ffffff; }
+.engine-phaser { --brand: #8dd35f; }
+.engine-javascript { --brand: #f7df1e; }
+.engine-rust { --brand: #f74c00; }
+.engines {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 10px;
+  margin: 28px 0 18px;
+}
+.engine {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--text);
+  text-decoration: none;
+  transition: border-color 0.15s, transform 0.15s;
+}
+.engine:hover {
+  border-color: var(--brand);
+  transform: translateY(-2px);
+}
+.engine .m {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  color: var(--brand);
+}
+.engine b {
+  display: block;
+  font-size: 0.98rem;
+}
+.engine small {
+  display: block;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+.runtimes-split {
+  align-items: center;
+}
+.runtime-art {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 460px;
+  border-radius: 24px;
+  background:
+    radial-gradient(50% 50% at 50% 55%, rgba(94, 162, 255, 0.28), transparent 70%),
+    radial-gradient(40% 40% at 70% 20%, rgba(143, 123, 255, 0.2), transparent 70%);
+}
+.runtime-art img {
+  position: relative;
+  z-index: 1;
+  height: 440px;
+  width: auto;
+  filter: drop-shadow(0 30px 40px rgba(0, 0, 0, 0.5));
+}
+.orbit {
+  position: absolute;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 60px;
+  height: 60px;
+  border-radius: 18px;
+  border: 1px solid var(--line);
+  background: rgba(23, 24, 27, 0.9);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.45);
+  animation: bob 5s ease-in-out infinite;
+}
+.orbit .m {
+  width: 32px;
+  height: 32px;
+}
+.o1 { left: 8%; top: 14%; color: #478cbf; }
+.o2 { right: 8%; top: 10%; color: #fff; animation-delay: -1s; }
+.o3 { right: 4%; top: 52%; color: #8dd35f; animation-delay: -2s; }
+.o4 { left: 4%; top: 56%; color: #f7df1e; animation-delay: -3s; }
+.o5 { left: 16%; bottom: 6%; color: #f74c00; animation-delay: -4s; }
+@keyframes bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+/* Downloads: a mark for each platform. */
+.dl.with-icon {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-content: start;
+  column-gap: 14px;
+  row-gap: 4px;
+  align-items: start;
+}
+.dl.with-icon .dl-icon {
+  grid-row: span 2;
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  background: var(--bg-alt);
+  border: 1px solid var(--line);
+}
+.dl.with-icon .dl-icon svg {
+  width: 24px;
+  height: 24px;
+}
+.dl .dl-icon.dl-globe { color: #8f7bff; }
+.dl .dl-icon.dl-windows { color: #3fa9f5; }
+.dl .dl-icon.dl-apple { color: #f4f4f5; }
+.dl .dl-icon.dl-linux { color: #fcc624; }
+.dl .dl-icon.dl-bot { color: var(--ice); }
+.dl .dl-icon.dl-unity { color: #fff; }
+.dl .dl-icon.dl-godot { color: #478cbf; }
+.dl .dl-icon.dl-phaser { color: #8dd35f; }
+
+/* Community: NILA next to the call to join. */
+.community-row {
+  position: relative;
+}
+.community-art {
+  flex: none;
+  height: 300px;
+  width: auto;
+  margin-left: auto;
+  filter: drop-shadow(0 24px 32px rgba(0, 0, 0, 0.5));
+}
+
+@media (max-width: 820px) {
+  .runtime-art {
+    min-height: 360px;
+  }
+  .runtime-art img {
+    height: 340px;
+  }
+  .community-art {
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .orbit {
+    animation: none;
+  }
+}

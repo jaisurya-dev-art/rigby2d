@@ -770,3 +770,129 @@ kbd {
     transition: none;
   }
 }
+
+/* ---- icons: sidebar, page titles and cards (site/icons.js) ---- */
+
+.sidebar a {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.sidebar a .i {
+  flex: none;
+  opacity: 0.6;
+}
+.sidebar a[aria-current='page'] .i,
+.sidebar a:hover .i {
+  opacity: 1;
+}
+.doc h1 {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.title-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 48px;
+  height: 48px;
+  border-radius: 13px;
+  background: linear-gradient(135deg, rgba(94, 162, 255, 0.22), rgba(143, 123, 255, 0.22));
+  border: 1px solid rgba(123, 167, 199, 0.35);
+  color: var(--ice);
+}
+.doc .cards a[class*='card-'] {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+.card-body {
+  flex: 1;
+  min-width: 0;
+}
+.card-art {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  color: var(--ice);
+}
+.doc .cards a:hover .card-art {
+  border-color: var(--steel);
+}
+/* Brand colours for the engine and platform marks. */
+.card-godot .card-art { color: #478cbf; }
+.card-unity .card-art { color: #fff; background: #222; }
+.card-phaser .card-art { color: #8dd35f; }
+.card-javascript .card-art { color: #f7df1e; }
+.card-rust .card-art { color: #f74c00; }
+.card-windows .card-art { color: #3fa9f5; }
+.card-apple .card-art { color: #f4f4f5; }
+.card-linux .card-art { color: #fcc624; }
+.card-globe .card-art { color: #8f7bff; }
+/* Big engine cards (Runtimes). */
+.doc .cards.engines a {
+  padding: 16px;
+}
+.doc .cards.engines .card-art {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+}
+.doc .cards.engines .card-art .m {
+  width: 30px;
+  height: 30px;
+}
+.doc .cards a small {
+  display: block;
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+.status {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 0 7px;
+  border-radius: 999px;
+  background: rgba(48, 164, 108, 0.18);
+  color: #6fdc9f;
+  font-size: 0.72rem;
+  font-weight: 600;
+  vertical-align: middle;
+}
+.status.preview {
+  background: rgba(255, 159, 28, 0.18);
+  color: #ffbd59;
+}
+.doc h2.with-mark {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.h-mark {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 11px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+}
+.h-mark.card-godot { color: #478cbf; }
+.h-mark.card-unity { color: #fff; background: #222; }
+.h-mark.card-phaser { color: #8dd35f; }
+.h-mark.card-javascript { color: #f7df1e; }
+.h-mark.card-rust { color: #f74c00; }
+.h-mark.card-windows { color: #3fa9f5; }
+.h-mark.card-apple { color: #f4f4f5; }
+.h-mark.card-linux { color: #fcc624; }
+.h-mark.card-globe { color: #8f7bff; }
+.doc .cards.compact {
+  grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
+}

@@ -14,34 +14,28 @@ and meshes, animate it for games or film, and play it anywhere with the included
 
 ## What you can do with it
 
-- **Rig in one step.** Import a layered PSD and [AutoRig](autorig.md) finds the body parts, places
-  the joints and builds bones, bending meshes and IK.
-- **Rig by hand** with [bones, slots and attachments](bones-and-slots.md), [weighted meshes](meshes.md),
-  [IK, transform, path, physics and slider constraints](constraints.md), [skins and events](skins-and-events.md).
-- **Animate** with Setup and Animate modes, a [dopesheet](animating.md), a
-  [graph editor](graph-editor.md) with Bézier handles, [onion skinning](onion-skin.md), a
-  [pose library and face controls](poses-and-faces.md), and [retargeting](retargeting.md) between characters.
-- **Make films** in the [Film workspace](film.md): resolution and frame-rate presets, an animatable
-  camera, audio tracks, [viseme lip-sync](lip-sync.md) with automatic transcription, and renders to
-  PNG sequences, WebM with alpha and MP4.
-- **Compose scenes** with several characters: actors with NLE-style clips, parallax layers and a
-  camera. See [Scenes](scenes.md).
-- **Automate** with [Python scripting](scripting.md) and custom tools, or let an AI assistant work
-  through the [MCP server](mcp.md).
-- **Ship** skeleton JSON (3.8, 4.2, 4.3) or binary `.skel` with a texture atlas, and play it with
-  the [JavaScript, Rust, Unity and Godot runtimes](runtimes.md).
+<div class="cards">
+<a href="autorig.html" data-icon="wand-sparkles"><strong>Rig in one step</strong>Import a layered PSD; AutoRig finds the parts and builds bones, meshes and IK.</a>
+<a href="bones-and-slots.html" data-icon="bone"><strong>Rig by hand</strong>Bones, weighted meshes, constraints, skins and events.</a>
+<a href="animating.html" data-icon="play"><strong>Animate</strong>Dopesheet, graph editor, onion skin, poses and face controls.</a>
+<a href="retargeting.html" data-icon="repeat-2"><strong>Reuse animation</strong>Retarget animations from one character to another.</a>
+<a href="film.html" data-icon="clapperboard"><strong>Make films</strong>Camera, audio, lip-sync, and renders to PNG, WebM and MP4.</a>
+<a href="scenes.html" data-icon="drama"><strong>Compose scenes</strong>Several characters, clips, parallax layers and a camera.</a>
+<a href="scripting.html" data-icon="code"><strong>Automate</strong>Python scripts, add-ons, and AI assistants over MCP.</a>
+<a href="runtimes.html" data-icon="gamepad-2"><strong>Ship to any engine</strong>JSON or <code>.skel</code> for Godot, Unity, Phaser, JavaScript and Rust.</a>
+</div>
 
 ## Where to start
 
 <div class="cards">
-<a href="installation.html"><strong>Installation</strong>Use it in the browser, download the app for Windows, macOS or Linux, or build from source.</a>
-<a href="quick-start.html"><strong>Quick start</strong>From a layered PSD to a moving character in ten minutes.</a>
-<a href="interface.html"><strong>The interface</strong>A tour of the viewport, tree, inspector and timeline.</a>
-<a href="autorig.html"><strong>AutoRig</strong>Rig layered artwork in one step.</a>
-<a href="animating.html"><strong>Animating</strong>Keys, the dopesheet, curves and playback.</a>
-<a href="film.html"><strong>Film workspace</strong>Output, camera, audio and rendering.</a>
-<a href="runtimes.html"><strong>Runtimes</strong>Play your animations in games and apps.</a>
-<a href="mcp.html"><strong>AI assistants</strong>Connect Claude or another MCP client.</a>
+<a href="installation.html" data-icon="download"><strong>Installation</strong>Use it in the browser, download the app for Windows, macOS or Linux, or build from source.</a>
+<a href="quick-start.html" data-icon="rocket"><strong>Quick start</strong>From a layered PSD to a moving character in ten minutes.</a>
+<a href="interface.html" data-icon="panels-top-left"><strong>The interface</strong>A tour of the viewport, tree, inspector and timeline.</a>
+<a href="autorig.html" data-icon="wand-sparkles"><strong>AutoRig</strong>Rig layered artwork in one step.</a>
+<a href="animating.html" data-icon="play"><strong>Animating</strong>Keys, the dopesheet, curves and playback.</a>
+<a href="film.html" data-icon="clapperboard"><strong>Film workspace</strong>Output, camera, audio and rendering.</a>
+<a href="runtimes.html" data-icon="gamepad-2"><strong>Runtimes</strong>Play your animations in games and apps.</a>
+<a href="mcp.html" data-icon="bot"><strong>AI assistants</strong>Connect Claude or another MCP client.</a>
 </div>
 
 ## Key ideas
