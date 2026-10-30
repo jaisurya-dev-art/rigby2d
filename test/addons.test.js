@@ -6,7 +6,9 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
 import { addonId, addonManifest, compareVersions, disableAddonPy, enableAddonPy, readAddonPackage, versionText } from '../src/editor/addons.js';
-import { zip } from '../src/editor/zip.js';
+import zlib from 'node:zlib';
+
+import { inflateRaw, zip } from '../src/editor/zip.js';
 
 const enc = new TextEncoder();
 const file = (path, text) => ({ path, bytes: enc.encode(text) });
@@ -55,4 +57,14 @@ test('versions compare part by part', () => {
 test('enable and disable code names only the add-on module', () => {
   assert.match(enableAddonPy('mirror'), /import_module\("mirror"\)/);
   assert.match(disableAddonPy('mirror'), /unregister\(\)/);
+});
+
+test('deflated zip entries (GitHub "Download ZIP", most zip tools) are inflated', () => {
+  let seed = 1;
+  const data = new Uint8Array(100000).map((_, i) => (i % 7 ? (i >> 5) & 255 : (seed = (seed * 16807) % 2147483647) & 255));
+  for (const level of [0, 1, 6, 9]) {
+    const packed = new Uint8Array(zlib.deflateRawSync(data, { level }));
+    assert.deepEqual(inflateRaw(packed, data.length), data, `level ${level}`);
+  }
+  assert.throws(() => inflateRaw(new Uint8Array([0xff, 0xff]), 10), /damaged/);
 });

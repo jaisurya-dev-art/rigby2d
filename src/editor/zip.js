@@ -82,8 +82,9 @@ export function zip(files, now = new Date()) {
 }
 
 /**
- * Reads a ZIP archive written by `zip` (stored entries only). Returns a Map of path -> bytes.
- * Throws on compressed entries or a damaged archive.
+ * Reads a ZIP archive: stored and deflated entries (those made by `zip`, GitHub's "Download ZIP",
+ * and most zip tools). Returns a Map of path -> bytes. Throws on other compression methods or a
+ * damaged archive.
  */
 export function unzip(bytes) {
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
@@ -103,20 +104,145 @@ export function unzip(bytes) {
     if (view.getUint32(p, true) !== 0x02014b50) throw new Error('damaged ZIP directory');
     const method = view.getUint16(p + 10, true);
     const crc = view.getUint32(p + 16, true);
-    const size = view.getUint32(p + 20, true);
+    const packed = view.getUint32(p + 20, true);
+    const size = view.getUint32(p + 24, true);
     const nameLen = view.getUint16(p + 28, true);
     const extraLen = view.getUint16(p + 30, true);
     const commentLen = view.getUint16(p + 32, true);
     const offset = view.getUint32(p + 42, true);
     const name = dec.decode(bytes.subarray(p + 46, p + 46 + nameLen));
-    if (method !== 0) throw new Error(`compressed entry '${name}' is not supported`);
+    if (method !== 0 && method !== 8) throw new Error(`compressed entry '${name}' is not supported`);
     const localName = view.getUint16(offset + 26, true);
     const localExtra = view.getUint16(offset + 28, true);
     const start = offset + 30 + localName + localExtra;
-    const data = bytes.slice(start, start + size);
+    const data = method === 8 ? inflateRaw(bytes.subarray(start, start + packed), size) : bytes.slice(start, start + size);
     if (crc32(data) !== crc) throw new Error(`entry '${name}' is damaged`);
     out.set(name, data);
     p += 46 + nameLen + extraLen + commentLen;
   }
+  return out;
+}
+
+// ---- inflate (RFC 1951), for deflated ZIP entries ----------------------------------------------
+
+const LENGTH_BASE = [3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 15, 17, 19, 23, 27, 31, 35, 43, 51, 59, 67, 83, 99, 115, 131, 163, 195, 227, 258];
+const LENGTH_EXTRA = [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 0];
+const DIST_BASE = [1, 2, 3, 4, 5, 7, 9, 13, 17, 25, 33, 49, 65, 97, 129, 193, 257, 385, 513, 769, 1025, 1537, 2049, 3073, 4097, 6145, 8193, 12289, 16385, 24577];
+const DIST_EXTRA = [0, 0, 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13];
+const CODE_ORDER = [16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15];
+
+/** A canonical Huffman decoding table from code lengths: { counts, symbols }. */
+function huffman(lengths) {
+  const counts = new Uint16Array(16);
+  for (const l of lengths) counts[l]++;
+  counts[0] = 0;
+  const offsets = new Uint16Array(16);
+  for (let i = 1; i < 16; i++) offsets[i] = offsets[i - 1] + counts[i - 1];
+  const symbols = new Uint16Array(lengths.length);
+  for (let s = 0; s < lengths.length; s++) if (lengths[s]) symbols[offsets[lengths[s]]++] = s;
+  return { counts, symbols };
+}
+
+let fixedTables = null;
+function fixed() {
+  if (!fixedTables) {
+    const lit = new Uint8Array(288);
+    lit.fill(8, 0, 144);
+    lit.fill(9, 144, 256);
+    lit.fill(7, 256, 280);
+    lit.fill(8, 280, 288);
+    fixedTables = [huffman(lit), huffman(new Uint8Array(30).fill(5))];
+  }
+  return fixedTables;
+}
+
+/** Inflates raw DEFLATE data into `size` bytes. */
+export function inflateRaw(input, size) {
+  const out = new Uint8Array(size);
+  let o = 0;
+  let pos = 0;
+  let bit = 0;
+  const bits = (n) => {
+    let v = 0;
+    for (let i = 0; i < n; i++) {
+      if (pos >= input.length) throw new Error('damaged deflate data');
+      v |= ((input[pos] >> bit) & 1) << i;
+      if (++bit === 8) {
+        bit = 0;
+        pos++;
+      }
+    }
+    return v;
+  };
+  const decode = ({ counts, symbols }) => {
+    let code = 0;
+    let first = 0;
+    let index = 0;
+    for (let len = 1; len < 16; len++) {
+      code |= bits(1);
+      const count = counts[len];
+      if (code - first < count) return symbols[index + code - first];
+      index += count;
+      first = (first + count) << 1;
+      code <<= 1;
+    }
+    throw new Error('damaged deflate data');
+  };
+  let last = 0;
+  while (!last) {
+    last = bits(1);
+    const type = bits(2);
+    if (type === 0) {
+      if (bit) {
+        bit = 0;
+        pos++;
+      }
+      const len = input[pos] | (input[pos + 1] << 8);
+      pos += 4;
+      if (o + len > size || pos + len > input.length) throw new Error('damaged deflate data');
+      out.set(input.subarray(pos, pos + len), o);
+      o += len;
+      pos += len;
+      continue;
+    }
+    let lit;
+    let dist;
+    if (type === 1) [lit, dist] = fixed();
+    else if (type === 2) {
+      const nlen = bits(5) + 257;
+      const ndist = bits(5) + 1;
+      const ncode = bits(4) + 4;
+      const codeLengths = new Uint8Array(19);
+      for (let i = 0; i < ncode; i++) codeLengths[CODE_ORDER[i]] = bits(3);
+      const codes = huffman(codeLengths);
+      const lengths = new Uint8Array(nlen + ndist);
+      for (let i = 0; i < nlen + ndist; ) {
+        const sym = decode(codes);
+        if (sym < 16) lengths[i++] = sym;
+        else {
+          const [repeat, value] = sym === 16 ? [3 + bits(2), lengths[i - 1]] : sym === 17 ? [3 + bits(3), 0] : [11 + bits(7), 0];
+          lengths.fill(value, i, i + repeat);
+          i += repeat;
+        }
+      }
+      lit = huffman(lengths.subarray(0, nlen));
+      dist = huffman(lengths.subarray(nlen));
+    } else throw new Error('damaged deflate data');
+    for (;;) {
+      const sym = decode(lit);
+      if (sym < 256) {
+        if (o >= size) throw new Error('damaged deflate data');
+        out[o++] = sym;
+      } else if (sym === 256) break;
+      else {
+        const l = LENGTH_BASE[sym - 257] + bits(LENGTH_EXTRA[sym - 257]);
+        const ds = decode(dist);
+        const d = DIST_BASE[ds] + bits(DIST_EXTRA[ds]);
+        if (d > o || o + l > size) throw new Error('damaged deflate data');
+        for (let i = 0; i < l; i++, o++) out[o] = out[o - d];
+      }
+    }
+  }
+  if (o !== size) throw new Error('damaged deflate data');
   return out;
 }
