@@ -23,6 +23,7 @@ const SECTIONS = [
   ['demos', 'demos/', 'Demos'],
   ['addons', 'addons/', 'Add-ons'],
   ['docs', 'docs/', 'Docs'],
+  ['vs', 'vs/spine/', 'Compare'],
   ['blog', 'blog/', 'Devlog'],
 ];
 

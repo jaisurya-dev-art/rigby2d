@@ -220,7 +220,7 @@ export function comparePage(c) {
   </head>
   <body>
     <a class="skip" href="#main">Skip to content</a>
-    ${siteHeader()}
+    ${siteHeader({ active: 'vs' })}
     <main id="main">${main}</main>
     ${siteFooter()}
     ${NAV_SCRIPT}
