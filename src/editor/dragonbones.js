@@ -8,6 +8,7 @@
 // shearY skY - skX, scale scX, scY: the same matrix mirrored across the X axis. IK bends flip too.
 
 import { writeAtlas } from '../core/atlas.js';
+import { graftNested } from './dbnest.js';
 
 /** Whether a parsed JSON file is DragonBones skeleton data. */
 export function isDragonBones(obj) {
@@ -20,6 +21,13 @@ export function isDragonBonesAtlas(obj) {
 }
 
 const num = (v, d = 0) => (typeof v === 'number' && Number.isFinite(v) ? v : d);
+
+/** A DragonBones flag read as its runtime reads it: exported files sometimes hold "false" as text. */
+function flag(v, d) {
+  if (v === undefined || v === null) return d;
+  if (typeof v === 'string') return !['', '0', 'false', 'nan', 'null', 'undefined'].includes(v.trim().toLowerCase());
+  return Boolean(v);
+}
 const round = (v) => Math.round(v * 1e4) / 1e4;
 const hex2 = (v) => Math.round(Math.min(1, Math.max(0, v)) * 255).toString(16).padStart(2, '0');
 
@@ -86,6 +94,31 @@ function curveOf(frame) {
   return e > 0 ? { curve: 0, c2: 0, c3: round(1 - 0.42 * k), c4: 1 } : { curve: round(0.42 * k), c2: 0, c3: 1, c4: 1 };
 }
 
+/**
+ * Rotation keys as the DragonBones runtime turns between them: the short way round, or as many full
+ * turns as a key's `clockwise` asks for. Skeleton JSON keys are blended in a straight line, so the
+ * angles are unwound here. `angleOf(frame)` reads a key's angle in degrees.
+ */
+function unwoundAngles(frames, angleOf) {
+  const out = [];
+  let prev = 0;
+  let clockwise = 0;
+  frames.forEach((f, i) => {
+    let r = angleOf(f);
+    if (i > 0) {
+      if (clockwise === 0) r = prev + (((((r - prev) % 360) + 540) % 360) - 180);
+      else {
+        if (clockwise > 0 ? r >= prev : r <= prev) clockwise = clockwise > 0 ? clockwise - 1 : clockwise + 1;
+        r = r + 360 * clockwise;
+      }
+    }
+    out.push(r);
+    clockwise = num(f.clockwise);
+    prev = r;
+  });
+  return out;
+}
+
 /** Walks frames with durations (in frames): calls fn(frame, timeSeconds, isLast). */
 function eachFrame(frames, fps, fn) {
   let t = 0;
@@ -98,16 +131,17 @@ function eachFrame(frames, fps, fn) {
 /**
  * Converts DragonBones skeleton data and its texture atlas to { json, atlas, warnings }:
  * skeleton JSON 3.8 and atlas text for the regular skeleton import. `armatureName` picks the
- * armature (default: the first).
+ * armature (default: the first). Armatures shown inside slots (nested armatures) are flattened into
+ * it (dbnest.js); `depth` counts the nesting.
  */
-export function dragonBonesToSkeleton(ske, tex, { armatureName = null } = {}) {
+export function dragonBonesToSkeleton(ske, tex, { armatureName = null, depth = 0 } = {}) {
   const warnings = [];
   const warn = (msg) => {
     if (!warnings.includes(msg)) warnings.push(msg);
   };
   const arm = (armatureName ? ske.armature.find((a) => a.name === armatureName) : null) ?? ske.armature[0];
   if (!arm) throw new Error('the DragonBones file has no armature');
-  if (ske.armature.length > 1) warn(`the file has ${ske.armature.length} armatures; imported '${arm.name}'`);
+  if (ske.armature.length > 1 && depth === 0) warn(`the file has ${ske.armature.length} armatures; imported '${arm.name}'`);
   const fps = num(arm.frameRate, num(ske.frameRate, 24)) || 24;
   const version = String(ske.version ?? '5.5');
 
@@ -124,10 +158,12 @@ export function dragonBonesToSkeleton(ske, tex, { armatureName = null } = {}) {
     const p = b.parent !== undefined ? boneIndex.get(b.parent) : undefined;
     world[i] = p === undefined ? local : multiply(world[p], local);
     const out = { name: b.name, ...(b.parent !== undefined ? { parent: b.parent } : {}), ...(num(b.length) ? { length: round(num(b.length)) } : {}), ...transformFields(b.transform) };
-    if (b.inheritRotation === false && b.inheritScale === false) out.transform = 'onlyTranslation';
-    else if (b.inheritRotation === false) out.transform = 'noRotationOrReflection';
-    else if (b.inheritScale === false) out.transform = 'noScale';
-    if (b.inheritTranslation === false) warn(`bone '${b.name}': not inheriting translation is not supported; it inherits it`);
+    const inheritRotation = flag(b.inheritRotation, true);
+    const inheritScale = flag(b.inheritScale, true);
+    if (!inheritRotation && !inheritScale) out.transform = 'onlyTranslation';
+    else if (!inheritRotation) out.transform = 'noRotationOrReflection';
+    else if (!inheritScale) out.transform = 'noScale';
+    if (!flag(b.inheritTranslation, true)) warn(`bone '${b.name}': not inheriting translation is not supported; it inherits it`);
     return out;
   });
 
@@ -137,6 +173,7 @@ export function dragonBonesToSkeleton(ske, tex, { armatureName = null } = {}) {
   const skins = [];
   const displays = new Map(); // slot -> [display names] (the default skin's), for display frames
   const meshes = new Map(); // `${skin}/${slot}/${display}` -> { weighted, bones, worldVertices } for deform keys
+  const nested = []; // armatures shown in slots: { slot, display, index, child, transform }
   for (const skin of arm.skin ?? []) {
     const name = skin.name || 'default';
     const attachments = {};
@@ -152,6 +189,19 @@ export function dragonBonesToSkeleton(ske, tex, { armatureName = null } = {}) {
         }
         const type = d.type ?? 'image';
         const image = d.path ?? d.name;
+        if (type === 'armature') {
+          // Shown by its own bones and slots, grafted in below; the slot itself shows nothing.
+          list.push(null);
+          const childName = d.path ?? d.name;
+          if (depth >= 4) warn(`nested armature '${childName}' (in slot '${s.name}') is nested too deeply and was left out`);
+          else if (childName === arm.name || !ske.armature.some((a) => a.name === childName)) warn(`nested armature '${childName}' (in slot '${s.name}') was not found and was left out`);
+          else if (name === 'default' || !nested.some((n) => n.slot === s.name && n.index === list.length - 1)) {
+            // The display's own actions say what the child plays when shown (its default otherwise).
+            const play = (d.actions ?? []).map((act) => act.gotoAndPlay ?? (num(act.type, -1) === 0 ? act.name : null)).find(Boolean) ?? null;
+            nested.push({ slot: s.name, display: d.name ?? childName, index: list.length - 1, child: childName, transform: d.transform, play });
+          }
+          continue;
+        }
         list.push(d.name);
         if (type === 'image') {
           const size = textures.get(image) ?? { width: 0, height: 0 };
@@ -197,15 +247,21 @@ export function dragonBonesToSkeleton(ske, tex, { armatureName = null } = {}) {
     const end = c.bone;
     const parent = dbBones[boneIndex.get(end)]?.parent;
     const chain = num(c.chain) >= 1 && parent ? [parent, end] : [end];
-    return { name: c.name, order, bones: chain, target: c.target, mix: round(num(c.weight, 1) > 1 ? num(c.weight) / 100 : num(c.weight, 1)), bendPositive: c.bendPositive === false };
+    return { name: c.name, order, bones: chain, target: c.target, mix: round(num(c.weight, 1) > 1 ? num(c.weight) / 100 : num(c.weight, 1)), bendPositive: !flag(c.bendPositive, true) };
   });
 
-  // Animations.
+  // Animations. For nested armatures, also: each animation's length and repeat count, and per slot
+  // its raw display keys and the child animations it starts (gotoAndPlay actions).
   const events = {};
   const animations = {};
+  const info = { durations: {}, playTimes: {}, defaultClip: arm.defaultActions?.find((x) => x?.gotoAndPlay)?.gotoAndPlay ?? arm.animation?.[0]?.name ?? null };
+  const displayKeys = new Map();
+  const actions = new Map();
   for (const a of arm.animation ?? []) {
     const anim = {};
     const animFps = num(a.frameRate, fps) || fps;
+    info.durations[a.name] = round(num(a.duration) / animFps);
+    info.playTimes[a.name] = a.playTimes === undefined ? 1 : num(a.playTimes, 1);
     const bonesOut = {};
     for (const tl of a.bone ?? []) {
       const out = {};
@@ -215,7 +271,9 @@ export function dragonBonesToSkeleton(ske, tex, { armatureName = null } = {}) {
       }
       if (tl.rotateFrame) {
         out.rotate = [];
-        eachFrame(tl.rotateFrame, animFps, (f, time) => out.rotate.push({ time, angle: round(-num(f.rotate)), ...curveOf(f) }));
+        const angles = unwoundAngles(tl.rotateFrame, (f) => num(f.rotate));
+        let k = 0;
+        eachFrame(tl.rotateFrame, animFps, (f, time) => out.rotate.push({ time, angle: round(-angles[k++]), ...curveOf(f) }));
         if (tl.rotateFrame.some((f) => num(f.skew))) warn(`animation '${a.name}': skew keys are not supported and were left out`);
       }
       if (tl.scaleFrame) {
@@ -227,11 +285,13 @@ export function dragonBonesToSkeleton(ske, tex, { armatureName = null } = {}) {
         out.translate = [];
         out.rotate = [];
         out.scale = [];
+        const angles = unwoundAngles(tl.frame, (f) => num(f.transform?.skY));
+        let k = 0;
         eachFrame(tl.frame, animFps, (f, time) => {
           const t = f.transform ?? {};
           const c = curveOf(f);
           out.translate.push({ time, x: round(num(t.x)), y: round(-num(t.y)), ...c });
-          out.rotate.push({ time, angle: round(-num(t.skY)), ...c });
+          out.rotate.push({ time, angle: round(-angles[k++]), ...c });
           out.scale.push({ time, x: round(num(t.scX, 1)), y: round(num(t.scY, 1)), ...c });
         });
       }
@@ -246,10 +306,27 @@ export function dragonBonesToSkeleton(ske, tex, { armatureName = null } = {}) {
       const displayFrames = tl.displayFrame ?? (tl.frame ? tl.frame.filter((f) => f.displayIndex !== undefined).map((f) => ({ ...f, value: f.displayIndex })) : null);
       if (displayFrames?.length) {
         out.attachment = [];
+        const raw = [];
         eachFrame(displayFrames, animFps, (f, time) => {
           const v = f.value ?? f.displayIndex ?? 0;
           out.attachment.push({ time, name: v >= 0 ? (names[v] ?? null) : null });
+          raw.push({ time, index: v });
         });
+        if (!displayKeys.has(a.name)) displayKeys.set(a.name, new Map());
+        displayKeys.get(a.name).set(tl.name, raw);
+      }
+      // Actions for the armature shown in this slot: DragonBones 5 `actions`, 4.5 `action`.
+      const actionFrames = tl.displayFrame ?? tl.frame ?? [];
+      const started = [];
+      eachFrame(actionFrames, animFps, (f, time) => {
+        for (const act of f.actions ?? (f.action ? [{ gotoAndPlay: f.action }] : [])) {
+          const clip = act.gotoAndPlay ?? act.gotoAndStop ?? (num(act.type, -1) === 0 ? act.name : null);
+          if (clip) started.push({ time, clip });
+        }
+      });
+      if (started.length) {
+        if (!actions.has(a.name)) actions.set(a.name, new Map());
+        actions.get(a.name).set(tl.name, started);
       }
       const colorFrames = tl.colorFrame ?? (tl.frame ? tl.frame.map((f) => ({ ...f, value: f.color })) : null);
       if (colorFrames?.some((f) => f.value)) {
@@ -281,7 +358,7 @@ export function dragonBonesToSkeleton(ske, tex, { armatureName = null } = {}) {
     const ikOut = {};
     for (const tl of a.ik ?? []) {
       ikOut[tl.name] = [];
-      eachFrame(tl.frame ?? [], animFps, (f, time) => ikOut[tl.name].push({ time, mix: round(num(f.weight, 1) > 1 ? num(f.weight) / 100 : num(f.weight, 1)), bendPositive: f.bendPositive === false, ...curveOf(f) }));
+      eachFrame(tl.frame ?? [], animFps, (f, time) => ikOut[tl.name].push({ time, mix: round(num(f.weight, 1) > 1 ? num(f.weight) / 100 : num(f.weight, 1)), bendPositive: !flag(f.bendPositive, true), ...curveOf(f) }));
     }
     if (Object.keys(ikOut).length) anim.ik = ikOut;
 
@@ -312,6 +389,11 @@ export function dragonBonesToSkeleton(ske, tex, { armatureName = null } = {}) {
         eventKeys.push(key);
       }
       if (f.sound) warn(`animation '${a.name}': sound '${f.sound}' left out (add audio in Rigby2D)`);
+      // An animation-level action plays another animation: kept as an "action" event for the game.
+      if (typeof f.action === 'string' && f.action) {
+        events.action ??= {};
+        eventKeys.push({ time, name: 'action', string: f.action });
+      }
     });
     if (eventKeys.length) anim.events = eventKeys;
     if (a.ffd === undefined && a.mesh === undefined && (a.surface || a.timeline)) warn(`animation '${a.name}': surface and custom timelines are not supported`);
@@ -327,9 +409,26 @@ export function dragonBonesToSkeleton(ske, tex, { armatureName = null } = {}) {
     ...(Object.keys(events).length ? { events } : {}),
     animations,
   };
-  if (!version.startsWith('5') && !version.startsWith('4.5')) warn(`DragonBones data version ${version}: only 4.5 and 5.x were tested`);
+  if (!version.startsWith('5') && !version.startsWith('4.5') && depth === 0) warn(`DragonBones data version ${version}: only 4.5 and 5.x were tested`);
 
-  return { json, atlas: tex ? atlasText(tex, warn) : null, warnings };
+  if (nested.length) {
+    // Bones and slots are named after the slot and display: repeated display names get their index.
+    const repeated = nested.filter((n) => nested.some((o) => o !== n && o.slot === n.slot && o.display === n.display));
+    for (const n of repeated) n.display = `${n.display}#${n.index}`;
+    const children = new Map();
+    const instances = nested.map((n) => {
+      if (!children.has(n.child)) {
+        const c = dragonBonesToSkeleton(ske, tex, { armatureName: n.child, depth: depth + 1 });
+        for (const w of c.warnings) warn(`nested armature '${n.child}': ${w}`);
+        children.set(n.child, { json: c.json, info: c.info });
+      }
+      return { ...n, child: children.get(n.child) };
+    });
+    const setupIndex = new Map(dbSlots.map((sl) => [sl.name, sl.displayIndex === undefined ? 0 : sl.displayIndex]));
+    graftNested(json, instances, { info, displayKeys, actions, setupIndex }, transformFields, warn);
+  }
+
+  return { json, atlas: tex ? atlasText(tex, warn) : null, warnings, info };
 }
 
 function multiply(m, n) {

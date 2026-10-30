@@ -30,14 +30,39 @@ The import report (in the status bar and *View ▸ Log*) lists anything that did
 | Skins | Skins |
 | Animations: translate, rotate, scale, display, color, mesh deform (FFD), IK, z-order | The same keys, with their easing and curves |
 | Frame events | Events |
+| Nested armatures (weapons, effects and parts shown inside a slot) | Bones and slots under that slot, with their animations baked in |
+| Frame actions that play another animation | An `action` event, with the animation's name, for your game to act on |
 
 DragonBones measures Y downwards and Rigby2D upwards: the importer converts every position,
-rotation, skew, mesh and deform key, so the character looks and moves the same.
+rotation, skew, mesh and deform key, so the character looks and moves the same. Rotations turn the
+way the DragonBones runtime turns them (the short way round, or the full turns a key asks for), and
+flags written as text (`"bendPositive": "false"`) are read as DragonBones reads them.
+
+### Nested armatures
+
+A slot can show another armature: a weapon, a muzzle flash, a slash effect. Rigby2D's format has no
+armature inside a slot, so the importer flattens each one into the character:
+
+- Its bones hang from the slot's bone, placed with the display's transform, and are named after the
+  slot and display (`weapon_r/weapon_1502b_r/fire`). Its slots draw where the slot draws, tinted by
+  the slot's color.
+- Its animations are baked into every animation of the character, following the DragonBones
+  runtime: the child plays its default animation, starts over each time the slot switches to it,
+  plays an animation of the same name when the character does, and plays what the character's
+  `gotoAndPlay` actions start (a weapon's `fire` during an attack).
+- It shows only while the slot shows that display.
+
+The result plays the same in every runtime. To edit a weapon on its own, import its armature as a
+project too.
+
+### Checked against DragonBones
+
+The importer is checked against the official DragonBones runtime on DragonBones' own demo characters
+(mechs, a scorpion and a character with hair and dress physics, 55 animations): every bone, nested
+bone, image and color matches the DragonBones runtime within rounding (under 0.1 pixel).
 
 ## Not imported yet
 
-- **Nested armatures** (an armature shown inside a slot, such as a weapon): left out; import the
-  nested armature as its own project.
 - **Skew keys** and **surface** deformers.
 - **Sounds** on frames (add the audio in the Film workspace instead).
 - Only the **first armature** of a file is imported when there are several.

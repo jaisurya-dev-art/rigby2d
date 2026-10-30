@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 // The "Coming from DragonBones" stage on the landing page: DragonBones' own demo characters, read
-// from their DragonBones export files by Rigby2D's importer (src/editor/dragonbones.js) and played
-// with the Rigby2D runtime. The art is CC BY-NC-SA 4.0 (site/showcase/dragonbones/README.md); it
+// from their DragonBones export files by Rigby2D's importer (src/editor/dragonbones.js, nested
+// weapons and effects included) and played with the Rigby2D runtime. The art is CC BY-NC-SA 4.0 (site/showcase/dragonbones/README.md); it
 // loads only when the section comes near the screen.
 
 import { parseAtlas } from '../src/core/atlas.js';
@@ -15,12 +15,13 @@ import { animationBounds } from '../src/editor/output.js';
 const FILES = import.meta.glob('./showcase/dragonbones/*/*', { query: '?url', import: 'default', eager: true });
 const file = (id, suffix) => FILES[`./showcase/dragonbones/${id}/${id}${suffix}`];
 
-/** The characters: their armature, slots left out, and the moves offered (DragonBones names). */
+/** The characters: their armature and the moves offered (DragonBones names). */
 const CHARACTERS = [
   { id: 'mecha_2903', armature: 'mecha_2903d', label: 'Scorpion', moves: ['walk', 'attack_01', 'skill_01', 'skill_04', 'skill_05', 'hit', 'victory', 'death'] },
   { id: 'mecha_1406', armature: 'mecha_1406', label: 'Walker', moves: ['walk', 'attack_01', 'jump', 'aim', 'skill_01', 'hit', 'death'] },
+  { id: 'mecha_1004d', armature: 'mecha_1004d', label: 'Blade', moves: ['walk', 'attack_01', 'skill_01', 'skill_03', 'skill_04', 'skill_05', 'hit', 'victory', 'death'] },
+  { id: 'mecha_1502b', armature: 'mecha_1502b', label: 'Raptor', moves: ['walk', 'attack_01', 'attack_02', 'aim', 'squat', 'hit', 'death'] },
   { id: 'mecha_1002_101d_show', armature: 'mecha_1002_101d', label: 'Titan', moves: [] },
-  { id: 'mecha_1004d_show', armature: 'mecha_1004d', label: 'Blade', moves: [], skip: ['logo'] },
 ];
 
 const moveLabel = (name) =>
@@ -29,7 +30,7 @@ const moveLabel = (name) =>
     .replace(/_/g, ' ')
     .replace(/^\w/, (c) => c.toUpperCase());
 
-/** Loads one character: { sk, textures, bounds, skip }. */
+/** Loads one character: { sk, textures, bounds }. */
 async function load(renderer, c) {
   const [ske, tex, page] = await Promise.all([
     fetch(file(c.id, '_ske.json')).then((r) => r.json()),
@@ -49,8 +50,7 @@ async function load(renderer, c) {
     const ab = animationBounds(sk, i, 30);
     if (ab) b = b ? [Math.min(b[0], ab[0]), Math.min(b[1], ab[1]), Math.max(b[2], ab[2]), Math.max(b[3], ab[3])] : ab;
   });
-  const hidden = new Set((c.skip ?? []).map((name) => sk.slots.findIndex((s) => s.name === name)));
-  return { sk, textures, bounds: b, skip: hidden.size ? (i) => hidden.has(i) : null };
+  return { sk, textures, bounds: b };
 }
 
 export async function startDragonBonesStage(root) {
@@ -130,7 +130,7 @@ export async function startDragonBonesStage(root) {
     state.update(current.sk, dt);
     state.apply(current.sk, pose);
     renderer.begin(w, h, { x: (x0 + x1) / 2, y: (y0 + y1) / 2, zoom: zoom * dpr });
-    renderer.drawSkeleton(current.sk, pose, current.textures, current.skip ? { skip: current.skip } : {});
+    renderer.drawSkeleton(current.sk, pose, current.textures);
     renderer.end();
   };
 

@@ -44,7 +44,7 @@ The Godot addon includes godot-rust (MPL-2.0); see `THIRD_PARTY_NOTICES.md` insi
 
 ## DragonBones demo characters (website only)
 
-The "Coming from DragonBones" section of rigby2d.com shows four DragonBones demo characters, kept in
+The "Coming from DragonBones" section of rigby2d.com shows five DragonBones demo characters, kept in
 `site/showcase/dragonbones/`. They are not under the Rigby2D license: they are licensed CC BY-NC-SA
 4.0, Copyright (c) 2012-2018 The DragonBones team and other contributors. Source:
 <https://github.com/DragonBones/Demos>. Details in `site/showcase/dragonbones/README.md`. Rigby2D is
