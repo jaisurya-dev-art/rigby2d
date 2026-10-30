@@ -215,6 +215,22 @@ start().catch((e) => {
   fallback();
 });
 
+// The DragonBones stage loads its runtime and art only when the section comes near the screen.
+const dbSection = $('#dragonbones');
+if (dbSection) {
+  const near = new IntersectionObserver(([e]) => {
+    if (!e.isIntersecting) return;
+    near.disconnect();
+    import('./dragonbones.js')
+      .then((m) => m.startDragonBonesStage(dbSection))
+      .catch((err) => {
+        console.warn('The DragonBones characters could not play here:', err);
+        dbSection.querySelector('.db-stage').hidden = true;
+      });
+  }, { rootMargin: '400px' });
+  near.observe(dbSection);
+}
+
 // The latest release, shown in the hero and the downloads section (the page works without it).
 fetch('https://api.github.com/repos/jaisurya-dev-art/rigby2d/releases/latest', { headers: { Accept: 'application/vnd.github+json' } })
   .then((r) => (r.ok ? r.json() : null))

@@ -164,6 +164,9 @@ The editor distributes Pyodide and CPython for Python scripting under their own 
 and NILA mascots in [`branding/`](branding/), are proprietary trademarks of the Rigby2D project. They are not covered by the MIT or Apache 2.0 licenses. Forks
 and modified versions must use their own name and branding. See [TRADEMARKS.md](TRADEMARKS.md).
 
+The DragonBones demo characters on the website ([`site/showcase/dragonbones/`](site/showcase/dragonbones/))
+are © The DragonBones team and other contributors, under CC BY-NC-SA 4.0, not the Rigby2D license.
+
 ## Disclaimer
 
 Rigby2D is an independent open-source project. It is not affiliated with, endorsed by, or sponsored by the makers of any other animation software. All trademarks belong to their respective owners.

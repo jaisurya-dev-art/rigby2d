@@ -1749,3 +1749,47 @@ h3 {
     animation: none;
   }
 }
+
+/* ---- Coming from DragonBones (dragonbones.js) ---- */
+
+.db-section {
+  background:
+    radial-gradient(50% 70% at 78% 50%, rgba(247, 76, 0, 0.12), transparent 70%),
+    radial-gradient(40% 60% at 70% 80%, rgba(94, 162, 255, 0.12), transparent 70%);
+  border-bottom: 1px solid var(--line);
+}
+.db-split {
+  align-items: center;
+}
+.db-stage {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.db-stage canvas {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border-radius: 20px;
+  border: 1px solid var(--line);
+  background:
+    radial-gradient(60% 18% at 50% 88%, rgba(0, 0, 0, 0.55), transparent 70%),
+    radial-gradient(70% 70% at 50% 45%, rgba(94, 162, 255, 0.16), transparent 70%),
+    linear-gradient(180deg, #14161b, #0c0d10);
+  transition: opacity 0.2s;
+}
+.db-section.loading .db-stage canvas {
+  opacity: 0.4;
+}
+.db-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.db-moves button {
+  height: 28px;
+  font-size: 0.82rem;
+}
+.db-credit {
+  margin: 0;
+  font-size: 0.78rem;
+}

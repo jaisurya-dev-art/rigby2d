@@ -31,13 +31,21 @@ License: <https://github.com/openai/whisper>.
 
 ## Icons
 
-The editor's dialogs use icons from:
+The editor's dialogs and the website use icons from:
 
 - **Lucide**: ISC License, Copyright (c) Lucide Contributors. Source: <https://lucide.dev>.
-- **Simple Icons** (the Unity, Godot, JavaScript and Rust marks): CC0 1.0. Source:
-  <https://simpleicons.org>. The marks are trademarks of their owners and only name the engines the
-  runtimes are for.
+- **Simple Icons** (the Unity, Godot, JavaScript, Rust, Apple and Linux marks): CC0 1.0. Source:
+  <https://simpleicons.org>. The marks are trademarks of their owners and only name the engines and
+  platforms the runtimes and downloads are for.
 
 ## Godot runtime
 
 The Godot addon includes godot-rust (MPL-2.0); see `THIRD_PARTY_NOTICES.md` inside the addon.
+
+## DragonBones demo characters (website only)
+
+The "Coming from DragonBones" section of rigby2d.com shows four DragonBones demo characters, kept in
+`site/showcase/dragonbones/`. They are not under the Rigby2D license: they are licensed CC BY-NC-SA
+4.0, Copyright (c) 2012-2018 The DragonBones team and other contributors. Source:
+<https://github.com/DragonBones/Demos>. Details in `site/showcase/dragonbones/README.md`. Rigby2D is
+not affiliated with DragonBones.
