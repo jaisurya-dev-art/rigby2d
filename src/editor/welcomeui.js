@@ -9,6 +9,7 @@ import { isDesktop, openExternal, saveDownload } from './platform.js';
 import { ago, recentProjects, splitPath } from './recent.js';
 import { newScene } from './sceneui.js';
 import { engineIcon, icon } from './icons.js';
+import { COMMUNITY_URL, DEVLOG_URL, cachedNews, fetchNews, isNew, markSeen } from './news.js';
 import { h } from './widgets.js';
 import markUrl from '../../branding/rigby2d-mark.svg?url';
 
@@ -84,6 +85,34 @@ export function openWelcome(app, { tutorials, onClose } = {}) {
     ),
   ];
 
+  // What's new: the newest devlog posts, from the last copy at once, then fresh from the website.
+  const newsRow = h('div', { class: 'welcome-news', hidden: true });
+  const drawNews = (news) => {
+    const items = news?.items?.slice(0, 3) ?? [];
+    newsRow.hidden = !items.length;
+    if (!items.length) return;
+    newsRow.replaceChildren(
+      h('div', { class: 'welcome-news-head' }, h('h4', null, t("What's new")), h('button', { class: 'link', onclick: () => openExternal(DEVLOG_URL) }, `${t('Devlog')} ↗`)),
+      h(
+        'div',
+        { class: 'welcome-news-list' },
+        ...items.map((item) =>
+          h(
+            'button',
+            { class: 'welcome-post', title: item.url, onclick: () => openExternal(item.url) },
+            item.image ? h('img', { src: item.image, alt: '', loading: 'lazy', onerror: (e) => e.target.remove() }) : null,
+            h('span', { class: 'welcome-post-text' }, h('small', null, item.date, isNew(item) ? h('span', { class: 'welcome-new' }, t('New')) : null), h('b', null, item.title)),
+          ),
+        ),
+      ),
+    );
+  };
+  drawNews(cachedNews());
+  fetchNews().then((news) => {
+    drawNews(news);
+    markSeen(news?.updated);
+  });
+
   const show = h('input', { type: 'checkbox', checked: app.prefs.get('general.welcome'), onchange: (e) => app.prefs.set('general.welcome', e.target.checked) });
 
   overlay.addEventListener('pointerdown', (e) => e.target === overlay && close());
@@ -104,11 +133,13 @@ export function openWelcome(app, { tutorials, onClose } = {}) {
         tutorials ? action('graduation-cap', t('Tutorials'), t('Lessons from drawing to moving character'), () => tutorials.open()) : null,
         action('book-open', t('Documentation'), 'rigby2d.com/docs', () => openExternal(LINKS.docs)),
         action('sparkles', t("What's new"), VERSION ? `${t('Version')} ${VERSION}` : '', () => openExternal(LINKS.releaseNotes)),
+        action('users', t('Community'), 'r/rigby2d', () => openExternal(COMMUNITY_URL)),
       ),
       h(
         'main',
         { class: 'welcome-main' },
         h('header', { class: 'welcome-head' }, h('h2', null, t('Welcome to Rigby2D')), h('button', { class: 'dialog-close', 'aria-label': t('Close'), title: t('Close (Esc)'), onclick: close }, '✕')),
+        newsRow,
         h('h4', null, t('Recent')),
         h('div', { class: 'welcome-recents' }, ...recentList),
         h('h4', null, t('Starter projects')),

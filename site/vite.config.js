@@ -10,6 +10,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { defineConfig } from 'vite';
 
 import { DOCS, imageFiles, pageHtml, renderAll, renderMarkdown, searchIndex } from './docs/build.js';
+import { feedXml, indexPage, newsJson, postPage, readPosts } from './blog/devlog.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const repo = path.resolve(here, '..');
@@ -180,6 +181,31 @@ function addonFiles() {
   };
 }
 
+/**
+ * The devlog (site/blog/posts, rendered by blog/devlog.js): blog/<slug>.html, the blog/ index, the
+ * RSS feed, and news.json for the editor's welcome screen. The pages are static and link the
+ * website's stylesheet as blog/site.css.
+ */
+function devlogFiles() {
+  return {
+    name: 'rigby-site-devlog',
+    generateBundle() {
+      const posts = readPosts();
+      for (const post of posts) this.emitFile({ type: 'asset', fileName: `blog/${post.slug}.html`, source: postPage(post) });
+      this.emitFile({ type: 'asset', fileName: 'blog/index.html', source: indexPage(posts) });
+      this.emitFile({ type: 'asset', fileName: 'blog/feed.xml', source: feedXml(posts) });
+      this.emitFile({ type: 'asset', fileName: 'news.json', source: newsJson(posts) });
+      this.emitFile({ type: 'asset', fileName: 'blog/site.css', source: fs.readFileSync(path.join(here, 'style.css')) });
+      for (const [name, src] of [
+        ['icon.svg', 'branding/rigby2d-icon-dark.svg'],
+        ['mark.svg', 'branding/rigby2d-mark.svg'],
+        ['lockup.svg', 'branding/rigby2d-lockup-transparent.svg'],
+      ])
+        this.emitFile({ type: 'asset', fileName: `blog/${name}`, source: fs.readFileSync(path.join(repo, src)) });
+    },
+  };
+}
+
 function demoFiles() {
   return {
     name: 'rigby-site-demos',
@@ -260,7 +286,7 @@ export default defineConfig({
   root: here,
   base: process.env.SITE_BASE ?? '/',
   clearScreen: false,
-  plugins: [socialImage(), documentation(), demoFiles(), starterFiles(), addonFiles()],
+  plugins: [socialImage(), documentation(), demoFiles(), starterFiles(), addonFiles(), devlogFiles()],
   // The pages import the runtime, NILA and the docs from outside this folder.
   server: { port: 1430, strictPort: true, fs: { allow: [repo] } },
   build: {

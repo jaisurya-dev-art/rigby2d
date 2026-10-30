@@ -41,6 +41,7 @@ import { languageFor, setLanguage, t } from './i18n.js';
 import { openRuntimes } from './runtimeui.js';
 import { checkForUpdates, scheduleUpdateCheck } from './updateui.js';
 import { openWelcome } from './welcomeui.js';
+import { COMMUNITY_URL, DEVLOG_URL } from './news.js';
 import { openMigrationCheck } from './migrationui.js';
 import markUrl from '../../branding/rigby2d-mark.svg?url';
 import { startAnalytics } from './analytics.js';
@@ -202,6 +203,8 @@ function menus() {
       { label: t('Tutorials…'), action: () => tutorials.open() },
       { label: t('Keyboard shortcuts…'), action: () => openShortcuts(app) },
       { label: t('Documentation'), shortcut: '↗', action: () => openExternal(LINKS.docs) },
+      { label: t('Devlog'), shortcut: '↗', title: t('Releases and news on rigby2d.com'), action: () => openExternal(DEVLOG_URL) },
+      { label: t('Community (r/rigby2d)'), shortcut: '↗', action: () => openExternal(COMMUNITY_URL) },
       'separator',
       { label: t('Connect an AI assistant…'), action: () => openAiConnect() },
       'separator',
