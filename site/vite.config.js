@@ -232,6 +232,33 @@ function addonFiles() {
 }
 
 /**
+ * The comparison pages (compare/compare.js) as vs/<slug>/index.html, and sitemap.xml and robots.txt
+ * listing every page of the site.
+ */
+function comparePages() {
+  return {
+    name: 'rigby-site-compare',
+    async generateBundle(_options, bundle) {
+      const { COMPARISONS, comparePage } = await import('./compare/compare.js');
+      for (const c of COMPARISONS) this.emitFile({ type: 'asset', fileName: `vs/${c.slug}/index.html`, source: comparePage(c) });
+      const pages = new Set(['', 'demos/', 'addons/', 'cloud/', 'blog/', 'editor/', ...COMPARISONS.map((c) => `vs/${c.slug}/`)]);
+      for (const name of Object.keys(bundle)) {
+        if (!name.endsWith('.html') || name.startsWith('editor/')) continue;
+        pages.add(name.replace(/(^|\/)index\.html$/, '$1'));
+      }
+      for (const page of (await renderAll()).map((p) => `docs/${p.slug}.html`)) pages.add(page);
+      for (const post of readPosts()) pages.add(`blog/${post.slug}.html`);
+      const { readEntries } = await import(pathToFileURL(path.join(repo, 'registry/registry.mjs')).href);
+      for (const e of readEntries()) pages.add(`addons/${e.id}/`);
+      const urls = [...pages].sort().map((p) => `  <url><loc>https://rigby2d.com/${p}</loc></url>`);
+      const xml = ['<?xml version="1.0" encoding="UTF-8"?>', '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">', ...urls, '</urlset>', ''];
+      this.emitFile({ type: 'asset', fileName: 'sitemap.xml', source: xml.join('\n') });
+      this.emitFile({ type: 'asset', fileName: 'robots.txt', source: ['User-agent: *', 'Allow: /', '', 'Sitemap: https://rigby2d.com/sitemap.xml', ''].join('\n') });
+    },
+  };
+}
+
+/**
  * The shared header and footer (chrome.js) in place of the pages' <!--site-header:…--> and
  * <!--site-footer--> markers, and icons (icons.js) in place of <i data-icon="…"></i> and
  * <i data-mark="…"></i>.
@@ -359,7 +386,7 @@ export default defineConfig({
   root: here,
   base: process.env.SITE_BASE ?? '/',
   clearScreen: false,
-  plugins: [siteChrome(), socialImage(), documentation(), demoFiles(), starterFiles(), addonFiles(), devlogFiles()],
+  plugins: [siteChrome(), comparePages(), socialImage(), documentation(), demoFiles(), starterFiles(), addonFiles(), devlogFiles()],
   // The pages import the runtime, NILA and the docs from outside this folder.
   server: { port: 1430, strictPort: true, fs: { allow: [repo] } },
   build: {

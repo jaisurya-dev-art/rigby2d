@@ -1,8 +1,9 @@
 # Coming from DragonBones
 
-Rigby2D opens DragonBones projects directly, so characters made in DragonBones Pro keep working now
-that DragonBones is no longer developed. They become ordinary Rigby2D projects that you can keep
-editing, and export to every Rigby2D runtime.
+Rigby2D opens DragonBones projects directly, so characters made in DragonBones Pro keep working on a
+desktop editor that is free and open source. (The DragonBones team's newer editor is LoongBones, a
+web editor.) Your characters become ordinary Rigby2D projects that you can keep editing, and export
+to every Rigby2D runtime.
 
 ## Open a DragonBones project
 

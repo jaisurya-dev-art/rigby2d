@@ -65,14 +65,17 @@ export function siteFooter({ base = '/', lockup = '/blog/lockup.svg' } = {}) {
           [`${base}addons/`, 'Add-ons'],
           [`${base}demos/`, 'Demos'],
           [`${base}cloud/`, 'Cloud'],
+          [`${base}vs/dragonbones/`, 'For DragonBones users'],
+          [`${base}vs/moho/`, 'Rigby2D vs Moho'],
+          [`${base}vs/toon-boom/`, 'Rigby2D vs Toon Boom'],
         ])}
         ${col('Learn', [
           [`${base}docs/`, 'Documentation'],
           [`${base}docs/quick-start.html`, 'Quick start'],
           [`${base}docs/migrating-from-spine.html`, 'Coming from Spine'],
           [`${base}docs/migrating-from-dragonbones.html`, 'Coming from DragonBones'],
+          [`${base}vs/spine/`, 'Rigby2D vs Spine'],
           [`${base}blog/`, 'Devlog'],
-          [`${base}blog/feed.xml`, 'RSS'],
         ])}
         ${col('Community', [
           [REDDIT, 'r/rigby2d', true],
