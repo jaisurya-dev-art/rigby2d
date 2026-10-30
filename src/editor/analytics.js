@@ -42,8 +42,12 @@ function send(name) {
   window.goatcounter?.count?.({ path: name, title: name, event: true });
 }
 
-/** Counts a named event (e.g. "editor-export-json"). A no-op when counting is off. */
+/**
+ * Counts a named event (e.g. "editor-export-json"); a no-op when counting is off. Always announces it
+ * as a `rigby-milestone` event, so the editor can react (nudge.js), counted or not.
+ */
 export function track(name) {
+  if (typeof dispatchEvent === 'function' && typeof CustomEvent === 'function') dispatchEvent(new CustomEvent('rigby-milestone', { detail: name }));
   if (!started) return;
   if (window.goatcounter?.count) send(name);
   else queued.push(name);

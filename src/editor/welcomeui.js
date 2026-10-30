@@ -134,6 +134,7 @@ export function openWelcome(app, { tutorials, onClose } = {}) {
         action('book-open', t('Documentation'), 'rigby2d.com/docs', () => openExternal(LINKS.docs)),
         action('sparkles', t("What's new"), VERSION ? `${t('Version')} ${VERSION}` : '', () => openExternal(LINKS.releaseNotes)),
         action('users', t('Community'), 'r/rigby2d', () => openExternal(COMMUNITY_URL)),
+        action('star', t('Star on GitHub'), t('Help other animators find Rigby2D'), () => openExternal(LINKS.repo)),
       ),
       h(
         'main',

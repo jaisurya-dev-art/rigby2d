@@ -11,6 +11,7 @@ import { PRESETS, shortcutLabel } from './keymap.js';
 import { installKeyboard, isTyping, runAction } from './keys.js';
 import { openRenderDialog } from './renderui.js';
 import { openShareDialog } from './shareui.js';
+import { installNudges } from './nudgeui.js';
 import { openAutoRig, openRetarget } from './rigui.js';
 import { startAudio, stopAudio } from './audio.js';
 import { clipTracks } from './actors.js';
@@ -581,6 +582,7 @@ if (import.meta.env.DEV) window.rigby = { app, memoryFs, dopesheet, graph, viewp
 if (scripts.library.length) setTimeout(() => scripts.loadAll({ quiet: true }), 1500);
 setTimeout(() => addons.loadEnabled(), 1500);
 scheduleUpdateCheck(app);
+installNudges({ share: () => openShareDialog(app), star: () => openExternal(LINKS.repo) });
 
 $('#status-log').addEventListener('click', () => toggleLogWindow());
 $('#status-community').addEventListener('click', () => openExternal(COMMUNITY_URL));
