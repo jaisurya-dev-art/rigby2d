@@ -1,18 +1,44 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
-// Auto-update (desktop): checks the latest release once a day (Preferences ▸ General), and
-// Help ▸ Check for updates. Updates are signed: the app only installs files signed with the
-// Rigby2D release key (tauri.conf.json, plugins.updater.pubkey).
+// Auto-update (desktop): checks the latest release when the editor starts and every few hours
+// after (Preferences ▸ General), and with Help ▸ Check for updates. A found update shows as an
+// "Update available" button in the menu bar until it is installed. Updates are signed: the app only
+// installs files signed with the Rigby2D release key (tauri.conf.json, plugins.updater.pubkey).
 
 import { LINKS, VERSION, askChoice } from './helpui.js';
 import { t } from './i18n.js';
 import * as log from './log.js';
+import { icon } from './icons.js';
 import { isDesktop, openExternal } from './platform.js';
 import { h } from './widgets.js';
 
-const LAST_CHECK = 'rigby.updates.lastCheck';
-const DAY = 24 * 60 * 60 * 1000;
+const RECHECK = 6 * 60 * 60 * 1000;
 
-/** Checks for an update; `quiet` stays silent when there is none or the check fails. */
+/** The update found by the last check (Tauri's Update), or null. */
+let available = null;
+let badge = null;
+
+/** The menu bar's "Update available" button: hidden until a check finds an update. */
+export function updateBadge(app) {
+  if (!badge) {
+    badge = h('button', { class: 'update-badge', hidden: true, onclick: () => available && offerUpdate(app, available) }, icon('download', 14), h('span', null, ''));
+  }
+  return badge;
+}
+
+/** Shows `update` in the menu bar (null hides the button). */
+export function showUpdate(app, update) {
+  available = update;
+  const b = updateBadge(app);
+  b.hidden = !update;
+  if (!update) return;
+  b.lastChild.textContent = t('Update available');
+  b.title = t('Rigby2D {version} is available. You have {current}.', { version: update.version, current: VERSION });
+}
+
+/**
+ * Checks for an update. Found, it shows in the menu bar, and the dialog offers it unless `quiet`;
+ * `quiet` also stays silent when there is none or the check fails.
+ */
 export async function checkForUpdates(app, { quiet = false } = {}) {
   if (!isDesktop) {
     if (!quiet) app.setStatus(t('The browser editor is always up to date.'));
@@ -22,16 +48,25 @@ export async function checkForUpdates(app, { quiet = false } = {}) {
   try {
     const { check } = await import('@tauri-apps/plugin-updater');
     update = await check();
-    localStorage.setItem(LAST_CHECK, String(Date.now()));
   } catch (e) {
     log.warn(`Update check failed: ${e?.message ?? e}`, { source: 'updates' });
     if (!quiet) app.setStatus(t('Could not check for updates: {error}', { error: e?.message ?? e }));
     return;
   }
+  showUpdate(app, update);
   if (!update) {
     if (!quiet) app.setStatus(t('Rigby2D {version} is the latest version.', { version: VERSION }));
     return;
   }
+  if (quiet) {
+    log.info(`Rigby2D ${update.version} is available`, { source: 'updates' });
+    return;
+  }
+  await offerUpdate(app, update);
+}
+
+/** The update dialog: what's new, later, or install and restart. */
+async function offerUpdate(app, update) {
   const notes = String(update.body ?? '').split('\n').find((l) => l.trim() && !l.startsWith('#')) ?? '';
   const choice = await askChoice(
     t('Update available'),
@@ -72,10 +107,10 @@ export async function checkForUpdates(app, { quiet = false } = {}) {
   }
 }
 
-/** At startup: a quiet check, at most once a day, when the preference is on. */
+/** Quiet checks when the preference is on: soon after the editor starts, then every few hours. */
 export function scheduleUpdateCheck(app) {
-  if (!isDesktop || !app.prefs.get('updates.check')) return;
-  const last = Number(localStorage.getItem(LAST_CHECK)) || 0;
-  if (Date.now() - last < DAY) return;
-  setTimeout(() => checkForUpdates(app, { quiet: true }), 15_000);
+  if (!isDesktop) return;
+  const run = () => app.prefs.get('updates.check') && checkForUpdates(app, { quiet: true });
+  setTimeout(run, 8_000);
+  setInterval(run, RECHECK);
 }

@@ -3086,3 +3086,35 @@ kbd {
   padding-left: 20px;
   line-height: 1.7;
 }
+
+/* The menu bar's "Update available" button (updateui.js) */
+.update-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-right: 8px;
+  padding: 3px 10px 3px 8px;
+  border: 1px solid rgba(74, 222, 128, 0.5);
+  border-radius: 999px;
+  background: rgba(74, 222, 128, 0.14);
+  color: #86efac;
+  font-size: 12px;
+  font-weight: 600;
+  animation: update-glow 2.4s ease-in-out infinite;
+}
+.update-badge:hover {
+  background: rgba(74, 222, 128, 0.26);
+  color: #bbf7d0;
+}
+.update-badge[hidden] {
+  display: none;
+}
+@keyframes update-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); }
+  50% { box-shadow: 0 0 0 4px rgba(74, 222, 128, 0.18); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .update-badge {
+    animation: none;
+  }
+}

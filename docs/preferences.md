@@ -10,7 +10,7 @@ defaults.
 | --- | --- |
 | Language | The language of menus and dialogs: English, 日本語, 简体中文, 한국어, Español or Português (Brasil). *System* follows your computer. Some panels are still in English. |
 | Welcome screen | Shows the welcome screen at startup: new projects, recent work, starter projects and lessons. *Help ▸ Welcome screen* opens it any time. |
-| Check for updates | Looks for a new version once a day and offers to install it (desktop app). See [Installation](installation.md#updates). |
+| Check for updates | Looks for a new version when the editor starts and every few hours, and shows **Update available** in the menu bar (desktop app). See [Installation](installation.md#updates). |
 
 ## Interface
 

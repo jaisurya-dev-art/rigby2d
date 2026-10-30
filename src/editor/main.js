@@ -40,7 +40,7 @@ import { applyInterfaceScale, openPreferences } from './prefsui.js';
 import { AddonManager } from './addonui.js';
 import { languageFor, setLanguage, t } from './i18n.js';
 import { openRuntimes } from './runtimeui.js';
-import { checkForUpdates, scheduleUpdateCheck } from './updateui.js';
+import { checkForUpdates, scheduleUpdateCheck, updateBadge } from './updateui.js';
 import { openWelcome } from './welcomeui.js';
 import { COMMUNITY_URL, DEVLOG_URL } from './news.js';
 import { openMigrationCheck } from './migrationui.js';
@@ -306,7 +306,7 @@ function buildMenuBar() {
     : h('a', { class: 'home-link', href: '../', title: 'Rigby2D website: home, documentation and downloads', 'data-goatcounter-click': 'editor-home' }, h('img', { src: markUrl, alt: '', width: 18, height: 18 }), h('span', null, 'Rigby2D'));
   const docTitle = inTauri ? null : h('span', { class: 'doc-title' });
   bar.replaceChildren(
-    ...[home, home && h('span', { class: 'vsep' }), ...titles, h('span', { class: 'vsep' }), mode, onionNotice, h('span', { class: 'spacer' }), docTitle, docTitle && h('span', { class: 'spacer' }), switcher].filter(Boolean),
+    ...[home, home && h('span', { class: 'vsep' }), ...titles, h('span', { class: 'vsep' }), mode, onionNotice, h('span', { class: 'spacer' }), docTitle, docTitle && h('span', { class: 'spacer' }), updateBadge(app), switcher].filter(Boolean),
   );
   // Called every frame: touch the DOM only when something shown changed.
   let shown = '';
@@ -557,7 +557,7 @@ requestAnimationFrame(frame);
 // demo instead.
 // Work from an editor that crashed is offered back first; otherwise the last project reopens when
 // that preference is on, or the welcome screen shows (Preferences ▸ General). Then, on the desktop,
-// a quiet daily update check.
+// quiet update checks (a found update shows in the menu bar).
 const linkedDemo = new URLSearchParams(location.search).get('demo');
 if (linkedDemo && DEMOS.some((d) => d.id === linkedDemo)) app.openDemo(linkedDemo, false);
 else {

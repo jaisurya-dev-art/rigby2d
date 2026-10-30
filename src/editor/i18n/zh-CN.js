@@ -142,7 +142,7 @@ export default {
   "Loading the gallery…": "正在加载插件库…",
   "Log": "日志",
   "Longer animations are cut at {max} seconds.": "较长的动画会在 {max} 秒处截断。",
-  "Look for a new version once a day, and offer to install it.": "每天检查一次新版本，并提示安装。",
+  "Look for a new version when the editor starts and every few hours, and show it in the menu bar.": "在编辑器启动时及每隔几小时检查新版本，并在菜单栏中显示。",
   "MP4 video (not available here)": "MP4 视频（此处不可用）",
   "MP4 video (sharper, smaller)": "MP4 视频（更清晰、更小）",
   "Meshes and weights": "网格与权重",

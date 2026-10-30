@@ -142,7 +142,7 @@ export default {
   "Loading the gallery…": "Carregando a galeria…",
   "Log": "Log",
   "Longer animations are cut at {max} seconds.": "Animações mais longas são cortadas em {max} segundos.",
-  "Look for a new version once a day, and offer to install it.": "Procurar uma nova versão uma vez por dia e oferecer a instalação.",
+  "Look for a new version when the editor starts and every few hours, and show it in the menu bar.": "Procurar uma nova versão ao abrir o editor e a cada poucas horas, e mostrá-la na barra de menus.",
   "MP4 video (not available here)": "Vídeo MP4 (não disponível aqui)",
   "MP4 video (sharper, smaller)": "Vídeo MP4 (mais nítido e menor)",
   "Meshes and weights": "Malhas e pesos",

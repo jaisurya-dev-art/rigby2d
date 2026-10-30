@@ -142,7 +142,7 @@ export default {
   "Loading the gallery…": "갤러리 불러오는 중…",
   "Log": "로그",
   "Longer animations are cut at {max} seconds.": "긴 애니메이션은 {max}초에서 잘립니다.",
-  "Look for a new version once a day, and offer to install it.": "하루에 한 번 새 버전을 찾고 설치를 제안합니다.",
+  "Look for a new version when the editor starts and every few hours, and show it in the menu bar.": "편집기를 시작할 때와 몇 시간마다 새 버전을 찾아 메뉴 막대에 표시합니다.",
   "MP4 video (not available here)": "MP4 동영상(여기서는 사용할 수 없음)",
   "MP4 video (sharper, smaller)": "MP4 동영상(더 선명하고 작음)",
   "Meshes and weights": "메시와 웨이트",

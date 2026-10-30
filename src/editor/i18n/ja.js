@@ -142,7 +142,7 @@ export default {
   "Loading the gallery…": "ギャラリーを読み込み中…",
   "Log": "ログ",
   "Longer animations are cut at {max} seconds.": "長いアニメーションは {max} 秒で切り詰めます。",
-  "Look for a new version once a day, and offer to install it.": "1 日に 1 回新しいバージョンを探し、インストールを提案します。",
+  "Look for a new version when the editor starts and every few hours, and show it in the menu bar.": "エディターの起動時と数時間ごとに新しいバージョンを探し、メニューバーに表示します。",
   "MP4 video (not available here)": "MP4 動画（ここでは使えません）",
   "MP4 video (sharper, smaller)": "MP4 動画（高画質・小サイズ）",
   "Meshes and weights": "メッシュとウェイト",

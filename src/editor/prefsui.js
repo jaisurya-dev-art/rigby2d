@@ -65,7 +65,7 @@ const PAGES = [
         choice([['', t('System ({language})', { language: navigator.language })], ...LANGUAGES], app.prefs.get('interface.language'), (v) => app.prefs.set('interface.language', v)),
       ),
       row('Welcome screen', 'Show the welcome screen when the editor starts.', checkbox(app.prefs.get('general.welcome'), (v) => app.prefs.set('general.welcome', v))),
-      isDesktop ? row('Check for updates', 'Look for a new version once a day, and offer to install it.', checkbox(app.prefs.get('updates.check'), (v) => app.prefs.set('updates.check', v))) : null,
+      isDesktop ? row('Check for updates', 'Look for a new version when the editor starts and every few hours, and show it in the menu bar.', checkbox(app.prefs.get('updates.check'), (v) => app.prefs.set('updates.check', v))) : null,
     ],
   },
   {

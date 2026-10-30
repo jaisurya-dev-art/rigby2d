@@ -49,10 +49,12 @@ The app needs WebView2, which is part of Windows 10 and 11.
 
 ## Updates
 
-The desktop app checks for a new version once a day and asks before installing it: **Install and
-restart** downloads the update, checks its signature and restarts into the new version. Your project
-is saved first if it has changes. *Help ▸ Check for updates* checks right away, and *Preferences ▸
-General ▸ Check for updates* turns the daily check off.
+The desktop app checks for a new version when it starts and every few hours after. When there is one,
+a green **Update available** button appears in the menu bar and stays until you install it. Click it
+to see the version, open what's new, or **Install and restart**: the update is downloaded, its
+signature checked, and the app restarts into the new version. Your project is saved first if it has
+changes. *Help ▸ Check for updates* checks right away, and *Preferences ▸ General ▸ Check for
+updates* turns the automatic checks off.
 
 Updates are signed with the Rigby2D release key, and the app installs nothing that isn't signed
 with it. On Windows the update uses the installer, so the portable editor becomes an installed one.
