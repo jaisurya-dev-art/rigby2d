@@ -126,7 +126,7 @@ function menus() {
         { label: t('JSON format 4.3…'), action: () => app.exportSkeletonJson('4.3') },
         ...(app.doc.scene ? ['separator', { label: t('Scene for runtimes…'), title: t('The stage, every character and their clips, for the JavaScript, Rust and Godot runtimes'), action: () => app.exportScene() }] : []),
       ]),
-      { label: t('Get runtimes…'), title: t('Unity, Godot, Phaser, JavaScript and Rust runtimes for this version'), action: () => openRuntimes(app) },
+      { label: t('Get runtimes…'), title: t('Unity, Godot, Cocos Creator, Phaser, JavaScript and Rust runtimes for this version'), action: () => openRuntimes(app) },
       'separator',
       { label: t('Quit'), action: () => (inTauri ? getCurrentWindow().close() : window.close()) },
     ],

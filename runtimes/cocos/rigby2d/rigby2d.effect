@@ -1,0 +1,68 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+// Rigby2D skeletons in Cocos Creator: textured triangles with two-color tint. A texel c becomes
+// light * c + dark * (1 - c); the output is premultiplied (blend states are set per slot blend mode
+// by RigbySkeleton.ts). rigbyParams.x is 1 for premultiplied textures.
+CCEffect %{
+  techniques:
+  - passes:
+    - vert: rigby-vs:vert
+      frag: rigby-fs:frag
+      blendState:
+        targets:
+        - blend: true
+          blendSrc: one
+          blendDst: one_minus_src_alpha
+          blendSrcAlpha: one
+          blendDstAlpha: one_minus_src_alpha
+      rasterizerState:
+        cullMode: none
+      depthStencilState:
+        depthTest: false
+        depthWrite: false
+      properties:
+        mainTexture: { value: white }
+        rigbyParams: { value: [0, 0, 0, 0] }
+}%
+
+CCProgram rigby-vs %{
+  precision highp float;
+  #include <builtin/uniforms/cc-global>
+  #include <builtin/uniforms/cc-local>
+
+  in vec3 a_position;
+  in vec2 a_texCoord;
+  in vec4 a_color;
+  in vec4 a_color2;
+
+  out vec2 v_uv;
+  out vec4 v_light;
+  out vec4 v_dark;
+
+  vec4 vert () {
+    v_uv = a_texCoord;
+    v_light = a_color;
+    v_dark = a_color2;
+    return cc_matViewProj * cc_matWorld * vec4(a_position, 1.0);
+  }
+}%
+
+CCProgram rigby-fs %{
+  precision highp float;
+
+  in vec2 v_uv;
+  in vec4 v_light;
+  in vec4 v_dark;
+
+  uniform sampler2D mainTexture;
+  uniform RigbyConstants {
+    vec4 rigbyParams;
+  };
+
+  vec4 frag () {
+    vec4 t = texture(mainTexture, v_uv);
+    vec3 c = rigbyParams.x > 0.5 ? (t.a > 0.0 ? t.rgb / t.a : vec3(0.0)) : t.rgb;
+    float a = t.a * v_light.a;
+    vec3 rgb = c * v_light.rgb + (1.0 - c) * v_dark.rgb * v_dark.a;
+    return vec4(rgb * a, a);
+  }
+}%

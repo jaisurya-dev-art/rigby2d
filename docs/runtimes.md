@@ -9,6 +9,7 @@ characters on a stage with a moving camera and parallax.
 <div class="cards engines">
 <a href="#godot" data-mark="godot"><strong>Godot <span class="status preview">Preview</span></strong><code>RigbySkeleton2D</code> and <code>RigbyScene2D</code> nodes, a GDExtension on the Rust core. <small>Godot 4.3+ · Windows, macOS, Linux</small></a>
 <a href="#unity" data-mark="unity"><strong>Unity <span class="status">Complete</span></strong><code>RigbySkeleton</code> and <code>RigbyScene</code> components in C#, multi-core, no garbage. <small>Unity 2021.3+ and Unity 6 · every platform</small></a>
+<a href="#cocos-creator" data-mark="cocos"><strong>Cocos Creator <span class="status">New</span></strong>A <code>RigbySkeleton</code> component for 2D scenes, drawn in order with sprites and UI. <small>Cocos Creator 3.8 · web and native</small></a>
 <a href="#phaser" data-mark="phaser"><strong>Phaser <span class="status">Complete</span></strong>A plugin: <code>this.add.rigby()</code>, on the JavaScript runtime. <small>Phaser 3.60+ · WebGL</small></a>
 <a href="#javascript" data-mark="javascript"><strong>JavaScript <span class="status">Complete</span></strong>No dependencies, with a ready-made WebGL renderer. <small><code>src/core</code> · <code>src/webgl</code></small></a>
 <a href="#rust" data-mark="rust"><strong>Rust <span class="status">Complete</span></strong>No dependencies; matches the JavaScript runtime frame by frame, 3 to 4× faster. <small><code>runtimes/rust/rigby-runtime</code></small></a>
@@ -19,7 +20,8 @@ JavaScript runtime.
 
 **From the editor:** *File ▸ Get runtimes…* downloads the runtimes that match your editor's version:
 the Unity package (or its git URL), the Godot addon for your system (or installs it straight into a
-Godot project), and the Phaser bundles. The welcome screen also offers a **Phaser game starter**: a
+Godot project), the Cocos Creator package (or installs it straight into a Cocos project), and the
+Phaser bundles. The welcome screen also offers a **Phaser game starter**: a
 small playable game with NILA to build on.
 
 ## JavaScript
@@ -114,6 +116,32 @@ A `RigbySkeleton` is an ordinary Phaser game object (position, scale, rotation, 
 input) with the full animation state: tracks, crossfades, queues, skins, events and bone positions
 for attaching objects. It plays exactly as the editor does. See the
 [Phaser guide](https://github.com/jaisurya-dev-art/rigby2d/blob/develop/runtimes/phaser/README.md).
+
+## Cocos Creator
+
+The `RigbySkeleton` component for Cocos Creator 3.8: a 2D renderer, so under a Canvas it draws in
+order with your sprites and labels, follows the node's color and opacity, and works in 2D-only
+projects. It plays every Rigby2D feature with the JavaScript runtime, so characters move exactly as
+in the editor. Tested in Cocos Creator 3.8.8.
+
+1. Unzip `rigby2d-cocos-<version>.zip` into your project's `assets/` (or use *File ▸ Get runtimes… ▸
+   Install into a project…*).
+2. Copy your exported `.json` (or `.skel`), `.atlas` and `.png` into `assets/`. Cocos turns the
+   `.json` + `.atlas` pair into a *Skeleton Data* asset.
+3. Add **Rigby2D ▸ RigbySkeleton** to a node under your Canvas, set **Skeleton Data** to that asset
+   and **Animation** to the one to play.
+
+```ts
+const rigby = this.getComponent(RigbySkeleton)!;
+rigby.setAnimation(0, 'run', true, 0.2);
+rigby.addAnimation(0, 'idle', true, 0.3);
+this.node.on(RigbySkeleton.EVENT, (e: RigbyEvent) => console.log(e.name, e.time));
+```
+
+`RigbyBoneFollower` keeps any node (a weapon, particles, a collider) on a bone. Coming from DragonBones?
+Open your project in Rigby2D first ([Coming from DragonBones](migrating-from-dragonbones.md)), then
+export it for Cocos. See the [Cocos Creator guide](../runtimes/cocos/README.md)
+([中文](../runtimes/cocos/README.zh-CN.md)) for every property and method.
 
 ## Unity
 

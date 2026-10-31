@@ -32,6 +32,7 @@
 <p align="center">
   <a href="runtimes/godot/addons/rigby2d/README.md"><img alt="Godot" src="https://img.shields.io/badge/Godot-runtime-478cbf?logo=godotengine&logoColor=white"></a>
   <a href="runtimes/unity/com.rigby2d.unity/README.md"><img alt="Unity" src="https://img.shields.io/badge/Unity-runtime-222429?logo=unity&logoColor=white"></a>
+  <a href="runtimes/cocos/README.md"><img alt="Cocos Creator" src="https://img.shields.io/badge/Cocos%20Creator-runtime-55c2e1?logo=cocos&logoColor=white"></a>
   <a href="runtimes/phaser/README.md"><img alt="Phaser" src="https://img.shields.io/badge/Phaser-runtime-7b5cd6"></a>
   <a href="docs/runtimes.md"><img alt="JavaScript and Rust" src="https://img.shields.io/badge/JavaScript%20%7C%20Rust-runtimes-f7df1e?labelColor=555"></a>
   <br>

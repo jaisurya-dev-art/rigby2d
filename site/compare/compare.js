@@ -17,7 +17,7 @@ const RIGBY = {
   setup: 'AutoRig: a layered PSD becomes an editable rig in one step',
   film: 'Film workspace: camera, audio tracks, renders to PNG sequences, WebM with alpha and MP4 at 4K',
   lipsync: 'Lip-sync from audio, transcribed on your computer',
-  runtimes: 'Godot, Unity, Phaser, JavaScript and Rust, free and open source',
+  runtimes: 'Godot, Unity, Cocos Creator, Phaser, JavaScript and Rust, free and open source',
   automation: 'Python scripting, add-ons, and a built-in MCP server for AI assistants',
 };
 
@@ -73,7 +73,7 @@ export const COMPARISONS = [
     why: [
       'A desktop editor that keeps moving. New features every release on Windows, macOS and Linux.',
       'Your characters, exactly. Checked against the DragonBones runtime: bones, weapons, effects, images and colors match.',
-      'Modern runtimes. Ship to Godot, Unity, Phaser, the web and Rust, all free and open source.',
+      'Modern runtimes. Ship to Godot, Unity, Cocos Creator, Phaser, the web and Rust, all free and open source.',
       'More than you had. Physics, clipping, AutoRig, a film workspace and lip-sync on top of what DragonBones did.',
       'Free and open source. No account, no lock-in, MIT OR Apache-2.0.',
     ],
@@ -135,7 +135,7 @@ export const COMPARISONS = [
       'No subscription. Rigging, animation, lip-sync and 4K rendering, free.',
       'Rig in one step. AutoRig turns a layered PSD into a working rig with bones, meshes and IK.',
       'Physics on hair, cloth and accessories, built in.',
-      'One rig for film and games: the same character plays in Godot, Unity, Phaser and the web.',
+      'One rig for film and games: the same character plays in Godot, Unity, Cocos Creator, Phaser and the web.',
       'Open source: your pipeline is never locked to a vendor.',
     ],
     switching: 'Export your character\'s layers as a PSD, then use File ▸ AutoRig artwork in Rigby2D. Render in the Film workspace, or ship the same rig to a game.',
@@ -143,7 +143,7 @@ export const COMPARISONS = [
     source: 'https://shop.toonboom.com/en/products/harmony',
     faq: [
       ['Is Rigby2D a full replacement for Harmony?', 'For cut-out character animation, it covers rigging, animation, lip-sync and rendering for free. Harmony is a complete studio pipeline with drawing and compositing that Rigby2D does not try to replace.'],
-      ['Can I use Rigby2D characters in games too?', 'Yes. The same rig plays in Godot, Unity, Phaser, the browser and Rust with the free Rigby2D runtimes.'],
+      ['Can I use Rigby2D characters in games too?', 'Yes. The same rig plays in Godot, Unity, Cocos Creator, Phaser, the browser and Rust with the free Rigby2D runtimes.'],
     ],
   },
 ];

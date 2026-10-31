@@ -2740,6 +2740,10 @@ kbd {
 .rt-phaser {
   --rt: #7b5cd6;
 }
+.rt-cocos {
+  --rt: #55c2e1;
+  --rt-fg: #0b1d24;
+}
 .rt-javascript {
   --rt: #f7df1e;
   --rt-fg: #1b1b1b;

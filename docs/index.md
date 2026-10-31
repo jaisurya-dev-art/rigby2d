@@ -22,7 +22,7 @@ and meshes, animate it for games or film, and play it anywhere with the included
 <a href="film.html" data-icon="clapperboard"><strong>Make films</strong>Camera, audio, lip-sync, and renders to PNG, WebM and MP4.</a>
 <a href="scenes.html" data-icon="drama"><strong>Compose scenes</strong>Several characters, clips, parallax layers and a camera.</a>
 <a href="scripting.html" data-icon="code"><strong>Automate</strong>Python scripts, add-ons, and AI assistants over MCP.</a>
-<a href="runtimes.html" data-icon="gamepad-2"><strong>Ship to any engine</strong>JSON or <code>.skel</code> for Godot, Unity, Phaser, JavaScript and Rust.</a>
+<a href="runtimes.html" data-icon="gamepad-2"><strong>Ship to any engine</strong>JSON or <code>.skel</code> for Godot, Unity, Cocos Creator, Phaser, JavaScript and Rust.</a>
 </div>
 
 ## Where to start

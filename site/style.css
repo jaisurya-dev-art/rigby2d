@@ -1602,6 +1602,7 @@ h3 {
 .engine-godot { --brand: #478cbf; }
 .engine-unity { --brand: #ffffff; }
 .engine-phaser { --brand: #8dd35f; }
+.engine-cocos { --brand: #55c2e1; }
 .engine-javascript { --brand: #f7df1e; }
 .engine-rust { --brand: #f74c00; }
 .engines {
@@ -1684,6 +1685,7 @@ h3 {
 .o3 { right: 4%; top: 52%; color: #8dd35f; animation-delay: -2s; }
 .o4 { left: 4%; top: 56%; color: #f7df1e; animation-delay: -3s; }
 .o5 { left: 16%; bottom: 6%; color: #f74c00; animation-delay: -4s; }
+.o6 { right: 14%; bottom: 8%; color: #55c2e1; animation-delay: -2.5s; }
 @keyframes bob {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-10px); }
@@ -1720,6 +1722,7 @@ h3 {
 .dl .dl-icon.dl-unity { color: #fff; }
 .dl .dl-icon.dl-godot { color: #478cbf; }
 .dl .dl-icon.dl-phaser { color: #8dd35f; }
+.dl .dl-icon.dl-cocos { color: #55c2e1; }
 
 /* Community: NILA next to the call to join. */
 .community-row {

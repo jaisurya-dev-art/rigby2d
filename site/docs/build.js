@@ -73,7 +73,7 @@ const OS_MARKS = { Windows: 'windows', macOS: 'apple', Linux: 'linux' };
 
 /** The engine or platform mark for a section heading such as "Godot" or "macOS desktop app", or ''. */
 function headingMark(text) {
-  const engine = /^(JavaScript|Rust|Phaser|Unity|Godot)$/.exec(text)?.[1].toLowerCase();
+  const engine = { JavaScript: 'javascript', Rust: 'rust', Phaser: 'phaser', Unity: 'unity', Godot: 'godot', 'Cocos Creator': 'cocos' }[text];
   if (engine) return `<span class="h-mark card-${engine}">${mark(engine, 22)}</span>`;
   const os = OS_MARKS[/^(Windows|macOS|Linux) desktop app$/.exec(text)?.[1]];
   if (os) return `<span class="h-mark card-${os}">${mark(os, 20)}</span>`;

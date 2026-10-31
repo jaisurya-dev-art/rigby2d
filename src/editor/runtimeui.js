@@ -65,6 +65,21 @@ export function openRuntimes(app) {
     }
   };
 
+  const installCocos = async () => {
+    const dir = await pickFolder(t('Choose your Cocos Creator project folder (the one with assets)'));
+    if (!dir) return;
+    const file = `rigby2d-cocos-${VERSION}.zip`;
+    try {
+      status(t('Downloading {file}…', { file }));
+      const files = [...unzip(await fetchBytes(release(file)))].filter(([p]) => !p.endsWith('/')).map(([path, bytes]) => ({ path, bytes }));
+      const sep = dir.includes('\\') ? '\\' : '/';
+      await writeFilesTo(`${dir.replace(/[\\/]$/, '')}${sep}assets`, files);
+      status(t('Installed the Cocos Creator runtime into {folder} (assets/rigby2d). Open the project in Cocos Creator.', { folder: dir }));
+    } catch (e) {
+      status(t('Could not install the Cocos Creator runtime: {error}', { error: e.message }));
+    }
+  };
+
   const copy = async (text, button) => {
     await navigator.clipboard?.writeText(text);
     status(t('Copied {text}', { text }));
@@ -118,6 +133,15 @@ export function openRuntimes(app) {
         primary: isDesktop && VERSION ? action('folder-open', t('Install into a project…'), installGodot, 'primary') : action('download', t('Download addon'), () => download(`rigby2d-godot-addon-${V}-${godot}.zip`), 'primary'),
         secondary: [isDesktop && VERSION ? action('download', t('Addon .zip'), () => download(`rigby2d-godot-addon-${V}-${godot}.zip`)) : null, action('gamepad-2', t('Demo'), () => download(`rigby2d-godot-demo-${V}-${godot}.zip`))].filter(Boolean),
         guide: docs('runtimes/godot/addons/rigby2d/README.md'),
+      }),
+      card({
+        id: 'cocos',
+        name: 'Cocos Creator',
+        badge: '3.8',
+        text: t('A RigbySkeleton component for 2D scenes: drop in the exported files and pick an animation.'),
+        primary: isDesktop && VERSION ? action('folder-open', t('Install into a project…'), installCocos, 'primary') : action('download', t('Download .zip'), () => download(`rigby2d-cocos-${V}.zip`), 'primary'),
+        secondary: isDesktop && VERSION ? [action('download', '.zip', () => download(`rigby2d-cocos-${V}.zip`))] : [],
+        guide: docs('runtimes/cocos/README.md'),
       }),
       card({
         id: 'phaser',

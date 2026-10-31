@@ -38,7 +38,8 @@
     "build:mcpb": "node mcpb/build.mjs",
     "build:phaser": "node runtimes/phaser/build.mjs",
     "site:dev": "vite --config site/vite.config.js",
-    "site:build": "node runtimes/phaser/build.mjs && vite build --config site/vite.config.js && vite build --base=/editor/ --outDir _site/editor --emptyOutDir"
+    "site:build": "node runtimes/phaser/build.mjs && vite build --config site/vite.config.js && vite build --base=/editor/ --outDir _site/editor --emptyOutDir",
+    "build:cocos": "node runtimes/cocos/build.mjs"
   },
   "engines": {
     "node": ">=20"
