@@ -26,8 +26,7 @@
 
 <p align="center">
   <a href="https://alternativeto.net/software/rigby2d/about/?utm_source=badge&utm_medium=referral"><img alt="Rigby2D on AlternativeTo" src="https://alternativeto.net/static/badges/badge-compact-dark.svg" height="80"></a><br>
-  <sub>En AlternativeTo junto a Spine, DragonBones y Live2D</sub><br>
-  <sub><b>Apariciones:</b> <a href="https://polydium.net/briefing/8df9db93-0abf-4032-bd88-acbdf95ec431">Polydium (Corea): Pipeline Briefing</a></sub>
+  <sub>En AlternativeTo junto a Spine, DragonBones y Live2D</sub>
 </p>
 
 <p align="center">
@@ -52,6 +51,12 @@
   <img src="../docs/screenshot.jpg" alt="El editor de Rigby2D animando a NILA" width="800"><br>
   <sub>El editor animando a NILA: el hueso de la cabeza seleccionado en el árbol, sus claves en la hoja de animación y su pose en el inspector.</sub>
 </p>
+
+## Destacado en
+
+- **Análisis de arquitectura en YouTube:** [Rigby2D GitHub Explained: 2D Rigging Across Game and Film Runtimes](https://www.youtube.com/watch?v=K9hDnlXZ2No) por [Alex Hitt](https://www.youtube.com/channel/UCKhKnxp8JhHu1FsbyZYxqwg) — revisión técnica de 8 minutos sobre la topología de mallas de AutoRig, la paridad determinista del motor de físicas entre runtimes, los espacios de trabajo de juego y cine, y el servidor MCP integrado.
+- **Polydium (Briefing diario de CG · VFX · Videojuegos):** [Rigby2D — Editor de animación esquelética 2D de código abierto con AutoRig para PSD por capas](https://polydium.net/briefing/8df9db93-0abf-4032-bd88-acbdf95ec431) — destacado en el [Briefing de Pipeline de Polydium](https://polydium.net/briefing).
+- **Directorios open-source e IA:** Listado en [Trendshift Top Game Engine Projects (2026)](https://trendshift.io/topics/game-engine), [Nicheloom](https://www.nicheloom.com/launches/57217/) y [Context7](https://context7.com/jaisurya-dev-art/rigby2d).
 
 ## Documentación
 

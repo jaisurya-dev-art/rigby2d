@@ -26,8 +26,7 @@
 
 <p align="center">
   <a href="https://alternativeto.net/software/rigby2d/about/?utm_source=badge&utm_medium=referral"><img alt="Rigby2D on AlternativeTo" src="https://alternativeto.net/static/badges/badge-compact-dark.svg" height="80"></a><br>
-  <sub>已在 AlternativeTo 上作为 Spine、DragonBones 和 Live2D 的替代品收录</sub><br>
-  <sub><b>媒体报道:</b> <a href="https://polydium.net/briefing/8df9db93-0abf-4032-bd88-acbdf95ec431">Polydium（韩国）Pipeline Briefing</a></sub>
+  <sub>已在 AlternativeTo 上作为 Spine、DragonBones 和 Live2D 的替代品收录</sub>
 </p>
 
 <p align="center">
@@ -52,6 +51,12 @@
   <img src="../docs/screenshot.jpg" alt="正在为 NILA 制作动画的 Rigby2D 编辑器" width="800"><br>
   <sub>编辑器正在为 NILA 制作动画：在树中选中头部骨骼，关键帧显示在摄影表中，姿势显示在检查器中。</sub>
 </p>
+
+## 媒体报道与社区收录
+
+- **YouTube 架构深度解析：** [Alex Hitt](https://www.youtube.com/channel/UCKhKnxp8JhHu1FsbyZYxqwg) 发布的 [Rigby2D GitHub Explained: 2D Rigging Across Game and Film Runtimes](https://www.youtube.com/watch?v=K9hDnlXZ2No) —— 8 分钟技术评测，深入解析 AutoRig 网格拓扑、跨引擎帧级一致的物理约束求解器、游戏与影视双工作区以及内置 MCP 服务器。
+- **Polydium（CG · VFX · 游戏每日简报）：** [Rigby2D — 自动绑定分层 PSD 的开源 2D 骨骼动画编辑器](https://polydium.net/briefing/8df9db93-0abf-4032-bd88-acbdf95ec431) —— 入选韩国 [Polydium 管线简报](https://polydium.net/briefing) 重点推荐工具。
+- **开源与 AI 索引目录：** 收录于 [Trendshift 2026 开源游戏引擎项目](https://trendshift.io/topics/game-engine)、[Nicheloom](https://www.nicheloom.com/launches/57217/) 与 [Context7](https://context7.com/jaisurya-dev-art/rigby2d)。
 
 ## 文档
 

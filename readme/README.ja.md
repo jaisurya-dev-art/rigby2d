@@ -26,8 +26,7 @@
 
 <p align="center">
   <a href="https://alternativeto.net/software/rigby2d/about/?utm_source=badge&utm_medium=referral"><img alt="Rigby2D on AlternativeTo" src="https://alternativeto.net/static/badges/badge-compact-dark.svg" height="80"></a><br>
-  <sub>AlternativeTo で Spine・DragonBones・Live2D の代替として掲載</sub><br>
-  <sub><b>掲載:</b> <a href="https://polydium.net/briefing/8df9db93-0abf-4032-bd88-acbdf95ec431">Polydium（韓国）Pipeline Briefing</a></sub>
+  <sub>AlternativeTo で Spine・DragonBones・Live2D の代替として掲載</sub>
 </p>
 
 <p align="center">
@@ -52,6 +51,12 @@
   <img src="../docs/screenshot.jpg" alt="NILA をアニメーション中の Rigby2D エディター" width="800"><br>
   <sub>NILA をアニメーション中のエディター：ツリーで頭のボーンを選択し、ドープシートにキー、インスペクターにポーズ。</sub>
 </p>
+
+## メディア掲載・紹介
+
+- **YouTube アーキテクチャ解説:** [Alex Hitt](https://www.youtube.com/channel/UCKhKnxp8JhHu1FsbyZYxqwg) による [Rigby2D GitHub Explained: 2D Rigging Across Game and Film Runtimes](https://www.youtube.com/watch?v=K9hDnlXZ2No) — AutoRig のメッシュ生成、全ランタイムで一致する物理ソルバー、ゲーム／フィルム用ワークスペース、内蔵 MCP サーバーを解説した 8 分間の技術レビュー動画。
+- **Polydium (CG・VFX・ゲーム日刊ブリーフィング):** [Rigby2D — レイヤー付き PSD を自動リギングするオープンソース 2D スケルタルアニメーションエディタ](https://polydium.net/briefing/8df9db93-0abf-4032-bd88-acbdf95ec431) — 韓国の [Polydium パイプラインブリーフィング](https://polydium.net/briefing) にて特集。
+- **オープンソース・AI インデックス:** [Trendshift Top Game Engine Projects (2026)](https://trendshift.io/topics/game-engine)、[Nicheloom](https://www.nicheloom.com/launches/57217/)、[Context7](https://context7.com/jaisurya-dev-art/rigby2d) に掲載。
 
 ## ドキュメント
 

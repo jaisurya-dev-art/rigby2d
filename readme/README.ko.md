@@ -26,8 +26,7 @@
 
 <p align="center">
   <a href="https://alternativeto.net/software/rigby2d/about/?utm_source=badge&utm_medium=referral"><img alt="Rigby2D on AlternativeTo" src="https://alternativeto.net/static/badges/badge-compact-dark.svg" height="80"></a><br>
-  <sub>AlternativeTo에 Spine, DragonBones, Live2D의 대안으로 등록됨</sub><br>
-  <sub><b>소개된 곳:</b> <a href="https://polydium.net/briefing/8df9db93-0abf-4032-bd88-acbdf95ec431">폴리디움(Polydium) 파이프라인 브리핑</a></sub>
+  <sub>AlternativeTo에 Spine, DragonBones, Live2D의 대안으로 등록됨</sub>
 </p>
 
 <p align="center">
@@ -52,6 +51,12 @@
   <img src="../docs/screenshot.jpg" alt="NILA를 애니메이션하는 Rigby2D 에디터" width="800"><br>
   <sub>NILA를 애니메이션하는 에디터: 트리에서 머리 본을 선택하고, 도프시트에 키, 인스펙터에 포즈.</sub>
 </p>
+
+## 미디어 및 커뮤니티 소개
+
+- **Polydium (CG·VFX·게임 데일리 브리핑):** [Rigby2D — 레이어 PSD를 자동으로 리깅하는 오픈소스 2D 스켈레탈 애니메이션 에디터](https://polydium.net/briefing/8df9db93-0abf-4032-bd88-acbdf95ec431) — [Polydium 파이프라인 브리핑](https://polydium.net/briefing)에 선정되어 PSD 자동 리깅, 리타게팅, 온디바이스 립싱크 및 런타임 워크플로우가 소개되었습니다.
+- **YouTube 아키텍처 리뷰:** [Alex Hitt](https://www.youtube.com/channel/UCKhKnxp8JhHu1FsbyZYxqwg)의 [Rigby2D GitHub Explained: 2D Rigging Across Game and Film Runtimes](https://www.youtube.com/watch?v=K9hDnlXZ2No) — AutoRig 메시 토폴로지, 엔진 간 동일한 물리 솔버 동작, 게임/필름 워크스페이스 및 내장 MCP 서버를 다룬 8분 기술 분석 영상입니다.
+- **오픈소스 및 AI 디렉토리:** [Trendshift 2026 게임 엔진 오픈소스 프로젝트](https://trendshift.io/topics/game-engine), [Nicheloom](https://www.nicheloom.com/launches/57217/), [Context7](https://context7.com/jaisurya-dev-art/rigby2d)에 등재되었습니다.
 
 ## 문서
 
