@@ -6,46 +6,40 @@
   <b>English</b> · <a href="README.ja.md">日本語</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.ko.md">한국어</a> · <a href="README.es.md">Español</a> · <a href="README.pt-BR.md">Português (Brasil)</a>
 </p>
 
+<h3 align="center">Animación esquelética 2D de código abierto para juegos y cine.</h3>
+
 <p align="center">
-  <a href="README.md">English</a> · <a href="README.ja.md">日本語</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.ko.md">한국어</a> · <b>Español</b> · <a href="README.pt-BR.md">Português (Brasil)</a>
+  Riggea tu arte con huesos y mallas, anímalo, renderízalo como película y llévalo a cualquier motor de juego. Gratis para siempre.
 </p>
 
 <p align="center">
-  <strong>Animación esquelética 2D de código abierto para juegos, películas y experiencias interactivas.</strong><br>
-  Monta tu arte con huesos y mallas, anímalo y reprodúcelo en cualquier sitio con el runtime incluido.<br>
-  <a href="docs/mcp.md">Servidor MCP</a> integrado: los asistentes de IA pueden inspeccionar, validar y animar tus proyectos.
+  <a href="https://rigby2d.com/editor/"><img alt="Try it in your browser" src="https://img.shields.io/badge/%E2%96%B6%20Try%20it-in%20your%20browser-b5d3e7?style=for-the-badge&labelColor=0a0a0b" height="34"></a>
+  <a href="https://rigby2d.com/#download"><img alt="Download" src="https://img.shields.io/badge/%E2%AC%87%20Download-Windows%20%C2%B7%20macOS%20%C2%B7%20Linux-5ea2ff?style=for-the-badge&labelColor=0a0a0b" height="34"></a>
+  <a href="https://www.reddit.com/r/rigby2d/"><img alt="Join r/rigby2d" src="https://img.shields.io/badge/Join-r%2Frigby2d-ff4500?style=for-the-badge&logo=reddit&logoColor=white&labelColor=0a0a0b" height="34"></a>
+  <br>
+  <sub>Windows · macOS · Linux · o el editor completo en tu navegador, sin instalar nada</sub>
 </p>
 
 <p align="center">
-  <a href="https://rigby2d.com/"><img alt="Pruébalo en tu navegador: el editor completo, sin instalar nada" src="https://img.shields.io/badge/%E2%96%B6%20Try%20it%20in%20your%20browser-the%20full%20editor%2C%20nothing%20to%20install-b5d3e7?style=for-the-badge&labelColor=0a0a0b" height="40"></a><br>
-  <sub><a href="https://rigby2d.com/editor/"><b>Abre el editor</b></a> con las demos de Rigbytron y NILA, tutoriales y scripts en Python · <a href="https://rigby2d.com/">Sitio web</a> · <a href="https://rigby2d.com/docs/">Documentación</a> (en inglés)</sub>
+  <a href="https://rigby2d.com/">Sitio web</a> · <a href="https://rigby2d.com/docs/">Documentación</a> · <a href="https://rigby2d.com/blog/">Devlog</a> · <a href="https://rigby2d.com/addons/">Complementos</a>
 </p>
 
 <p align="center">
+  <a href="https://alternativeto.net/software/rigby2d/about/?utm_source=badge&utm_medium=referral"><img alt="Rigby2D on AlternativeTo" src="https://alternativeto.net/static/badges/badge-wide-dark.svg" height="40"></a><br>
+  <sub>En AlternativeTo junto a Spine, DragonBones y Live2D</sub>
+</p>
+
+<p align="center">
+  <a href="runtimes/godot/addons/rigby2d/README.md"><img alt="Godot" src="https://img.shields.io/badge/Godot-runtime-478cbf?logo=godotengine&logoColor=white"></a>
+  <a href="runtimes/unity/com.rigby2d.unity/README.md"><img alt="Unity" src="https://img.shields.io/badge/Unity-runtime-222429?logo=unity&logoColor=white"></a>
+  <a href="runtimes/phaser/README.md"><img alt="Phaser" src="https://img.shields.io/badge/Phaser-runtime-7b5cd6"></a>
+  <a href="docs/runtimes.md"><img alt="JavaScript and Rust" src="https://img.shields.io/badge/JavaScript%20%7C%20Rust-runtimes-f7df1e?labelColor=555"></a>
+  <br>
   <img alt="Status: public beta" src="https://img.shields.io/badge/status-public%20beta-blue">
-  <a href="https://upstar.dev/r/jaisurya-dev-art/rigby2d"><img alt="Upstar" src="https://upstar.dev/badge/jaisurya-dev-art/rigby2d.svg"></a>
-  <a href="https://youtu.be/T1MdcD_rxeQ"><img alt="Watch the Rigby2D 0.4 film on YouTube" src="https://img.shields.io/badge/watch-Rigby2D%200.4%20film-ff0000?logo=youtube&logoColor=white"></a>
-  <a href="https://www.reddit.com/r/rigby2d/"><img alt="Community: r/rigby2d" src="https://img.shields.io/badge/community-r%2Frigby2d-ff4500?logo=reddit&logoColor=white"></a>
-  <a href="https://rigby2d.com/blog/"><img alt="Devlog" src="https://img.shields.io/badge/devlog-rigby2d.com%2Fblog-b5d3e7"></a>
-  <a href="runtimes/unity/com.rigby2d.unity/README.md"><img alt="Runtime ready: Unity" src="https://img.shields.io/badge/runtime%20ready-Unity-222429?logo=unity&logoColor=white"></a>
-  <a href="runtimes/godot/addons/rigby2d/README.md"><img alt="Runtime ready: Godot" src="https://img.shields.io/badge/runtime%20ready-Godot-478cbf?logo=godotengine&logoColor=white"></a>
-  <a href="runtimes/phaser/README.md"><img alt="Runtime ready: Phaser" src="https://img.shields.io/badge/runtime%20ready-Phaser-7b5cd6"></a>
-  <a href="docs/runtimes.md"><img alt="Runtimes: JavaScript and Rust" src="https://img.shields.io/badge/runtimes-JavaScript%20%7C%20Rust-f7df1e?labelColor=555"></a>
-  <a href="docs/mcp.md"><img alt="MCP server built in" src="https://img.shields.io/badge/MCP-server%20built%20in-7c3aed"></a>
   <a href="#license"><img alt="License: MIT or Apache-2.0" src="https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue.svg"></a>
-  <img alt="Platforms" src="https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey">
-  <img alt="Built with Tauri" src="https://img.shields.io/badge/built%20with-Tauri%202-24c8db">
-  <img alt="Node 20+" src="https://img.shields.io/badge/node-%3E%3D20-339933">
+  <a href="https://github.com/jaisurya-dev-art/rigby2d/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/jaisurya-dev-art/rigby2d?style=flat&logo=github&color=yellow"></a>
+  <a href="https://upstar.dev/r/jaisurya-dev-art/rigby2d"><img alt="Upstar" src="https://upstar.dev/badge/jaisurya-dev-art/rigby2d.svg"></a>
   <a href="CONTRIBUTING.md"><img alt="PRs welcome" src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg"></a>
-</p>
-
-<p align="center">
-  <a href="https://github.com/jaisurya-dev-art/rigby2d/releases/latest/download/Rigby2D_x64_portable.exe"><b>Windows</b></a> · <a href="https://github.com/jaisurya-dev-art/rigby2d/releases/latest/download/Rigby2D_universal.dmg"><b>macOS</b></a> · <a href="https://github.com/jaisurya-dev-art/rigby2d/releases/latest/download/Rigby2D_amd64.AppImage"><b>Linux</b></a>: descarga la última versión
-</p>
-
-<p align="center">
-  <a href="https://www.reddit.com/r/rigby2d/"><img alt="Join r/rigby2d" src="https://img.shields.io/badge/%F0%9F%92%AC%20Join-r%2Frigby2d-ff4500?style=for-the-badge&logo=reddit&logoColor=white" height="36"></a><br>
-  <sub>Muestra lo que has hecho, pide ayuda y entérate primero de cada versión.</sub>
 </p>
 
 <p align="center">
