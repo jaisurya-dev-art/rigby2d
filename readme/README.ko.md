@@ -25,7 +25,7 @@
 </p>
 
 <p align="center">
-  <a href="https://alternativeto.net/software/rigby2d/about/?utm_source=badge&utm_medium=referral"><img alt="Rigby2D on AlternativeTo" src="https://alternativeto.net/static/badges/badge-wide-dark.svg" height="40"></a><br>
+  <a href="https://alternativeto.net/software/rigby2d/about/?utm_source=badge&utm_medium=referral"><img alt="Rigby2D on AlternativeTo" src="https://alternativeto.net/static/badges/badge-compact-dark.svg" height="80"></a><br>
   <sub>AlternativeTo에 Spine, DragonBones, Live2D의 대안으로 등록됨</sub>
 </p>
 

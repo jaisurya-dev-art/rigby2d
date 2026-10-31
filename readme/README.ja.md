@@ -25,7 +25,7 @@
 </p>
 
 <p align="center">
-  <a href="https://alternativeto.net/software/rigby2d/about/?utm_source=badge&utm_medium=referral"><img alt="Rigby2D on AlternativeTo" src="https://alternativeto.net/static/badges/badge-wide-dark.svg" height="40"></a><br>
+  <a href="https://alternativeto.net/software/rigby2d/about/?utm_source=badge&utm_medium=referral"><img alt="Rigby2D on AlternativeTo" src="https://alternativeto.net/static/badges/badge-compact-dark.svg" height="80"></a><br>
   <sub>AlternativeTo で Spine・DragonBones・Live2D の代替として掲載</sub>
 </p>
 
