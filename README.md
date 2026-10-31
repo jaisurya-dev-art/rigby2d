@@ -26,7 +26,8 @@
 
 <p align="center">
   <a href="https://alternativeto.net/software/rigby2d/about/?utm_source=badge&utm_medium=referral"><img alt="Rigby2D on AlternativeTo" src="https://alternativeto.net/static/badges/badge-compact-dark.svg" height="80"></a><br>
-  <sub>Listed on AlternativeTo next to Spine, DragonBones and Live2D</sub>
+  <sub>Listed on AlternativeTo next to Spine, DragonBones and Live2D</sub><br>
+  <sub><b>Featured in:</b> <a href="https://polydium.net/briefing/8df9db93-0abf-4032-bd88-acbdf95ec431">Polydium (Korea): Pipeline Briefing</a></sub>
 </p>
 
 <p align="center">

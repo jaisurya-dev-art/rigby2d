@@ -26,7 +26,8 @@
 
 <p align="center">
   <a href="https://alternativeto.net/software/rigby2d/about/?utm_source=badge&utm_medium=referral"><img alt="Rigby2D on AlternativeTo" src="https://alternativeto.net/static/badges/badge-compact-dark.svg" height="80"></a><br>
-  <sub>AlternativeTo에 Spine, DragonBones, Live2D의 대안으로 등록됨</sub>
+  <sub>AlternativeTo에 Spine, DragonBones, Live2D의 대안으로 등록됨</sub><br>
+  <sub><b>소개된 곳:</b> <a href="https://polydium.net/briefing/8df9db93-0abf-4032-bd88-acbdf95ec431">폴리디움(Polydium) 파이프라인 브리핑</a></sub>
 </p>
 
 <p align="center">

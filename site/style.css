@@ -1956,3 +1956,40 @@ h3 {
     grid-template-columns: 1fr;
   }
 }
+
+/* ---- Featured in (home) ---- */
+.press {
+  border-bottom: 1px solid var(--line);
+}
+.press-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 12px 36px;
+  padding: 22px 24px;
+}
+.press-label {
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.press-item {
+  display: flex;
+  flex-direction: column;
+  color: var(--text);
+  text-decoration: none;
+  line-height: 1.3;
+}
+.press-item b {
+  font-size: 1.02rem;
+}
+.press-item span {
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+.press-item:hover b {
+  color: var(--ice);
+}
