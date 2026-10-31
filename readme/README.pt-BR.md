@@ -1,9 +1,9 @@
 <p align="center">
-  <img src="branding/rigby2d-lockup-dark.svg" alt="Rigby2D" width="460">
+  <img src="../branding/rigby2d-lockup-dark.svg" alt="Rigby2D" width="460">
 </p>
 
 <p align="center">
-  <b>English</b> · <a href="README.ja.md">日本語</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.ko.md">한국어</a> · <a href="README.es.md">Español</a> · <a href="README.pt-BR.md">Português (Brasil)</a>
+  <a href="../README.md">English</a> · <a href="README.ja.md">日本語</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.ko.md">한국어</a> · <a href="README.es.md">Español</a> · <b>Português (Brasil)</b>
 </p>
 
 <h3 align="center">Animação esquelética 2D de código aberto para jogos e cinema.</h3>
@@ -30,31 +30,31 @@
 </p>
 
 <p align="center">
-  <a href="runtimes/godot/addons/rigby2d/README.md"><img alt="Godot" src="https://img.shields.io/badge/Godot-runtime-478cbf?logo=godotengine&logoColor=white"></a>
-  <a href="runtimes/unity/com.rigby2d.unity/README.md"><img alt="Unity" src="https://img.shields.io/badge/Unity-runtime-222429?logo=unity&logoColor=white"></a>
-  <a href="runtimes/phaser/README.md"><img alt="Phaser" src="https://img.shields.io/badge/Phaser-runtime-7b5cd6"></a>
-  <a href="docs/runtimes.md"><img alt="JavaScript and Rust" src="https://img.shields.io/badge/JavaScript%20%7C%20Rust-runtimes-f7df1e?labelColor=555"></a>
+  <a href="../runtimes/godot/addons/rigby2d/README.md"><img alt="Godot" src="https://img.shields.io/badge/Godot-runtime-478cbf?logo=godotengine&logoColor=white"></a>
+  <a href="../runtimes/unity/com.rigby2d.unity/README.md"><img alt="Unity" src="https://img.shields.io/badge/Unity-runtime-222429?logo=unity&logoColor=white"></a>
+  <a href="../runtimes/phaser/README.md"><img alt="Phaser" src="https://img.shields.io/badge/Phaser-runtime-7b5cd6"></a>
+  <a href="../docs/runtimes.md"><img alt="JavaScript and Rust" src="https://img.shields.io/badge/JavaScript%20%7C%20Rust-runtimes-f7df1e?labelColor=555"></a>
   <br>
   <img alt="Status: public beta" src="https://img.shields.io/badge/status-public%20beta-blue">
   <a href="#license"><img alt="License: MIT or Apache-2.0" src="https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue.svg"></a>
   <a href="https://github.com/jaisurya-dev-art/rigby2d/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/jaisurya-dev-art/rigby2d?style=flat&logo=github&color=yellow"></a>
   <a href="https://upstar.dev/r/jaisurya-dev-art/rigby2d"><img alt="Upstar" src="https://upstar.dev/badge/jaisurya-dev-art/rigby2d.svg"></a>
-  <a href="CONTRIBUTING.md"><img alt="PRs welcome" src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg"></a>
+  <a href="../CONTRIBUTING.md"><img alt="PRs welcome" src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg"></a>
 </p>
 
 <p align="center">
-  <a href="https://youtu.be/T1MdcD_rxeQ"><img src="docs/images/promo-0.4.jpg" alt="Assista ao vídeo do Rigby2D 0.4 no YouTube" width="800"></a><br>
+  <a href="https://youtu.be/T1MdcD_rxeQ"><img src="../docs/images/promo-0.4.jpg" alt="Assista ao vídeo do Rigby2D 0.4 no YouTube" width="800"></a><br>
   <sub>▶ <a href="https://youtu.be/T1MdcD_rxeQ">Assista ao <b>Rigby2D 0.4</b></a>: todas as novidades em 45 segundos · Veja também: <a href="https://youtu.be/3StZlHwZeSo">Meet NILA</a>, nossa mascote animada no Rigby2D</sub>
 </p>
 
 <p align="center">
-  <img src="docs/screenshot.jpg" alt="O editor do Rigby2D animando a NILA" width="800"><br>
+  <img src="../docs/screenshot.jpg" alt="O editor do Rigby2D animando a NILA" width="800"><br>
   <sub>O editor animando a NILA: o osso da cabeça selecionado na árvore, suas chaves na folha de animação e sua pose no inspetor.</sub>
 </p>
 
 ## Documentação
 
-**[Leia a documentação](https://rigby2d.com/docs/)** (em inglês): guias com capturas de tela de cada parte do editor, dos runtimes e do servidor MCP. As páginas também estão em [`docs/`](docs/).
+**[Leia a documentação](https://rigby2d.com/docs/)** (em inglês): guias com capturas de tela de cada parte do editor, dos runtimes e do servidor MCP. As páginas também estão em [`docs/`](../docs/).
 
 | Primeiros passos | Rig | Animação | Publicar e automatizar |
 | --- | --- | --- | --- |
@@ -76,7 +76,7 @@
 - **Vindo de outras ferramentas**: abre exportações do Spine (com um verificador de migração) e projetos do DragonBones.
 - **Scripts em Python** e ferramentas próprias, e um **servidor MCP** integrado para que assistentes de IA como o Claude inspecionem, façam o rig e animem seus projetos.
 - **JSON de esqueleto (3.8, 4.2, 4.3) e `.skel` binário sem perdas**, com atlas de texturas, reproduzidos pelos **runtimes JavaScript, Phaser, Rust, Unity e Godot**.
-- **Tutoriais** e projetos de demonstração integrados (**NILA**, **Rigbytron** e uma **cena** com os dois), também na [página de demos](https://rigby2d.com/demos/) com as exportações prontas para jogos (conteúdo de demonstração © Rigby2D, sob a própria [licença de demos](branding/DEMO-LICENSE.md)).
+- **Tutoriais** e projetos de demonstração integrados (**NILA**, **Rigbytron** e uma **cena** com os dois), também na [página de demos](https://rigby2d.com/demos/) com as exportações prontas para jogos (conteúdo de demonstração © Rigby2D, sob a própria [licença de demos](../branding/DEMO-LICENSE.md)).
 
 ## Como começar
 
@@ -112,23 +112,23 @@ test/           Testes com node:test
 
 ## Contribuindo
 
-Contribuições são bem-vindas! Leia o [CONTRIBUTING.md](CONTRIBUTING.md) (em inglês) para o ambiente de desenvolvimento, o estilo de código e o processo de pull requests.
+Contribuições são bem-vindas! Leia o [CONTRIBUTING.md](../CONTRIBUTING.md) (em inglês) para o ambiente de desenvolvimento, o estilo de código e o processo de pull requests.
 
 ## Licença
 
 O código-fonte do Rigby2D é licenciado, à sua escolha, sob:
 
-- [MIT License](LICENSE-MIT)
-- [Apache License, Version 2.0](LICENSE-APACHE)
+- [MIT License](../LICENSE-MIT)
+- [Apache License, Version 2.0](../LICENSE-APACHE)
 
-© 2026 [jaisurya-dev-art](https://github.com/jaisurya-dev-art). Salvo indicação em contrário, qualquer contribuição que você enviar ao Rigby2D é licenciada sob as duas licenças acima, sem termos adicionais. O editor distribui o Pyodide e o CPython para scripts em Python sob as próprias licenças (veja [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)).
+© 2026 [jaisurya-dev-art](https://github.com/jaisurya-dev-art). Salvo indicação em contrário, qualquer contribuição que você enviar ao Rigby2D é licenciada sob as duas licenças acima, sem termos adicionais. O editor distribui o Pyodide e o CPython para scripts em Python sob as próprias licenças (veja [THIRD_PARTY_NOTICES.md](../THIRD_PARTY_NOTICES.md)).
 
 ## Marcas
 
-**Rigby2D**, **Rigbytron** e **NILA**, e o logo, as variações do logotipo, os ícones e as mascotes Rigbytron e NILA em [`branding/`](branding/), são marcas proprietárias do projeto Rigby2D. Eles não são cobertos pelas licenças MIT ou Apache 2.0. Forks e versões modificadas devem usar nome e marca próprios. Veja [TRADEMARKS.md](TRADEMARKS.md).
+**Rigby2D**, **Rigbytron** e **NILA**, e o logo, as variações do logotipo, os ícones e as mascotes Rigbytron e NILA em [`branding/`](../branding/), são marcas proprietárias do projeto Rigby2D. Eles não são cobertos pelas licenças MIT ou Apache 2.0. Forks e versões modificadas devem usar nome e marca próprios. Veja [TRADEMARKS.md](../TRADEMARKS.md).
 
 ## Aviso legal
 
-O Rigby2D é um projeto independente de código aberto. Não é afiliado, endossado nem patrocinado pelos criadores de nenhum outro software de animação. Todas as marcas pertencem aos respectivos donos. O suporte aos formatos JSON de esqueleto, `.skel` binário e atlas de texturas existe apenas para interoperabilidade e foi implementado em sala limpa. Veja o [aviso legal em inglês](README.md#disclaimer).
+O Rigby2D é um projeto independente de código aberto. Não é afiliado, endossado nem patrocinado pelos criadores de nenhum outro software de animação. Todas as marcas pertencem aos respectivos donos. O suporte aos formatos JSON de esqueleto, `.skel` binário e atlas de texturas existe apenas para interoperabilidade e foi implementado em sala limpa. Veja o [aviso legal em inglês](../README.md#disclaimer).
 
 <sub>Esta tradução é para referência. Para licença, marcas e aviso legal, prevalece a versão em inglês (README.md).</sub>

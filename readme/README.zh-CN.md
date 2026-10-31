@@ -1,9 +1,9 @@
 <p align="center">
-  <img src="branding/rigby2d-lockup-dark.svg" alt="Rigby2D" width="460">
+  <img src="../branding/rigby2d-lockup-dark.svg" alt="Rigby2D" width="460">
 </p>
 
 <p align="center">
-  <b>English</b> · <a href="README.ja.md">日本語</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.ko.md">한국어</a> · <a href="README.es.md">Español</a> · <a href="README.pt-BR.md">Português (Brasil)</a>
+  <a href="../README.md">English</a> · <a href="README.ja.md">日本語</a> · <b>简体中文</b> · <a href="README.ko.md">한국어</a> · <a href="README.es.md">Español</a> · <a href="README.pt-BR.md">Português (Brasil)</a>
 </p>
 
 <h3 align="center">面向游戏与影视的开源 2D 骨骼动画。</h3>
@@ -30,31 +30,31 @@
 </p>
 
 <p align="center">
-  <a href="runtimes/godot/addons/rigby2d/README.md"><img alt="Godot" src="https://img.shields.io/badge/Godot-runtime-478cbf?logo=godotengine&logoColor=white"></a>
-  <a href="runtimes/unity/com.rigby2d.unity/README.md"><img alt="Unity" src="https://img.shields.io/badge/Unity-runtime-222429?logo=unity&logoColor=white"></a>
-  <a href="runtimes/phaser/README.md"><img alt="Phaser" src="https://img.shields.io/badge/Phaser-runtime-7b5cd6"></a>
-  <a href="docs/runtimes.md"><img alt="JavaScript and Rust" src="https://img.shields.io/badge/JavaScript%20%7C%20Rust-runtimes-f7df1e?labelColor=555"></a>
+  <a href="../runtimes/godot/addons/rigby2d/README.md"><img alt="Godot" src="https://img.shields.io/badge/Godot-runtime-478cbf?logo=godotengine&logoColor=white"></a>
+  <a href="../runtimes/unity/com.rigby2d.unity/README.md"><img alt="Unity" src="https://img.shields.io/badge/Unity-runtime-222429?logo=unity&logoColor=white"></a>
+  <a href="../runtimes/phaser/README.md"><img alt="Phaser" src="https://img.shields.io/badge/Phaser-runtime-7b5cd6"></a>
+  <a href="../docs/runtimes.md"><img alt="JavaScript and Rust" src="https://img.shields.io/badge/JavaScript%20%7C%20Rust-runtimes-f7df1e?labelColor=555"></a>
   <br>
   <img alt="Status: public beta" src="https://img.shields.io/badge/status-public%20beta-blue">
   <a href="#license"><img alt="License: MIT or Apache-2.0" src="https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue.svg"></a>
   <a href="https://github.com/jaisurya-dev-art/rigby2d/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/jaisurya-dev-art/rigby2d?style=flat&logo=github&color=yellow"></a>
   <a href="https://upstar.dev/r/jaisurya-dev-art/rigby2d"><img alt="Upstar" src="https://upstar.dev/badge/jaisurya-dev-art/rigby2d.svg"></a>
-  <a href="CONTRIBUTING.md"><img alt="PRs welcome" src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg"></a>
+  <a href="../CONTRIBUTING.md"><img alt="PRs welcome" src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg"></a>
 </p>
 
 <p align="center">
-  <a href="https://youtu.be/T1MdcD_rxeQ"><img src="docs/images/promo-0.4.jpg" alt="在 YouTube 上观看 Rigby2D 0.4 影片" width="800"></a><br>
+  <a href="https://youtu.be/T1MdcD_rxeQ"><img src="../docs/images/promo-0.4.jpg" alt="在 YouTube 上观看 Rigby2D 0.4 影片" width="800"></a><br>
   <sub>▶ <a href="https://youtu.be/T1MdcD_rxeQ">观看 <b>Rigby2D 0.4</b></a>：45 秒看完全部新功能 · 另见：<a href="https://youtu.be/3StZlHwZeSo">Meet NILA</a>，用 Rigby2D 制作动画的吉祥物</sub>
 </p>
 
 <p align="center">
-  <img src="docs/screenshot.jpg" alt="正在为 NILA 制作动画的 Rigby2D 编辑器" width="800"><br>
+  <img src="../docs/screenshot.jpg" alt="正在为 NILA 制作动画的 Rigby2D 编辑器" width="800"><br>
   <sub>编辑器正在为 NILA 制作动画：在树中选中头部骨骼，关键帧显示在摄影表中，姿势显示在检查器中。</sub>
 </p>
 
 ## 文档
 
-**[阅读文档](https://rigby2d.com/docs/)**（英文）：编辑器、运行时和 MCP 服务器每个部分的带截图指南。这些页面也在 [`docs/`](docs/) 中。
+**[阅读文档](https://rigby2d.com/docs/)**（英文）：编辑器、运行时和 MCP 服务器每个部分的带截图指南。这些页面也在 [`docs/`](../docs/) 中。
 
 | 入门 | 绑定 | 动画 | 发布与自动化 |
 | --- | --- | --- | --- |
@@ -76,7 +76,7 @@
 - **从其他工具迁移**：可打开 Spine 导出文件（附迁移检查器）和 DragonBones 项目。
 - **Python 脚本**与自定义工具，以及内置的 **MCP 服务器**，让 Claude 等 AI 助手检查、绑定你的项目并为其制作动画。
 - **无损的骨骼 JSON（3.8、4.2、4.3）和二进制 `.skel`** 以及纹理图集，由 **JavaScript、Phaser、Rust、Unity 和 Godot 运行时**播放。
-- 内置**教程**和演示项目（**NILA**、**Rigbytron** 以及二人同台的**场景**），也可在[演示页面](https://rigby2d.com/demos/)获取可用于游戏的导出文件（演示内容 © Rigby2D，适用其[演示许可](branding/DEMO-LICENSE.md)）。
+- 内置**教程**和演示项目（**NILA**、**Rigbytron** 以及二人同台的**场景**），也可在[演示页面](https://rigby2d.com/demos/)获取可用于游戏的导出文件（演示内容 © Rigby2D，适用其[演示许可](../branding/DEMO-LICENSE.md)）。
 
 ## 开始使用
 
@@ -112,23 +112,23 @@ test/           node:test 测试
 
 ## 参与贡献
 
-欢迎贡献！开发环境、代码风格和拉取请求流程请参阅 [CONTRIBUTING.md](CONTRIBUTING.md)（英文）。
+欢迎贡献！开发环境、代码风格和拉取请求流程请参阅 [CONTRIBUTING.md](../CONTRIBUTING.md)（英文）。
 
 ## 许可证
 
 Rigby2D 的源代码可任选以下任一许可证使用：
 
-- [MIT License](LICENSE-MIT)
-- [Apache License, Version 2.0](LICENSE-APACHE)
+- [MIT License](../LICENSE-MIT)
+- [Apache License, Version 2.0](../LICENSE-APACHE)
 
-© 2026 [jaisurya-dev-art](https://github.com/jaisurya-dev-art)。除非另有说明，你提交给 Rigby2D 的贡献将按上述两种许可证授权，不附加任何其他条款。编辑器为 Python 脚本附带了 Pyodide 和 CPython，适用其各自的许可证（见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)）。
+© 2026 [jaisurya-dev-art](https://github.com/jaisurya-dev-art)。除非另有说明，你提交给 Rigby2D 的贡献将按上述两种许可证授权，不附加任何其他条款。编辑器为 Python 脚本附带了 Pyodide 和 CPython，适用其各自的许可证（见 [THIRD_PARTY_NOTICES.md](../THIRD_PARTY_NOTICES.md)）。
 
 ## 商标
 
-**Rigby2D**、**Rigbytron** 和 **NILA**，以及 [`branding/`](branding/) 中的 Rigby2D 标志、组合标、图标和 Rigbytron、NILA 吉祥物，均为 Rigby2D 项目的专有商标，不受 MIT 或 Apache 2.0 许可证覆盖。分支和修改版本必须使用自己的名称和品牌。详见 [TRADEMARKS.md](TRADEMARKS.md)。
+**Rigby2D**、**Rigbytron** 和 **NILA**，以及 [`branding/`](../branding/) 中的 Rigby2D 标志、组合标、图标和 Rigbytron、NILA 吉祥物，均为 Rigby2D 项目的专有商标，不受 MIT 或 Apache 2.0 许可证覆盖。分支和修改版本必须使用自己的名称和品牌。详见 [TRADEMARKS.md](../TRADEMARKS.md)。
 
 ## 免责声明
 
-Rigby2D 是独立的开源项目，与任何其他动画软件的开发者均无关联，也未获其认可或赞助。所有商标归其各自所有者所有。对骨骼 JSON、二进制 `.skel` 和纹理图集格式的支持仅用于互操作，并以净室方式实现。详见[英文免责声明](README.md#disclaimer)。
+Rigby2D 是独立的开源项目，与任何其他动画软件的开发者均无关联，也未获其认可或赞助。所有商标归其各自所有者所有。对骨骼 JSON、二进制 `.skel` 和纹理图集格式的支持仅用于互操作，并以净室方式实现。详见[英文免责声明](../README.md#disclaimer)。
 
 <sub>本译文仅供参考。许可证、商标和免责声明以英文版（README.md）为准。</sub>

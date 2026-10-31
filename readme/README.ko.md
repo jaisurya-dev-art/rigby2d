@@ -1,9 +1,9 @@
 <p align="center">
-  <img src="branding/rigby2d-lockup-dark.svg" alt="Rigby2D" width="460">
+  <img src="../branding/rigby2d-lockup-dark.svg" alt="Rigby2D" width="460">
 </p>
 
 <p align="center">
-  <b>English</b> · <a href="README.ja.md">日本語</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.ko.md">한국어</a> · <a href="README.es.md">Español</a> · <a href="README.pt-BR.md">Português (Brasil)</a>
+  <a href="../README.md">English</a> · <a href="README.ja.md">日本語</a> · <a href="README.zh-CN.md">简体中文</a> · <b>한국어</b> · <a href="README.es.md">Español</a> · <a href="README.pt-BR.md">Português (Brasil)</a>
 </p>
 
 <h3 align="center">게임과 영상을 위한 오픈 소스 2D 스켈레탈 애니메이션.</h3>
@@ -30,31 +30,31 @@
 </p>
 
 <p align="center">
-  <a href="runtimes/godot/addons/rigby2d/README.md"><img alt="Godot" src="https://img.shields.io/badge/Godot-runtime-478cbf?logo=godotengine&logoColor=white"></a>
-  <a href="runtimes/unity/com.rigby2d.unity/README.md"><img alt="Unity" src="https://img.shields.io/badge/Unity-runtime-222429?logo=unity&logoColor=white"></a>
-  <a href="runtimes/phaser/README.md"><img alt="Phaser" src="https://img.shields.io/badge/Phaser-runtime-7b5cd6"></a>
-  <a href="docs/runtimes.md"><img alt="JavaScript and Rust" src="https://img.shields.io/badge/JavaScript%20%7C%20Rust-runtimes-f7df1e?labelColor=555"></a>
+  <a href="../runtimes/godot/addons/rigby2d/README.md"><img alt="Godot" src="https://img.shields.io/badge/Godot-runtime-478cbf?logo=godotengine&logoColor=white"></a>
+  <a href="../runtimes/unity/com.rigby2d.unity/README.md"><img alt="Unity" src="https://img.shields.io/badge/Unity-runtime-222429?logo=unity&logoColor=white"></a>
+  <a href="../runtimes/phaser/README.md"><img alt="Phaser" src="https://img.shields.io/badge/Phaser-runtime-7b5cd6"></a>
+  <a href="../docs/runtimes.md"><img alt="JavaScript and Rust" src="https://img.shields.io/badge/JavaScript%20%7C%20Rust-runtimes-f7df1e?labelColor=555"></a>
   <br>
   <img alt="Status: public beta" src="https://img.shields.io/badge/status-public%20beta-blue">
   <a href="#license"><img alt="License: MIT or Apache-2.0" src="https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue.svg"></a>
   <a href="https://github.com/jaisurya-dev-art/rigby2d/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/jaisurya-dev-art/rigby2d?style=flat&logo=github&color=yellow"></a>
   <a href="https://upstar.dev/r/jaisurya-dev-art/rigby2d"><img alt="Upstar" src="https://upstar.dev/badge/jaisurya-dev-art/rigby2d.svg"></a>
-  <a href="CONTRIBUTING.md"><img alt="PRs welcome" src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg"></a>
+  <a href="../CONTRIBUTING.md"><img alt="PRs welcome" src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg"></a>
 </p>
 
 <p align="center">
-  <a href="https://youtu.be/T1MdcD_rxeQ"><img src="docs/images/promo-0.4.jpg" alt="YouTube에서 Rigby2D 0.4 영상 보기" width="800"></a><br>
+  <a href="https://youtu.be/T1MdcD_rxeQ"><img src="../docs/images/promo-0.4.jpg" alt="YouTube에서 Rigby2D 0.4 영상 보기" width="800"></a><br>
   <sub>▶ <a href="https://youtu.be/T1MdcD_rxeQ"><b>Rigby2D 0.4</b> 보기</a>: 45초에 담은 새 기능 · <a href="https://youtu.be/3StZlHwZeSo">Meet NILA</a>: Rigby2D로 애니메이션한 마스코트</sub>
 </p>
 
 <p align="center">
-  <img src="docs/screenshot.jpg" alt="NILA를 애니메이션하는 Rigby2D 에디터" width="800"><br>
+  <img src="../docs/screenshot.jpg" alt="NILA를 애니메이션하는 Rigby2D 에디터" width="800"><br>
   <sub>NILA를 애니메이션하는 에디터: 트리에서 머리 본을 선택하고, 도프시트에 키, 인스펙터에 포즈.</sub>
 </p>
 
 ## 문서
 
-**[문서 읽기](https://rigby2d.com/docs/)**(영어): 에디터, 런타임, MCP 서버의 모든 부분을 스크린샷과 함께 안내합니다. 페이지는 [`docs/`](docs/)에도 있습니다.
+**[문서 읽기](https://rigby2d.com/docs/)**(영어): 에디터, 런타임, MCP 서버의 모든 부분을 스크린샷과 함께 안내합니다. 페이지는 [`docs/`](../docs/)에도 있습니다.
 
 | 시작하기 | 리깅 | 애니메이션 | 배포와 자동화 |
 | --- | --- | --- | --- |
@@ -76,7 +76,7 @@
 - **다른 도구에서 옮기기**: Spine 내보내기 파일(마이그레이션 검사기 포함)과 DragonBones 프로젝트를 엽니다.
 - **Python 스크립트**와 사용자 도구, 그리고 Claude 같은 AI 어시스턴트가 프로젝트를 살펴보고 리깅하고 애니메이션할 수 있는 **MCP 서버** 내장.
 - **손실 없는 스켈레톤 JSON(3.8, 4.2, 4.3)과 바이너리 `.skel`**, 텍스처 아틀라스. **JavaScript, Phaser, Rust, Unity, Godot 런타임**으로 재생.
-- **튜토리얼**과 데모 프로젝트(**NILA**, **Rigbytron**, 두 캐릭터의 **씬**) 내장. [데모 페이지](https://rigby2d.com/demos/)에서 게임용 내보내기 파일도 제공(데모 콘텐츠 © Rigby2D, [데모 라이선스](branding/DEMO-LICENSE.md)).
+- **튜토리얼**과 데모 프로젝트(**NILA**, **Rigbytron**, 두 캐릭터의 **씬**) 내장. [데모 페이지](https://rigby2d.com/demos/)에서 게임용 내보내기 파일도 제공(데모 콘텐츠 © Rigby2D, [데모 라이선스](../branding/DEMO-LICENSE.md)).
 
 ## 시작하기
 
@@ -112,23 +112,23 @@ test/           node:test 테스트
 
 ## 기여하기
 
-기여를 환영합니다! 개발 환경, 코딩 스타일, 풀 리퀘스트 절차는 [CONTRIBUTING.md](CONTRIBUTING.md)(영어)를 읽어 주세요.
+기여를 환영합니다! 개발 환경, 코딩 스타일, 풀 리퀘스트 절차는 [CONTRIBUTING.md](../CONTRIBUTING.md)(영어)를 읽어 주세요.
 
 ## 라이선스
 
 Rigby2D의 소스 코드는 다음 중 원하는 라이선스로 사용할 수 있습니다.
 
-- [MIT License](LICENSE-MIT)
-- [Apache License, Version 2.0](LICENSE-APACHE)
+- [MIT License](../LICENSE-MIT)
+- [Apache License, Version 2.0](../LICENSE-APACHE)
 
-© 2026 [jaisurya-dev-art](https://github.com/jaisurya-dev-art). 따로 밝히지 않는 한, Rigby2D에 제출한 기여는 추가 조건 없이 위 두 라이선스로 제공됩니다. 에디터는 Python 스크립트를 위해 Pyodide와 CPython을 각자의 라이선스로 포함합니다([THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)).
+© 2026 [jaisurya-dev-art](https://github.com/jaisurya-dev-art). 따로 밝히지 않는 한, Rigby2D에 제출한 기여는 추가 조건 없이 위 두 라이선스로 제공됩니다. 에디터는 Python 스크립트를 위해 Pyodide와 CPython을 각자의 라이선스로 포함합니다([THIRD_PARTY_NOTICES.md](../THIRD_PARTY_NOTICES.md)).
 
 ## 상표
 
-**Rigby2D**, **Rigbytron**, **NILA**와 [`branding/`](branding/)의 Rigby2D 로고, 로크업, 아이콘, Rigbytron과 NILA 마스코트는 Rigby2D 프로젝트의 독점 상표이며 MIT나 Apache 2.0 라이선스의 대상이 아닙니다. 포크와 수정 버전은 자체 이름과 브랜드를 사용해야 합니다. [TRADEMARKS.md](TRADEMARKS.md)를 참고하세요.
+**Rigby2D**, **Rigbytron**, **NILA**와 [`branding/`](../branding/)의 Rigby2D 로고, 로크업, 아이콘, Rigbytron과 NILA 마스코트는 Rigby2D 프로젝트의 독점 상표이며 MIT나 Apache 2.0 라이선스의 대상이 아닙니다. 포크와 수정 버전은 자체 이름과 브랜드를 사용해야 합니다. [TRADEMARKS.md](../TRADEMARKS.md)를 참고하세요.
 
 ## 면책 조항
 
-Rigby2D는 독립 오픈소스 프로젝트이며 다른 애니메이션 소프트웨어 제작사와 제휴, 보증, 후원 관계가 없습니다. 모든 상표는 각 소유자에게 있습니다. 스켈레톤 JSON, 바이너리 `.skel`, 텍스처 아틀라스 형식 지원은 상호 운용성만을 위해 클린룸 방식으로 구현되었습니다. 자세한 내용은 [영어 면책 조항](README.md#disclaimer)을 보세요.
+Rigby2D는 독립 오픈소스 프로젝트이며 다른 애니메이션 소프트웨어 제작사와 제휴, 보증, 후원 관계가 없습니다. 모든 상표는 각 소유자에게 있습니다. 스켈레톤 JSON, 바이너리 `.skel`, 텍스처 아틀라스 형식 지원은 상호 운용성만을 위해 클린룸 방식으로 구현되었습니다. 자세한 내용은 [영어 면책 조항](../README.md#disclaimer)을 보세요.
 
 <sub>이 번역은 참고용입니다. 라이선스, 상표, 면책 조항은 영어판(README.md)이 우선합니다.</sub>

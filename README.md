@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <b>English</b> · <a href="README.ja.md">日本語</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.ko.md">한국어</a> · <a href="README.es.md">Español</a> · <a href="README.pt-BR.md">Português (Brasil)</a>
+  <b>English</b> · <a href="readme/README.ja.md">日本語</a> · <a href="readme/README.zh-CN.md">简体中文</a> · <a href="readme/README.ko.md">한국어</a> · <a href="readme/README.es.md">Español</a> · <a href="readme/README.pt-BR.md">Português (Brasil)</a>
 </p>
 
 <h3 align="center">Open-source 2D skeletal animation for games and film.</h3>

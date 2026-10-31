@@ -1,9 +1,9 @@
 <p align="center">
-  <img src="branding/rigby2d-lockup-dark.svg" alt="Rigby2D" width="460">
+  <img src="../branding/rigby2d-lockup-dark.svg" alt="Rigby2D" width="460">
 </p>
 
 <p align="center">
-  <b>English</b> · <a href="README.ja.md">日本語</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.ko.md">한국어</a> · <a href="README.es.md">Español</a> · <a href="README.pt-BR.md">Português (Brasil)</a>
+  <a href="../README.md">English</a> · <b>日本語</b> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.ko.md">한국어</a> · <a href="README.es.md">Español</a> · <a href="README.pt-BR.md">Português (Brasil)</a>
 </p>
 
 <h3 align="center">ゲームと映像のためのオープンソース 2D スケルタルアニメーション。</h3>
@@ -30,31 +30,31 @@
 </p>
 
 <p align="center">
-  <a href="runtimes/godot/addons/rigby2d/README.md"><img alt="Godot" src="https://img.shields.io/badge/Godot-runtime-478cbf?logo=godotengine&logoColor=white"></a>
-  <a href="runtimes/unity/com.rigby2d.unity/README.md"><img alt="Unity" src="https://img.shields.io/badge/Unity-runtime-222429?logo=unity&logoColor=white"></a>
-  <a href="runtimes/phaser/README.md"><img alt="Phaser" src="https://img.shields.io/badge/Phaser-runtime-7b5cd6"></a>
-  <a href="docs/runtimes.md"><img alt="JavaScript and Rust" src="https://img.shields.io/badge/JavaScript%20%7C%20Rust-runtimes-f7df1e?labelColor=555"></a>
+  <a href="../runtimes/godot/addons/rigby2d/README.md"><img alt="Godot" src="https://img.shields.io/badge/Godot-runtime-478cbf?logo=godotengine&logoColor=white"></a>
+  <a href="../runtimes/unity/com.rigby2d.unity/README.md"><img alt="Unity" src="https://img.shields.io/badge/Unity-runtime-222429?logo=unity&logoColor=white"></a>
+  <a href="../runtimes/phaser/README.md"><img alt="Phaser" src="https://img.shields.io/badge/Phaser-runtime-7b5cd6"></a>
+  <a href="../docs/runtimes.md"><img alt="JavaScript and Rust" src="https://img.shields.io/badge/JavaScript%20%7C%20Rust-runtimes-f7df1e?labelColor=555"></a>
   <br>
   <img alt="Status: public beta" src="https://img.shields.io/badge/status-public%20beta-blue">
   <a href="#license"><img alt="License: MIT or Apache-2.0" src="https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue.svg"></a>
   <a href="https://github.com/jaisurya-dev-art/rigby2d/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/jaisurya-dev-art/rigby2d?style=flat&logo=github&color=yellow"></a>
   <a href="https://upstar.dev/r/jaisurya-dev-art/rigby2d"><img alt="Upstar" src="https://upstar.dev/badge/jaisurya-dev-art/rigby2d.svg"></a>
-  <a href="CONTRIBUTING.md"><img alt="PRs welcome" src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg"></a>
+  <a href="../CONTRIBUTING.md"><img alt="PRs welcome" src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg"></a>
 </p>
 
 <p align="center">
-  <a href="https://youtu.be/T1MdcD_rxeQ"><img src="docs/images/promo-0.4.jpg" alt="YouTube で Rigby2D 0.4 の紹介映像を見る" width="800"></a><br>
+  <a href="https://youtu.be/T1MdcD_rxeQ"><img src="../docs/images/promo-0.4.jpg" alt="YouTube で Rigby2D 0.4 の紹介映像を見る" width="800"></a><br>
   <sub>▶ <a href="https://youtu.be/T1MdcD_rxeQ"><b>Rigby2D 0.4</b> を見る</a>：新機能を 45 秒で · <a href="https://youtu.be/3StZlHwZeSo">Meet NILA</a>：Rigby2D でアニメーションしたマスコット</sub>
 </p>
 
 <p align="center">
-  <img src="docs/screenshot.jpg" alt="NILA をアニメーション中の Rigby2D エディター" width="800"><br>
+  <img src="../docs/screenshot.jpg" alt="NILA をアニメーション中の Rigby2D エディター" width="800"><br>
   <sub>NILA をアニメーション中のエディター：ツリーで頭のボーンを選択し、ドープシートにキー、インスペクターにポーズ。</sub>
 </p>
 
 ## ドキュメント
 
-**[ドキュメントを読む](https://rigby2d.com/docs/)**（英語）：エディター、ランタイム、MCP サーバーのすべてをスクリーンショット付きで解説しています。ページは [`docs/`](docs/) にもあります。
+**[ドキュメントを読む](https://rigby2d.com/docs/)**（英語）：エディター、ランタイム、MCP サーバーのすべてをスクリーンショット付きで解説しています。ページは [`docs/`](../docs/) にもあります。
 
 | はじめに | リギング | アニメーション | 書き出しと自動化 |
 | --- | --- | --- | --- |
@@ -76,7 +76,7 @@
 - **他のツールからの移行**：Spine の書き出しファイル（移行チェッカー付き）と DragonBones のプロジェクトを開けます。
 - **Python スクリプト**とカスタムツール、そして Claude などの AI アシスタントがプロジェクトを調べ、リグし、アニメーションできる **MCP サーバー**を内蔵。
 - **ロスレスなスケルトン JSON（3.8、4.2、4.3）とバイナリ `.skel`**、テクスチャアトラス。**JavaScript、Phaser、Rust、Unity、Godot のランタイム**で再生。
-- **チュートリアル**とデモプロジェクト（**NILA**、**Rigbytron**、2 人の**シーン**）を内蔵。[デモページ](https://rigby2d.com/demos/)ではゲーム用の書き出しデータも配布（デモコンテンツ © Rigby2D、[デモライセンス](branding/DEMO-LICENSE.md)）。
+- **チュートリアル**とデモプロジェクト（**NILA**、**Rigbytron**、2 人の**シーン**）を内蔵。[デモページ](https://rigby2d.com/demos/)ではゲーム用の書き出しデータも配布（デモコンテンツ © Rigby2D、[デモライセンス](../branding/DEMO-LICENSE.md)）。
 
 ## はじめ方
 
@@ -112,23 +112,23 @@ test/           node:test のテスト
 
 ## コントリビュート
 
-貢献を歓迎します！開発環境、コーディングスタイル、プルリクエストの流れは [CONTRIBUTING.md](CONTRIBUTING.md)（英語）をご覧ください。
+貢献を歓迎します！開発環境、コーディングスタイル、プルリクエストの流れは [CONTRIBUTING.md](../CONTRIBUTING.md)（英語）をご覧ください。
 
 ## ライセンス
 
 Rigby2D のソースコードは、以下のいずれかを選んで利用できます。
 
-- [MIT License](LICENSE-MIT)
-- [Apache License, Version 2.0](LICENSE-APACHE)
+- [MIT License](../LICENSE-MIT)
+- [Apache License, Version 2.0](../LICENSE-APACHE)
 
-© 2026 [jaisurya-dev-art](https://github.com/jaisurya-dev-art)。特に明記しない限り、Rigby2D に提出された貢献は追加の条件なく上記の両ライセンスで提供されます。エディターは Python スクリプトのために Pyodide と CPython をそれぞれのライセンスで同梱しています（[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)）。
+© 2026 [jaisurya-dev-art](https://github.com/jaisurya-dev-art)。特に明記しない限り、Rigby2D に提出された貢献は追加の条件なく上記の両ライセンスで提供されます。エディターは Python スクリプトのために Pyodide と CPython をそれぞれのライセンスで同梱しています（[THIRD_PARTY_NOTICES.md](../THIRD_PARTY_NOTICES.md)）。
 
 ## 商標
 
-**Rigby2D**、**Rigbytron**、**NILA**、および [`branding/`](branding/) にある Rigby2D のロゴ、ロックアップ、アイコン、Rigbytron と NILA のマスコットは Rigby2D プロジェクトの商標であり、MIT や Apache 2.0 ライセンスの対象外です。フォークや改変版は独自の名前とブランドを使ってください。詳細は [TRADEMARKS.md](TRADEMARKS.md) を参照してください。
+**Rigby2D**、**Rigbytron**、**NILA**、および [`branding/`](../branding/) にある Rigby2D のロゴ、ロックアップ、アイコン、Rigbytron と NILA のマスコットは Rigby2D プロジェクトの商標であり、MIT や Apache 2.0 ライセンスの対象外です。フォークや改変版は独自の名前とブランドを使ってください。詳細は [TRADEMARKS.md](../TRADEMARKS.md) を参照してください。
 
 ## 免責事項
 
-Rigby2D は独立したオープンソースプロジェクトであり、他のアニメーションソフトウェアの制作者とは提携・承認・後援の関係にありません。すべての商標はそれぞれの所有者に帰属します。スケルトン JSON、バイナリ `.skel`、テクスチャアトラスの各形式は相互運用性のためだけにクリーンルームで実装されています。詳細は[英語版の免責事項](README.md#disclaimer)をご覧ください。
+Rigby2D は独立したオープンソースプロジェクトであり、他のアニメーションソフトウェアの制作者とは提携・承認・後援の関係にありません。すべての商標はそれぞれの所有者に帰属します。スケルトン JSON、バイナリ `.skel`、テクスチャアトラスの各形式は相互運用性のためだけにクリーンルームで実装されています。詳細は[英語版の免責事項](../README.md#disclaimer)をご覧ください。
 
 <sub>この翻訳は参考用です。ライセンス、商標、免責事項については英語版（README.md）が優先されます。</sub>
