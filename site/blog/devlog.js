@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 // The devlog: release posts and news written as Markdown in site/blog/posts/<date>-<slug>.md,
-// with a small front matter (title, date, summary, image, video, tag). The website build turns them
+// with a small front matter (title, date, summary, image, video, tag, lang, and time: HH:MM to order posts of one day). The website build turns them
 // into blog/<slug>.html pages, the blog/ index, the blog/feed.xml RSS feed, and news.json, which
 // the editor's welcome screen reads ("What's new"). Each published release gets a post written
 // from its notes (.github/workflows/release-post.yml) unless one was written by hand first.
@@ -34,7 +34,7 @@ export function readPosts() {
       const slug = f.replace(/^\d{4}-\d{2}-\d{2}-/, '').replace(/\.md$/, '');
       return { slug, ...meta, html: renderMarkdown(text.slice(m[0].length)).html };
     })
-    .sort((a, b) => b.date.localeCompare(a.date) || b.slug.localeCompare(a.slug));
+    .sort((a, b) => `${b.date} ${b.time ?? ''}`.localeCompare(`${a.date} ${a.time ?? ''}`) || b.slug.localeCompare(a.slug));
 }
 
 const longDate = (iso) => new Date(`${iso}T12:00:00Z`).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' });
@@ -132,7 +132,7 @@ export function feedXml(posts) {
       <title>${esc(p.title)}</title>
       <link>${SITE}/blog/${esc(p.slug)}.html</link>
       <guid>${SITE}/blog/${esc(p.slug)}.html</guid>
-      <pubDate>${new Date(`${p.date}T12:00:00Z`).toUTCString()}</pubDate>
+      <pubDate>${new Date(`${p.date}T${p.time ?? '12:00'}:00Z`).toUTCString()}</pubDate>
       <description>${esc(p.summary)}</description>
     </item>`,
     )
