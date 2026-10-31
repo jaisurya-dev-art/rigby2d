@@ -162,3 +162,18 @@ test('the flattened skeleton loads and plays', () => {
   const hidden = sk.slots.findIndex((s) => s.name === 'hand/sword#1/blade');
   assert.equal(pose.attachment[hidden] ?? null, null);
 });
+
+test('with no armature named, the character is imported, not a weapon or bullet listed first', () => {
+  const ske = hero();
+  ske.name = 'hero_file';
+  // Put the nested sword first, and an effect no slot shows (spawned by the game) before the hero.
+  const sword = ske.armature.find((a) => a.name === 'sword');
+  const bullet = { name: 'bullet', frameRate: 24, bone: [{ name: 'root' }], slot: [], skin: [], animation: [{ name: 'fly', duration: 1 }] };
+  ske.armature = [sword, bullet, ...ske.armature.filter((a) => a !== sword)];
+  const { json, warnings } = dragonBonesToSkeleton(ske, TEX);
+  assert.ok(json.bones.some((b) => b.name === 'arm'));
+  assert.ok(warnings.some((w) => w.includes("imported 'hero'")));
+  // The file's own name wins when an armature has it.
+  ske.armature.find((a) => a.name === 'bullet').name = 'hero_file';
+  assert.ok(dragonBonesToSkeleton(ske, TEX).warnings.some((w) => w.includes("imported 'hero_file'")));
+});

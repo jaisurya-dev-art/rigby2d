@@ -129,6 +129,24 @@ function eachFrame(frames, fps, fn) {
 }
 
 /**
+ * The character a file is about, when the caller names no armature. Files often list weapons,
+ * effects and bullets first: those shown inside another armature's slot are left out, then the
+ * armature named after the file wins, else the one with the most bones.
+ */
+function mainArmature(ske) {
+  const list = ske.armature ?? [];
+  const nested = new Set();
+  for (const a of list) {
+    for (const skin of a.skin ?? []) {
+      for (const s of skin.slot ?? []) for (const d of s.display ?? []) if (d?.type === 'armature') nested.add(d.path ?? d.name);
+    }
+  }
+  const top = list.filter((a) => !nested.has(a.name));
+  const pool = top.length ? top : list;
+  return pool.find((a) => a.name === ske.name) ?? pool.reduce((best, a) => ((a.bone?.length ?? 0) > (best.bone?.length ?? 0) ? a : best), pool[0]);
+}
+
+/**
  * Converts DragonBones skeleton data and its texture atlas to { json, atlas, warnings }:
  * skeleton JSON 3.8 and atlas text for the regular skeleton import. `armatureName` picks the
  * armature (default: the first). Armatures shown inside slots (nested armatures) are flattened into
@@ -139,7 +157,7 @@ export function dragonBonesToSkeleton(ske, tex, { armatureName = null, depth = 0
   const warn = (msg) => {
     if (!warnings.includes(msg)) warnings.push(msg);
   };
-  const arm = (armatureName ? ske.armature.find((a) => a.name === armatureName) : null) ?? ske.armature[0];
+  const arm = (armatureName ? ske.armature.find((a) => a.name === armatureName) : null) ?? mainArmature(ske);
   if (!arm) throw new Error('the DragonBones file has no armature');
   if (ske.armature.length > 1 && depth === 0) warn(`the file has ${ske.armature.length} armatures; imported '${arm.name}'`);
   const fps = num(arm.frameRate, num(ske.frameRate, 24)) || 24;
