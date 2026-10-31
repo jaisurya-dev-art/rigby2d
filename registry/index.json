@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-30T18:00:33.075Z",
+  "updated": "2026-10-31T12:30:42.307Z",
   "addons": [
     {
       "id": "breathing_idle",
@@ -10,19 +10,19 @@
       "added": "2026-10-29",
       "official": true,
       "name": "Breathing idle",
-      "description": "Makes a looping 'breathe' animation: the chest rises and falls, the head follows a little.",
+      "description": "Makes a looping 'breathe' animation: the upper body rises and settles, the head and arms follow a beat later.",
       "author": "Rigby2D",
       "url": "https://github.com/jaisurya-dev-art/rigby2d/tree/develop/addons/breathing_idle",
       "repo": "jaisurya-dev-art/rigby2d",
       "path": "addons/breathing_idle",
-      "readme": "# Breathing idle\n\nA looping \"breathe\" animation in one click, ready to play under other animations.\n\n## Tools\n\nIn the **Scripts** menu:\n\n- **Make a breathing idle**: adds a 2.4-second animation named `breathe` (or `breathe 2`, … when\n  that name is taken). The selected bones swell and settle; with nothing selected, it uses the bones\n  named chest, spine, torso or body. Head and neck bones tilt a little with each breath.\n\nThe animation starts and ends on the same pose, so it loops cleanly. Play it on its own track to\nkeep a character alive while it stands still.\n",
+      "readme": "# Breathing idle\n\nA looping \"breathe\" animation in one click, ready to play under other animations.\n\n## Tools\n\nIn the **Scripts** menu:\n\n- **Make a breathing idle**: adds a 3.2-second animation named `breathe` (or `breathe 2`, … when\n  that name is taken). The upper body rises a little and settles, tilting slightly; the head counters\n  the tilt and the arms drift, a beat behind the chest. Nothing is scaled, and the hips and legs are\n  left alone, so the feet stay planted. The selected bones breathe; with nothing selected, it uses\n  the bones named chest, spine, torso or body. Weapon and effect bones are skipped. The motion is\n  sized to the character's height.\n\nThe animation starts and ends on the same pose, so it loops cleanly. Play it on its own track to\nkeep a character alive while it stands still.\n",
       "problems": [],
       "versions": [
         {
-          "version": "1.0.0",
+          "version": "1.1.0",
           "rigby": "0.4.1",
           "published": "2026-10-29",
-          "digest": "sha256-f4a0e82dec0ec374e03c47583b0224fae9cfa79992418186b2fd6afc5338fad0"
+          "digest": "sha256-ee660dc8a5d7347bd89ea9242c248ce92d93c582b3737d69805afb05fbe4c493"
         }
       ]
     },
