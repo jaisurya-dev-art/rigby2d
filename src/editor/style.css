@@ -755,6 +755,10 @@ input[type='color'] {
   align-items: center;
   gap: 2px;
 }
+#controls button.active {
+  background: var(--selected);
+  color: #fff;
+}
 .dopesheet-wrap {
   position: relative;
   flex: 1;

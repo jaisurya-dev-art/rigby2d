@@ -218,6 +218,13 @@ export class App {
     this.saved = this.baseline;
     this.docJson = this.baseline;
     this.committedVersion = 0;
+    /** Bumps on every project load (open/new/sample), so a view can drop state tied to the old
+     *  document — e.g. the timeline's armed copy. Rides the state snapshot to the detached windows. */
+    this.docEpoch = 0;
+    /** The dopesheet's armed copy as plain data, shared across windows so detaching the timeline keeps
+     *  the copy and its preview. timeline.js owns it; the stamp bumps on every change. */
+    this.timelineClip = null;
+    this.timelineClipStamp = 0;
   }
 
   changed() {
@@ -258,6 +265,9 @@ export class App {
     this.multi.clear();
     this.pending.clear();
     this.selectedKeys.clear();
+    this.docEpoch++; // a new project: views drop state tied to the old document (e.g. the armed copy)
+    this.timelineClip = null; // and the armed copy's data is cleared authoritatively (propagates to panels)
+    this.timelineClipStamp++;
     // Per-bone onion settings belong to the document they were made for.
     this.onion.perBone.clear();
     this._onionCache = null;
@@ -915,12 +925,14 @@ export class App {
   snapshotState() {
     return {
       docJson: this.docJson,
+      docEpoch: this.docEpoch,
       anim: this.anim,
       time: this.time,
       mode: this.mode,
       timelineView: this.timelineView,
       autoKey: this.autoKey,
       playing: this.playing,
+      playSpeed: this.playSpeed,
       fps: FPS,
       sel: this.sel,
       multi: [...this.multi],
@@ -928,6 +940,11 @@ export class App {
       imageGlow: this.imageGlow,
       meshEdit: this.meshEdit,
       shapeEdit: this.shapeEdit,
+      // The dopesheet's armed copy (plain data), so detaching/docking the timeline carries the copy
+      // and its paste preview across to whichever window now holds the dopesheet. Stamp marks real
+      // changes, so the other window adopts only when it actually changed (see timeline.js).
+      timelineClip: this.timelineClip,
+      timelineClipStamp: this.timelineClipStamp,
     };
   }
 
@@ -965,12 +982,20 @@ export class App {
     }
     // Match the other window's frame rate so the ruler and the keys line up (changed() reads this).
     if (typeof s.fps === 'number' && this.doc.settings) this.doc.settings.fps = s.fps;
+    if (typeof s.docEpoch === 'number') this.docEpoch = s.docEpoch; // a project load reached us: views reset
+    // The armed copy rides the snapshot; adopt it only when its stamp moved, so a per-frame sync does
+    // not clobber this window's own clipboard (timeline.js picks it up and draws its preview).
+    if (typeof s.timelineClipStamp === 'number' && s.timelineClipStamp !== this.timelineClipStamp) {
+      this.timelineClip = s.timelineClip ?? null;
+      this.timelineClipStamp = s.timelineClipStamp;
+    }
     if (s.anim !== undefined) this.anim = s.anim;
     if (typeof s.time === 'number') this.time = s.time;
     if (s.mode) this.mode = s.mode;
     if (s.timelineView) this.timelineView = s.timelineView;
     if (typeof s.autoKey === 'boolean') this.autoKey = s.autoKey;
     if (typeof s.playing === 'boolean') this.playing = s.playing;
+    if (typeof s.playSpeed === 'number') this.playSpeed = s.playSpeed; // the editor drives playback, so its speed must follow a panel's change
     if ('sel' in s) this.sel = s.sel;
     if (s.multi) this.multi = new Set(s.multi);
     if ('hoverBone' in s) this.hoverBone = s.hoverBone;

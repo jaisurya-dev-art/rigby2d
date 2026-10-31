@@ -6,17 +6,24 @@
 import { REPEATING, actionFor, actionsFor, comboOf } from './keymap.js';
 import * as edit from './edit.js';
 
+// Actions that act on the focused window's own view state (the copy/paste clipboard and its
+// on-canvas preview), not on the shared document. A detached window runs these locally — so its
+// own dopesheet shows the overlay — instead of forwarding them to the editor like every other
+// shortcut. The paste's document change still ships to the editor as one undo step (panel.js).
+const LOCAL_ACTIONS = new Set(['edit.copyKeys', 'edit.pasteKeys']);
+
 /** True while the user is typing in a text field (only File shortcuts run then). */
 export const isTyping = (el) =>
   el && ((el.tagName === 'INPUT' && !el.readOnly && !['checkbox', 'radio', 'color'].includes(el.type)) || el.tagName === 'TEXTAREA');
 
 /**
  * Runs a keymap action against `app`. `ctx` supplies the parts only some windows have: `viewport`
- * (viewport-only tools), `zoomActual`, `deleteSelectedKeys`, `closeMenu`, and `onFile` (when set,
- * File actions are handed off instead of run here — the detached window forwards them to the editor).
+ * (viewport-only tools), `zoomActual`, `deleteSelectedKeys`, `copySelectedKeys`, `pasteKeys`,
+ * `closeMenu`, and `onFile` (when set, File actions are handed off instead of run here — the
+ * detached window forwards them to the editor).
  */
 export function runAction(app, action, ctx) {
-  const { viewport, zoomActual, deleteSelectedKeys, onFile, closeMenu } = ctx;
+  const { viewport, zoomActual, deleteSelectedKeys, copySelectedKeys, pasteKeys, onFile, closeMenu } = ctx;
   if (onFile && action.startsWith('file.')) return onFile(action);
   const setTool = (tool) => () => {
     app.tool = tool;
@@ -55,6 +62,8 @@ export function runAction(app, action, ctx) {
     'select.none': () => app.deselect(),
     'view.fit': () => (app.frameRequest = true),
     'view.actual': () => zoomActual?.(),
+    'edit.copyKeys': () => copySelectedKeys?.(app),
+    'edit.pasteKeys': () => pasteKeys?.(app),
     'edit.delete': () => {
       if (viewport && (viewport.meshTool.deleteSelected() || viewport.shapeTool.deleteSelected())) return;
       if (app.selectedKeys.size) deleteSelectedKeys(app);
@@ -74,7 +83,7 @@ export function runAction(app, action, ctx) {
 
 /** Installs the window keydown handler that turns presses into actions and runs them. */
 export function installKeyboard(app, ctx) {
-  const { closeMenu, isMenuOpen } = ctx;
+  const { closeMenu, isMenuOpen, exitSelectModes } = ctx;
   window.addEventListener('keydown', (e) => {
     const combo = comboOf(e);
     if (!combo) return;
@@ -88,15 +97,20 @@ export function installKeyboard(app, ctx) {
     if (action === 'menu.close') {
       e.preventDefault();
       if (isMenuOpen?.()) return closeMenu?.();
+      exitSelectModes?.(); // Escape cancels an armed copy and leaves Frames/Multi, then falls through to deselect
       action = actionsFor(app.keymap, combo).find((a) => a !== 'menu.close');
       if (!action) return;
     }
     if (e.repeat && !REPEATING.has(action)) return;
+    // Copy with text selected on the page (the Log, a dialog) copies that text, not keys.
+    const text = window.getSelection?.();
+    if (action === 'edit.copyKeys' && text && !text.isCollapsed && String(text)) return;
     e.preventDefault();
     closeMenu?.();
     // A window can forward the action instead of running it (the detached window hands every
-    // shortcut to the editor, which owns the document and the single undo history).
-    if (ctx.onAction) ctx.onAction(action);
+    // shortcut to the editor, which owns the document and the single undo history) — except the
+    // view-local copy/paste actions, which run in the focused window so its own dopesheet shows them.
+    if (ctx.onAction && !LOCAL_ACTIONS.has(action)) ctx.onAction(action);
     else runAction(app, action, ctx);
   });
 }

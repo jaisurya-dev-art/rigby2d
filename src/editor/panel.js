@@ -8,7 +8,7 @@
 
 import './style.css';
 import { App } from './app.js';
-import { Dopesheet, renderControls, keySelectionIndices, applyKeySelection } from './timeline.js';
+import { Dopesheet, renderControls, keySelectionIndices, applyKeySelection, copySelectedKeys, pasteKeys, exitSelectModes } from './timeline.js';
 import { GraphEditor } from './graph.js';
 import * as tree from './tree.js';
 import * as inspector from './inspector.js';
@@ -115,6 +115,12 @@ const signature = (s, keys) => JSON.stringify({ ...s, docJson: undefined, keys }
 // the single undo history — so this window forwards the action instead of running it locally.
 installKeyboard(app, {
   onAction: (action) => emit(EV_CONTROL, { action }),
+  // Copy/paste act on this window's own dopesheet overlay, so they run here (not forwarded); the
+  // paste's document change still ships to the editor as one undo step. Escape clears this window's
+  // own copy/select modes before its deselect is forwarded.
+  copySelectedKeys,
+  pasteKeys,
+  exitSelectModes,
   closeMenu,
   isMenuOpen,
 });

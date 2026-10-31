@@ -21,7 +21,7 @@ import * as toolbar from './toolbar.js';
 import * as tree from './tree.js';
 import * as inspector from './inspector.js';
 import { GraphEditor } from './graph.js';
-import { Dopesheet, deleteSelectedKeys, renderControls } from './timeline.js';
+import { Dopesheet, copySelectedKeys, deleteSelectedKeys, exitSelectModes, pasteKeys, renderControls } from './timeline.js';
 import { Viewport } from './viewport.js';
 import { closeMenu, h, isMenuOpen, popupMenu, submenuItem, widgetState } from './widgets.js';
 import * as log from './log.js';
@@ -138,6 +138,9 @@ function menus() {
       { label: t("Key the current tool's property"), shortcut: sc('key.tool'), action: () => edit.keyTool(app) },
       { label: t('Key all transforms of the selection'), shortcut: sc('key.transforms'), action: () => edit.keyTransforms(app) },
       { label: t('Key everything shown'), shortcut: sc('key.shown'), action: () => edit.keyShown(app) },
+      'separator',
+      { label: t('Copy keys'), shortcut: sc('edit.copyKeys'), disabled: !app.selectedKeys.size, action: () => copySelectedKeys(app) },
+      { label: t('Paste keys'), shortcut: sc('edit.pasteKeys'), action: () => pasteKeys(app) },
       'separator',
       { label: t('Deselect'), shortcut: sc('select.none'), action: () => app.deselect() },
       { label: t('Delete selection'), shortcut: sc('edit.delete'), action: () => edit.deleteSelection(app) },
@@ -411,7 +414,7 @@ sync = installPanelSync(app, {
 });
 const dopesheet = new Dopesheet(app, $('#dopesheet'), $('#dopesheet canvas'));
 const graph = new GraphEditor(app, $('#graph'), $('#graph canvas'));
-installKeyboard(app, { viewport, zoomActual, deleteSelectedKeys, closeMenu, isMenuOpen, openPreferences: () => showPreferences() });
+installKeyboard(app, { viewport, zoomActual, deleteSelectedKeys, copySelectedKeys, pasteKeys, exitSelectModes, closeMenu, isMenuOpen, openPreferences: () => showPreferences() });
 const renderMenuBar = buildMenuBar();
 
 // In the browser, leaving the page (the home link, closing the tab) asks first when there are unsaved
