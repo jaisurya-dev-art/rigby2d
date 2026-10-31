@@ -25,6 +25,8 @@ export class AddonManager {
     /** Load errors by id, shown on the Add-ons page. */
     this.errors = new Map();
     this.listeners = new Set();
+    // The Scripts menu groups each add-on's tools under its name.
+    scripts.addonName = (id) => this.installed.get(id)?.name ?? id;
   }
 
   get host() {

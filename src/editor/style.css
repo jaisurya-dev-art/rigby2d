@@ -611,6 +611,10 @@ input[type='color'] {
   border: 1px solid #444;
   border-radius: 4px;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+  /* A menu taller than the window scrolls instead of running off the screen. */
+  max-height: calc(100vh - 8px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 .popup .item {
   display: flex;

@@ -5,7 +5,8 @@
 import * as log from '../log.js';
 import { makeDraggable, openLogWindow } from '../logwindow.js';
 import { isDesktop, pickImportFiles } from '../platform.js';
-import { h } from '../widgets.js';
+import { t } from '../i18n.js';
+import { h, submenuItem } from '../widgets.js';
 import { ScriptHost } from './host.js';
 
 const STORAGE = 'rigby.scripts';
@@ -167,19 +168,31 @@ export class Scripts {
   /** Scripts menu entries. */
   menu() {
     const state = this.host.state;
-    const tools = [...this.host.tools.values()];
+    const tool = (x) => ({ label: x.label, title: x.description || t('From {script}', { script: x.script }), disabled: this.host.running, action: () => this.host.runTool(x.id) });
+    // Each add-on's tools sit in a submenu named after it (one tool stays a plain item), so the menu
+    // stays short however many add-ons are installed; tools from your own scripts follow.
+    const byScript = new Map();
+    for (const x of this.host.tools.values()) byScript.set(x.script, [...(byScript.get(x.script) ?? []), x]);
+    const addons = [...byScript].filter(([s]) => s.startsWith('addon:')).map(([s, list]) => [this.addonName?.(s.slice(6)) ?? s.slice(6), list]);
+    addons.sort((a, b) => a[0].localeCompare(b[0]));
+    const own = [...byScript].filter(([s]) => !s.startsWith('addon:')).flatMap(([, list]) => list);
+    const tools = [
+      ...addons.map(([name, list]) => (list.length === 1 ? tool(list[0]) : submenuItem(name, list.map(tool)))),
+      ...(addons.length && own.length ? ['separator'] : []),
+      ...own.map(tool),
+    ];
     return [
-      { label: 'Script editor…', action: () => this.openEditor() },
-      { label: 'Add script files (.py)…', action: () => this.addFiles() },
-      { label: 'Reload scripts', disabled: !this.library.length, action: () => this.reload() },
-      { label: 'Log', action: () => openLogWindow() },
-      ...(this.host.running ? [{ label: 'Stop the running script', action: () => this.stop() }] : []),
+      { label: t('Script editor…'), action: () => this.openEditor() },
+      { label: t('Add script files (.py)…'), action: () => this.addFiles() },
+      { label: t('Reload scripts'), disabled: !this.library.length, action: () => this.reload() },
+      { label: t('Log'), action: () => openLogWindow() },
+      ...(this.host.running ? [{ label: t('Stop the running script'), action: () => this.stop() }] : []),
       'separator',
       ...(state === 'loading'
-        ? [{ label: 'Starting Python…', disabled: true }]
+        ? [{ label: t('Starting Python…'), disabled: true }]
         : tools.length
-          ? tools.map((t) => ({ label: t.label, title: t.description || `From ${t.script}`, disabled: this.host.running, action: () => this.host.runTool(t.id) }))
-          : [{ label: this.library.length ? 'No tools: scripts add them with @rigby.tool' : 'No scripts yet: open the Script editor', disabled: true }]),
+          ? tools
+          : [{ label: this.library.length ? t('No tools: scripts add them with @rigby.tool') : t('No scripts yet: open the Script editor'), disabled: true }]),
     ];
   }
 
@@ -289,7 +302,7 @@ function scriptEditor(scripts) {
 
   const draw = () => {
     const item = (n) => {
-      const tools = [...scripts.host.tools.values()].filter((t) => t.script === n).length;
+      const tools = [...scripts.host.tools.values()].filter((x) => x.script === n).length;
       const isNew = unsaved.includes(n);
       return h(
         'div',
