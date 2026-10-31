@@ -4,7 +4,7 @@
 
 import { DEMOS } from './demos.js';
 import { LINKS, VERSION } from './helpui.js';
-import { t } from './i18n.js';
+import { language, t } from './i18n.js';
 import { isDesktop, openExternal, saveDownload } from './platform.js';
 import { ago, recentProjects, splitPath } from './recent.js';
 import { newScene } from './sceneui.js';
@@ -88,7 +88,8 @@ export function openWelcome(app, { tutorials, onClose } = {}) {
   // What's new: the newest devlog posts, from the last copy at once, then fresh from the website.
   const newsRow = h('div', { class: 'welcome-news', hidden: true });
   const drawNews = (news) => {
-    const items = news?.items?.slice(0, 3) ?? [];
+    // Posts written for one language show only to people using the editor in it.
+    const items = (news?.items ?? []).filter((i) => !i.lang || i.lang === language()).slice(0, 3);
     newsRow.hidden = !items.length;
     if (!items.length) return;
     newsRow.replaceChildren(

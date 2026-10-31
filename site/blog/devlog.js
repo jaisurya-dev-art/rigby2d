@@ -41,9 +41,9 @@ const longDate = (iso) => new Date(`${iso}T12:00:00Z`).toLocaleDateString('en-US
 const absolute = (p) => (!p ? '' : /^https?:/.test(p) ? p : `${SITE}${p.startsWith('/') ? '' : '/'}${p}`);
 
 /** The page shell: the website's header, footer and styles around `main`. */
-function shell({ title, description, url, image, main }) {
+function shell({ title, description, url, image, main, lang = 'en' }) {
   return `<!doctype html>
-<html lang="en">
+<html lang="${esc(lang)}">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -94,7 +94,7 @@ export function postPage(post) {
           <p class="post-follow">Also: <a href="/blog/feed.xml">RSS</a> · <a href="https://github.com/jaisurya-dev-art/rigby2d" rel="noopener">GitHub</a></p>
         </div>
       </article>`;
-  return shell({ title: `${post.title} · Rigby2D devlog`, description: post.summary, url: `${SITE}/blog/${post.slug}.html`, image: absolute(post.image), main });
+  return shell({ title: `${post.title} · Rigby2D devlog`, description: post.summary, url: `${SITE}/blog/${post.slug}.html`, image: absolute(post.image), main, lang: post.lang ?? 'en' });
 }
 
 export function indexPage(posts) {
@@ -154,7 +154,8 @@ export function newsJson(posts) {
   return JSON.stringify(
     {
       updated: posts[0]?.date ?? null,
-      items: posts.slice(0, 6).map((p) => ({ title: p.title, date: p.date, summary: p.summary, tag: p.tag ?? null, url: `${SITE}/blog/${p.slug}.html`, image: absolute(p.image) || null, video: p.video ?? null })),
+      // `lang` marks posts written for one interface language (the editor shows them only there).
+      items: posts.slice(0, 10).map((p) => ({ title: p.title, date: p.date, summary: p.summary, tag: p.tag ?? null, lang: p.lang ?? null, url: `${SITE}/blog/${p.slug}.html`, image: absolute(p.image) || null, video: p.video ?? null })),
     },
     null,
     2,
