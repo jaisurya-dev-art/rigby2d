@@ -46,7 +46,8 @@ function alerts(md) {
 
 /** Where a link in docs/<page>.md points on the website. */
 function linkTarget(href) {
-  if (/^(https?:|mailto:|#)/.test(href)) return href;
+  // Absolute URLs, anchors and site paths (/blog/…, /docs/images/…, used by devlog posts) stay as written.
+  if (/^(https?:|mailto:|#|\/)/.test(href)) return href;
   const [file, hash] = href.split('#');
   const anchor = hash ? `#${hash}` : '';
   const page = file.replace(/^\.\//, '');
