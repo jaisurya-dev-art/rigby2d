@@ -31,7 +31,7 @@ Download the latest release from the
 | `Rigby2D_<version>_x64_en-US.msi` | Windows Installer package. |
 | `Rigby2D_<version>_x64-setup.exe` | Setup program (NSIS). |
 | `Rigby2D-AI.mcpb` | The [MCP server](mcp.md) as a one-file extension for Claude Desktop. |
-| `rigby2d-godot-addon-<version>-windows-x64.zip` | The [Godot runtime](runtimes.md#godot) for your project (preview). |
+| `rigby2d-godot-addon-<version>-windows-x64.zip` | The [Godot runtime](runtimes.md#godot) for your project. |
 | `rigby2d-godot-demo-<version>-windows-x64.zip` | A Godot demo project using the runtime. |
 | `SHA256SUMS.txt` | Checksums of every file. |
 

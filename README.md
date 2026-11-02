@@ -136,7 +136,7 @@ src/core/       Runtime: data model, skeleton JSON/.skel + atlas I/O, pose evalu
 src/editor/     Editor UI: viewport, tree, inspector, dopesheet, graph editor, import/export, scripting
 src/webgl/      Reference WebGL renderer for the runtime
 src/mcp/        Model Context Protocol server for AI assistants
-runtimes/       Rust runtime and the Godot 4 node (preview)
+runtimes/       Rust runtime and the Godot 4 nodes
 site/           Website and documentation site (GitHub Pages)
 docs/           Documentation pages and images
 branding/       Logo, icons, Rigbytron and NILA (proprietary, see TRADEMARKS.md)

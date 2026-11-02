@@ -7,7 +7,7 @@ layered tracks with crossfades. They also play [scenes](scenes.md#in-games-and-a
 characters on a stage with a moving camera and parallax.
 
 <div class="cards engines">
-<a href="#godot" data-mark="godot"><strong>Godot <span class="status preview">Preview</span></strong><code>RigbySkeleton2D</code> and <code>RigbyScene2D</code> nodes, a GDExtension on the Rust core. <small>Godot 4.3+ · Windows, macOS, Linux</small></a>
+<a href="#godot" data-mark="godot"><strong>Godot</strong><code>RigbySkeleton2D</code> and <code>RigbyScene2D</code> nodes, a GDExtension on the Rust core. <small>Godot 4.3+ · Windows, macOS, Linux</small></a>
 <a href="#unity" data-mark="unity"><strong>Unity <span class="status">Complete</span></strong><code>RigbySkeleton</code> and <code>RigbyScene</code> components in C#, multi-core, no garbage. <small>Unity 2021.3+ and Unity 6 · every platform</small></a>
 <a href="#cocos-creator" data-mark="cocos"><strong>Cocos Creator <span class="status">New</span></strong>A <code>RigbySkeleton</code> component for 2D scenes, drawn in order with sprites and UI. <small>Cocos Creator 3.8 · web and native</small></a>
 <a href="#phaser" data-mark="phaser"><strong>Phaser <span class="status">Complete</span></strong>A plugin: <code>this.add.rigby()</code>, on the JavaScript runtime. <small>Phaser 3.60+ and 4 · WebGL</small></a>
@@ -179,7 +179,7 @@ See the [Unity guide](https://github.com/jaisurya-dev-art/rigby2d/blob/develop/r
 
 ## Godot
 
-The `RigbySkeleton2D` node for Godot 4.3+ (preview; prebuilt for Windows x64, macOS and Linux x64).
+The `RigbySkeleton2D` node for Godot 4.3+ (prebuilt for Windows x64, macOS and Linux x64).
 Install the `rigby2d-godot-addon` zip for your system from the
 [Releases](https://github.com/jaisurya-dev-art/rigby2d/releases), or with *File ▸ Get runtimes…* in
 the editor, into your project, add the node, and set *Skeleton File*, *Atlas File* and *Animation*.
