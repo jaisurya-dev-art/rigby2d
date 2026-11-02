@@ -3210,3 +3210,19 @@ kbd {
   background: #facc15;
   color: #1a1a1a;
 }
+
+/* Help ▸ Supporters. */
+.supporters-dialog h3 {
+  margin: 14px 0 6px;
+}
+.supporters-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+}
+.supporters-list .badge {
+  margin-left: 6px;
+}

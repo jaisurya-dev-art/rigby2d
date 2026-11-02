@@ -3,7 +3,8 @@
 // says Rigby2D is free and shows the monthly goal (from /supporters.json) with a way to support it.
 // It shows at most once a week per browser, so it never nags.
 
-const SPONSOR = 'https://github.com/sponsors/jaisurya-dev-art';
+import { loadSupporters, SPONSOR_URL as SPONSOR } from './supporters.js';
+
 const WEEK = 7 * 24 * 3600 * 1000;
 const KEY = 'rigby2d.thanks.shown';
 
@@ -23,15 +24,6 @@ function remember() {
   }
 }
 
-async function goal() {
-  try {
-    const data = await (await fetch('/supporters.json', { cache: 'no-cache' })).json();
-    return data.goal ?? null;
-  } catch {
-    return null;
-  }
-}
-
 function el(tag, attrs = {}, ...children) {
   const e = document.createElement(tag);
   for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
@@ -41,7 +33,7 @@ function el(tag, attrs = {}, ...children) {
 
 async function show() {
   remember();
-  const g = await goal();
+  const g = (await loadSupporters()).goal;
   const percent = Math.max(0, Math.min(100, Math.round(g?.percent ?? 0)));
   const fill = el('span');
   fill.style.width = `${Math.max(percent, 1.5)}%`;

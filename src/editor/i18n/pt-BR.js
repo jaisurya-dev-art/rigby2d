@@ -330,4 +330,13 @@ export default {
   "Rigby2D is free, and stays free": "O Rigby2D é gratuito, e continuará sendo",
   "A few dollars a month pays for code signing in its name, so new users stop seeing security warnings.": "Alguns dólares por mês pagam a assinatura de código em seu nome, para que novos usuários não vejam mais avisos de segurança.",
   "Support Rigby2D ↗": "Apoiar o Rigby2D ↗",
+  "Supporters": "Apoiadores",
+  "Supporters…": "Apoiadores…",
+  "Rigby2D is free because of these people.": "O Rigby2D é gratuito graças a estas pessoas.",
+  "Loading…": "Carregando…",
+  "Could not load the list. Check your connection, or see it on rigby2d.com/fund.": "Não foi possível carregar a lista. Verifique sua conexão ou veja em rigby2d.com/fund.",
+  "Founding": "Fundador",
+  "No one yet. The first 20 monthly supporters are Founding Supporters, for good.": "Ninguém ainda. Os primeiros 20 apoiadores mensais serão Founding Supporters para sempre.",
+  "Code contributors": "Contribuidores de código",
+  "{title}: {percent}% of ${monthly} a month.": "{title}: {percent}% de ${monthly} por mês.",
 };

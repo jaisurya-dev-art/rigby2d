@@ -330,4 +330,13 @@ export default {
   "Rigby2D is free, and stays free": "Rigby2D は無料、これからもずっと",
   "A few dollars a month pays for code signing in its name, so new users stop seeing security warnings.": "月に数ドルの支援で Rigby2D 名義のコード署名をまかなえ、新しいユーザーにセキュリティ警告が出なくなります。",
   "Support Rigby2D ↗": "Rigby2D を支援 ↗",
+  "Supporters": "支援者",
+  "Supporters…": "支援者…",
+  "Rigby2D is free because of these people.": "Rigby2D が無料なのは、この方々のおかげです。",
+  "Loading…": "読み込み中…",
+  "Could not load the list. Check your connection, or see it on rigby2d.com/fund.": "一覧を読み込めませんでした。接続を確認するか、rigby2d.com/fund をご覧ください。",
+  "Founding": "創設",
+  "No one yet. The first 20 monthly supporters are Founding Supporters, for good.": "まだいません。最初の 20 人の月額支援者は、ずっと Founding Supporter です。",
+  "Code contributors": "コードの貢献者",
+  "{title}: {percent}% of ${monthly} a month.": "{title}：月 ${monthly} のうち {percent}%。",
 };

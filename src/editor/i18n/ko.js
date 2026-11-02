@@ -330,4 +330,13 @@ export default {
   "Rigby2D is free, and stays free": "Rigby2D는 무료이고, 앞으로도 무료입니다",
   "A few dollars a month pays for code signing in its name, so new users stop seeing security warnings.": "한 달에 몇 달러면 Rigby2D 이름으로 코드 서명을 할 수 있어, 새 사용자가 보안 경고를 보지 않게 됩니다.",
   "Support Rigby2D ↗": "Rigby2D 후원하기 ↗",
+  "Supporters": "후원자",
+  "Supporters…": "후원자…",
+  "Rigby2D is free because of these people.": "Rigby2D가 무료인 것은 이분들 덕분입니다.",
+  "Loading…": "불러오는 중…",
+  "Could not load the list. Check your connection, or see it on rigby2d.com/fund.": "목록을 불러오지 못했습니다. 연결을 확인하거나 rigby2d.com/fund에서 확인하세요.",
+  "Founding": "창립",
+  "No one yet. The first 20 monthly supporters are Founding Supporters, for good.": "아직 없습니다. 처음 20명의 월간 후원자는 영원히 창립 후원자입니다.",
+  "Code contributors": "코드 기여자",
+  "{title}: {percent}% of ${monthly} a month.": "{title}: 월 ${monthly} 중 {percent}%.",
 };

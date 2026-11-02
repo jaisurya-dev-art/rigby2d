@@ -3,7 +3,8 @@
 // About Rigby2D (version, links, license).
 
 import { ACTIONS, PRESETS, shortcutLabel } from './keymap.js';
-import { openExternal } from './platform.js';
+import { fetchBytes, openExternal } from './platform.js';
+import { t } from './i18n.js';
 import { h } from './widgets.js';
 import markUrl from '../../branding/rigby2d-mark.svg?url';
 
@@ -183,5 +184,35 @@ export function openAbout() {
       { class: 'about-fine' },
       'Code: MIT OR Apache-2.0, by the Rigby2D contributors. Includes open-source components listed in THIRD_PARTY_NOTICES.md. The Rigby2D, NILA and Rigbytron names, logos and artwork are trademarks of the Rigby2D project.',
     ),
+  );
+}
+
+/**
+ * Help ▸ Supporters: the people who fund Rigby2D (Backer tier and up) and the people who contributed
+ * code, from rigby2d.com/supporters.json, kept in step with GitHub Sponsors by the website.
+ */
+export async function openSupporters() {
+  const { body } = dialog('supporters-dialog', t('Supporters'), t('Rigby2D is free because of these people.'));
+  const status = h('p', { class: 'weak' }, t('Loading…'));
+  body.append(status);
+  let data;
+  try {
+    data = JSON.parse(new TextDecoder().decode(await fetchBytes(`${SITE}supporters.json`)));
+  } catch {
+    status.textContent = t('Could not load the list. Check your connection, or see it on rigby2d.com/fund.');
+    return;
+  }
+  status.remove();
+  const founding = new Set(data.founding ?? []);
+  const name = (p) => h('li', null, p.name ?? p.login, founding.has(p.login ?? p.name) ? h('span', { class: 'badge' }, t('Founding')) : null);
+  const backers = [...(data.github ?? []), ...(data.others ?? [])].filter((p) => (p.tier ?? 5) >= 5);
+  const goal = data.goal ?? {};
+  body.append(
+    h('h3', null, t('Supporters')),
+    backers.length ? h('ul', { class: 'supporters-list' }, backers.map(name)) : h('p', { class: 'weak' }, t('No one yet. The first 20 monthly supporters are Founding Supporters, for good.')),
+    h('h3', null, t('Code contributors')),
+    h('ul', { class: 'supporters-list' }, (data.contributors ?? []).map(name)),
+    h('p', { class: 'weak' }, t('{title}: {percent}% of ${monthly} a month.', { title: goal.title ?? 'Signed by Rigby2D', percent: Math.round(goal.percent ?? 0), monthly: goal.monthly ?? 25 })),
+    h('div', { class: 'buttons' }, h('button', { class: 'primary', onclick: () => openExternal(LINKS.fund) }, t('Support Rigby2D ↗'))),
   );
 }

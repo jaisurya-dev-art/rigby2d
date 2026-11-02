@@ -35,7 +35,7 @@ import { openDemoPicker } from './demoui.js';
 import { DEMOS } from './demos.js';
 import { newScene } from './sceneui.js';
 import { ago, clearRecentProjects, recentProjects, splitPath } from './recent.js';
-import { LINKS, openAbout, openShortcuts } from './helpui.js';
+import { LINKS, openAbout, openShortcuts, openSupporters } from './helpui.js';
 import { installRecovery } from './recoveryui.js';
 import { applyInterfaceScale, openPreferences } from './prefsui.js';
 import { AddonManager } from './addonui.js';
@@ -212,6 +212,7 @@ function menus() {
       { label: t('Devlog'), shortcut: '↗', title: t('Releases and news on rigby2d.com'), action: () => openExternal(DEVLOG_URL) },
       { label: t('Community (r/rigby2d)'), shortcut: '↗', action: () => openExternal(COMMUNITY_URL) },
       { label: t('Support Rigby2D'), shortcut: '↗', title: t('Rigby2D is free. Supporters pay for code signing and keep it moving.'), action: () => openExternal(LINKS.fund) },
+      { label: t('Supporters…'), action: () => openSupporters() },
       'separator',
       { label: t('Connect an AI assistant…'), action: () => openAiConnect() },
       'separator',

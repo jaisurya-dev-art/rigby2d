@@ -330,4 +330,13 @@ export default {
   "Rigby2D is free, and stays free": "Rigby2D 免费，并将一直免费",
   "A few dollars a month pays for code signing in its name, so new users stop seeing security warnings.": "每月几美元即可支付以 Rigby2D 名义进行的代码签名，新用户就不会再看到安全警告。",
   "Support Rigby2D ↗": "支持 Rigby2D ↗",
+  "Supporters": "支持者",
+  "Supporters…": "支持者…",
+  "Rigby2D is free because of these people.": "Rigby2D 之所以免费，要感谢这些人。",
+  "Loading…": "正在加载…",
+  "Could not load the list. Check your connection, or see it on rigby2d.com/fund.": "无法加载列表。请检查网络连接，或访问 rigby2d.com/fund 查看。",
+  "Founding": "创始",
+  "No one yet. The first 20 monthly supporters are Founding Supporters, for good.": "还没有人。前 20 位每月支持者将永久成为创始支持者。",
+  "Code contributors": "代码贡献者",
+  "{title}: {percent}% of ${monthly} a month.": "{title}：每月 ${monthly} 目标已达成 {percent}%。",
 };
