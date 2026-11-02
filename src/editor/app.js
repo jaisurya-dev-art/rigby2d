@@ -436,7 +436,7 @@ export class App {
   selectedBones() {
     const out = [...this.multi].filter((b) => b < this.doc.bones.length);
     const primary = selBone(this.sel);
-    if (primary !== null && !out.includes(primary)) out.unshift(primary);
+    if (primary !== null && primary < this.doc.bones.length && !out.includes(primary)) out.unshift(primary);
     return out;
   }
 

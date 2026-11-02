@@ -8,7 +8,7 @@
 import { pruneConstraints } from './constraintdata.js';
 import { Animation, BONE_CHANNELS, SLOT_CHANNELS, emptyBoneTimeline, emptySlotTimeline, makeKey } from './animation.js';
 import { LINEAR, cloneCurve } from './curve.js';
-import { identityTransform } from './math.js';
+import { identityTransform, toAffine } from './math.js';
 import { readControllers, readPoses } from './poses.js';
 import { readScene } from './scene.js';
 
@@ -65,6 +65,20 @@ export function makeAttachment(name, image, offset, width, height) {
 /** Finds an attachment of the default skin by name. */
 export function findAttachment(slot, name) {
   return slot.attachments.find((a) => a.name === name);
+}
+
+/**
+ * Re-expresses an attachment in another bone's space, keeping it where it is (`toNew`: an Affine
+ * from the old bone's space to the new one's). Regions and points have an offset; meshes, bounding
+ * boxes, paths and clipping shapes have vertices in the bone's space unless they are weighted
+ * (weighted vertices belong to their bones, not the slot's). Linked meshes use their parent's.
+ */
+export function moveAttachment(att, toNew) {
+  if (att.offset) {
+    att.offset = toNew.mul(toAffine(att.offset)).decompose();
+  } else if (Array.isArray(att.vertices) && !att.weights) {
+    for (let i = 0; i + 1 < att.vertices.length; i += 2) [att.vertices[i], att.vertices[i + 1]] = toNew.apply([att.vertices[i], att.vertices[i + 1]]);
+  }
 }
 
 /** Number of vertices of a mesh-like attachment. */

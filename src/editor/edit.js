@@ -5,7 +5,7 @@
 import { Animation, setKey } from '../core/animation.js';
 import { LINEAR, STEPPED } from '../core/curve.js';
 import { toAffine, transform } from '../core/math.js';
-import { makeBone } from '../core/model.js';
+import { makeBone, moveAttachment } from '../core/model.js';
 import { Pose } from '../core/pose.js';
 import { FPS, Mode, selBone, selSlot, snap } from './app.js';
 import { CHANNEL_FIELDS, TRANSFORM_CHANNELS as CHANNELS } from './channels.js';
@@ -226,7 +226,7 @@ export function setSlotBoneKeepWorld(app, slot, newBone) {
   const setup = new Pose(app.doc);
   const old = setup.world[app.doc.slots[slot].bone];
   const toNew = setup.world[newBone].inverse().mul(old);
-  for (const att of app.doc.slots[slot].attachments) att.offset = toNew.mul(toAffine(att.offset)).decompose();
+  for (const att of app.doc.slots[slot].attachments) moveAttachment(att, toNew);
   app.doc.slots[slot].bone = newBone;
   app.changed();
 }

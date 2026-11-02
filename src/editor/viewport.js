@@ -104,6 +104,7 @@ export class Viewport {
     }
     const pose = app.pose();
     this.lastPose = pose; // reused for cheap bone hover-testing between frames
+    this.lastPoseDoc = app.doc;
     const t0 = performance.now();
     const gl = app.renderer !== 'canvas' && this.glView?.draw(app, pose, this.width, this.height, dpr);
     if (this.glCanvas) this.glCanvas.hidden = !gl;
@@ -1070,7 +1071,10 @@ export class Viewport {
     }
     // Shared bone highlight: light up the bone under the cursor, unless dragging or in a sub-editor.
     if (!this.panning && !this.press && !this.meshTool.active && !this.shapeTool.active) {
-      app.setHover(this.hitBone(this.lastPose ?? app.pose(), pos));
+      // The last drawn pose, unless the skeleton changed since (a bone added, an undo, another file).
+      const last = this.lastPose;
+      const fresh = last && last.world.length === app.doc.bones.length && this.lastPoseDoc === app.doc;
+      app.setHover(this.hitBone(fresh ? last : app.pose(), pos));
     }
   }
 
