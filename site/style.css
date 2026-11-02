@@ -1975,11 +1975,14 @@ h3 {
   text-transform: uppercase;
 }
 .press-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: 14px;
 }
 .press-card {
+  flex: 1 1 0;
+  min-width: 0;
   display: flex;
   align-items: center;
   gap: 14px;
@@ -2017,6 +2020,9 @@ h3 {
 .press-card[data-goatcounter-click$='alternativeto'] .press-logo {
   color: #0c9ef0;
 }
+.press-card[data-goatcounter-click$='portable-linux-apps'] .press-logo {
+  color: #f5c211;
+}
 .press-text {
   display: flex;
   flex-direction: column;
@@ -2031,12 +2037,12 @@ h3 {
   font-size: 0.8rem;
 }
 @media (max-width: 1000px) {
-  .press-grid {
-    grid-template-columns: 1fr 1fr;
+  .press-card {
+    flex: 0 0 calc(50% - 7px);
   }
 }
 @media (max-width: 560px) {
-  .press-grid {
-    grid-template-columns: 1fr;
+  .press-card {
+    flex-basis: 100%;
   }
 }

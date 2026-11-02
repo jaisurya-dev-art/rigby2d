@@ -57,6 +57,7 @@
 
 - **YouTube architectural review:** [Rigby2D GitHub Explained: 2D Rigging Across Game and Film Runtimes](https://www.youtube.com/watch?v=K9hDnlXZ2No) by [Alex Hitt](https://www.youtube.com/channel/UCKhKnxp8JhHu1FsbyZYxqwg) — an 8-minute technical breakdown of AutoRig mesh topology, deterministic physics solver parity across engines, the Game and Film workspaces, and the built-in MCP server.
 - **Polydium (CG · VFX · Game Daily Briefing):** [Rigby2D — 레이어 PSD를 자동으로 리깅하는 오픈소스 2D 스켈레탈 애니메이션 에디터](https://polydium.net/briefing/8df9db93-0abf-4032-bd88-acbdf95ec431) — featured in the [Polydium Pipeline Briefing](https://polydium.net/briefing) for Korean game and VFX studios.
+- **Portable Linux Apps:** [Rigby2D AppImage for Linux](https://portable-linux-apps.github.io/en/app/rigby2d.html) — listed in the AppImage catalog of the [AM package manager](https://github.com/ivan-hc/AM).
 - **Open-source & AI indexes:** Listed in [Trendshift Top Game Engine Open-Source Projects (2026)](https://trendshift.io/topics/game-engine), [Nicheloom](https://www.nicheloom.com/launches/57217/), and [Context7](https://context7.com/jaisurya-dev-art/rigby2d).
 
 ## Documentation
