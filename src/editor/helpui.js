@@ -19,6 +19,7 @@ export const LINKS = {
   repo: REPO,
   issues: `${REPO}/issues/new/choose`,
   releaseNotes: VERSION ? `${REPO}/releases/tag/v${VERSION}` : `${REPO}/releases`,
+  fund: `${SITE}fund/`,
 };
 
 /**
@@ -175,7 +176,8 @@ export function openAbout() {
         h('p', { class: 'about-tagline' }, 'Open-source 2D skeletal animation for games, films and interactive experiences.'),
       ),
     ),
-    h('div', { class: 'about-links' }, link('Website', LINKS.website), link('Documentation', LINKS.docs), link('Source code', LINKS.repo), link('Release notes', LINKS.releaseNotes)),
+    h('div', { class: 'about-links' }, link('Website', LINKS.website), link('Documentation', LINKS.docs), link('Source code', LINKS.repo), link('Release notes', LINKS.releaseNotes), link('Support Rigby2D', LINKS.fund)),
+    h('p', { class: 'about-fine' }, 'Rigby2D is free and stays free. Supporters pay for code signing and keep it moving.'),
     h(
       'p',
       { class: 'about-fine' },

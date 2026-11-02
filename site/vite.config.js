@@ -18,6 +18,17 @@ import { feedXml, indexPage, newsJson, postPage, readPosts } from './blog/devlog
 const here = path.dirname(fileURLToPath(import.meta.url));
 const repo = path.resolve(here, '..');
 
+/** The supporters and the monthly goal (site/supporters.json, kept by .github/workflows/supporters.yml),
+ *  at a fixed URL: the Support page and the editor's Supporters list read it. */
+function supportersFile() {
+  return {
+    name: 'rigby-site-supporters',
+    generateBundle() {
+      this.emitFile({ type: 'asset', fileName: 'supporters.json', source: fs.readFileSync(path.join(here, 'supporters.json')) });
+    },
+  };
+}
+
 /** The link-preview image (og:image) needs a fixed URL, so the editor screenshot is copied as og.jpg. */
 function socialImage() {
   return {
@@ -241,7 +252,7 @@ function comparePages() {
     async generateBundle(_options, bundle) {
       const { COMPARISONS, comparePage } = await import('./compare/compare.js');
       for (const c of COMPARISONS) this.emitFile({ type: 'asset', fileName: `vs/${c.slug}/index.html`, source: comparePage(c) });
-      const pages = new Set(['', 'demos/', 'addons/', 'cloud/', 'blog/', 'editor/', ...COMPARISONS.map((c) => `vs/${c.slug}/`)]);
+      const pages = new Set(['', 'demos/', 'addons/', 'cloud/', 'fund/', 'blog/', 'editor/', ...COMPARISONS.map((c) => `vs/${c.slug}/`)]);
       for (const name of Object.keys(bundle)) {
         if (!name.endsWith('.html') || name.startsWith('editor/')) continue;
         pages.add(name.replace(/(^|\/)index\.html$/, '$1'));
@@ -386,13 +397,13 @@ export default defineConfig({
   root: here,
   base: process.env.SITE_BASE ?? '/',
   clearScreen: false,
-  plugins: [siteChrome(), comparePages(), socialImage(), documentation(), demoFiles(), starterFiles(), addonFiles(), devlogFiles()],
+  plugins: [siteChrome(), comparePages(), socialImage(), supportersFile(), documentation(), demoFiles(), starterFiles(), addonFiles(), devlogFiles()],
   // The pages import the runtime, NILA and the docs from outside this folder.
   server: { port: 1430, strictPort: true, fs: { allow: [repo] } },
   build: {
     target: 'es2021',
     outDir: path.join(repo, '_site'),
     emptyOutDir: true,
-    rollupOptions: { input: { main: path.join(here, 'index.html'), demos: path.join(here, 'demos/index.html'), addons: path.join(here, 'addons/index.html'), cloud: path.join(here, 'cloud/index.html'), docs: path.join(here, 'docs/docs.js') } },
+    rollupOptions: { input: { main: path.join(here, 'index.html'), demos: path.join(here, 'demos/index.html'), addons: path.join(here, 'addons/index.html'), cloud: path.join(here, 'cloud/index.html'), fund: path.join(here, 'fund/index.html'), docs: path.join(here, 'docs/docs.js') } },
   },
 });

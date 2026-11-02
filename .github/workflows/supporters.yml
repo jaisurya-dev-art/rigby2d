@@ -1,0 +1,36 @@
+# Keeps site/supporters.json in step with GitHub Sponsors (sponsors and the active goal), then
+# redeploys the website so the /fund page and the editor's Supporters list show them.
+name: Supporters
+
+on:
+  schedule:
+    - cron: '41 3 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: develop
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          node .github/scripts/supporters.mjs
+          if [ -n "$(git status --porcelain site/supporters.json)" ]; then
+            git config user.name "rigby2d-supporters[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add site/supporters.json
+            git commit -m "Supporters: update from GitHub Sponsors"
+            git push origin develop
+            gh workflow run pages.yml --repo ${{ github.repository }} --ref develop
+          fi

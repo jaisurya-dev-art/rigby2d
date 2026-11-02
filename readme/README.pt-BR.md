@@ -121,6 +121,13 @@ test/           Testes com node:test
 
 Contribuições são bem-vindas! Leia o [CONTRIBUTING.md](../CONTRIBUTING.md) (em inglês) para o ambiente de desenvolvimento, o estilo de código e o processo de pull requests.
 
+## Apoie o Rigby2D
+
+O Rigby2D é gratuito e de código aberto, e continuará assim. O apoio mensal paga o que uma pessoa sozinha não consegue, a começar pela **assinatura de código em nome do Rigby2D**, para que o Windows e o macOS parem de alertar quem faz o download. A primeira meta é US$ 25 por mês; os primeiros 20 apoiadores mensais serão Founding Supporters.
+
+<a href="https://github.com/sponsors/jaisurya-dev-art"><img src="https://img.shields.io/badge/Sponsor_on_GitHub-7ba7c7?style=for-the-badge&logo=githubsponsors&logoColor=white" alt="Sponsor on GitHub"></a>
+&nbsp;[Para onde vai o dinheiro](https://rigby2d.com/fund/)
+
 ## Licença
 
 O código-fonte do Rigby2D é licenciado, à sua escolha, sob:

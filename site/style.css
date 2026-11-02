@@ -2046,3 +2046,210 @@ h3 {
     flex-basis: 100%;
   }
 }
+
+/* Support page (fund/): the monthly goal, where the money goes, tiers, the supporters wall. */
+.fund-head h1 {
+  font-size: clamp(2.4rem, 6vw, 4rem);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+}
+.goal {
+  max-width: 620px;
+  margin: 32px 0 24px;
+  padding: 20px 22px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+.goal-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 15px;
+  margin-bottom: 12px;
+}
+.goal-title {
+  font-weight: 600;
+}
+.goal-amount {
+  color: var(--muted);
+}
+.goal-bar {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--line);
+  overflow: hidden;
+}
+.goal-bar span {
+  display: block;
+  height: 100%;
+  width: 1.5%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--steel), var(--ice));
+  transition: width 0.8s ease;
+}
+.goal-note {
+  margin: 10px 0 0;
+  font-size: 14px;
+  color: var(--muted);
+}
+.fund-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.fund-actions i {
+  display: inline-flex;
+  width: 18px;
+  height: 18px;
+  margin-right: 4px;
+  vertical-align: -3px;
+}
+.goals-list {
+  display: grid;
+  gap: 2px;
+  margin: 24px 0 16px;
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.goal-step {
+  display: grid;
+  grid-template-columns: 150px 1fr;
+  gap: 24px;
+  align-items: baseline;
+  padding: 22px 24px;
+  background: var(--surface);
+}
+.goal-step h3 {
+  margin: 0 0 4px;
+}
+.goal-step p {
+  margin: 0;
+  color: var(--muted);
+}
+.step-amount {
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--ice);
+}
+.step-amount small {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--muted);
+}
+.tiers {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 14px;
+  margin-top: 24px;
+}
+.tier {
+  padding: 20px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+.tier-price {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.tier h3 {
+  margin: 4px 0 6px;
+  font-size: 16px;
+  color: var(--steel);
+}
+.tier p {
+  margin: 0;
+  font-size: 14px;
+  color: var(--muted);
+}
+.founding {
+  margin-top: 20px;
+  color: var(--muted);
+}
+.founding b {
+  color: var(--text);
+}
+.wall {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 20px 0 8px;
+}
+.supporter {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 14px 6px 6px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--text);
+  text-decoration: none;
+}
+.supporter img {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+}
+.supporter small {
+  font-size: 11px;
+  color: var(--ice);
+  border: 1px solid var(--steel);
+  border-radius: 999px;
+  padding: 0 7px;
+}
+.faq details {
+  border-bottom: 1px solid var(--line);
+  padding: 16px 0;
+}
+.faq summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+.faq details p {
+  color: var(--muted);
+  margin: 10px 0 0;
+}
+@media (max-width: 640px) {
+  .goal-step {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+}
+
+/* The thank-you card after a download (thanks.js). */
+dialog.thanks {
+  max-width: 520px;
+  width: calc(100% - 32px);
+  padding: 28px;
+  background: var(--bg-alt);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+}
+dialog.thanks::backdrop {
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(4px);
+}
+dialog.thanks h2 {
+  margin: 0 0 10px;
+  font-size: 24px;
+  letter-spacing: -0.02em;
+}
+dialog.thanks p {
+  margin: 0;
+  color: var(--muted);
+}
+dialog.thanks .goal {
+  margin: 20px 0;
+}
+.thanks-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}

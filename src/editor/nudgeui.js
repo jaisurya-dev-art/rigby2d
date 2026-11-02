@@ -43,9 +43,9 @@ function show(kind, { mark, title, text, primary, onPrimary }) {
 
 /**
  * Starts listening for milestones, and schedules the star prompt. `share()` opens the share dialog,
- * `star()` the GitHub page.
+ * `star()` the GitHub page, `fund()` the Support page.
  */
-export function installNudges({ share, star }) {
+export function installNudges({ share, star, fund }) {
   const state = load();
   const days = countDay(state, Date.now());
   save(state);
@@ -70,7 +70,24 @@ export function installNudges({ share, star }) {
       1200,
     );
   });
-  if (days >= 3 && mayShow(load(), 'star', Date.now(), { gap: 30, maxDismiss: 2 })) {
+  // After ten days of use, once in a while: Rigby2D is free, and a few supporters keep it so. Never on
+  // the same day as the star prompt.
+  const fundDue = days >= 10 && fund && mayShow(load(), 'fund', Date.now(), { gap: 45, maxDismiss: 2 });
+  const starDue = days >= 3 && mayShow(load(), 'star', Date.now(), { gap: 30, maxDismiss: 2 });
+  if (fundDue && !starDue) {
+    setTimeout(
+      () =>
+        show('fund', {
+          mark: icon('heart', 20),
+          title: t('Rigby2D is free, and stays free'),
+          text: t('A few dollars a month pays for code signing in its name, so new users stop seeing security warnings.'),
+          primary: t('Support Rigby2D ↗'),
+          onPrimary: fund,
+        }),
+      120_000,
+    );
+  }
+  if (starDue) {
     setTimeout(
       () =>
         show('star', {

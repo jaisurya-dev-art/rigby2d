@@ -211,6 +211,7 @@ function menus() {
       { label: t('Documentation'), shortcut: '↗', action: () => openExternal(LINKS.docs) },
       { label: t('Devlog'), shortcut: '↗', title: t('Releases and news on rigby2d.com'), action: () => openExternal(DEVLOG_URL) },
       { label: t('Community (r/rigby2d)'), shortcut: '↗', action: () => openExternal(COMMUNITY_URL) },
+      { label: t('Support Rigby2D'), shortcut: '↗', title: t('Rigby2D is free. Supporters pay for code signing and keep it moving.'), action: () => openExternal(LINKS.fund) },
       'separator',
       { label: t('Connect an AI assistant…'), action: () => openAiConnect() },
       'separator',
@@ -585,7 +586,7 @@ if (import.meta.env.DEV) window.rigby = { app, memoryFs, dopesheet, graph, viewp
 if (scripts.library.length) setTimeout(() => scripts.loadAll({ quiet: true }), 1500);
 setTimeout(() => addons.loadEnabled(), 1500);
 scheduleUpdateCheck(app);
-installNudges({ share: () => openShareDialog(app), star: () => openExternal(LINKS.repo) });
+installNudges({ share: () => openShareDialog(app), star: () => openExternal(LINKS.repo), fund: () => openExternal(LINKS.fund) });
 
 $('#status-log').addEventListener('click', () => toggleLogWindow());
 $('#status-community').addEventListener('click', () => openExternal(COMMUNITY_URL));

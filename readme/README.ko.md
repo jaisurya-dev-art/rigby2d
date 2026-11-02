@@ -121,6 +121,13 @@ test/           node:test 테스트
 
 기여를 환영합니다! 개발 환경, 코딩 스타일, 풀 리퀘스트 절차는 [CONTRIBUTING.md](../CONTRIBUTING.md)(영어)를 읽어 주세요.
 
+## Rigby2D 후원하기
+
+Rigby2D는 무료 오픈 소스이며 앞으로도 그렇습니다. 매달의 후원은 혼자서는 감당하기 어려운 비용, 먼저 **Rigby2D 이름의 코드 서명**에 쓰여 Windows와 macOS가 다운로드한 사람에게 경고를 띄우지 않게 됩니다. 첫 목표는 월 25달러이며, 처음 20명의 월간 후원자는 Founding Supporter로 남습니다.
+
+<a href="https://github.com/sponsors/jaisurya-dev-art"><img src="https://img.shields.io/badge/Sponsor_on_GitHub-7ba7c7?style=for-the-badge&logo=githubsponsors&logoColor=white" alt="Sponsor on GitHub"></a>
+&nbsp;[후원금의 쓰임](https://rigby2d.com/fund/)
+
 ## 라이선스
 
 Rigby2D의 소스 코드는 다음 중 원하는 라이선스로 사용할 수 있습니다.

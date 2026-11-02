@@ -121,6 +121,13 @@ test/           node:test 测试
 
 欢迎贡献！开发环境、代码风格和拉取请求流程请参阅 [CONTRIBUTING.md](../CONTRIBUTING.md)（英文）。
 
+## 支持 Rigby2D
+
+Rigby2D 免费且开源，并将一直如此。每月的支持用于一个人难以承担的开销，首先是**以 Rigby2D 名义的代码签名**，让 Windows 和 macOS 不再向下载者显示警告。第一个目标是每月 25 美元；前 20 位每月支持者将永久成为 Founding Supporter（创始支持者）。
+
+<a href="https://github.com/sponsors/jaisurya-dev-art"><img src="https://img.shields.io/badge/Sponsor_on_GitHub-7ba7c7?style=for-the-badge&logo=githubsponsors&logoColor=white" alt="Sponsor on GitHub"></a>
+&nbsp;[资金用途](https://rigby2d.com/fund/)
+
 ## 许可证
 
 Rigby2D 的源代码可任选以下任一许可证使用：

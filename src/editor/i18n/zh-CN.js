@@ -325,4 +325,9 @@ export default {
   "{bones} bones, {slots} slots, {animations} animations": "{bones} 个骨骼，{slots} 个插槽，{animations} 个动画",
   "{count} more auto-save(s) are in File ▸ Recover.": "“文件 ▸ 恢复”中还有 {count} 个自动保存。",
   "{seconds} s, {frames} frames.": "{seconds} 秒，{frames} 帧。",
+  "Support Rigby2D": "支持 Rigby2D",
+  "Rigby2D is free. Supporters pay for code signing and keep it moving.": "Rigby2D 免费使用。支持者为代码签名付费，并推动项目前进。",
+  "Rigby2D is free, and stays free": "Rigby2D 免费，并将一直免费",
+  "A few dollars a month pays for code signing in its name, so new users stop seeing security warnings.": "每月几美元即可支付以 Rigby2D 名义进行的代码签名，新用户就不会再看到安全警告。",
+  "Support Rigby2D ↗": "支持 Rigby2D ↗",
 };

@@ -84,6 +84,7 @@ export function siteFooter({ base = '/', lockup = '/blog/lockup.svg' } = {}) {
           [`${GITHUB}/issues`, 'Issues', true],
           [`${GITHUB}/blob/develop/CONTRIBUTING.md`, 'Contributing', true],
           [`${base}addons/#publish`, 'Publish an add-on'],
+          [`${base}fund/`, 'Support Rigby2D'],
           ['mailto:hello@rigby2d.com', 'Contact'],
         ])}
       </div>

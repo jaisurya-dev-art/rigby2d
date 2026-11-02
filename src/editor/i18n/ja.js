@@ -325,4 +325,9 @@ export default {
   "{bones} bones, {slots} slots, {animations} animations": "ボーン {bones}、スロット {slots}、アニメーション {animations}",
   "{count} more auto-save(s) are in File ▸ Recover.": "ほかに {count} 件の自動保存が「ファイル ▸ 復元」にあります。",
   "{seconds} s, {frames} frames.": "{seconds} 秒、{frames} フレーム。",
+  "Support Rigby2D": "Rigby2D を支援",
+  "Rigby2D is free. Supporters pay for code signing and keep it moving.": "Rigby2D は無料です。支援者の方々がコード署名の費用を支え、開発を前に進めています。",
+  "Rigby2D is free, and stays free": "Rigby2D は無料、これからもずっと",
+  "A few dollars a month pays for code signing in its name, so new users stop seeing security warnings.": "月に数ドルの支援で Rigby2D 名義のコード署名をまかなえ、新しいユーザーにセキュリティ警告が出なくなります。",
+  "Support Rigby2D ↗": "Rigby2D を支援 ↗",
 };
