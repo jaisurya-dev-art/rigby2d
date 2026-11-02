@@ -7,11 +7,12 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { NAV_SCRIPT, siteFooter, siteHeader } from '../chrome.js';
 import { renderMarkdown } from '../docs/build.js';
 
 const SITE = 'https://rigby2d.com';
-const POSTS = path.join(path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1')), 'posts');
+const POSTS = path.join(path.dirname(fileURLToPath(import.meta.url)), 'posts'); // decoded (spaces), every platform
 const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
 /** Every post, newest first: { slug, title, date, summary, image, video, tag, html }. */
