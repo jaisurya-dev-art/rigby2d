@@ -8,8 +8,10 @@ to arms and legs.
 
 ## Rigging a character
 
-1. Start from a project with the layers imported and no bones yet: *File ▸ Import ▸ PSD…*, or the
-   **Import PSD…** button inside the AutoRig dialog. See [Importing art](importing-art.md).
+1. Start from a project with the layers imported and no bones yet: *File ▸ Import ▸ PSD…* (or the
+   **Import PSD…** button inside the AutoRig dialog), or *File ▸ Import ▸ PNG images…* with the
+   layers exported as same-size PNGs, which land in place like a PSD. See [Importing art](importing-art.md).
+   AutoRig needs the parts as separate layers: it does not cut a single flattened image apart.
 2. Choose *File ▸ AutoRig artwork…*. The table lists every layer with the **Part** and **Side**
    AutoRig found for it, and whether it was **found by** the layer's name or its position.
 3. Correct any row that is wrong, or choose *— leave unrigged —* for layers that should not move

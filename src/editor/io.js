@@ -15,6 +15,7 @@ import { Skeleton, makeAttachment, makeSlot, uniqueName } from '../core/model.js
 import { pack } from './pack.js';
 import { unzip, zip } from './zip.js';
 import { dragonBonesToSkeleton, isDragonBones, isDragonBonesAtlas } from './dragonbones.js';
+import { alphaBounds, backToFront, isLayerSet, layerCenter, layerName } from './pngset.js';
 
 const IMAGE_DIR = 'images';
 
@@ -459,17 +460,43 @@ export async function importPsd(file, doc, images) {
   return count;
 }
 
-/** Imports PNG files ([{ name, bytes }]) as slots on `bone`, laid out side by side above the origin. */
+/**
+ * Imports PNG files ([{ name, bytes }]) as slots on `bone`. Files that all share one size are layers
+ * exported from a drawing (pngset.js): each is cropped to its visible pixels and placed where it was
+ * drawn, like a PSD, ready for AutoRig. Other files are laid out side by side above the origin.
+ * Returns the number of images imported.
+ */
 export async function importPngs(files, bone, doc, images) {
-  let x = 0;
+  const canvases = [];
   for (const { name, bytes } of files) {
-    const canvas = await decodeImage(bytes).catch((e) => {
-      throw new Error(`loading ${name}: ${e}`);
-    });
-    const { width: w, height: h } = canvas;
-    addImageSlot(doc, images, stem(name), canvas, bone, [x + w * 0.5, h * 0.5], true);
-    x += w + 10;
+    canvases.push(
+      await decodeImage(bytes).catch((e) => {
+        throw new Error(`loading ${name}: ${e}`);
+      }),
+    );
   }
+  if (isLayerSet(canvases)) {
+    const { width: cw, height: ch } = canvases[0];
+    let count = 0;
+    for (const i of backToFront(files.map((f) => f.name))) {
+      const canvas = canvases[i];
+      const bounds = alphaBounds(canvas.getContext('2d').getImageData(0, 0, cw, ch).data, cw, ch);
+      if (!bounds) continue; // an empty layer
+      const crop = document.createElement('canvas');
+      crop.width = bounds.width;
+      crop.height = bounds.height;
+      crop.getContext('2d').drawImage(canvas, bounds.x, bounds.y, bounds.width, bounds.height, 0, 0, bounds.width, bounds.height);
+      addImageSlot(doc, images, layerName(files[i].name), crop, bone, layerCenter(bounds, cw, ch), true);
+      count++;
+    }
+    return count;
+  }
+  let x = 0;
+  canvases.forEach((canvas, i) => {
+    const { width: w, height: h } = canvas;
+    addImageSlot(doc, images, stem(files[i].name), canvas, bone, [x + w * 0.5, h * 0.5], true);
+    x += w + 10;
+  });
   return files.length;
 }
 

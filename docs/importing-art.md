@@ -37,8 +37,16 @@ Next: rig it in one step with [AutoRig](autorig.md), or by hand with
 ## Importing PNG images
 
 *File ▸ Import ▸ PNG images…* adds one or more PNG files as images on the **selected bone** (the root
-when nothing is selected), side by side above it. Move them into place with the Translate tool in
-Setup mode.
+when nothing is selected).
+
+- **Layers exported from a drawing**: when every file has the same size, as with Photoshop's *Export
+  Layers to Files* or any layer export that keeps the full canvas (turn off trimming), the files are
+  taken as the layers of one canvas. Each is cropped to its visible pixels and placed where it was drawn,
+  exactly like a PSD, so the character arrives assembled and ready for [AutoRig](autorig.md). Order
+  numbers in the file names (`07_pelvis.png`, Photoshop's `_0003_Head.png`) are dropped from the
+  names, and Photoshop's numbering, which counts from the top layer, sets the drawing order.
+- **Separate images** of different sizes go side by side above the bone. Move them into place with
+  the Translate tool in Setup mode.
 
 To add an image to an existing slot, for example a new mouth shape, select the slot and use
 **＋ Add image to this slot…** in the inspector. See [Attachments](bones-and-slots.md#attachments).
