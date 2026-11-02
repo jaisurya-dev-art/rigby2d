@@ -244,3 +244,19 @@ test('autorig: a hand without a side follows its arm, even across the body', () 
   const side = (n) => parts.find((p) => p.name === n).side;
   assert.deepEqual([side('upperarm'), side('forearm'), side('hand')], ['r', 'r', 'r']);
 });
+
+test('autorig: the spine points at the head, even when the torso is wider than tall', () => {
+  // A jacket wider than it is tall: its own main axis is horizontal.
+  const { doc, alphaOf } = figure([
+    ['torso', 0, 230, 220, 130],
+    ['head', 6, 370, 100, 100],
+    ['leg_r', -30, 80, 30, 160],
+    ['leg_l', 30, 80, 30, 160],
+  ]);
+  autoRig(doc, alphaOf);
+  const pose = new Pose(doc);
+  const chest = world(doc, pose, 'chest');
+  const angle = (Math.atan2(chest.b, chest.a) * 180) / Math.PI;
+  assert.ok(Math.abs(angle - 90) < 10, `chest points at ${angle.toFixed(1)}°`);
+  assert.ok(chest.apply([doc.bones[doc.boneIndex('chest')].length, 0])[1] > 260, 'chest reaches the top of the torso');
+});

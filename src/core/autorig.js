@@ -222,10 +222,28 @@ export function autoRig(doc, alphaOf, options = {}) {
   let neckBase;
   if (torso) {
     const g = torso.g;
-    // The spine runs up the torso's main axis.
-    const flip = g.u[1] < 0;
-    const up = flip ? mul(g.u, -1) : g.u;
-    const [lo, hi] = flip ? [-g.amax, -g.amin] : [g.amin, g.amax];
+    // The spine runs from the torso's centre toward the neck (or head) above it. A torso about as
+    // wide as it is tall (a jacket, arms close in) has no reliable main axis of its own; without a
+    // neck or head above, its main axis is used.
+    const above = (byRole('neck')[0] ?? byRole('head')[0])?.g.c;
+    const aim = above && sub(above, g.c);
+    let up;
+    let lo;
+    let hi;
+    if (aim && aim[1] > 0 && Math.abs(angleOf(aim) - 90) < 45) {
+      up = mul(aim, 1 / Math.hypot(aim[0], aim[1]));
+      lo = Infinity;
+      hi = -Infinity;
+      for (const p of g.points) {
+        const a = (p[0] - g.c[0]) * up[0] + (p[1] - g.c[1]) * up[1];
+        lo = Math.min(lo, a);
+        hi = Math.max(hi, a);
+      }
+    } else {
+      const flip = g.u[1] < 0;
+      up = flip ? mul(g.u, -1) : g.u;
+      [lo, hi] = flip ? [-g.amax, -g.amin] : [g.amin, g.amax];
+    }
     const bottom = add(g.c, mul(up, lo + g.length * 0.08));
     const top = add(g.c, mul(up, hi - g.length * 0.05));
     const mid = lerp2(bottom, top, 0.45);
