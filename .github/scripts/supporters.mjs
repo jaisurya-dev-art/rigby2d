@@ -80,7 +80,7 @@ for (const d of deals ?? []) {
 const next = {
   // Where to give, and the goal the /fund page shows (monthly dollars, kept when GitHub has none).
   goal: goal?.kind === 'MONTHLY_SPONSORSHIP_AMOUNT'
-    ? { title: goal.title || current.goal?.title || 'Signed by Rigby2D', monthly: goal.targetValue, percent: goal.percentComplete }
+    ? { title: current.goal?.title || 'Signed by Rigby2D', monthly: goal.targetValue, percent: goal.percentComplete }
     : (current.goal ?? { title: 'Signed by Rigby2D', monthly: 25, percent: 0 }),
   // tier: the monthly amount of their tier, when known (needs SPONSORS_TOKEN); it decides the perks shown.
   github: !sponsors
