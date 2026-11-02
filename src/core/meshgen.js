@@ -37,6 +37,9 @@ export function generateMesh(alpha, options = {}) {
   for (let k = 2; k <= count; k++) if (sizes[k] > sizes[best]) best = k;
   let outline = trace(label, best, GW, GH);
   if (outline.length < 3) return null;
+  // Smoothing rounds off pixel steps only: on a 1 px resampling, a pass moves points by under a
+  // pixel, so corners stay where they are (on the corners-only ring it would cut them off).
+  if (o.smoothing > 0) outline = resample(outline, 1);
   for (let s = 0; s < o.smoothing; s++) outline = smooth(outline);
   const target = Math.max(3, Math.round(o.points));
   // Fewer points than the outline has: simplify, then push edges out so the art stays inside.
@@ -155,6 +158,18 @@ function trace(label, k, W, H) {
     if ((b[0] - a[0]) * (c[1] - b[1]) - (b[1] - a[1]) * (c[0] - b[0]) !== 0) ring.push(b);
   }
   return ring;
+}
+
+/** The ring with points added so that no edge is longer than `step` pixels. */
+function resample(ring, step) {
+  const out = [];
+  for (let i = 0; i < ring.length; i++) {
+    const a = ring[i];
+    const b = ring[(i + 1) % ring.length];
+    const n = Math.max(1, Math.ceil(Math.hypot(b[0] - a[0], b[1] - a[1]) / step));
+    for (let k = 0; k < n; k++) out.push([a[0] + ((b[0] - a[0]) * k) / n, a[1] + ((b[1] - a[1]) * k) / n]);
+  }
+  return out;
 }
 
 /** One smoothing pass: each point moves halfway toward the average of its neighbours. */

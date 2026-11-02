@@ -76,3 +76,14 @@ test('expand grows the outline, a negative value shrinks it, and empty images gi
   assert.ok(radius(grown) > 44 && radius(shrunk) < 36, `${radius(grown)} / ${radius(shrunk)}`);
   assert.equal(generateMesh(image(10, 10, () => false)), null);
 });
+
+test('smoothing rounds pixel steps but keeps corners, so blocky shapes stay covered', () => {
+  // A bar and a stem, like the top of a 5: long straight edges meeting at sharp corners.
+  const five = image(120, 120, (x, y) => (x > 20 && x < 100 && y > 10 && y < 30) || (x > 20 && x < 40 && y > 10 && y < 90));
+  for (const smoothing of [1, 3]) {
+    const m = generateMesh(five, { points: 12, expand: 0, smoothing, interior: 'none' });
+    const ring = m.points.slice(0, m.hull);
+    assert.ok(coverage(five, ring) > 0.995, `coverage with smoothing ${smoothing}: ${coverage(five, ring)}`);
+    assert.ok(Math.max(...ring.map((p) => p[0])) > 98, 'the bar keeps its far end');
+  }
+});
