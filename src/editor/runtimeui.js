@@ -146,7 +146,7 @@ export function openRuntimes(app) {
       card({
         id: 'phaser',
         name: 'Phaser',
-        badge: '3.60+',
+        badge: '3.60+ · 4',
         text: t('this.load.rigby() and this.add.rigby(): one file for your game.'),
         primary: action('download', t('ES module'), () => download(`rigby2d-phaser-${V}.mjs`), 'primary'),
         secondary: [action('download', t('Script tag'), () => download(`rigby2d-phaser-${V}.js`))],

@@ -1,6 +1,6 @@
 # Rigby2D for Phaser
 
-Play Rigby2D skeletons in [Phaser](https://phaser.io) 3.60 or newer (WebGL renderer). The plugin is
+Play Rigby2D skeletons in [Phaser](https://phaser.io) 3.60 or newer, and Phaser 4 (WebGL renderer). The plugin is
 built on the JavaScript runtime and the reference WebGL renderer, so characters move exactly as in
 the editor: meshes, weights, skins, IK, transform, path, physics and slider constraints, clipping,
 draw order, events, and layered tracks with crossfades and queues.

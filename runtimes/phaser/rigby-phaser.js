@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
-// Rigby2D for Phaser 3 (3.60 or newer, WebGL renderer): plays Rigby2D skeletons (.skel or .json
+// Rigby2D for Phaser 3.60 or newer and Phaser 4 (WebGL renderer): plays Rigby2D skeletons (.skel or .json
 // with their .atlas) as Phaser game objects, with the JavaScript runtime (src/core) and the
 // reference WebGL renderer (src/webgl), so they move exactly as in the editor.
 //
@@ -36,7 +36,7 @@ const folderOf = (url) => url.slice(0, url.lastIndexOf('/') + 1);
  * `phaser` module's default export). Returns { RigbyPlugin, RigbySkeleton }.
  */
 export function rigbyPhaser(Phaser = globalThis.Phaser) {
-  if (!Phaser?.GameObjects?.Extern) throw new Error('Rigby2D: pass the Phaser namespace (Phaser 3.60 or newer)');
+  if (!Phaser?.GameObjects?.Extern) throw new Error('Rigby2D: pass the Phaser namespace (Phaser 3.60 or newer, or Phaser 4)');
 
   /**
    * A playing skeleton. `state` is its AnimationState (tracks, crossfades, queues), `skeleton` the
@@ -147,14 +147,21 @@ export function rigbyPhaser(Phaser = globalThis.Phaser) {
       this.state.apply(this.skeleton, this.pose);
     }
 
-    render(renderer, camera, calc) {
+    /**
+     * Phaser 3 calls render(renderer, camera, calcMatrix); Phaser 4 calls
+     * render(renderer, drawingContext, calcMatrix) between its YieldContext and RebindContext render
+     * nodes, which hand the GL context over in a default state and take it back afterwards.
+     */
+    render(renderer, cameraOrContext, calc) {
+      const phaser4 = !!renderer.renderNodes;
+      const camera = phaser4 ? cameraOrContext.camera : cameraOrContext;
       const gl = renderer.gl;
       const draw = (renderer.rigby2d ??= new WebGLRenderer(gl));
-      const saved = saveGL(gl, draw.attributes);
+      const saved = phaser4 ? null : saveGL(gl, draw.attributes);
       const textures = (this.data_.textures ??= makeTextures(draw, this.data_, this.scene));
       // Skeleton space (Y up) -> object space (Y down, flips) -> screen (Phaser's matrix) -> clip.
-      const W = renderer.width;
-      const H = renderer.height;
+      const W = phaser4 ? cameraOrContext.width : renderer.width;
+      const H = phaser4 ? cameraOrContext.height : renderer.height;
       const fx = this.flipX ? -1 : 1;
       const fy = this.flipY ? -1 : 1;
       const { a, b, c, d, e, f } = calc;
@@ -165,9 +172,12 @@ export function rigbyPhaser(Phaser = globalThis.Phaser) {
       draw.beginMatrix([(2 * ax) / W, (-2 * bx) / H, 0, (2 * cy) / W, (-2 * dy) / H, 0, (2 * e) / W - 1, 1 - (2 * f) / H, 1]);
       draw.drawSkeleton(this.skeleton, this.pose, textures, { tint: [1, 1, 1, this.alpha * camera.alpha] });
       draw.end();
-      // Put back exactly what Phaser had bound (it caches its program and buffers), then its blend mode.
-      restoreGL(gl, saved);
-      renderer.setBlendMode(Phaser.BlendModes.NORMAL, true);
+      // Phaser 3: put back exactly what Phaser had bound (it caches its program and buffers), then
+      // its blend mode. Phaser 4's RebindContext does this itself.
+      if (saved) {
+        restoreGL(gl, saved);
+        renderer.setBlendMode(Phaser.BlendModes.NORMAL, true);
+      }
     }
 
     preDestroy() {
