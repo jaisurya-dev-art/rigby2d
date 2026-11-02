@@ -47,7 +47,7 @@ async function tryGraphql(query) {
     return await graphql(query);
   } catch (e) {
     if (/FORBIDDEN|INSUFFICIENT_SCOPES/.test(String(e.message))) {
-      console.warn(`Skipped (not allowed with this token): ${e.message.slice(0, 160)}`);
+      console.warn(`Skipped (not allowed with this token): ${e.message.slice(0, 600)}`);
       return null;
     }
     throw e;
