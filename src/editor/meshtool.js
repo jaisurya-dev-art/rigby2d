@@ -5,6 +5,7 @@
 
 import { toAffine } from '../core/math.js';
 import { autoWeights, paintWeights, triangulateMesh, uvAt, weightsAt } from '../core/meshgeom.js';
+import { generateMesh } from '../core/meshgen.js';
 import { Pose } from '../core/pose.js';
 import { setKey } from '../core/animation.js';
 import { FPS, Mode } from './app.js';
@@ -122,6 +123,62 @@ export function unbindMesh(doc, slot, att) {
   const state = meshState(doc, slot, att);
   state.weights = null;
   return writeMesh(doc, slot, att, state, { topology: false });
+}
+
+/**
+ * Replaces the mesh with one generated from its image's alpha (see core/meshgen.js), keeping it
+ * where it is: image pixels map to the world through the mesh's current texture mapping, and a
+ * weighted mesh keeps its weights (interpolated at the new vertices). Returns the generator's
+ * result ({ hull, points, islands, ... } plus removed deform keys), or null when the image is
+ * missing or has no pixels above the threshold.
+ */
+export function generateFromImage(app, slot, att, options) {
+  const image = att.image ?? att.name;
+  const canvas = app.images.get(image);
+  if (!canvas || app.images.alphaAt(image, 0, 0) === null) return null;
+  const alpha = { width: canvas.width, height: canvas.height, data: app.images.map.get(image).alpha };
+  const gen = generateMesh(alpha, options);
+  if (!gen) return null;
+  const doc = app.doc;
+  const state = meshState(doc, slot, att);
+  const toWorld = fitAffine(state.uvs, state.points);
+  const uvs = [];
+  for (let i = 0; i < gen.uvs.length; i += 2) uvs.push([gen.uvs[i], gen.uvs[i + 1]]);
+  const points = uvs.map(toWorld);
+  const weights = state.weights ? points.map((p) => {
+    const w = weightsAt(p, state.points, state.weights, state.triangles);
+    return w.length ? w : state.weights[0];
+  }) : null;
+  const removed = writeMesh(doc, slot, att, { points, uvs, weights, hull: gen.hull });
+  return { ...gen, removed };
+}
+
+/**
+ * The affine map from texture coordinates to world positions that best fits a mesh's vertices
+ * (exact for a mesh that has not been warped). Returns a function [u, v] -> [x, y].
+ */
+function fitAffine(uvs, points) {
+  // Least squares for x = a u + b v + c (and y the same), via the 3x3 normal equations.
+  const m = [[0, 0, 0], [0, 0, 0], [0, 0, 0]];
+  const rx = [0, 0, 0];
+  const ry = [0, 0, 0];
+  uvs.forEach(([u, v], i) => {
+    const r = [u, v, 1];
+    for (let a = 0; a < 3; a++) {
+      for (let b = 0; b < 3; b++) m[a][b] += r[a] * r[b];
+      rx[a] += r[a] * points[i][0];
+      ry[a] += r[a] * points[i][1];
+    }
+  });
+  const cx = solve3(m, rx);
+  const cy = solve3(m, ry);
+  return ([u, v]) => [cx[0] * u + cx[1] * v + cx[2], cy[0] * u + cy[1] * v + cy[2]];
+}
+
+function solve3(m, r) {
+  const det = (a) => a[0][0] * (a[1][1] * a[2][2] - a[1][2] * a[2][1]) - a[0][1] * (a[1][0] * a[2][2] - a[1][2] * a[2][0]) + a[0][2] * (a[1][0] * a[2][1] - a[1][1] * a[2][0]);
+  const d = det(m) || 1e-12;
+  return [0, 1, 2].map((k) => det(m.map((row, i) => row.map((v, j) => (j === k ? r[i] : v)))) / d);
 }
 
 function pointInPolygon(p, poly) {

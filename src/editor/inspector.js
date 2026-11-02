@@ -9,7 +9,8 @@ import { renameBoneRefs, renameSlotRefs } from '../core/constraintdata.js';
 import { sequenceFrameName } from '../core/sequence.js';
 import { constraintUi } from './constraintui.js';
 import { actorUi, depthUi } from './sceneui.js';
-import { bindMesh, regionToMesh, unbindMesh } from './meshtool.js';
+import { bindMesh, generateFromImage, regionToMesh, unbindMesh } from './meshtool.js';
+import { MESH_DEFAULTS } from '../core/meshgen.js';
 import { eventUi, skinUi } from './skineventui.js';
 import { dragValue, h, select, textField } from './widgets.js';
 import { FPS_PRESETS, SIZE_PRESETS, formatFps, hexToRgba, rgbaToHex } from './output.js';
@@ -595,6 +596,43 @@ function outputUi(app) {
   );
 }
 
+/** Remembered between meshes, so a whole character can be meshed with the same settings. */
+const generateOptions = { ...MESH_DEFAULTS };
+
+/** "Generate from image": a mesh traced from the image's alpha, regenerated live as the settings change. */
+function generateUi(app, e, att) {
+  const o = generateOptions;
+  const run = () => {
+    const r = generateFromImage(app, e.slot, att, o);
+    if (!r) app.setStatus('Generate mesh: the image has no pixels above the alpha threshold');
+    else app.setStatus(`Generated ${r.points.length} vertices (${r.hull} on the outline), ${r.triangles.length / 3} triangles${r.islands > 1 ? `; used the largest of ${r.islands} separate shapes` : ''}${r.removed ? `; removed ${r.removed} deform timeline(s)` : ''}`);
+    app.changed();
+  };
+  // After the first generate, changing a setting regenerates (live preview); before it, nothing changes.
+  const live = (key, transform = (v) => v) => (v) => {
+    o[key] = transform(v);
+    if (e.generated) run();
+  };
+  return [
+    h('div', { class: 'section-title' }, 'Generate from image'),
+    h(
+      'div',
+      { class: 'grid' },
+      row('Outline points', dragValue(o.points, live('points', Math.round), { min: 3, max: 400, decimals: 0, speed: 0.25 })),
+      row('Alpha threshold', dragValue(o.threshold, live('threshold', Math.round), { min: 1, max: 254, decimals: 0 })),
+      row('Expand', dragValue(o.expand, live('expand', Math.round), { min: -30, max: 30, decimals: 0, speed: 0.2, suffix: ' px' })),
+      row('Smoothing', dragValue(o.smoothing, live('smoothing', Math.round), { min: 0, max: 6, decimals: 0, speed: 0.1 })),
+      row('Interior', select([['none', 'None'], ['low', 'Low'], ['medium', 'Medium'], ['high', 'High']], o.interior, live('interior'))),
+    ),
+    h(
+      'div',
+      { class: 'buttons' },
+      h('button', { title: 'Trace the image outline, simplify it to the number of points, fill the inside and triangulate. Replaces this mesh; weights are kept.', onclick: () => ((e.generated = true), run()) }, '✦ Generate mesh'),
+      h('button', { title: 'Back to the default settings', onclick: () => (Object.assign(o, MESH_DEFAULTS), app.changed()) }, 'Reset'),
+    ),
+  ];
+}
+
 function startMeshEdit(app, slot, name) {
   app.meshEdit = { slot, name, mode: 'vertices', radius: 40, strength: 0.5, subtract: false, selected: null };
   app.changed();
@@ -629,6 +667,7 @@ function meshUi(app) {
   ];
   if (e.mode === 'vertices') {
     out.push(h('div', { class: 'small weak' }, 'Click inside to add a vertex, near or outside the outline to extend it. Drag vertices to move them over the image. Ctrl+click or Ctrl+drag a box to select several; Delete removes the selection.'));
+    out.push(...generateUi(app, e, att));
   } else {
     const bindLabel = selectedBones.length ? `Bind to ${selectedBones.length} selected bone${selectedBones.length === 1 ? '' : 's'}` : 'Select bones to bind (Ctrl+click in the tree)';
     out.push(

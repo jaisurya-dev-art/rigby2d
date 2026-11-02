@@ -16,6 +16,27 @@ can also move vertices directly and key the shape (deform keys).
 
 AutoRig makes meshes for bending parts by itself.
 
+## Generating a mesh from the image
+
+Instead of clicking every vertex, let Rigby2D trace the image. While editing a mesh in Setup mode,
+set the options under **Generate from image** in the mesh panel and press **✦ Generate mesh**:
+
+| Option | What it does |
+| --- | --- |
+| Outline points | Exactly how many vertices the outline gets. Fewer for props, more where the art bends. |
+| Alpha threshold | How opaque a pixel must be (1 to 254) to count as part of the shape. |
+| Expand | Grows (or, negative, shrinks) the shape by whole pixels before tracing, to leave a margin. |
+| Smoothing | Rounds off pixel steps in the outline before it is simplified. |
+| Interior | Adds evenly spaced inner vertices (None, Low, Medium, High) so the mesh bends smoothly. |
+
+The outline always contains every pixel above the threshold: when it uses few points, its edges are
+pushed out so they never cut into the art. After the first generate, changing an option regenerates
+the mesh right away, so you can watch the vertex count change. The status bar shows the vertex and
+triangle counts. A weighted mesh keeps its bones: the new vertices take the weights of the old mesh
+where they are. The settings are remembered, so the next part can use the same ones, and **Reset**
+returns to the defaults. When an image has several separate shapes, the mesh traces the largest
+and the status bar says how many there are.
+
 ## Editing vertices
 
 With **Vertices** selected in the mesh panel:
