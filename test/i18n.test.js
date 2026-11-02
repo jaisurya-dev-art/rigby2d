@@ -6,6 +6,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 import { LANGUAGES, TABLES, languageFor, setLanguage, t } from '../src/editor/i18n.js';
 
@@ -22,7 +23,7 @@ function sourceTexts() {
       } else if (p.endsWith('.js') && !p.endsWith('i18n.js')) files.push(p);
     }
   };
-  walk(new URL(root).pathname.replace(/^\/([A-Za-z]:)/, '$1'));
+  walk(fileURLToPath(root)); // decodes the path (spaces) on every platform
   const out = new Set();
   const literal = /\bt\(\s*(?:'((?:\\.|[^'\\])*)'|"((?:\\.|[^"\\])*)")/g;
   for (const f of files) {
