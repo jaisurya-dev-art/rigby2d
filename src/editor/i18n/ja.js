@@ -24,6 +24,8 @@ export default {
   "Background": "背景",
   "Backup versions": "バックアップの数",
   "Binary .skel + atlas (4.3)…": "バイナリ .skel + アトラス（4.3）…",
+  "Sprite sheet…": "スプライトシート…",
+  "Animations as frames: a packed sheet with JSON, a Defold atlas, or PNG frames": "アニメーションをフレームとして：JSON 付きのパック済みシート、Defold アトラス、または PNG フレーム",
   "Blend modes": "ブレンドモード",
   "Bounding boxes": "バウンディングボックス",
   "Browse all add-ons on rigby2d.com": "rigby2d.com ですべてのアドオンを見る",

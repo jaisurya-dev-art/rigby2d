@@ -908,6 +908,12 @@ details > summary {
   margin: 0;
   font-size: 15px;
 }
+.modal .checks {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 10px 0;
+}
 .modal-columns {
   display: flex;
   gap: 16px;

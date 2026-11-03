@@ -9,7 +9,7 @@ root folders. Editing tools save the file in its own format, or a copy when `out
 
 <!-- generated:mcp-tools -->
 
-The server has **40 tools**. Parameters marked **required** must be given; the others are optional.
+The server has **41 tools**. Parameters marked **required** must be given; the others are optional.
 
 ### `inspect_project`
 
@@ -65,6 +65,29 @@ Write a project as skeleton JSON (format 3.8, 4.2 or 4.3) or binary .skel (4.3).
 | `output` **required** | string | Output file ending in .json or .skel, inside the workspace. Its folder must exist. |
 | `version` | `'3.8'`, `'4.2'`, `'4.3'` | Skeleton JSON format version (default 4.3; .skel is always 4.3). |
 | `overwrite` | boolean | Replace the output file if it exists (default false). |
+
+### `export_sprite_sheet`
+
+Render animations frame by frame into a sprite sheet for engines that play frames: 'json' writes <name>.png and <name>.json (a JSON hash as TexturePacker writes it, read by Phaser, PixiJS and others, with Aseprite frameTags, durations and a pivot at the skeleton's origin); 'defold' writes <name>/<animation>_<n>.png frames and <name>.atlas; 'frames' writes the frames only. Physics settles into loops first. Reads .rigby, or .json / .skel with its atlas. Refuses to replace files unless overwrite is true.
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `input` **required** | string | Project file: a .rigby work file or a skeleton .json / .skel export. Relative paths resolve against the first workspace root. |
+| `output_folder` **required** | string | Existing folder inside the workspace to write into. |
+| `name` | string | Base name of the files (default: the input file name). |
+| `format` | `'json'`, `'defold'`, `'frames'` | 'json' (default), 'defold' or 'frames'. |
+| `animations` | list of string | Animations to include (default: all). |
+| `fps` | number | Frames per second (default 30). |
+| `scale` | number | Pixels per skeleton unit (default 1). |
+| `layout` | `'packed'`, `'grid'` | Sheet layout for 'json' (default packed). |
+| `padding` | integer | Pixels between frames (default 2). |
+| `trim` | boolean | Trim empty space around frames (json; default true). |
+| `dedupe` | boolean | Store identical frames once (json; default true). |
+| `loop` | boolean | Animations loop: leave out the last frame, which repeats the first (default true). |
+| `max_width` | integer | Widest sheet in pixels (default 4096). |
+| `skin` | string | Skin to show (default: the default skin). |
+| `defold_folder` | string | Project path the Defold atlas lists frames under (default '/<name>'). |
+| `overwrite` | boolean | Replace existing files (default false). |
 
 ### `add_bone`
 

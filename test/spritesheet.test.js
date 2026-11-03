@@ -44,3 +44,28 @@ test('Defold atlas lists one animation per animation', () => {
   assert.match(text, /image: "\/hero\/walk_001.png"/);
   assert.match(text, /PLAYBACK_LOOP_FORWARD/);
 });
+
+test('Rigbytron renders into a trimmed, deduplicated sheet with its JSON', async () => {
+  const fs = await import('node:fs');
+  const { parseAtlas } = await import('../src/core/atlas.js');
+  const { readSkeletonBinary } = await import('../src/core/binary.js');
+  const { readSkeletonJson } = await import('../src/core/interop.js');
+  const { atlasLookup } = await import('../src/core/draw.js');
+  const { decodePng } = await import('../src/mcp/png.js');
+  const { buildSpriteSheet } = await import('../src/editor/spritesheet.js');
+  const dir = new URL('../branding/rigbytron/export/', import.meta.url);
+  const sk = readSkeletonJson(readSkeletonBinary(new Uint8Array(fs.readFileSync(new URL('rigbytron.skel', dir)))), 'rigbytron').skeleton;
+  const atlas = parseAtlas(fs.readFileSync(new URL('rigbytron.atlas', dir), 'utf8'));
+  const lookup = atlasLookup(atlas, (page) => ({ ...decodePng(new Uint8Array(fs.readFileSync(new URL(page.name, dir)))), pma: page.pma }));
+  const { files, summary } = buildSpriteSheet(sk, lookup, { name: 'r', animations: ['hold'], fps: 10, scale: 0.1 });
+  assert.deepEqual(files.map((f) => f.path), ['r.png', 'r.json']);
+  const data = JSON.parse(files[1].text);
+  assert.equal(Object.keys(data.frames).length, summary.frames);
+  assert.equal(data.meta.frameTags[0].name, 'hold');
+  const png = files[0].png;
+  let opaque = 0;
+  for (let i = 3; i < png.rgba.length; i += 4) if (png.rgba[i] === 255) opaque++;
+  assert.ok(opaque > 1000, 'the sheet has visible pixels');
+  // Every frame lies inside the sheet.
+  for (const f of Object.values(data.frames)) assert.ok(f.frame.x + f.frame.w <= png.width && f.frame.y + f.frame.h <= png.height);
+});

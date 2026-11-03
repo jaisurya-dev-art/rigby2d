@@ -72,6 +72,7 @@ all of its parameters, generated from the server itself.
 | `sample_pose` | Evaluates the setup pose or an animation at a time with the runtime: world transforms of every bone, visible attachments, draw order, events so far, bounds. | No |
 | `validate_project` | Structure, images missing from the work file, atlas or images folder, animations without keys, whether skeleton JSON 4.3 round-trips the data, whether binary `.skel` export is possible. | No |
 | `convert_project` | Writes skeleton JSON (3.8, 4.2 or 4.3) or binary `.skel` (4.3) from a `.rigby`, `.json` or `.skel` file. | Yes |
+| `export_sprite_sheet` | Renders animations into a sprite sheet (PNG + JSON hash), a Defold atlas with frames, or PNG frames, into a folder. | Yes |
 
 ### Editing
 
@@ -209,8 +210,8 @@ structured content and as JSON text.
 
 - Every path is resolved inside the `--root` folders. Symbolic links are followed before the
   check, so links cannot lead outside them. Relative paths resolve against the first root.
-- Only `convert_project`, the editing tools and `run_script` write: the project file they are
-  given, or the `output` file. `add_audio_track` and `run_script` (`script_file`) read files inside
+- Only `convert_project`, `export_sprite_sheet`, the editing tools and `run_script` write: the project file they are
+  given, the `output` file, or new files in `output_folder`. `add_audio_track` and `run_script` (`script_file`) read files inside
   the roots. The tools never delete files and make no network requests. Scripts run sandboxed,
   without access to files or the network.
 - Tool annotations tell clients which tools are read-only (`readOnlyHint`) and which change files

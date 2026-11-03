@@ -24,6 +24,8 @@ export default {
   "Background": "Fundo",
   "Backup versions": "Versões de backup",
   "Binary .skel + atlas (4.3)…": ".skel binário + atlas (4.3)…",
+  "Sprite sheet…": "Folha de sprites…",
+  "Animations as frames: a packed sheet with JSON, a Defold atlas, or PNG frames": "Animações como quadros: uma folha empacotada com JSON, um atlas do Defold ou quadros PNG",
   "Blend modes": "Modos de mesclagem",
   "Bounding boxes": "Caixas delimitadoras",
   "Browse all add-ons on rigby2d.com": "Ver todos os complementos em rigby2d.com",

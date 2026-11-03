@@ -24,6 +24,8 @@ export default {
   "Background": "배경",
   "Backup versions": "백업 버전 수",
   "Binary .skel + atlas (4.3)…": "바이너리 .skel + 아틀라스(4.3)…",
+  "Sprite sheet…": "스프라이트 시트…",
+  "Animations as frames: a packed sheet with JSON, a Defold atlas, or PNG frames": "애니메이션을 프레임으로: JSON이 포함된 패킹 시트, Defold 아틀라스 또는 PNG 프레임",
   "Blend modes": "블렌드 모드",
   "Bounding boxes": "바운딩 박스",
   "Browse all add-ons on rigby2d.com": "rigby2d.com에서 모든 애드온 보기",

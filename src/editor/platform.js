@@ -359,14 +359,15 @@ export async function pickProject() {
 /**
  * Asks where to write `fileName` (plus sibling files). Desktop: a save dialog. Browser: a folder
  * picker when supported, otherwise a download (`single`: the file itself, else `<stem>.zip`).
- * Returns { path, fs }.
+ * `download`: in the browser, always download (a `<stem>.zip` of everything written), without
+ * the folder picker. Returns { path, fs }.
  */
-export async function pickSaveTarget(fileName, filterName, extension, { single = false } = {}) {
+export async function pickSaveTarget(fileName, filterName, extension, { single = false, download = false } = {}) {
   if (isDesktop) {
     const path = await save({ filters: [{ name: filterName, extensions: [extension] }], defaultPath: fileName });
     return path ? { path, fs: desktopFs } : null;
   }
-  if (typeof window.showDirectoryPicker === 'function') {
+  if (typeof window.showDirectoryPicker === 'function' && !download) {
     try {
       const dir = await window.showDirectoryPicker({ mode: 'readwrite' });
       return { path: fileName, fs: directoryFs(dir) };

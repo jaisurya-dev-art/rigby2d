@@ -11,10 +11,13 @@ import { listConstraints } from '../core/constraintdata.js';
 import { isSkeletonJson, readSkeletonJson, writeSkeletonJson } from '../core/interop.js';
 import { Skeleton } from '../core/model.js';
 import { Pose } from '../core/pose.js';
+import { atlasLookup, imageLookup } from '../core/draw.js';
 import { usedImages } from '../editor/io.js';
+import { FORMATS as SHEET_FORMATS, buildSpriteSheet } from '../editor/spritesheet.js';
 import { unzip } from '../editor/zip.js';
 import { filmSummary } from './film.js';
 import { sceneSummary } from './scene.js';
+import { decodePng, encodePng } from './png.js';
 import { ToolError } from './protocol.js';
 
 const JSON_VERSIONS = ['3.8', '4.2', '4.3'];
@@ -452,6 +455,82 @@ async function convert(ws, { input, output, version = '4.3', overwrite = false }
   };
 }
 
+// ---- sprite sheets ----------------------------------------------------------------------------
+
+/** Image lookup for a loaded project: the work file's images, or the export's atlas or images folder. */
+async function rasterLookup(p) {
+  const decode = (bytes, pma = false) => ({ ...decodePng(bytes), pma });
+  if (p.format === 'rigby') {
+    const textures = new Map();
+    for (const name of p.images) textures.set(name, decode(p.entries.get(`images/${name}.png`)));
+    return imageLookup(textures);
+  }
+  const dir = path.dirname(p.file);
+  if (p.imageSource?.startsWith('atlas ')) {
+    const atlas = parseAtlas(await fs.readFile(path.join(dir, p.imageSource.slice(6)), 'utf8'));
+    const pages = new Map();
+    for (const page of atlas.pages) pages.set(page.name, decode(await fs.readFile(path.join(dir, page.name)), page.pma));
+    return atlasLookup(atlas, (page) => pages.get(page.name));
+  }
+  if (p.imageSource?.startsWith('folder ')) {
+    const folder = path.join(dir, p.imageSource.slice(7));
+    const textures = new Map();
+    for (const name of p.images) {
+      const bytes = await fs.readFile(path.join(folder, `${name}.png`)).catch(() => null);
+      if (bytes) textures.set(name, decode(bytes));
+    }
+    return imageLookup(textures);
+  }
+  throw new ToolError('No images found for this skeleton: put its .atlas and page images (or an images folder) next to it.');
+}
+
+async function exportSpriteSheet(ws, args) {
+  const source = await ws.existing(args.input);
+  const folder = await ws.existing(args.output_folder);
+  if (!(await fs.stat(folder)).isDirectory()) throw new ToolError(`${args.output_folder} is not a folder.`);
+  const p = await loadProject(source);
+  if (p.doc.scene) throw new ToolError('Sprite sheets are made from a character, not a scene: pass the character file.');
+  const name = (args.name ?? path.basename(source, path.extname(source))).replace(/[\\/:*?"<>|\s]+/g, '_');
+  if (args.skin) {
+    if (!p.doc.skins.some((k) => k.name === args.skin)) throw new ToolError(`No skin '${args.skin}'. Skins: ${p.doc.skins.map((k) => k.name).join(', ') || 'none'}.`);
+    p.doc.skin = args.skin;
+  }
+  const missing = (args.animations ?? []).filter((a) => !p.doc.animations.some((x) => x.name === a));
+  if (missing.length) throw new ToolError(`No animation ${missing.map((m) => `'${m}'`).join(', ')}. Animations: ${p.doc.animations.map((a) => a.name).join(', ')}.`);
+  const lookup = await rasterLookup(p);
+  let result;
+  try {
+    result = buildSpriteSheet(p.doc, lookup, {
+      name,
+      format: args.format ?? 'json',
+      animations: args.animations ?? null,
+      fps: args.fps ?? 30,
+      scale: args.scale ?? 1,
+      layout: args.layout ?? 'packed',
+      padding: args.padding ?? 2,
+      trim: args.trim ?? true,
+      dedupe: args.dedupe ?? true,
+      loop: args.loop ?? true,
+      maxWidth: args.max_width ?? 4096,
+      defoldFolder: args.defold_folder ?? name,
+      version: String(p.doc.format ?? ''),
+    });
+  } catch (e) {
+    throw new ToolError(`Sprite sheet failed: ${e.message}`);
+  }
+  const targets = result.files.map((f) => path.join(folder, ...f.path.split('/')));
+  if (!args.overwrite) {
+    for (const t of targets) {
+      if (await fs.stat(t).then(() => true, () => false)) throw new ToolError(`${path.relative(folder, t)} already exists in ${args.output_folder}. Pass overwrite: true to replace it.`);
+    }
+  }
+  for (const [k, f] of result.files.entries()) {
+    await fs.mkdir(path.dirname(targets[k]), { recursive: true });
+    await fs.writeFile(targets[k], f.png ? encodePng({ width: f.png.width, height: f.png.height, data: f.png.rgba }) : f.text);
+  }
+  return { input: source, folder, files: result.files.map((f) => f.path), ...result.summary };
+}
+
 // ---- tool table -------------------------------------------------------------------------------
 
 export const PATH = { type: 'string', description: 'Project file: a .rigby work file or a skeleton .json / .skel export. Relative paths resolve against the first workspace root.' };
@@ -536,6 +615,37 @@ export function createTools(ws) {
       },
       annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
       handler: (args) => convert(ws, args),
+    },
+    {
+      name: 'export_sprite_sheet',
+      title: 'Export sprite sheet',
+      description:
+        "Render animations frame by frame into a sprite sheet for engines that play frames: 'json' writes <name>.png and <name>.json (a JSON hash as TexturePacker writes it, read by Phaser, PixiJS and others, with Aseprite frameTags, durations and a pivot at the skeleton's origin); 'defold' writes <name>/<animation>_<n>.png frames and <name>.atlas; 'frames' writes the frames only. Physics settles into loops first. Reads .rigby, or .json / .skel with its atlas. Refuses to replace files unless overwrite is true.",
+      inputSchema: {
+        type: 'object',
+        properties: {
+          input: PATH,
+          output_folder: { type: 'string', description: 'Existing folder inside the workspace to write into.' },
+          name: { type: 'string', description: 'Base name of the files (default: the input file name).' },
+          format: { type: 'string', enum: SHEET_FORMATS.map(([f]) => f), description: "'json' (default), 'defold' or 'frames'." },
+          animations: { type: 'array', items: { type: 'string' }, description: 'Animations to include (default: all).' },
+          fps: { type: 'number', exclusiveMinimum: 0, maximum: 120, description: 'Frames per second (default 30).' },
+          scale: { type: 'number', exclusiveMinimum: 0, maximum: 4, description: 'Pixels per skeleton unit (default 1).' },
+          layout: { type: 'string', enum: ['packed', 'grid'], description: "Sheet layout for 'json' (default packed)." },
+          padding: { type: 'integer', minimum: 0, maximum: 32, description: 'Pixels between frames (default 2).' },
+          trim: { type: 'boolean', description: 'Trim empty space around frames (json; default true).' },
+          dedupe: { type: 'boolean', description: 'Store identical frames once (json; default true).' },
+          loop: { type: 'boolean', description: 'Animations loop: leave out the last frame, which repeats the first (default true).' },
+          max_width: { type: 'integer', minimum: 64, maximum: 16384, description: 'Widest sheet in pixels (default 4096).' },
+          skin: { type: 'string', description: 'Skin to show (default: the default skin).' },
+          defold_folder: { type: 'string', description: "Project path the Defold atlas lists frames under (default '/<name>')." },
+          overwrite: { type: 'boolean', description: 'Replace existing files (default false).' },
+        },
+        required: ['input', 'output_folder'],
+        additionalProperties: false,
+      },
+      annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
+      handler: (args) => exportSpriteSheet(ws, args),
     },
   ];
 }

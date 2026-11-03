@@ -10,10 +10,35 @@ file stays the source; export again whenever it changes.
 | *File ▸ Export ▸ JSON + atlas…* (<kbd>Ctrl</kbd>+<kbd>E</kbd>) | `name.json` in the project's format version, `name.atlas`, `name.png` |
 | *Export ▸ JSON format 3.8… / 4.2… / 4.3…* | The same, in that skeleton JSON version. |
 | *Export ▸ Binary .skel + atlas (4.3)…* | Binary `name.skel` (smaller, faster to load), `name.atlas`, `name.png` |
+| *Export ▸ Sprite sheet…* | Animations rendered as frames: a packed sheet with its data, a Defold atlas with frames, or PNG frames. See [Sprite sheets](#sprite-sheets). |
 | *Export ▸ Scene for runtimes…* (scenes only) | A [scene](scenes.md#in-games-and-apps): `name.scene.json`, plus the stage and each character as skeleton JSON 4.3 with their own atlas |
 
 The images actually used are packed into one atlas page. Its filter follows the project's
 **Textures** setting (`Linear` or, for pixel art, `Nearest`).
+
+## Sprite sheets
+
+For engines and tools that play frames instead of bones (or to hand an animation to a 2D artist),
+*File ▸ Export ▸ Sprite sheet…* renders the chosen animations frame by frame.
+
+| Format | Writes | For |
+| --- | --- | --- |
+| **JSON hash + PNG** | `name.png` and `name.json`: TexturePacker's JSON hash with each frame's duration and a pivot at the skeleton's origin, Aseprite's `frameTags` (one per animation) and PixiJS's `animations` lists | Phaser, PixiJS, Godot and Unity importers, anything that reads TexturePacker or Aseprite JSON |
+| **Defold atlas + frames** | `name/<animation>_000.png` … and `name.atlas` with one animation per animation, at the frame rate | Defold sprites (put the folder and the atlas at the project root, or edit the paths) |
+| **PNG frames** | `name/<animation>_000.png` … | Video tools, other engines |
+
+- **Frame rate**, **size** (25 % to 200 %) and **skin** are yours to pick. All frames share one
+  canvas, so the character's origin stays on the same pixel in every frame.
+- **Loops**: the last frame, which repeats the first, is left out, and physics plays the loop once
+  before the frames are taken, so hair and cloth carry over from the last frame into the first.
+- **Sheets** are packed tight or laid out in a grid, with padding, trimmed to each frame's visible
+  pixels (the JSON keeps where each frame sits on the full canvas), and identical frames are stored
+  once.
+- **Pixel art**: with the project's **Textures** set to `Nearest`, frames are sampled without
+  smoothing, one sample per pixel.
+
+Frames are drawn by a renderer built into Rigby2D (the same one the [MCP server](mcp.md) uses), with
+two-color tint and every blend mode, so a sheet comes out the same wherever it is made.
 
 ## What is exported
 

@@ -156,7 +156,7 @@ export function packRects(sizes, { layout = 'packed', padding = 2, maxWidth = 40
 /**
  * Renders the frames of animations `names`. `lookup(image name)` gives { tex, trim, map } entries
  * (core/draw.js) whose `tex` is a raster texture. All frames share one canvas, so the skeleton's
- * origin stays at the same pixel. Returns { width, height, origin: [x, y], frames: [{ name,
+ * origin stays at the same pixel. `progress(done, total)` is called after each frame. Returns { width, height, origin: [x, y], frames: [{ name,
  * animation, index, rgba }] }, or null when nothing is drawn.
  */
 export function renderFrames(doc, lookup, names, options = {}) {
@@ -173,6 +173,7 @@ export function renderFrames(doc, lookup, names, options = {}) {
   const y1 = Math.ceil(bounds[3] / scale + margin) * scale;
   const renderer = new SoftRenderer(width, height, { x0, y1, scale }, { smooth });
   const frames = [];
+  const total = names.reduce((n, name) => n + frameCount(doc.animations.find((a) => a.name === name).duration, o.fps, o.loop), 0);
   for (const name of names) {
     const count = frameCount(doc.animations.find((a) => a.name === name).duration, o.fps, o.loop);
     const digits = Math.max(3, String(count - 1).length);
@@ -180,6 +181,7 @@ export function renderFrames(doc, lookup, names, options = {}) {
       renderer.clear();
       renderer.drawSkeleton(doc, pose, lookup);
       frames.push({ name: frameName(name, index, digits), animation: name, index, rgba: renderer.resolve() });
+      o.progress?.(frames.length, total);
     });
   }
   return { width, height, origin: [-x0 / scale, y1 / scale], frames };

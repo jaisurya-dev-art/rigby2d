@@ -10,6 +10,7 @@ import { App, Mode, saveSetting } from './app.js';
 import { PRESETS, shortcutLabel } from './keymap.js';
 import { installKeyboard, isTyping, runAction } from './keys.js';
 import { openRenderDialog } from './renderui.js';
+import { openSpriteSheetDialog } from './spritesheetui.js';
 import { openShareDialog } from './shareui.js';
 import { installNudges } from './nudgeui.js';
 import { openAutoRig, openRetarget } from './rigui.js';
@@ -120,6 +121,7 @@ function menus() {
       submenuItem(t('Export'), [
         { label: t('JSON + atlas…'), shortcut: 'Ctrl+E', action: () => app.exportSkeletonJson(app.saveVersion()) },
         { label: t('Binary .skel + atlas (4.3)…'), action: () => app.exportSkeletonBinary() },
+        ...(app.doc.scene ? [] : [{ label: t('Sprite sheet…'), title: t('Animations as frames: a packed sheet with JSON, a Defold atlas, or PNG frames'), action: () => openSpriteSheetDialog(app) }]),
         'separator',
         { label: t('JSON format 3.8…'), action: () => app.exportSkeletonJson('3.8') },
         { label: t('JSON format 4.2…'), action: () => app.exportSkeletonJson('4.2') },

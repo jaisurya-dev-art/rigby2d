@@ -24,6 +24,8 @@ export default {
   "Background": "背景",
   "Backup versions": "备份版本数",
   "Binary .skel + atlas (4.3)…": "二进制 .skel + 图集（4.3）…",
+  "Sprite sheet…": "精灵图集…",
+  "Animations as frames: a packed sheet with JSON, a Defold atlas, or PNG frames": "将动画导出为帧：带 JSON 的打包图集、Defold 图集或 PNG 帧",
   "Blend modes": "混合模式",
   "Bounding boxes": "包围盒",
   "Browse all add-ons on rigby2d.com": "在 rigby2d.com 浏览所有插件",
