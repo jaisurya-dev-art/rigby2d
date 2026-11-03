@@ -1,3 +1,4 @@
 build/
 .internal/
 dist/
+.editor_settings
