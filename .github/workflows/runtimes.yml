@@ -1,0 +1,44 @@
+# The runtimes must play every animation like the JavaScript runtime (src/core), frame by frame.
+# Golden files record the JavaScript runtime's output (bone matrices, drawables, draw order, events);
+# the Rust and C++ (Defold) runtimes replay them. Besides the checked-in files, golden data is
+# generated here from every exported demo skeleton, in JSON and binary form.
+name: Runtimes
+
+on:
+  push:
+    branches: [develop, main]
+    paths: ['src/core/**', 'runtimes/**', 'branding/**/export/**', '.github/workflows/runtimes.yml']
+  pull_request:
+    paths: ['src/core/**', 'runtimes/**', 'branding/**/export/**', '.github/workflows/runtimes.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  golden:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - name: Golden data from the demo skeletons
+        run: |
+          mkdir -p "$RUNNER_TEMP/golden"
+          cd runtimes/rust/rigby-runtime/tests/golden
+          for f in branding/nila/export/nila.json branding/nila/export/nila.skel branding/rigbytron/export/rigbytron.json; do
+            node generate.mjs "$RUNNER_TEMP/golden/$(basename "$f" | tr . _).golden.json" "$GITHUB_WORKSPACE/$f" "$(basename "$f")"
+          done
+      - name: Rust runtime
+        working-directory: runtimes/rust
+        env:
+          RIGBY_GOLDEN_DIR: ${{ runner.temp }}/golden
+        run: cargo test --release -p rigby-runtime
+      - name: C++ runtime (Defold)
+        env:
+          RIGBY_GOLDEN_DIR: ${{ runner.temp }}/golden
+        run: |
+          g++ -std=c++17 -O2 -Wall -Wextra -Werror -fno-exceptions -fno-rtti -I runtimes/defold/rigby2d/src \
+            runtimes/defold/test/golden.cpp runtimes/defold/rigby2d/src/*.cpp -o "$RUNNER_TEMP/golden-cpp"
+          "$RUNNER_TEMP/golden-cpp" "$GITHUB_WORKSPACE"
