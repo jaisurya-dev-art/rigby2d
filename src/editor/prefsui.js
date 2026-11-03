@@ -77,7 +77,7 @@ const PAGES = [
         isDesktop
           ? row('Interface scale', 'Size of all text and controls.', choice(scales, app.prefs.get('interface.scale'), (v) => (app.prefs.set('interface.scale', Number(v)), applyInterfaceScale(app))))
           : row('Interface scale', "In the browser, use the browser's zoom (Ctrl + and Ctrl −).", h('span')),
-        row('Keyboard shortcuts', 'Reference keys, or keys that follow Blender.', choice(Object.entries(PRESETS).map(([id, p]) => [id, p.label]), app.keymap, (v) => app.setKeymap(v))),
+        row('Keyboard shortcuts', 'Keys as in Spine, or keys that follow Blender.', choice(Object.entries(PRESETS).map(([id, p]) => [id, p.label]), app.keymap, (v) => app.setKeymap(v))),
         row(
           'Viewport drawing',
           'Canvas 2D is slower, for graphics drivers that have trouble with WebGL.',

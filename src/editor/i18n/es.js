@@ -210,7 +210,7 @@ export default {
   "Recover": "Recuperar",
   "Recover unsaved work?": "¿Recuperar el trabajo sin guardar?",
   "Redo": "Rehacer",
-  "Reference keys, or keys that follow Blender.": "Teclas de referencia, o teclas al estilo de Blender.",
+  "Keys as in Spine, or keys that follow Blender.": "Teclas como las de Spine, o teclas al estilo de Blender.",
   "Region attachments": "Adjuntos de región",
   "Release {version}": "Versión {version}",
   "Releases and news on rigby2d.com": "Versiones y novedades en rigby2d.com",

@@ -62,7 +62,7 @@ panel windows). The selection is shown the same way.
 | **Scale** | <kbd>X</kbd> | Scales the selection. |
 | **Shear** | <kbd>Z</kbd> | Shears the selection. |
 
-Keys are those of the default *Reference* preset; a *Blender-like* preset is under *View*. See
+Keys are those of the default *Spine-like* preset; a *Blender-like* preset is under *View*. See
 [Keyboard shortcuts](shortcuts.md).
 
 Next to the tools, the active tool's values for the selected bone can be dragged or typed. In

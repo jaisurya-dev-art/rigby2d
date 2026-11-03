@@ -210,7 +210,7 @@ export default {
   "Recover": "復元",
   "Recover unsaved work?": "未保存の作業を復元しますか？",
   "Redo": "やり直し",
-  "Reference keys, or keys that follow Blender.": "標準のキー、または Blender に合わせたキー。",
+  "Keys as in Spine, or keys that follow Blender.": "Spine と同じキー、または Blender に合わせたキー。",
   "Region attachments": "リージョンアタッチメント",
   "Release {version}": "リリース {version}",
   "Releases and news on rigby2d.com": "rigby2d.com のリリースとニュース",

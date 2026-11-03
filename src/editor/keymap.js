@@ -62,8 +62,9 @@ const COMMON = {
 
 /** Keymap presets: action id -> list of bindings. */
 export const PRESETS = {
+  // The id stays 'reference' so saved preferences keep working.
   reference: {
-    label: 'Reference (default)',
+    label: 'Spine-like (default)',
     bindings: {
       ...COMMON,
       'tool.pose': ['b'],

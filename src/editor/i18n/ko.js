@@ -210,7 +210,7 @@ export default {
   "Recover": "복구",
   "Recover unsaved work?": "저장하지 않은 작업을 복구할까요?",
   "Redo": "다시 실행",
-  "Reference keys, or keys that follow Blender.": "기본 키 또는 Blender를 따르는 키.",
+  "Keys as in Spine, or keys that follow Blender.": "Spine과 같은 키 또는 Blender를 따르는 키.",
   "Region attachments": "리전 어태치먼트",
   "Release {version}": "릴리스 {version}",
   "Releases and news on rigby2d.com": "rigby2d.com의 릴리스와 소식",

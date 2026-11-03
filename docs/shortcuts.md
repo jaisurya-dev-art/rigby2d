@@ -3,7 +3,7 @@
 Rigby2D has two shortcut presets. Choose one under *View ▸ Shortcuts*; *Help ▸ Keyboard shortcuts*
 lists the keys of the active preset, with a search box and the preset switch. On macOS, <kbd>Ctrl</kbd> also works as <kbd>Cmd</kbd>.
 
-- **Reference** (default): tools and playback on the left hand (B, N, C, V, X, Z; Q, W, E, A, S, D,
+- **Spine-like** (default): the keys Spine animators know, with tools and playback on the left hand (B, N, C, V, X, Z; Q, W, E, A, S, D,
   R, F), as in common 2D animation tools.
 - **Blender-like**: G, R, S for translate, rotate and scale, I to key, the arrow keys for time.
 
@@ -11,7 +11,7 @@ This table is generated from the editor's keymap, so it always matches the curre
 
 <!-- generated:shortcuts -->
 
-| Action | Reference (default) | Blender-like |
+| Action | Spine-like (default) | Blender-like |
 | --- | --- | --- |
 | Pose tool | <kbd>B</kbd> | <kbd>P</kbd> |
 | Create bone tool | <kbd>N</kbd> | <kbd>B</kbd> |

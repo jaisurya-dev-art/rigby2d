@@ -210,7 +210,7 @@ export default {
   "Recover": "恢复",
   "Recover unsaved work?": "要恢复未保存的工作吗？",
   "Redo": "重做",
-  "Reference keys, or keys that follow Blender.": "参考键位，或遵循 Blender 的键位。",
+  "Keys as in Spine, or keys that follow Blender.": "与 Spine 相同的键位，或遵循 Blender 的键位。",
   "Region attachments": "区域附件",
   "Release {version}": "版本 {version}",
   "Releases and news on rigby2d.com": "rigby2d.com 上的版本与新闻",

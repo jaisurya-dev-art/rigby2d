@@ -59,7 +59,7 @@ buttons show the state: keyed at this frame, changed but not keyed, or not keyed
 | Time | Frame and seconds, or timecode and frame in the Film workspace. |
 
 <kbd>W</kbd> and <kbd>S</kbd> jump to the next and previous key; <kbd>E</kbd> to the last key.
-Keys are listed for the *Reference* preset; see [Keyboard shortcuts](shortcuts.md).
+Keys are listed for the default *Spine-like* preset; see [Keyboard shortcuts](shortcuts.md).
 
 Physics and audio play with the timeline. Editing while playing is allowed and marks the project as
 changed.
