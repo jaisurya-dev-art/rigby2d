@@ -273,6 +273,21 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+#status-version {
+  flex: none;
+  padding: 0 6px;
+  font: 11.5px ui-monospace, Consolas, monospace;
+  line-height: 16px;
+  color: var(--weak);
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  cursor: pointer;
+}
+#status-version:hover {
+  color: var(--text);
+  border-color: var(--weak);
+}
 
 .split-v,
 .split-h {

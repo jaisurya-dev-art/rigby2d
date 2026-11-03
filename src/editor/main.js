@@ -36,7 +36,7 @@ import { openDemoPicker } from './demoui.js';
 import { DEMOS } from './demos.js';
 import { newScene } from './sceneui.js';
 import { ago, clearRecentProjects, recentProjects, splitPath } from './recent.js';
-import { LINKS, openAbout, openShortcuts, openSupporters } from './helpui.js';
+import { LINKS, VERSION, openAbout, openShortcuts, openSupporters } from './helpui.js';
 import { installRecovery } from './recoveryui.js';
 import { applyInterfaceScale, openPreferences } from './prefsui.js';
 import { AddonManager } from './addonui.js';
@@ -591,6 +591,9 @@ setTimeout(() => addons.loadEnabled(), 1500);
 scheduleUpdateCheck(app);
 installNudges({ share: () => openShareDialog(app), star: () => openExternal(LINKS.repo), fund: () => openExternal(LINKS.fund) });
 
+// The editor's version at the right of the status bar; it opens About.
+$('#status-version').textContent = VERSION ? `v${VERSION}` : 'dev';
+$('#status-version').addEventListener('click', () => openAbout());
 $('#status-log').addEventListener('click', () => toggleLogWindow());
 $('#status-community').addEventListener('click', () => openExternal(COMMUNITY_URL));
 
