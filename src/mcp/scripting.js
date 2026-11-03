@@ -109,7 +109,7 @@ export function createScriptTools(ws) {
       name: 'run_script',
       title: 'Run Python script',
       description:
-        "Run a Python script against a project with the Rigby2D scripting API (`import rigby`: bones, slots, animations, keys, selection, time; see docs/scripting.md), then save the project. The script runs in a sandbox (CPython 3.14 on Pyodide, standard library only). print() output is returned. If the script raises, nothing is saved and the traceback is returned. dry_run: true runs it without saving (for queries). 'animation' and 'time' set what rigby.current_animation() and rigby.time() return; 'selection' sets rigby.selected_bones().",
+        "Run a Python script against a project with the Rigby2D scripting API (`import rigby`: bones, slots, animations, keys, selection, time; see https://rigby2d.com/docs/scripting.html), then save the project. The script runs in a sandbox (CPython 3.14 on Pyodide, standard library only). print() output is returned. If the script raises, nothing is saved and the traceback is returned. dry_run: true runs it without saving (for queries). 'animation' and 'time' set what rigby.current_animation() and rigby.time() return; 'selection' sets rigby.selected_bones().",
       inputSchema: {
         type: 'object',
         properties: {

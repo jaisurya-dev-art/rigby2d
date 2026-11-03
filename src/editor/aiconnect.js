@@ -6,7 +6,7 @@ import { isDesktop } from './platform.js';
 import { h } from './widgets.js';
 
 export const EXTENSION_URL = 'https://github.com/jaisurya-dev-art/rigby2d/releases/latest/download/Rigby2D-AI.mcpb';
-const GUIDE_URL = 'https://github.com/jaisurya-dev-art/rigby2d/blob/main/docs/mcp.md';
+const GUIDE_URL = 'https://rigby2d.com/docs/mcp.html';
 const CLAUDE_CODE = 'claude mcp add rigby2d -- node "/path/to/rigby2d/src/mcp/server.js" "/path/to/your/projects"';
 
 /** A button that copies `text` and says so. */

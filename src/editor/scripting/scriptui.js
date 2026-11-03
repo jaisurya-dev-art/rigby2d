@@ -4,7 +4,7 @@
 
 import * as log from '../log.js';
 import { makeDraggable, openLogWindow } from '../logwindow.js';
-import { isDesktop, pickImportFiles } from '../platform.js';
+import { isDesktop, openExternal, pickImportFiles } from '../platform.js';
 import { t } from '../i18n.js';
 import { h, submenuItem } from '../widgets.js';
 import { ScriptHost } from './host.js';
@@ -30,7 +30,9 @@ def mirror():
         bone.set(x=-bone.x, rotation=180 - bone.rotation)
 `;
 
-/** The scripting API at a glance, shown inside the script editor (the full guide is docs/scripting.md). */
+const GUIDE_URL = 'https://rigby2d.com/docs/scripting.html';
+
+/** The scripting API at a glance, shown inside the script editor (the full guide is on rigby2d.com). */
 const REFERENCE = `import rigby
 
 PROJECT   rigby.info()  rigby.fps()  rigby.mode() / set_mode('setup'|'animate')
@@ -52,7 +54,7 @@ TOOLS     @rigby.tool("Label", description="...")  def fn(): ...   adds fn to th
 ERRORS    rigby.RigbyError: unknown names, invalid values
 
 One run (or one tool run) is one undo step; if it raises, the project is left as it was.
-Full guide: docs/scripting.md in the Rigby2D repository.`;
+Full guide: the Guide button, or rigby2d.com/docs/scripting.html`;
 
 /** Library entries: { name, source, path (desktop file it was added from, or null) }. */
 function loadLibrary() {
@@ -353,8 +355,8 @@ function scriptEditor(scripts) {
             'Remove',
           ),
           h('span', { class: 'float-spacer' }),
-          // Built in rather than a web link: the desktop app has no browser to open links in.
           h('button', { title: 'Show or hide the scripting API', onclick: () => (reference.hidden = !reference.hidden) }, 'API reference'),
+          h('button', { title: 'The scripting guide on rigby2d.com', onclick: () => openExternal(GUIDE_URL) }, 'Guide ↗'),
         ),
       ),
     ),

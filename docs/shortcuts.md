@@ -1,6 +1,7 @@
 # Keyboard shortcuts
 
-Rigby2D has two shortcut presets, and you can make your own. Choose one under *View ▸ Shortcuts*;
+Rigby2D has two shortcut presets, and you can make your own. Choose one at the bottom of the *View* menu
+or in *Preferences ▸ Interface*;
 *Help ▸ Keyboard shortcuts* lists the keys of the active preset, with a search box and the preset
 switch. On macOS, <kbd>Ctrl</kbd> also works as <kbd>Cmd</kbd>.
 

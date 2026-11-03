@@ -25,7 +25,7 @@ const PLATFORM_NAMES = { 'windows-x64': 'Windows', macos: 'macOS', 'linux-x64': 
 const UNITY_GIT = `${LINKS.repo}.git?path=/runtimes/unity/com.rigby2d.unity${VERSION ? `#v${VERSION}` : ''}`;
 /** Defold dependency URL: a library zip that Defold's build server compiles for every platform. */
 const DEFOLD_LIBRARY = release('rigby2d-defold.zip');
-const docs = (path) => `${LINKS.repo}/blob/develop/${path}`;
+const docs = (section) => `${LINKS.docs}runtimes.html#${section}`;
 
 export function openRuntimes(app) {
   const { body } = dialog('runtimes-dialog', t('Get runtimes'), t('Play your exports in games and apps. These runtimes match this editor ({version}).', { version: VERSION || 'dev' }));
@@ -125,7 +125,7 @@ export function openRuntimes(app) {
         text: t('Add it from its git URL in the Package Manager, or install the package file.'),
         primary: action('copy', t('Copy git URL'), (b) => copy(UNITY_GIT, b), 'primary'),
         secondary: [action('download', '.tgz', () => download(`rigby2d-unity-${V}.tgz`))],
-        guide: docs('runtimes/unity/com.rigby2d.unity/README.md'),
+        guide: docs('unity'),
       }),
       card({
         id: 'godot',
@@ -134,7 +134,7 @@ export function openRuntimes(app) {
         text: t('The addon goes into your project as addons/rigby2d, with RigbySkeleton2D and RigbyScene2D nodes.'),
         primary: isDesktop && VERSION ? action('folder-open', t('Install into a project…'), installGodot, 'primary') : action('download', t('Download addon'), () => download(`rigby2d-godot-addon-${V}-${godot}.zip`), 'primary'),
         secondary: [isDesktop && VERSION ? action('download', t('Addon .zip'), () => download(`rigby2d-godot-addon-${V}-${godot}.zip`)) : null, action('gamepad-2', t('Demo'), () => download(`rigby2d-godot-demo-${V}-${godot}.zip`))].filter(Boolean),
-        guide: docs('runtimes/godot/addons/rigby2d/README.md'),
+        guide: docs('godot'),
       }),
       card({
         id: 'defold',
@@ -143,7 +143,7 @@ export function openRuntimes(app) {
         text: t('A native extension for every platform: add the library URL to the dependencies of your project.'),
         primary: action('copy', t('Copy library URL'), (b) => copy(DEFOLD_LIBRARY, b), 'primary'),
         secondary: [action('gamepad-2', t('Demo'), () => download(`rigby2d-defold-demo-${V}.zip`))],
-        guide: docs('runtimes/defold/README.md'),
+        guide: docs('defold'),
       }),
       card({
         id: 'cocos',
@@ -152,7 +152,7 @@ export function openRuntimes(app) {
         text: t('A RigbySkeleton component for 2D scenes: drop in the exported files and pick an animation.'),
         primary: isDesktop && VERSION ? action('folder-open', t('Install into a project…'), installCocos, 'primary') : action('download', t('Download .zip'), () => download(`rigby2d-cocos-${V}.zip`), 'primary'),
         secondary: isDesktop && VERSION ? [action('download', '.zip', () => download(`rigby2d-cocos-${V}.zip`))] : [],
-        guide: docs('runtimes/cocos/README.md'),
+        guide: docs('cocos-creator'),
       }),
       card({
         id: 'phaser',
@@ -161,7 +161,7 @@ export function openRuntimes(app) {
         text: t('this.load.rigby() and this.add.rigby(): one file for your game.'),
         primary: action('download', t('ES module'), () => download(`rigby2d-phaser-${V}.mjs`), 'primary'),
         secondary: [action('download', t('Script tag'), () => download(`rigby2d-phaser-${V}.js`))],
-        guide: docs('runtimes/phaser/README.md'),
+        guide: docs('phaser'),
       }),
       card({
         id: 'javascript',
@@ -169,7 +169,7 @@ export function openRuntimes(app) {
         badge: t('Web'),
         text: t('The runtime and WebGL renderer, with no dependencies, for any web engine.'),
         primary: action('external-link', t('Source'), () => openExternal(`${LINKS.repo}/tree/develop/src/core`), 'primary'),
-        guide: 'https://rigby2d.com/docs/runtimes.html#javascript',
+        guide: docs('javascript'),
       }),
       card({
         id: 'rust',
@@ -177,7 +177,7 @@ export function openRuntimes(app) {
         badge: t('Native'),
         text: t('The rigby-runtime crate: the same animation as the editor, 3 to 4 times faster.'),
         primary: action('external-link', t('Source'), () => openExternal(`${LINKS.repo}/tree/develop/runtimes/rust`), 'primary'),
-        guide: 'https://rigby2d.com/docs/runtimes.html#rust',
+        guide: docs('rust'),
       }),
     ),
   );
