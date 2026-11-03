@@ -37,10 +37,12 @@ export function dialog(className, title, subtitle, { onClose } = {}) {
     onClose?.();
   };
   const onKey = (e) => {
-    if (e.key === 'Escape') {
-      e.stopPropagation();
-      close();
-    }
+    if (e.key !== 'Escape') return;
+    // With a dialog opened from another (Preferences ▸ Customize…), Escape closes only the top one.
+    const backdrops = document.querySelectorAll('.modal-backdrop');
+    if (backdrops[backdrops.length - 1] !== overlay) return;
+    e.stopImmediatePropagation();
+    close();
   };
   const body = h('div', { class: 'dialog-body' });
   overlay.addEventListener('pointerdown', (e) => e.target === overlay && close());
@@ -111,7 +113,7 @@ const MOUSE = [
  * With the Custom set active, every shortcut can be changed: click a key to replace it, + to add
  * one, × to remove one, ↺ to put an action back; the keymap saves as you go and can be exported.
  */
-export function openShortcuts(app) {
+export function openShortcuts(app, { onClose } = {}) {
   let recording = null; // { action, replace } while waiting for a key press
   let flash = null; // { action, text } after a change, explained under the toolbar
   const onRecordKey = (e) => {
@@ -136,7 +138,12 @@ export function openShortcuts(app) {
     render();
   };
   window.addEventListener('keydown', onRecordKey, true);
-  const { body } = dialog('shortcuts-dialog', 'Keyboard shortcuts', null, { onClose: () => window.removeEventListener('keydown', onRecordKey, true) });
+  const { body } = dialog('shortcuts-dialog', 'Keyboard shortcuts', null, {
+    onClose: () => {
+      window.removeEventListener('keydown', onRecordKey, true);
+      onClose?.();
+    },
+  });
   const search = h('input', { type: 'search', class: 'dialog-search', placeholder: 'Search shortcuts', 'aria-label': 'Search shortcuts' });
   const presets = h('div', { class: 'segmented', role: 'tablist', 'aria-label': 'Shortcut set' });
   const tools = h('div', { class: 'shortcut-tools' });

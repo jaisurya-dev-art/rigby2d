@@ -3332,3 +3332,8 @@ kbd {
 .supporters-list .badge {
   margin-left: 6px;
 }
+.pref-shortcuts {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}

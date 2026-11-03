@@ -204,7 +204,6 @@ function menus() {
           app.setStatus(`Keyboard shortcuts: ${p.label}`);
         },
       })),
-      { label: t('Customize shortcuts…'), title: t('Change any shortcut and save your own keymap'), action: () => openShortcuts(app) },
     ],
     Scripts: scripts.menu(),
     Help: [

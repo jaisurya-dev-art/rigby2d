@@ -10,7 +10,8 @@ switch. On macOS, <kbd>Ctrl</kbd> also works as <kbd>Cmd</kbd>.
 
 ## Your own shortcuts
 
-*View ▸ Customize shortcuts…* (or **Customize…** in *Help ▸ Keyboard shortcuts*) makes a **Custom**
+**Customize…** next to *Keyboard shortcuts* in *Edit ▸ Preferences ▸ Interface* (or in *Help ▸
+Keyboard shortcuts*) makes a **Custom**
 keymap, starting from the preset you use. Every action can then be changed:
 
 | To | Do |

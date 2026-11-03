@@ -4,8 +4,8 @@
 // set, viewport drawing, default workspace).
 
 import { isDesktop } from './platform.js';
-import { dialog } from './helpui.js';
-import { PRESETS } from './keymap.js';
+import { dialog, openShortcuts } from './helpui.js';
+import { PRESETS, newCustom } from './keymap.js';
 import { saveSetting } from './app.js';
 import { WORKSPACES } from './workspaces.js';
 import { PREFS } from './prefs.js';
@@ -29,6 +29,29 @@ const row = (label, hint, control) => h('div', { class: 'pref-row' }, h('div', n
 function choice(options, value, onChange) {
   const el = h('select', { onchange: (e) => onChange(e.target.value) }, ...options.map(([v, label]) => h('option', { value: v, selected: String(v) === String(value) }, label)));
   return el;
+}
+
+/** The shortcut set, and Customize… to change any shortcut (the choice updates when it closes). */
+function shortcutControl(app) {
+  const wrap = h('span', { class: 'pref-shortcuts' });
+  const draw = () =>
+    wrap.replaceChildren(
+      choice(Object.entries(PRESETS).map(([id, p]) => [id, p.label]), app.keymap, (v) => app.setKeymap(v)),
+      h(
+        'button',
+        {
+          onclick: () => {
+            if (!app.customKeymap) app.setCustomKeymap(newCustom(app.keymap));
+            else app.setKeymap('custom');
+            openShortcuts(app, { onClose: draw });
+            draw();
+          },
+        },
+        t('Customize…'),
+      ),
+    );
+  draw();
+  return wrap;
 }
 
 function checkbox(value, onChange) {
@@ -77,7 +100,7 @@ const PAGES = [
         isDesktop
           ? row('Interface scale', 'Size of all text and controls.', choice(scales, app.prefs.get('interface.scale'), (v) => (app.prefs.set('interface.scale', Number(v)), applyInterfaceScale(app))))
           : row('Interface scale', "In the browser, use the browser's zoom (Ctrl + and Ctrl −).", h('span')),
-        row('Keyboard shortcuts', 'Keys as in Spine, or keys that follow Blender.', choice(Object.entries(PRESETS).map(([id, p]) => [id, p.label]), app.keymap, (v) => app.setKeymap(v))),
+        row('Keyboard shortcuts', 'Keys as in Spine, keys that follow Blender, or your own.', shortcutControl(app)),
         row(
           'Viewport drawing',
           'Canvas 2D is slower, for graphics drivers that have trouble with WebGL.',

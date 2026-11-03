@@ -17,7 +17,7 @@ defaults.
 | Setting | What it does |
 | --- | --- |
 | Interface scale | Size of all text and controls, from 75% to 200% (desktop app). In the browser, use the browser's zoom. |
-| Keyboard shortcuts | Keys like Spine's (the default), keys that follow Blender, or your own (*View ▸ Customize shortcuts…*). See [Shortcuts](shortcuts.md#your-own-shortcuts). |
+| Keyboard shortcuts | Keys like Spine's (the default), keys that follow Blender, or your own (**Customize…**). See [Shortcuts](shortcuts.md#your-own-shortcuts). |
 | Viewport drawing | WebGL, or Canvas 2D for graphics drivers that have trouble with WebGL. |
 | New projects | The workspace (Game or Film) that *File ▸ New* starts in. |
 
