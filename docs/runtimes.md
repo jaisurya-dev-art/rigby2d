@@ -7,7 +7,7 @@ layered tracks with crossfades. They also play [scenes](scenes.md#in-games-and-a
 characters on a stage with a moving camera and parallax.
 
 <div class="cards engines">
-<a href="#godot" data-mark="godot"><strong>Godot</strong><code>RigbySkeleton2D</code> and <code>RigbyScene2D</code> nodes, a GDExtension on the Rust core. <small>Godot 4.3+ · Windows, macOS, Linux</small></a>
+<a href="#godot" data-mark="godot"><strong>Godot <span class="status">Complete</span></strong><code>RigbySkeleton2D</code> and <code>RigbyScene2D</code> nodes, a GDExtension on the Rust core. <small>Godot 4.3+ · Windows, macOS, Linux</small></a>
 <a href="#unity" data-mark="unity"><strong>Unity <span class="status">Complete</span></strong><code>RigbySkeleton</code> and <code>RigbyScene</code> components in C#, multi-core, no garbage. <small>Unity 2021.3+ and Unity 6 · every platform</small></a>
 <a href="#defold" data-mark="defold"><strong>Defold <span class="status">New</span></strong>A native extension: the runtime in C++, golden-tested like the Rust one, with a Lua player. <small>Defold 1.14+ · every platform</small></a>
 <a href="#cocos-creator" data-mark="cocos"><strong>Cocos Creator <span class="status">Complete</span></strong>A <code>RigbySkeleton</code> component for 2D scenes, drawn in order with sprites and UI. <small>Cocos Creator 3.8 · web and native</small></a>
