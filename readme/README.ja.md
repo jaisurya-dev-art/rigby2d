@@ -108,7 +108,7 @@ src/core/       ランタイム：データモデル、スケルトン JSON/.ske
 src/editor/     エディター UI：ビューポート、ツリー、インスペクター、ドープシート、グラフエディター、入出力、スクリプト
 src/webgl/      ランタイム用のリファレンス WebGL レンダラー
 src/mcp/        AI アシスタント向けの Model Context Protocol サーバー
-runtimes/       Rust、Godot、Unity、Phaser のランタイム
+runtimes/       Rust、C++（Defold）、Godot、Unity、Cocos Creator、Phaser のランタイム
 addons/         公式アドオン
 site/           Web サイトとドキュメントサイト（GitHub Pages）
 docs/           ドキュメントのページと画像

@@ -828,8 +828,9 @@ kbd {
 /* Brand colours for the engine and platform marks. */
 .card-godot .card-art { color: #478cbf; }
 .card-unity .card-art { color: #fff; background: #222; }
-.card-phaser .card-art { color: #8dd35f; }
+.card-phaser .card-art { color: #8fd0ef; }
 .card-cocos .card-art { color: #55c2e1; }
+.card-defold .card-art { color: #1c9be6; }
 .card-javascript .card-art { color: #f7df1e; }
 .card-rust .card-art { color: #f74c00; }
 .card-windows .card-art { color: #3fa9f5; }
@@ -887,8 +888,9 @@ kbd {
 }
 .h-mark.card-godot { color: #478cbf; }
 .h-mark.card-unity { color: #fff; background: #222; }
-.h-mark.card-phaser { color: #8dd35f; }
+.h-mark.card-phaser { color: #8fd0ef; }
 .h-mark.card-cocos { color: #55c2e1; }
+.h-mark.card-defold { color: #1c9be6; }
 .h-mark.card-javascript { color: #f7df1e; }
 .h-mark.card-rust { color: #f74c00; }
 .h-mark.card-windows { color: #3fa9f5; }

@@ -52,7 +52,7 @@ static const int NONE = -1;
 /// A JSON value. Objects keep their key order, which the skeleton format relies on.
 class Json {
 public:
-    enum Type { Null, Bool, Num, Str, Arr, Obj };
+    enum Type { JNull, JBool, JNum, JStr, JArr, JObj };
     Type type;
     bool b;
     double n;
@@ -60,22 +60,22 @@ public:
     std::vector<Json> arr;
     std::vector<std::pair<std::string, Json> > obj;
 
-    Json() : type(Null), b(false), n(0) {}
-    static Json boolean(bool v) { Json j; j.type = Bool; j.b = v; return j; }
-    static Json number(double v) { Json j; j.type = Num; j.n = v; return j; }
-    static Json string(const std::string& v) { Json j; j.type = Str; j.s = v; return j; }
-    static Json array() { Json j; j.type = Arr; return j; }
-    static Json object() { Json j; j.type = Obj; return j; }
+    Json() : type(JNull), b(false), n(0) {}
+    static Json boolean(bool v) { Json j; j.type = JBool; j.b = v; return j; }
+    static Json number(double v) { Json j; j.type = JNum; j.n = v; return j; }
+    static Json string(const std::string& v) { Json j; j.type = JStr; j.s = v; return j; }
+    static Json array() { Json j; j.type = JArr; return j; }
+    static Json object() { Json j; j.type = JObj; return j; }
 
-    /// The value of `key` in an object (Null when missing or not an object).
+    /// The value of `key` in an object (JNull when missing or not an object).
     const Json& get(const char* key) const;
     const Json& get(const std::string& key) const { return get(key.c_str()); }
     bool has(const char* key) const { return !get(key).is_null(); }
-    bool is_null() const { return type == Null; }
-    bool is_array() const { return type == Arr; }
-    bool is_object() const { return type == Obj; }
-    bool is_num() const { return type == Num; }
-    bool is_str() const { return type == Str; }
+    bool is_null() const { return type == JNull; }
+    bool is_array() const { return type == JArr; }
+    bool is_object() const { return type == JObj; }
+    bool is_num() const { return type == JNum; }
+    bool is_str() const { return type == JStr; }
     /// Number at `key`, or `def`.
     double num(const char* key, double def) const;
     /// JavaScript-style truthiness of `key` (`!!value`).
@@ -633,10 +633,10 @@ private:
         size_t index;
     };
     struct Solved {
-        enum Type { None, World, Local, All } type;
+        enum Type { SolvedNone, SolvedWorld, SolvedLocal, SolvedAll } type;
         std::vector<std::pair<size_t, Affine> > world;
         std::vector<size_t> local;
-        Solved() : type(None) {}
+        Solved() : type(SolvedNone) {}
     };
     std::vector<Step> steps_;
     std::vector<uint8_t> dirty_;

@@ -57,6 +57,9 @@ jobs:
       - run: cargo build --release -p rigby-godot
         working-directory: runtimes/rust
       - run: node runtimes/godot/package.mjs windows-x64
+      # Defold runtime: the library (a dependency zip; Defold's build server compiles the native
+      # extension) and the demo project.
+      - run: node runtimes/defold/package.mjs
       # Unity runtime: the C# core against the JavaScript runtime (golden tests), then the package
       # as a tarball for Unity's "Install package from tarball".
       - run: node runtimes/unity/com.rigby2d.unity/Tests~/run.mjs
@@ -87,6 +90,7 @@ jobs:
           cp "runtimes/godot/dist/rigby2d-godot-addon-${V}-windows-x64.zip" release/
           cp "runtimes/godot/dist/rigby2d-godot-demo-${V}-windows-x64.zip" release/
           cp "com.rigby2d.unity-${V}.tgz" "release/rigby2d-unity-${V}.tgz"
+          cp runtimes/defold/dist/rigby2d-defold.zip "runtimes/defold/dist/rigby2d-defold-demo-${V}.zip" release/
           cp dist-phaser/* release/
           cp dist-cocos/rigby2d-cocos-*.zip release/
           ls -la release

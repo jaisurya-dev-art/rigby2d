@@ -1,0 +1,24 @@
+#version 140
+// SPDX-License-Identifier: MIT OR Apache-2.0
+// Rigby2D skeleton pieces: world-space vertices with light and dark colors.
+in highp vec4 position;
+in mediump vec2 texcoord0;
+in mediump vec4 color;
+in mediump vec4 dark;
+
+out mediump vec2 var_texcoord0;
+out mediump vec4 var_color;
+out mediump vec4 var_dark;
+
+uniform vs_uniforms
+{
+    highp mat4 view_proj;
+};
+
+void main()
+{
+    gl_Position = view_proj * vec4(position.xyz, 1.0);
+    var_texcoord0 = texcoord0;
+    var_color = color;
+    var_dark = dark;
+}

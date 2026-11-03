@@ -17,7 +17,7 @@ static const Json NULL_JSON;
 static const std::string EMPTY_STRING;
 
 const Json& Json::get(const char* key) const {
-    if (type != Obj) return NULL_JSON;
+    if (type != JObj) return NULL_JSON;
     for (size_t i = 0; i < obj.size(); i++)
         if (obj[i].first == key) return obj[i].second;
     return NULL_JSON;
@@ -25,36 +25,36 @@ const Json& Json::get(const char* key) const {
 
 double Json::num(const char* key, double def) const {
     const Json& v = get(key);
-    return v.type == Num ? v.n : def;
+    return v.type == JNum ? v.n : def;
 }
 
 bool Json::truthy(const char* key) const {
     const Json& v = get(key);
     switch (v.type) {
-        case Null: return false;
-        case Bool: return v.b;
-        case Num: return v.n != 0.0 && !std::isnan(v.n);
-        case Str: return !v.s.empty();
+        case JNull: return false;
+        case JBool: return v.b;
+        case JNum: return v.n != 0.0 && !std::isnan(v.n);
+        case JStr: return !v.s.empty();
         default: return true;
     }
 }
 
 bool Json::flag(const char* key, bool def) const {
-    return get(key).type == Null ? def : truthy(key);
+    return get(key).type == JNull ? def : truthy(key);
 }
 
 const std::string& Json::str_or(const char* key, const std::string& def) const {
     const Json& v = get(key);
-    return v.type == Str ? v.s : def;
+    return v.type == JStr ? v.s : def;
 }
 
 const char* Json::cstr_or(const char* key, const char* def) const {
     const Json& v = get(key);
-    return v.type == Str ? v.s.c_str() : def;
+    return v.type == JStr ? v.s.c_str() : def;
 }
 
 void Json::set(const std::string& key, const Json& value) {
-    if (type != Obj) return;
+    if (type != JObj) return;
     for (size_t i = 0; i < obj.size(); i++) {
         if (obj[i].first == key) {
             obj[i].second = value;
@@ -65,7 +65,7 @@ void Json::set(const std::string& key, const Json& value) {
 }
 
 bool Json::remove(const std::string& key, Json* out) {
-    if (type != Obj) return false;
+    if (type != JObj) return false;
     for (size_t i = 0; i < obj.size(); i++) {
         if (obj[i].first == key) {
             if (out) *out = obj[i].second;

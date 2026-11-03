@@ -1,6 +1,7 @@
-# Rigby2D native runtimes
+# Rigby2D engine runtimes
 
-Engine runtimes for Rigby2D animations, built on one Rust core.
+Engine runtimes for Rigby2D animations. The JavaScript runtime (`src/core`) is the reference; the
+Rust, C++ and C# cores are ports of it, tested against it frame by frame.
 
 | Folder | What it is | Status |
 | --- | --- | --- |
@@ -8,6 +9,8 @@ Engine runtimes for Rigby2D animations, built on one Rust core.
 | [`rust/rigby-godot`](rust/rigby-godot) | Godot 4.3+ GDExtension: the `RigbySkeleton2D` and `RigbyScene2D` nodes. | Windows x64, macOS and Linux x64 downloads on [Releases](https://github.com/jaisurya-dev-art/rigby2d/releases); build from source elsewhere |
 | [`godot`](godot) | Godot addon (`addons/rigby2d`, with [user guide](godot/addons/rigby2d/README.md)), demo scene and tests. | Complete |
 | [`phaser`](phaser) | Phaser 3.60+ and Phaser 4 plugin ([guide](phaser/README.md)) on the JavaScript runtime (`src/core`) and WebGL renderer: `this.load.rigby`, `this.add.rigby`. | Complete |
+| [`defold`](defold) | Defold 1.14+ native extension ([guide](defold/README.md)): the runtime in C++ (`rigby2d/src`, a port of the Rust core, golden-tested the same way), a Lua player and a demo. Defold's build server compiles it for every platform. | Complete |
+| [`cocos`](cocos) | Cocos Creator 3.8 extension ([guide](cocos/README.md), [中文](cocos/README.zh-CN.md)): the `RigbySkeleton` component for 2D scenes, on the JavaScript runtime. | Complete |
 | [`unity/com.rigby2d.unity`](unity/com.rigby2d.unity) | Unity 2021.3+ package ([guide](unity/com.rigby2d.unity/README.md)): `RigbySkeleton`, `RigbyScene`, `RigbyBoneFollower`, importers and a shader. A C# port of the core (`Rigby2D.Core`, no Unity dependency), golden-tested like the Rust one; multi-core and garbage-free. | Complete |
 
 ## The Rust core
@@ -38,7 +41,9 @@ for batch in out.batches() { /* positions, UVs, colors, dark colors, indices for
 
 ### Correctness
 
-The Rust runtime must match the JavaScript runtime frame by frame. `tests/golden/generate.mjs`
+The Rust runtime, and the C++ one in `defold/rigby2d/src`, must match the JavaScript runtime frame
+by frame (CI runs both against the same golden files, plus files generated from every demo export
+in `.json` and `.skel`). `tests/golden/generate.mjs`
 plays a skeleton with the JavaScript runtime through fixed scenarios (every animation looping, a
 crossfade with a layered track and a queued animation, skins) and records bone world matrices,
 drawables, draw order and events; `tests/golden.rs` replays them in Rust and compares.

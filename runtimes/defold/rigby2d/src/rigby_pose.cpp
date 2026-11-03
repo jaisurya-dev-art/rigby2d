@@ -696,10 +696,10 @@ void Pose::update_world(const SkeletonData& sk) {
             case ConstraintPhysics: result = solve_physics(sk, c.physics, step.index, delta); break;
         }
         switch (result.type) {
-            case Solved::None: break;
-            case Solved::All: compute_world(sk); break;
-            case Solved::World: set_worlds(sk, result.world); break;
-            case Solved::Local:
+            case Solved::SolvedNone: break;
+            case Solved::SolvedAll: compute_world(sk); break;
+            case Solved::SolvedWorld: set_worlds(sk, result.world); break;
+            case Solved::SolvedLocal:
                 for (size_t b = 0; b < result.local.size(); b++) update_branch(sk, result.local[b]);
                 break;
         }
@@ -928,7 +928,7 @@ Pose::Solved Pose::solve_transform(const ConstraintData& c, const TransformData&
                 if (m[P_SHEAR_Y] != 0.0) a.shear_y += wrap_degrees(val[P_SHEAR_Y] - a.shear_y) * mix[P_SHEAR_Y];
             }
         }
-        out.type = Solved::Local;
+        out.type = Solved::SolvedLocal;
         out.local = c.bones;
         return out;
     }
@@ -968,7 +968,7 @@ Pose::Solved Pose::solve_transform(const ConstraintData& c, const TransformData&
         }
         out.world.push_back(std::make_pair(b, m));
     }
-    out.type = Solved::World;
+    out.type = Solved::SolvedWorld;
     return out;
 }
 
@@ -1049,7 +1049,7 @@ Pose::Solved Pose::solve_path(const SkeletonData& sk, const ConstraintData& c, c
         }
         out.world.push_back(std::make_pair(b, m));
     }
-    out.type = Solved::World;
+    out.type = Solved::SolvedWorld;
     return out;
 }
 
@@ -1146,7 +1146,7 @@ Pose::Solved Pose::solve_physics(const SkeletonData& sk, const PhysicsData& p, s
             r.b *= f;
         }
     }
-    out.type = Solved::World;
+    out.type = Solved::SolvedWorld;
     out.world.push_back(std::make_pair(p.bone, r));
     return out;
 }
@@ -1173,7 +1173,7 @@ Pose::Solved Pose::solve_slider(const SkeletonData& sk, const SliderData& s, siz
     into_applied_ = true;
     apply_animation(sk, anim, time, std::fmin(state_mix, 1.0));
     into_applied_ = false;
-    out.type = Solved::All;
+    out.type = Solved::SolvedAll;
     return out;
 }
 

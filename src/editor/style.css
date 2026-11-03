@@ -2746,7 +2746,11 @@ kbd {
   --rt: #478cbf;
 }
 .rt-phaser {
-  --rt: #7b5cd6;
+  --rt: #8fd0ef;
+  --rt-fg: #0b1d24;
+}
+.rt-defold {
+  --rt: #1c9be6;
 }
 .rt-cocos {
   --rt: #55c2e1;

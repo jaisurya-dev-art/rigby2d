@@ -108,7 +108,7 @@ src/core/       运行时：数据模型、骨骼 JSON/.skel 与图集读写、�
 src/editor/     编辑器界面：视口、树、检查器、摄影表、曲线编辑器、导入导出、脚本
 src/webgl/      运行时的参考 WebGL 渲染器
 src/mcp/        面向 AI 助手的 Model Context Protocol 服务器
-runtimes/       Rust、Godot、Unity 和 Phaser 运行时
+runtimes/       Rust、C++（Defold）、Godot、Unity、Cocos Creator 和 Phaser 运行时
 addons/         官方插件
 site/           网站与文档站点（GitHub Pages）
 docs/           文档页面与图片

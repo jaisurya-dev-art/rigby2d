@@ -40,5 +40,5 @@ jobs:
           RIGBY_GOLDEN_DIR: ${{ runner.temp }}/golden
         run: |
           g++ -std=c++17 -O2 -Wall -Wextra -Werror -fno-exceptions -fno-rtti -I runtimes/defold/rigby2d/src \
-            runtimes/defold/test/golden.cpp runtimes/defold/rigby2d/src/*.cpp -o "$RUNNER_TEMP/golden-cpp"
+            runtimes/defold/test/golden.cpp runtimes/defold/rigby2d/src/rigby_*.cpp -o "$RUNNER_TEMP/golden-cpp"
           "$RUNNER_TEMP/golden-cpp" "$GITHUB_WORKSPACE"

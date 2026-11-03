@@ -108,7 +108,7 @@ src/core/       Runtime: modelo de dados, E/S de JSON/.skel e atlas, cálculo de
 src/editor/     Interface do editor: viewport, árvore, inspetor, folha de animação, editor de curvas, importar/exportar, scripts
 src/webgl/      Renderizador WebGL de referência para o runtime
 src/mcp/        Servidor Model Context Protocol para assistentes de IA
-runtimes/       Runtimes Rust, Godot, Unity e Phaser
+runtimes/       Runtimes Rust, C++ (Defold), Godot, Unity, Cocos Creator e Phaser
 addons/         Complementos oficiais
 site/           Site e site de documentação (GitHub Pages)
 docs/           Páginas e imagens da documentação

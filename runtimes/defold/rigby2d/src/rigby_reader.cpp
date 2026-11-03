@@ -230,7 +230,7 @@ bool read_attachment(SkeletonData& sk, const Ctx& ctx, const std::string& key, c
         const Json& d = a.get("deform");
         const Json& t = a.get("timelines");
         const Json& which = d.is_null() ? t : d;
-        att.deform = which.is_null() ? true : !((which.type == Json::Bool && !which.b) || (which.type == Json::Num && which.n == 0.0));
+        att.deform = which.is_null() ? true : !((which.type == Json::JBool && !which.b) || (which.type == Json::JNum && which.n == 0.0));
         att.parent = sk.intern(parent);
         if (a.get("skin").is_str()) att.skin = Opt<std::string>(a.get("skin").s);
         att.width = a.num("width", 0.0);
@@ -914,7 +914,7 @@ bool read_animation(SkeletonData& sk, const Ctx& ctx, const std::unordered_map<s
     anim.has_constraint_keys = false;
     for (int k = 0; k < 4; k++) {
         const Json& v = a.get(keyed[k]);
-        if (!v.is_null() && !(v.type == Json::Bool && !v.b)) anim.has_constraint_keys = true;
+        if (!v.is_null() && !(v.type == Json::JBool && !v.b)) anim.has_constraint_keys = true;
     }
     for (size_t index = 0; index < sk.constraints.size(); index++) {
         const ConstraintData& c = sk.constraints[index];

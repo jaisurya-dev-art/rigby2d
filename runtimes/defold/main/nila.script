@@ -1,0 +1,31 @@
+-- SPDX-License-Identifier: MIT OR Apache-2.0
+-- Demo: NILA cycles through her animations, with hair physics.
+
+local rigby2d = require("rigby2d.rigby2d")
+
+function init(self)
+	self.player = rigby2d.new({ skeleton = "/assets/nila.json", atlas = "/assets/nila.atlas", animation = "idle" })
+	self.player:on_event(function(event)
+		if event.kind == "complete" and event.animation ~= "idle" then
+			self.player:set_animation(0, "idle", true, 0.25)
+		end
+	end)
+	self.names = self.player:animations()
+	self.next = 1
+	self.timer = 3
+end
+
+function update(self, dt)
+	self.timer = self.timer - dt
+	if self.timer <= 0 then
+		self.next = self.next % #self.names + 1
+		local name = self.names[self.next]
+		self.player:set_animation(0, name, false, 0.25)
+		self.timer = math.max(3, self.player:duration(name) + 1)
+	end
+	self.player:update(dt)
+end
+
+function final(self)
+	self.player:delete()
+end

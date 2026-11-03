@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 // File ▸ Get runtimes: every engine runtime, downloaded straight from the release that matches
-// this editor (so exports and runtimes always agree), or installed into a Godot project.
+// this editor (so exports and runtimes always agree), or installed into a Godot or Cocos project.
 
 import { LINKS, VERSION, dialog } from './helpui.js';
 import { t } from './i18n.js';
@@ -23,6 +23,8 @@ function godotPlatform() {
 
 const PLATFORM_NAMES = { 'windows-x64': 'Windows', macos: 'macOS', 'linux-x64': 'Linux' };
 const UNITY_GIT = `${LINKS.repo}.git?path=/runtimes/unity/com.rigby2d.unity${VERSION ? `#v${VERSION}` : ''}`;
+/** Defold dependency URL: a library zip that Defold's build server compiles for every platform. */
+const DEFOLD_LIBRARY = release('rigby2d-defold.zip');
 const docs = (path) => `${LINKS.repo}/blob/develop/${path}`;
 
 export function openRuntimes(app) {
@@ -133,6 +135,15 @@ export function openRuntimes(app) {
         primary: isDesktop && VERSION ? action('folder-open', t('Install into a project…'), installGodot, 'primary') : action('download', t('Download addon'), () => download(`rigby2d-godot-addon-${V}-${godot}.zip`), 'primary'),
         secondary: [isDesktop && VERSION ? action('download', t('Addon .zip'), () => download(`rigby2d-godot-addon-${V}-${godot}.zip`)) : null, action('gamepad-2', t('Demo'), () => download(`rigby2d-godot-demo-${V}-${godot}.zip`))].filter(Boolean),
         guide: docs('runtimes/godot/addons/rigby2d/README.md'),
+      }),
+      card({
+        id: 'defold',
+        name: 'Defold',
+        badge: '1.14+',
+        text: t('A native extension for every platform: add the library URL to the dependencies of your project.'),
+        primary: action('copy', t('Copy library URL'), (b) => copy(DEFOLD_LIBRARY, b), 'primary'),
+        secondary: [action('gamepad-2', t('Demo'), () => download(`rigby2d-defold-demo-${V}.zip`))],
+        guide: docs('runtimes/defold/README.md'),
       }),
       card({
         id: 'cocos',

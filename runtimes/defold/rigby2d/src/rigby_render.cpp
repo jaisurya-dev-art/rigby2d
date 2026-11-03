@@ -5,6 +5,8 @@
 
 #include "rigby.h"
 
+#include <cstring>
+
 #include <algorithm>
 #include <cmath>
 
@@ -261,11 +263,10 @@ void RenderOutput::draw_attachment(const SkeletonData& sk, const Pose& pose, siz
         pose.world_vertices(sk, i, att, positions);
         if (source->kind != AttMesh) return;
         const std::vector<double>& mesh_uvs = source->uvs;
-        for (size_t k = 0; k < positions.size() / 2; k++) {
-            double tu, tv;
-            entry->map(2 * k < mesh_uvs.size() ? mesh_uvs[2 * k] : 0.0, 2 * k + 1 < mesh_uvs.size() ? mesh_uvs[2 * k + 1] : 0.0, tu, tv);
-            uvs.push_back(tu);
-            uvs.push_back(tv);
+        size_t n = positions.size() / 2;
+        uvs.resize(2 * n);
+        for (size_t k = 0; k < n; k++) {
+            entry->map(2 * k < mesh_uvs.size() ? mesh_uvs[2 * k] : 0.0, 2 * k + 1 < mesh_uvs.size() ? mesh_uvs[2 * k + 1] : 0.0, uvs[2 * k], uvs[2 * k + 1]);
         }
         triangles = source->triangles.data();
         tri_count = source->triangles.size();
@@ -299,15 +300,29 @@ void RenderOutput::emit(size_t page, Blend blend, const std::vector<double>& pos
     Batch& b = batches_[used_ - 1];
     uint32_t base = (uint32_t)(b.positions.size() / 2);
     size_t n = positions.size() / 2;
-    for (size_t k = 0; k < n; k++) {
-        b.positions.push_back((float)positions[2 * k]);
-        b.positions.push_back((float)positions[2 * k + 1]);
-        b.uvs.push_back((float)uvs[2 * k]);
-        b.uvs.push_back((float)uvs[2 * k + 1]);
-        b.colors.insert(b.colors.end(), light, light + 4);
-        b.darks.insert(b.darks.end(), dark, dark + 4);
+    // Grown once, then written in place: no per-value push_back on the hot path.
+    b.positions.resize(b.positions.size() + 2 * n);
+    b.uvs.resize(b.uvs.size() + 2 * n);
+    b.colors.resize(b.colors.size() + 4 * n);
+    b.darks.resize(b.darks.size() + 4 * n);
+    float* po = &b.positions[2 * (size_t)base];
+    float* uo = &b.uvs[2 * (size_t)base];
+    float* co = &b.colors[4 * (size_t)base];
+    float* dk = &b.darks[4 * (size_t)base];
+    const double* pi = positions.data();
+    const double* ui = uvs.data();
+    for (size_t k = 0; k < 2 * n; k++) {
+        po[k] = (float)pi[k];
+        uo[k] = (float)ui[k];
     }
-    for (size_t k = 0; k < count; k++) b.indices.push_back(base + triangles[k]);
+    for (size_t k = 0; k < n; k++) {
+        std::memcpy(co + 4 * k, light, 4 * sizeof(float));
+        std::memcpy(dk + 4 * k, dark, 4 * sizeof(float));
+    }
+    size_t i0 = b.indices.size();
+    b.indices.resize(i0 + count);
+    uint32_t* io = &b.indices[i0];
+    for (size_t k = 0; k < count; k++) io[k] = base + triangles[k];
 }
 
 }  // namespace rigby

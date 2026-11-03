@@ -1,0 +1,147 @@
+nila.png
+size: 2048, 4096
+filter: Linear, Linear
+bindi
+bounds: 997, 2445, 32, 32
+blush
+bounds: 1468, 2369, 444, 48
+braid
+bounds: 2, 2, 168, 914
+brow_l_angry
+bounds: 1046, 2369, 146, 54
+brow_l_neutral
+bounds: 389, 2445, 146, 39
+brow_l_raised
+bounds: 2, 2445, 146, 45
+brow_l_sad
+bounds: 714, 2369, 137, 70
+brow_r_angry
+bounds: 1194, 2369, 146, 54
+brow_r_neutral
+bounds: 537, 2445, 146, 39
+brow_r_raised
+bounds: 150, 2445, 146, 45
+brow_r_sad
+bounds: 853, 2369, 137, 70
+ear_l
+bounds: 1934, 2002, 86, 145
+ear_r
+bounds: 2, 2222, 86, 145
+earring_l
+bounds: 510, 2222, 98, 130
+earring_r
+bounds: 610, 2222, 98, 130
+eye_l
+bounds: 710, 2222, 129, 130
+eye_l_closed
+bounds: 1750, 2222, 188, 74
+eye_l_happy
+bounds: 348, 2369, 181, 73
+eye_l_lashes
+bounds: 1250, 2002, 191, 154
+eye_r
+bounds: 841, 2222, 129, 130
+eye_r_closed
+bounds: 2, 2369, 188, 74
+eye_r_happy
+bounds: 531, 2369, 181, 73
+eye_r_lashes
+bounds: 1443, 2002, 191, 154
+eyelid_l_half
+bounds: 90, 2222, 208, 140
+eyelid_r_half
+bounds: 300, 2222, 208, 140
+foot_l
+bounds: 412, 2002, 259, 201
+foot_r
+bounds: 673, 2002, 259, 201
+forearm_l
+bounds: 1120, 1596, 260, 273
+forearm_r
+bounds: 1382, 1596, 260, 273
+hair_back
+bounds: 172, 2, 696, 776
+hair_clips
+bounds: 1828, 1596, 108, 218
+hair_flowers
+bounds: 1752, 1596, 74, 226
+hair_front
+bounds: 870, 2, 700, 682
+hand_l_fist
+bounds: 1636, 2002, 147, 152
+hand_l_open
+bounds: 934, 2002, 156, 163
+hand_l_peace
+bounds: 2, 2002, 203, 218
+hand_r_fist
+bounds: 1785, 2002, 147, 152
+hand_r_open
+bounds: 1092, 2002, 156, 163
+hand_r_peace
+bounds: 207, 2002, 203, 218
+head
+bounds: 2, 918, 570, 676
+mouth_closed
+bounds: 1217, 2445, 74, 15
+mouth_flat
+bounds: 1293, 2445, 74, 10
+mouth_grin
+bounds: 1456, 2222, 122, 82
+mouth_half
+bounds: 1342, 2369, 82, 52
+mouth_o
+bounds: 192, 2369, 54, 74
+mouth_open
+bounds: 972, 2222, 114, 102
+mouth_sad
+bounds: 1109, 2445, 82, 26
+mouth_smile
+bounds: 685, 2445, 110, 36
+mouth_smirk
+bounds: 298, 2445, 89, 40
+mouth_surprised
+bounds: 1088, 2222, 70, 94
+mouth_tongue
+bounds: 1642, 2222, 106, 77
+mouth_viseme_A
+bounds: 1160, 2222, 106, 94
+mouth_viseme_E
+bounds: 1914, 2369, 122, 48
+mouth_viseme_FV
+bounds: 797, 2445, 90, 36
+mouth_viseme_I
+bounds: 889, 2445, 106, 36
+mouth_viseme_L
+bounds: 248, 2369, 98, 74
+mouth_viseme_MBP
+bounds: 1031, 2445, 76, 28
+mouth_viseme_O
+bounds: 1580, 2222, 60, 78
+mouth_viseme_U
+bounds: 1426, 2369, 40, 50
+neck
+bounds: 1644, 1596, 106, 238
+nose
+bounds: 992, 2369, 52, 64
+nose_stud
+bounds: 1193, 2445, 22, 22
+pelvis
+bounds: 708, 1596, 410, 358
+pupil_l
+bounds: 1268, 2222, 92, 92
+pupil_r
+bounds: 1362, 2222, 92, 92
+shin_l
+bounds: 1530, 918, 222, 477
+shin_r
+bounds: 1754, 918, 222, 477
+thigh_l
+bounds: 1052, 918, 237, 479
+thigh_r
+bounds: 1291, 918, 237, 479
+torso
+bounds: 574, 918, 476, 507
+upperarm_l
+bounds: 2, 1596, 351, 404
+upperarm_r
+bounds: 355, 1596, 351, 404

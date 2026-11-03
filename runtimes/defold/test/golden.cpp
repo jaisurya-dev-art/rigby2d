@@ -4,7 +4,7 @@
 // files come from runtimes/rust/rigby-runtime/tests/golden/generate.mjs; more can be given with the
 // RIGBY_GOLDEN_DIR environment variable.
 //
-//   g++ -std=c++17 -O2 -I runtimes/defold/rigby2d/src runtimes/defold/test/golden.cpp runtimes/defold/rigby2d/src/*.cpp -o golden
+//   g++ -std=c++17 -O2 -I runtimes/defold/rigby2d/src runtimes/defold/test/golden.cpp runtimes/defold/rigby2d/src/rigby_*.cpp -o golden
 //   ./golden [repo root]
 
 #include "rigby.h"

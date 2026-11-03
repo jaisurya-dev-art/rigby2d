@@ -32,8 +32,9 @@
 <p align="center">
   <a href="runtimes/godot/addons/rigby2d/README.md"><img alt="Godot" src="https://img.shields.io/badge/Godot-runtime-478cbf?logo=godotengine&logoColor=white"></a>
   <a href="runtimes/unity/com.rigby2d.unity/README.md"><img alt="Unity" src="https://img.shields.io/badge/Unity-runtime-222429?logo=unity&logoColor=white"></a>
+  <a href="runtimes/defold/README.md"><img alt="Defold" src="https://img.shields.io/badge/Defold-runtime-1c9be6"></a>
   <a href="runtimes/cocos/README.md"><img alt="Cocos Creator" src="https://img.shields.io/badge/Cocos%20Creator-runtime-55c2e1?logo=cocos&logoColor=white"></a>
-  <a href="runtimes/phaser/README.md"><img alt="Phaser" src="https://img.shields.io/badge/Phaser-runtime-7b5cd6"></a>
+  <a href="runtimes/phaser/README.md"><img alt="Phaser" src="https://img.shields.io/badge/Phaser-runtime-8fd0ef"></a>
   <a href="docs/runtimes.md"><img alt="JavaScript and Rust" src="https://img.shields.io/badge/JavaScript%20%7C%20Rust-runtimes-f7df1e?labelColor=555"></a>
   <br>
   <img alt="Status: public beta" src="https://img.shields.io/badge/status-public%20beta-blue">
@@ -83,7 +84,7 @@ runtimes and the MCP server. The pages are also in [`docs/`](docs/).
   on-device Whisper transcription, and renders to PNG sequences, WebM with alpha and MP4.
 - **Scene composition** (new in 0.3): several characters on one stage as actors with NLE-style clips
   (trim, speed, loops, crossfades, their own audio), painted layers with parallax, and a camera,
-  and they play in games through every runtime. See [Scenes](https://rigby2d.com/docs/scenes.html).
+  and they play in games through the Godot, Unity, Cocos Creator, Phaser, JavaScript and Rust runtimes. See [Scenes](https://rigby2d.com/docs/scenes.html).
 - **A focused editor**: Game and Film workspaces, panels you can resize or pop out to a second
   monitor, *Open recent*, and a searchable shortcut reference with Reference and Blender-like keys.
 - **Your work is safe**: saves that never leave a half-written file, `.rigby1` backups like Blender's
@@ -95,14 +96,14 @@ runtimes and the MCP server. The pages are also in [`docs/`](docs/).
   See [Add-ons](https://rigby2d.com/docs/addons.html).
 - **Welcome screen, auto-update and runtimes from the editor**: new projects, recent work, starter
   projects and lessons at startup; signed updates in the desktop app; *File ▸ Get runtimes* for Unity,
-  Godot and Phaser.
+  Godot, Defold, Cocos Creator and Phaser.
 - **Coming from other tools**: opens Spine exports (with a migration checker) and DragonBones
   projects. See [Coming from Spine](https://rigby2d.com/docs/migrating-from-spine.html) and
   [Coming from DragonBones](https://rigby2d.com/docs/migrating-from-dragonbones.html).
 - **Python scripting** and custom tools, and a built-in **MCP server** so AI assistants such as
   Claude can inspect, rig and animate your projects.
 - **Lossless skeleton JSON (3.8, 4.2, 4.3) and binary `.skel`** with texture atlases, played by the
-  **JavaScript, Phaser, Rust, Unity and Godot runtimes**.
+  **JavaScript, Phaser, Rust, C++ (Defold), Unity, Godot and Cocos Creator runtimes**.
 - Built-in **tutorials** and demo projects (**NILA**, **Rigbytron**, and a **scene** with both), also on the
   [Demos page](https://rigby2d.com/demos/) with their game-ready exports
   (demo content © Rigby2D, under its own [demo license](branding/DEMO-LICENSE.md)).
@@ -136,7 +137,7 @@ src/core/       Runtime: data model, skeleton JSON/.skel + atlas I/O, pose evalu
 src/editor/     Editor UI: viewport, tree, inspector, dopesheet, graph editor, import/export, scripting
 src/webgl/      Reference WebGL renderer for the runtime
 src/mcp/        Model Context Protocol server for AI assistants
-runtimes/       Rust runtime and the Godot 4 nodes
+runtimes/       Rust, C++ (Defold), Godot, Unity, Cocos Creator and Phaser runtimes
 site/           Website and documentation site (GitHub Pages)
 docs/           Documentation pages and images
 branding/       Logo, icons, Rigbytron and NILA (proprietary, see TRADEMARKS.md)

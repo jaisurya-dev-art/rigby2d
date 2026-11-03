@@ -3,13 +3,14 @@
 Rigby2D animations play in games and apps through the included runtimes. All of them load skeleton
 `.json` (3.8, 4.2, 4.3) or binary `.skel` (4.3) with an `.atlas`, and evaluate meshes, weights, skins,
 image sequences, clipping, IK, transform, path, physics and slider constraints, draw order, events and
-layered tracks with crossfades. They also play [scenes](scenes.md#in-games-and-apps): several
-characters on a stage with a moving camera and parallax.
+layered tracks with crossfades. All but Defold also play [scenes](scenes.md#in-games-and-apps):
+several characters on a stage with a moving camera and parallax.
 
 <div class="cards engines">
 <a href="#godot" data-mark="godot"><strong>Godot</strong><code>RigbySkeleton2D</code> and <code>RigbyScene2D</code> nodes, a GDExtension on the Rust core. <small>Godot 4.3+ · Windows, macOS, Linux</small></a>
 <a href="#unity" data-mark="unity"><strong>Unity <span class="status">Complete</span></strong><code>RigbySkeleton</code> and <code>RigbyScene</code> components in C#, multi-core, no garbage. <small>Unity 2021.3+ and Unity 6 · every platform</small></a>
-<a href="#cocos-creator" data-mark="cocos"><strong>Cocos Creator <span class="status">New</span></strong>A <code>RigbySkeleton</code> component for 2D scenes, drawn in order with sprites and UI. <small>Cocos Creator 3.8 · web and native</small></a>
+<a href="#defold" data-mark="defold"><strong>Defold <span class="status">New</span></strong>A native extension: the runtime in C++, golden-tested like the Rust one, with a Lua player. <small>Defold 1.14+ · every platform</small></a>
+<a href="#cocos-creator" data-mark="cocos"><strong>Cocos Creator <span class="status">Complete</span></strong>A <code>RigbySkeleton</code> component for 2D scenes, drawn in order with sprites and UI. <small>Cocos Creator 3.8 · web and native</small></a>
 <a href="#phaser" data-mark="phaser"><strong>Phaser <span class="status">Complete</span></strong>A plugin: <code>this.add.rigby()</code>, on the JavaScript runtime. <small>Phaser 3.60+ and 4 · WebGL</small></a>
 <a href="#javascript" data-mark="javascript"><strong>JavaScript <span class="status">Complete</span></strong>No dependencies, with a ready-made WebGL renderer. <small><code>src/core</code> · <code>src/webgl</code></small></a>
 <a href="#rust" data-mark="rust"><strong>Rust <span class="status">Complete</span></strong>No dependencies; matches the JavaScript runtime frame by frame, 3 to 4× faster. <small><code>runtimes/rust/rigby-runtime</code></small></a>
@@ -116,6 +117,39 @@ A `RigbySkeleton` is an ordinary Phaser game object (position, scale, rotation, 
 input) with the full animation state: tracks, crossfades, queues, skins, events and bone positions
 for attaching objects. It plays exactly as the editor does. See the
 [Phaser guide](https://github.com/jaisurya-dev-art/rigby2d/blob/develop/runtimes/phaser/README.md).
+
+## Defold
+
+The `rigby2d` native extension for Defold 1.14 or newer. Its runtime is a C++ port of the Rust one,
+tested frame by frame against the JavaScript runtime in CI, and Defold's build server compiles it
+for every platform (Windows, macOS, Linux, Android, iOS, HTML5). Add the library to *game.project ▸
+Dependencies* and choose *Project ▸ Fetch Libraries*:
+
+```
+https://github.com/jaisurya-dev-art/rigby2d/releases/latest/download/rigby2d-defold.zip
+```
+
+Put your export (`.skel` or `.json`, `.atlas` and its `.png`) in a folder listed in *Custom
+Resources*. On the character's game object, add a factory with the id `rigby2d` and the prototype
+`/rigby2d/piece.go`, and a script:
+
+```lua
+local rigby2d = require("rigby2d.rigby2d")
+
+function init(self)
+	self.hero = rigby2d.new({ skeleton = "/assets/hero.skel", atlas = "/assets/hero.atlas", animation = "walk" })
+	self.hero:add_animation(0, "idle", true, 0.3)
+	self.hero:on_event(function(e) if e.name == "footstep" then sound.play("#step") end end)
+end
+
+function update(self, dt) self.hero:update(dt) end
+function final(self) self.hero:delete() end
+```
+
+The C++ runtime writes the triangles straight into the vertex buffers of a few mesh components:
+no work per vertex in Lua and no allocation in steady playback. `player:bone(name)` places
+weapons and effects on bones. The demo (`rigby2d-defold-demo` on the Releases page) plays NILA
+and Rigbytron. See the [Defold guide](../runtimes/defold/README.md) for every call.
 
 ## Cocos Creator
 

@@ -1,0 +1,27 @@
+name: "main"
+instances {
+  id: "rigbytron"
+  prototype: "/main/rigbytron.go"
+  position {
+    x: 380.0
+    y: 90.0
+  }
+  scale3 {
+    x: 0.3
+    y: 0.3
+    z: 1.0
+  }
+}
+instances {
+  id: "nila"
+  prototype: "/main/nila.go"
+  position {
+    x: 920.0
+    y: -40.0
+  }
+  scale3 {
+    x: 0.24
+    y: 0.24
+    z: 1.0
+  }
+}

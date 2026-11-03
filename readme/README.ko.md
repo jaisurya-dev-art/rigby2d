@@ -108,7 +108,7 @@ src/core/       런타임: 데이터 모델, 스켈레톤 JSON/.skel과 아틀�
 src/editor/     에디터 UI: 뷰포트, 트리, 인스펙터, 도프시트, 그래프 에디터, 가져오기/내보내기, 스크립트
 src/webgl/      런타임용 레퍼런스 WebGL 렌더러
 src/mcp/        AI 어시스턴트를 위한 Model Context Protocol 서버
-runtimes/       Rust, Godot, Unity, Phaser 런타임
+runtimes/       Rust, C++(Defold), Godot, Unity, Cocos Creator, Phaser 런타임
 addons/         공식 애드온
 site/           웹사이트와 문서 사이트(GitHub Pages)
 docs/           문서 페이지와 이미지

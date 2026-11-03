@@ -1,0 +1,31 @@
+-- SPDX-License-Identifier: MIT OR Apache-2.0
+-- Demo: Rigbytron holds, slashes on Space (or a click) and reports animation events.
+
+local rigby2d = require("rigby2d.rigby2d")
+
+function init(self)
+	msg.post(".", "acquire_input_focus")
+	self.player = rigby2d.new({ skeleton = "/assets/rigbytron.skel", atlas = "/assets/rigbytron.atlas", animation = "hold" })
+	self.player:on_event(function(event)
+		if event.kind == "event" then
+			print(("event %s on track %d"):format(event.name, event.track))
+		elseif event.kind == "complete" then
+			print(("%s completed on track %d"):format(event.animation, event.track))
+		end
+	end)
+end
+
+function update(self, dt)
+	self.player:update(dt)
+end
+
+function on_input(self, action_id, action)
+	if (action_id == hash("key_space") or action_id == hash("touch")) and action.pressed then
+		self.player:set_animation(0, "release", false, 0.1)
+		self.player:add_animation(0, "hold", true, 0.3)
+	end
+end
+
+function final(self)
+	self.player:delete()
+end

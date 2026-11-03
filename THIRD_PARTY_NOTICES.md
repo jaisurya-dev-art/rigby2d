@@ -34,6 +34,11 @@ License: <https://github.com/openai/whisper>.
 The editor's dialogs and the website use icons from:
 
 - **Lucide**: ISC License, Copyright (c) Lucide Contributors. Source: <https://lucide.dev>.
+- **Defold logo** (the Defold mark on the website): from Defold's brand assets,
+  <https://github.com/defold/assets-defold>. A trademark of the Defold Foundation, used only to name
+  the engine the Defold runtime is for.
+- **Phaser logo** (the Phaser mark on the website, the P of the logo): a trademark of Phaser
+  Studio Inc., used only to name the engine the Phaser runtime is for.
 - **Simple Icons** (the Unity, Godot, JavaScript, Rust, Apple and Linux marks): CC0 1.0. Source:
   <https://simpleicons.org>. The marks are trademarks of their owners and only name the engines and
   platforms the runtimes and downloads are for.
