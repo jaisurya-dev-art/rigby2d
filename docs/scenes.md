@@ -151,7 +151,7 @@ and crossfades exactly as in the editor. *File ▸ Export ▸ Scene for runtimes
 | `name.json` + `.atlas` + `.png` | The stage as a skeleton export (backgrounds, camera, anchor bones, shots). |
 | `name.<actor>.json` + `.atlas` + `.png` | Each character, as a skeleton export. |
 
-Every runtime except Defold (characters only, for now) plays it and matches the editor frame by frame: the [Rust runtime](runtimes.md#rust)
+Every runtime plays it and matches the editor frame by frame: the [Rust runtime](runtimes.md#rust)
 is checked against the JavaScript one on the demo scene, physics included.
 
 **Godot**: add a `RigbyScene2D` node and set *Scene File*. Follow the stage's camera with a
@@ -163,6 +163,24 @@ func _process(_delta: float) -> void:
 ```
 
 ![The demo scene playing in Godot with RigbyScene2D](images/godot-scene.png)
+
+**Defold**: put the export in a folder listed in *Custom Resources* and play it from a script on a
+game object with the `rigby2d` factory (see the [Defold guide](../runtimes/defold/README.md)). Keep
+the stage's camera bone in the middle of the screen by moving the game object the other way:
+
+```lua
+local rigby2d = require("rigby2d.rigby2d")
+
+function init(self)
+	self.scene = rigby2d.new_scene({ scene = "/assets/intro/intro.scene.json", shot = "meet" })
+end
+
+function update(self, dt)
+	self.scene:update(dt)
+	local x, y = self.scene:camera()
+	go.set_position(vmath.vector3(640 - x, 360 - y, 0))
+end
+```
 
 **JavaScript**:
 

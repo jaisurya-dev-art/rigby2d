@@ -1,0 +1,29 @@
+-- SPDX-License-Identifier: MIT OR Apache-2.0
+-- Demo: Tab switches between the characters (Rigbytron and NILA) and a scene.
+
+local DEMOS = { "#characters", "#scene" }
+
+local function show(self, index)
+	if self.current then
+		msg.post(DEMOS[self.current], "unload")
+	end
+	self.current = index
+	msg.post(DEMOS[index], "async_load")
+end
+
+function init(self)
+	msg.post(".", "acquire_input_focus")
+	show(self, 1)
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == hash("proxy_loaded") then
+		msg.post(sender, "enable")
+	end
+end
+
+function on_input(self, action_id, action)
+	if action_id == hash("key_tab") and action.pressed then
+		show(self, self.current % #DEMOS + 1)
+	end
+end

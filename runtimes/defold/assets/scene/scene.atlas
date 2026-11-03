@@ -1,0 +1,11 @@
+scene.png
+size: 8192, 4096
+filter: Linear, Linear
+background
+bounds: 2, 2, 4200, 1700
+ground
+bounds: 2, 2988, 4200, 260
+hills
+bounds: 2, 2466, 4200, 520
+mountains
+bounds: 2, 1704, 4200, 760

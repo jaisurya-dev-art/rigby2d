@@ -3,8 +3,8 @@
 Rigby2D animations play in games and apps through the included runtimes. All of them load skeleton
 `.json` (3.8, 4.2, 4.3) or binary `.skel` (4.3) with an `.atlas`, and evaluate meshes, weights, skins,
 image sequences, clipping, IK, transform, path, physics and slider constraints, draw order, events and
-layered tracks with crossfades. All but Defold also play [scenes](scenes.md#in-games-and-apps):
-several characters on a stage with a moving camera and parallax.
+layered tracks with crossfades. They also play [scenes](scenes.md#in-games-and-apps): several
+characters on a stage with a moving camera and parallax.
 
 <div class="cards engines">
 <a href="#godot" data-mark="godot"><strong>Godot</strong><code>RigbySkeleton2D</code> and <code>RigbyScene2D</code> nodes, a GDExtension on the Rust core. <small>Godot 4.3+ · Windows, macOS, Linux</small></a>
@@ -148,7 +148,8 @@ function final(self) self.hero:delete() end
 
 The C++ runtime writes the triangles straight into the vertex buffers of a few mesh components:
 no work per vertex in Lua and no allocation in steady playback. `player:bone(name)` places
-weapons and effects on bones. The demo (`rigby2d-defold-demo` on the Releases page) plays NILA
+weapons and effects on bones, and `rigby2d.new_scene({ scene = "/assets/intro/intro.scene.json" })`
+plays a whole scene, with the stage's camera to follow. The demo (`rigby2d-defold-demo` on the Releases page) plays NILA
 and Rigbytron. See the [Defold guide](../runtimes/defold/README.md) for every call.
 
 ## Cocos Creator

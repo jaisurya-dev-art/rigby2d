@@ -6,3 +6,7 @@ mouse_trigger {
   input: MOUSE_BUTTON_1
   action: "touch"
 }
+key_trigger {
+  input: KEY_TAB
+  action: "key_tab"
+}

@@ -1,0 +1,37 @@
+-- SPDX-License-Identifier: MIT OR Apache-2.0
+-- Demo: a scene exported from the Rigby2D editor. NILA and Rigbytron meet while the camera pans
+-- and the backgrounds drift by depth. The game object follows the stage's camera bone, framed like
+-- the editor's film output (1920 px wide at 1.2 world units per pixel; the bone's scale zooms in).
+-- Space: restart.
+
+local rigby2d = require("rigby2d.rigby2d")
+
+local FRAME_WIDTH = 1920 * 1.2
+
+function init(self)
+	self.scene = rigby2d.new_scene({ scene = "/assets/scene/scene.scene.json", loop = true })
+	self.scene:on_finished(function(shot)
+		print("shot " .. shot .. " finished")
+	end)
+end
+
+function update(self, dt)
+	self.scene:update(dt)
+	local x, y, _, scale = self.scene:camera()
+	-- The default render script stretches the design size (game.project display width and height).
+	local width, height = sys.get_config_int("display.width"), sys.get_config_int("display.height")
+	local zoom = width / FRAME_WIDTH * (scale or 1)
+	-- Keep the camera bone at the middle of the screen.
+	go.set_scale(zoom)
+	go.set_position(vmath.vector3(width / 2 - (x or 0) * zoom, height / 2 - (y or 0) * zoom, 0))
+end
+
+function on_input(self, action_id, action)
+	if action_id == hash("key_space") and action.pressed then
+		self.scene:play((self.scene:current()), true)
+	end
+end
+
+function final(self)
+	self.scene:delete()
+end

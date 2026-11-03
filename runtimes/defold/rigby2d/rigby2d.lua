@@ -44,6 +44,25 @@ local function dir_of(path)
 	return path:match("^(.*/)") or ""
 end
 
+--- Page textures of an atlas (its images sit in `dir`): { textures, pma } by page.
+local function load_pages(pages, dir)
+	local out = { textures = {}, pma = {} }
+	for i, page in ipairs(pages) do
+		local img = image.load_buffer(read(dir .. page.name), { premultiply_alpha = false })
+		if not img then
+			error("rigby2d: can't decode atlas page " .. dir .. page.name)
+		end
+		out.textures[i] = resource.create_texture(unique("page") .. ".texturec", {
+			type = graphics.TEXTURE_TYPE_2D,
+			width = img.width,
+			height = img.height,
+			format = img.type == image.TYPE_RGB and graphics.TEXTURE_FORMAT_RGB or graphics.TEXTURE_FORMAT_RGBA,
+		}, img.buffer)
+		out.pma[i] = page.pma and 1 or 0
+	end
+	return out
+end
+
 --- Loads (once) a skeleton with its atlas and page textures.
 -- @param skeleton string path of the .json or .skel file
 -- @param atlas string path of the .atlas file (its page images sit next to it)
@@ -59,22 +78,18 @@ function M.load(skeleton, atlas)
 	if not data then
 		error("rigby2d: " .. skeleton .. ": " .. err)
 	end
-	loaded = { key = key, data = data, textures = {}, pma = {}, users = 1 }
-	for i, page in ipairs(data:pages()) do
-		local img = image.load_buffer(read(dir_of(atlas) .. page.name), { premultiply_alpha = false })
-		if not img then
-			error("rigby2d: can't decode atlas page " .. page.name)
-		end
-		loaded.textures[i] = resource.create_texture(unique("page") .. ".texturec", {
-			type = graphics.TEXTURE_TYPE_2D,
-			width = img.width,
-			height = img.height,
-			format = img.type == image.TYPE_RGB and graphics.TEXTURE_FORMAT_RGB or graphics.TEXTURE_FORMAT_RGBA,
-		}, img.buffer)
-		loaded.pma[i] = page.pma and 1 or 0
-	end
+	loaded = load_pages(data:pages(), dir_of(atlas))
+	loaded.key = key
+	loaded.data = data
+	loaded.users = 1
 	cache[key] = loaded
 	return loaded
+end
+
+local function release_pages(pages)
+	for _, texture in ipairs(pages.textures) do
+		resource.release(texture)
+	end
 end
 
 local function unload(loaded)
@@ -83,9 +98,7 @@ local function unload(loaded)
 		return
 	end
 	cache[loaded.key] = nil
-	for _, texture in ipairs(loaded.textures) do
-		resource.release(texture)
-	end
+	release_pages(loaded)
 end
 
 local Player = {}
@@ -220,17 +233,17 @@ local function new_piece(self, index)
 	-- Scale 1: a spawned object otherwise takes the owner's scale, which parenting applies again.
 	local id = factory.create(self.factory, vmath.vector3(0, 0, index * 0.0001), vmath.quat(), nil, 1)
 	go.set_parent(id, self.owner, false)
-	local piece = { id = id, mesh = msg.url(nil, id, "mesh"), page = 0 }
+	local piece = { id = id, mesh = msg.url(nil, id, "mesh") }
 	self.pieces[index] = piece
 	return piece
 end
 
---- Writes the current pose into the mesh pieces.
-function Player:draw()
-	local skeleton = self.skeleton
-	local count = skeleton:build()
+--- Builds the geometry of `native` (a skeleton or a scene) and writes it into the mesh pieces.
+-- `sources` holds the page textures of each skeleton it draws from (one for a skeleton).
+local function draw_pieces(self, native, sources)
+	local count = native:build()
 	for i = 1, count do
-		local page, vertices = skeleton:piece(i)
+		local page, vertices, source = native:piece(i)
 		local piece = self.pieces[i] or new_piece(self, i)
 		if piece.hidden then
 			msg.post(piece.mesh, "enable")
@@ -239,12 +252,14 @@ function Player:draw()
 		if not piece.capacity or vertices > piece.capacity then
 			grow(piece, vertices)
 		end
-		if piece.page ~= page then
+		if piece.page ~= page or piece.source ~= source then
 			piece.page = page
-			go.set(piece.mesh, "texture0", self.loaded.textures[page])
-			go.set(piece.mesh, "pma", vmath.vector4(self.loaded.pma[page], 0, 0, 0))
+			piece.source = source
+			local pages = sources[source]
+			go.set(piece.mesh, "texture0", pages.textures[page])
+			go.set(piece.mesh, "pma", vmath.vector4(pages.pma[page], 0, 0, 0))
 		end
-		piece.written = skeleton:write(i, piece.buffer, piece.written)
+		piece.written = native:write(i, piece.buffer, piece.written)
 		resource.set_buffer(piece.resource, piece.buffer)
 	end
 	for i = count + 1, #self.pieces do
@@ -254,6 +269,22 @@ function Player:draw()
 			piece.hidden = true
 		end
 	end
+end
+
+local function delete_pieces(self)
+	for _, piece in ipairs(self.pieces) do
+		go.delete(piece.id)
+		if piece.resource then
+			resource.release(piece.resource)
+		end
+	end
+	self.pieces = {}
+end
+
+--- Writes the current pose into the mesh pieces.
+function Player:draw()
+	self.sources = self.sources or { self.loaded }
+	draw_pieces(self, self.skeleton, self.sources)
 end
 
 --- Advances playback by dt seconds, reports events and draws the new pose (unless no_draw).
@@ -274,17 +305,118 @@ end
 
 --- Deletes the mesh pieces and releases resources. Call from final().
 function Player:delete()
-	for _, piece in ipairs(self.pieces) do
-		go.delete(piece.id)
-		if piece.resource then
-			resource.release(piece.resource)
-		end
-	end
-	self.pieces = {}
+	delete_pieces(self)
 	if self.loaded then
 		unload(self.loaded)
 		self.loaded = nil
 	end
+end
+
+-- ---- scenes -------------------------------------------------------------------------------------
+
+local ScenePlayer = {}
+ScenePlayer.__index = ScenePlayer
+
+--- Plays a scene exported with File > Export > Scene for runtimes (<name>.scene.json, with the
+-- stage and every character's skeleton, .atlas and pages next to it) on the current game object.
+-- @param options table:
+--   scene (path of the .scene.json, required); shot (default: the first); loop (default true);
+--   factory (url of the piece factory, default "#rigby2d"); playing (default true).
+function M.new_scene(options)
+	local self = setmetatable({}, ScenePlayer)
+	local path = assert(options.scene, "rigby2d: scene path missing")
+	local dir = dir_of(path)
+	local scene, err = rigby.load_scene(read(path), function(file)
+		return sys.load_resource(dir .. file)
+	end)
+	if not scene then
+		error("rigby2d: " .. path .. ": " .. tostring(err))
+	end
+	self.scene = scene
+	self.factory = options.factory or msg.url("#rigby2d")
+	self.owner = go.get_id()
+	self.pieces = {}
+	self.listeners = {}
+	self.playing = options.playing ~= false
+	-- Each skeleton's atlas is <skeleton without extension>.atlas next to it (a stage without
+	-- images has none).
+	self.sources = {}
+	for i, file in ipairs(scene:sources()) do
+		local atlas = dir .. file:gsub("%.[^./]*$", "") .. ".atlas"
+		local text = sys.load_resource(atlas)
+		if text then
+			scene:set_atlas(i, text)
+			self.sources[i] = load_pages(scene:pages(i), dir_of(atlas))
+		else
+			self.sources[i] = { textures = {}, pma = {} }
+		end
+	end
+	local shot = options.shot or scene:shots()[1]
+	if shot then
+		self:play(shot, options.loop ~= false)
+	end
+	self:draw()
+	return self
+end
+
+--- Plays a shot (a stage animation) from its start. Returns false if there is no such shot.
+function ScenePlayer:play(shot, loop)
+	local found = self.scene:play(shot, loop ~= false)
+	if not found then
+		print("rigby2d: no shot '" .. tostring(shot) .. "'")
+	end
+	return found
+end
+
+--- Calls fn(shot) each time the shot reaches its end (every loop, or once when it holds).
+function ScenePlayer:on_finished(fn)
+	table.insert(self.listeners, fn)
+end
+
+--- Jumps to `seconds` into the current shot.
+function ScenePlayer:seek(seconds)
+	self.scene:seek(seconds)
+	self:draw()
+end
+
+--- Shot name, seconds into it, and its length.
+function ScenePlayer:current() return self.scene:current() end
+function ScenePlayer:shots() return self.scene:shots() end
+function ScenePlayer:actors() return self.scene:actors() end
+
+--- The stage's camera bone (x, y, rotation, scale_x, scale_y in the game object's space): follow
+-- it with a camera, or move the game object the other way.
+function ScenePlayer:camera()
+	return self.scene:stage_bone("camera")
+end
+
+--- A stage bone, or a bone of an actor: x, y, rotation, scale_x, scale_y in the game object's space.
+function ScenePlayer:stage_bone(name) return self.scene:stage_bone(name) end
+function ScenePlayer:actor_bone(actor, bone) return self.scene:actor_bone(actor, bone) end
+
+--- Writes the current frame into the mesh pieces.
+function ScenePlayer:draw()
+	draw_pieces(self, self.scene, self.sources)
+end
+
+--- Advances the scene by dt seconds (when playing) and draws it.
+function ScenePlayer:update(dt)
+	if self.playing and self.scene:update(dt) then
+		local shot = self.scene:current()
+		for _, fn in ipairs(self.listeners) do
+			fn(shot)
+		end
+	end
+	self:draw()
+end
+
+--- Deletes the mesh pieces and releases the page textures. Call from final().
+function ScenePlayer:delete()
+	delete_pieces(self)
+	for _, pages in ipairs(self.sources) do
+		release_pages(pages)
+	end
+	self.sources = {}
 end
 
 return M

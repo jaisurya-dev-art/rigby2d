@@ -1,0 +1,85 @@
+{
+  "rigbyScene": 1,
+  "stage": "scene.json",
+  "focal": 1000,
+  "depth": {
+    "background": 4000,
+    "mountains": 1400,
+    "hills": 500
+  },
+  "actors": [
+    {
+      "id": "nila",
+      "name": "NILA",
+      "bone": "NILA",
+      "slot": "NILA",
+      "skeleton": "scene.nila.json",
+      "skin": null,
+      "flip": false,
+      "ground": -275.99999999947886,
+      "clips": {
+        "meet": [
+          {
+            "animation": "wave",
+            "start": 0,
+            "in": 0,
+            "out": null,
+            "speed": 1,
+            "loops": 1,
+            "blend": 0
+          },
+          {
+            "animation": "promo",
+            "start": 1.6,
+            "in": 0.95,
+            "out": 5.4,
+            "speed": 1,
+            "loops": 1,
+            "blend": 0.4
+          },
+          {
+            "animation": "idle",
+            "start": 6.05,
+            "in": 0,
+            "out": null,
+            "speed": 1,
+            "loops": 0,
+            "blend": 0.5
+          }
+        ]
+      }
+    },
+    {
+      "id": "rigbytron",
+      "name": "Rigbytron",
+      "bone": "Rigbytron",
+      "slot": "Rigbytron",
+      "skeleton": "scene.rigbytron.json",
+      "skin": null,
+      "flip": true,
+      "ground": 7,
+      "clips": {
+        "meet": [
+          {
+            "animation": "hold",
+            "start": 0.4,
+            "in": 0,
+            "out": null,
+            "speed": 1,
+            "loops": 1,
+            "blend": 0
+          },
+          {
+            "animation": "release",
+            "start": 6.2,
+            "in": 0,
+            "out": null,
+            "speed": 1,
+            "loops": 1,
+            "blend": 0.15
+          }
+        ]
+      }
+    }
+  ]
+}
