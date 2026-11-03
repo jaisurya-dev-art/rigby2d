@@ -257,6 +257,8 @@ export default {
   "Share to r/rigby2d": "分享到 r/rigby2d",
   "Share to r/rigby2d…": "分享到 r/rigby2d…",
   "Shortcuts: {name}": "快捷键：{name}",
+  "Customize shortcuts…": "自定义快捷键…",
+  "Change any shortcut and save your own keymap": "修改任意快捷键并保存你自己的键位方案",
   "Show bones": "显示骨骼",
   "Show output frame": "显示输出框",
   "Show the welcome screen when the editor starts.": "编辑器启动时显示欢迎屏幕。",

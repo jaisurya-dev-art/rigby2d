@@ -161,20 +161,170 @@ export function actionsFor(presetId, combo) {
     .map(([action]) => action);
 }
 
-/** Human-readable shortcut for an action ("Ctrl+Shift+L"), or ''. */
-export function shortcutLabel(presetId, action) {
-  const combo = (PRESETS[presetId] ?? PRESETS.reference).bindings[action]?.[0];
-  if (!combo) return '';
+/** Human-readable combo ("ctrl+shift+l" -> "Ctrl+Shift+L"). */
+export function comboLabel(combo) {
   return combo
     .split('+')
     .map((p) => (p.length === 1 ? p.toUpperCase() : p.replace(/^arrow/, '').replace(/^./, (c) => c.toUpperCase())))
     .join('+');
 }
 
+/** Human-readable shortcut for an action ("Ctrl+Shift+L"), or ''. */
+export function shortcutLabel(presetId, action) {
+  const combo = (PRESETS[presetId] ?? PRESETS.reference).bindings[action]?.[0];
+  return combo ? comboLabel(combo) : '';
+}
+
+// ---- custom keymap ------------------------------------------------------------------------------
+//
+// A custom keymap is a built-in preset (its base) plus the actions the user changed, each with its
+// full list of combos (an empty list leaves the action without a shortcut). Registered, it is the
+// preset 'custom', so every lookup above works with it unchanged.
+
+/** Combos that stay with the editor: Ctrl+Alt+1..9 recall window layouts. */
+export function reservedCombo(combo) {
+  return /^ctrl\+alt\+[1-9]$/.test(combo);
+}
+
+/** The bindings of a custom keymap: its base preset with the changes applied. */
+export function customBindings(custom) {
+  const base = PRESETS[custom.base] && custom.base !== 'custom' ? PRESETS[custom.base] : PRESETS.reference;
+  const out = {};
+  for (const [action, combos] of Object.entries(base.bindings)) out[action] = [...combos];
+  for (const [action, combos] of Object.entries(custom.changes)) out[action] = [...combos];
+  return out;
+}
+
+/** A custom keymap starting from preset `base`, with no changes. */
+export function newCustom(base) {
+  return { base: PRESETS[base] && base !== 'custom' ? base : 'reference', changes: {} };
+}
+
+/**
+ * Actions other than `action` that `combo` is bound to in `bindings`. "Close menus" shares Escape
+ * with deselecting by design, so it never conflicts.
+ */
+export function conflictsFor(bindings, combo, action) {
+  return Object.entries(bindings)
+    .filter(([a, combos]) => a !== action && a !== 'menu.close' && action !== 'menu.close' && combos.includes(combo))
+    .map(([a]) => a);
+}
+
+/** Records a change: `action` gets `combos`. A change equal to the base preset is dropped. */
+function withCombos(custom, action, combos) {
+  const changes = { ...custom.changes };
+  const base = PRESETS[custom.base]?.bindings[action] ?? [];
+  if (combos.length === base.length && combos.every((c, i) => c === base[i])) delete changes[action];
+  else changes[action] = combos;
+  return { base: custom.base, changes };
+}
+
+/**
+ * Binds `combo` to `action` in a custom keymap (added to its other combos, or replacing combo
+ * `replace`). Other actions that used `combo` lose it. Returns { custom, moved: [actions] }.
+ */
+export function bindCombo(custom, action, combo, replace = null) {
+  const bindings = customBindings(custom);
+  const moved = conflictsFor(bindings, combo, action);
+  let next = custom;
+  for (const other of moved) next = withCombos(next, other, bindings[other].filter((c) => c !== combo));
+  const own = (bindings[action] ?? []).filter((c) => c !== combo && c !== replace);
+  const at = replace ? (bindings[action] ?? []).indexOf(replace) : -1;
+  if (at >= 0) own.splice(Math.min(at, own.length), 0, combo);
+  else own.push(combo);
+  next = withCombos(next, action, own);
+  return { custom: next, moved };
+}
+
+/** Removes `combo` from `action`. */
+export function unbindCombo(custom, action, combo) {
+  return withCombos(custom, action, (customBindings(custom)[action] ?? []).filter((c) => c !== combo));
+}
+
+/** Puts `action` back to its base preset's keys (or every action, without one). */
+export function resetCustom(custom, action = null) {
+  if (!action) return { base: custom.base, changes: {} };
+  const changes = { ...custom.changes };
+  delete changes[action];
+  return { base: custom.base, changes };
+}
+
+/** A combo as comboOf writes it: modifiers in order, then one key name (letters, f5, arrowleft, ","...). */
+const COMBO = /^(ctrl\+)?(shift\+)?(alt\+)?[^\s+]+$/;
+const ACTION_IDS = new Set(ACTIONS.map(([id]) => id));
+
+/** A custom keymap from parsed data (storage or a file); unknown actions and bad combos are dropped. */
+export function readCustom(data) {
+  if (!data || typeof data !== 'object') return null;
+  const custom = newCustom(typeof data.base === 'string' ? data.base : 'reference');
+  const changes = data.changes && typeof data.changes === 'object' ? data.changes : {};
+  for (const [action, combos] of Object.entries(changes)) {
+    if (!ACTION_IDS.has(action) || !Array.isArray(combos)) continue;
+    custom.changes[action] = [...new Set(combos.filter((c) => typeof c === 'string' && COMBO.test(c) && !reservedCombo(c)))];
+  }
+  return custom;
+}
+
+/** A keymap file: base preset and changes, readable by importKeymapFile. */
+export function keymapFile(custom) {
+  return `${JSON.stringify({ rigby2dKeymap: 1, base: custom.base, changes: custom.changes }, null, 2)}\n`;
+}
+
+/** Parses a keymap file. Throws when it is not one. */
+export function importKeymapFile(text) {
+  let data;
+  try {
+    data = JSON.parse(text);
+  } catch {
+    throw new Error('not a Rigby2D keymap file');
+  }
+  if (!data || data.rigby2dKeymap !== 1) throw new Error('not a Rigby2D keymap file');
+  return readCustom(data);
+}
+
+/** Makes `custom` the preset 'custom' (or removes it, with null). */
+export function registerCustom(custom) {
+  if (custom) PRESETS.custom = { label: 'Custom', bindings: customBindings(custom) };
+  else delete PRESETS.custom;
+}
+
 const STORAGE_KEY = 'rigby2d.keymap';
+const CUSTOM_STORAGE_KEY = 'rigby2d.keymap.custom';
+
+/** The custom keymap remembered on this machine (registered as the preset 'custom'), or null. */
+export function loadCustom() {
+  let custom = null;
+  try {
+    custom = readCustom(JSON.parse(localStorage.getItem(CUSTOM_STORAGE_KEY) ?? 'null'));
+  } catch {
+    custom = null;
+  }
+  registerCustom(custom);
+  return custom;
+}
+
+/** Remembers the custom keymap on this machine and registers it (null forgets it). */
+export function saveCustom(custom) {
+  registerCustom(custom);
+  try {
+    if (custom) localStorage.setItem(CUSTOM_STORAGE_KEY, JSON.stringify({ base: custom.base, changes: custom.changes }));
+    else localStorage.removeItem(CUSTOM_STORAGE_KEY);
+  } catch {
+    // Storage can be unavailable (private mode); the keymap then lasts for this session only.
+  }
+}
+
+/** Calls `fn()` when another window of the editor changes the keymap (detached panels). */
+export function onKeymapStorage(fn) {
+  if (typeof window === 'undefined') return;
+  window.addEventListener('storage', (e) => {
+    if (e.key === STORAGE_KEY || e.key === CUSTOM_STORAGE_KEY) fn();
+  });
+}
 
 /** The keymap preset remembered on this machine (falls back to the reference preset). */
 export function loadPreset() {
+  loadCustom();
   try {
     const id = localStorage.getItem(STORAGE_KEY);
     return id && PRESETS[id] ? id : 'reference';

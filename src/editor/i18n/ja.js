@@ -257,6 +257,8 @@ export default {
   "Share to r/rigby2d": "r/rigby2d に共有",
   "Share to r/rigby2d…": "r/rigby2d に共有…",
   "Shortcuts: {name}": "ショートカット：{name}",
+  "Customize shortcuts…": "ショートカットをカスタマイズ…",
+  "Change any shortcut and save your own keymap": "どのショートカットも変更して、自分のキーマップを保存できます",
   "Show bones": "ボーンを表示",
   "Show output frame": "出力フレームを表示",
   "Show the welcome screen when the editor starts.": "エディターの起動時にようこそ画面を表示します。",

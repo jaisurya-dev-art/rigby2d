@@ -3,7 +3,7 @@
 
 import { Pose } from '../core/pose.js';
 import { invalidateConstraints } from '../core/constraints.js';
-import { loadPreset, savePreset } from './keymap.js';
+import { loadCustom, loadPreset, onKeymapStorage, saveCustom, savePreset } from './keymap.js';
 import { Skeleton } from '../core/model.js';
 import { remEuclid } from '../core/state.js';
 import * as edit from './edit.js';
@@ -136,6 +136,14 @@ export class App {
     this.tool = 'rotate';
     /** Keyboard shortcut preset id. */
     this.keymap = loadPreset();
+    /** The user's own keymap (preset 'custom'), or null. */
+    this.customKeymap = loadCustom();
+    // Another window (a detached panel) changed the shortcuts: use them here too.
+    onKeymapStorage(() => {
+      this.customKeymap = loadCustom();
+      this.keymap = loadPreset();
+      this.changed();
+    });
     /** Animate mode: key every edit immediately (on), or keep edits as unkeyed changes (off). */
     this.autoKey = false;
     /** Unkeyed changes in animate mode: bone index -> { channel -> partial local transform }. */
@@ -490,6 +498,13 @@ export class App {
     this.keymap = id;
     savePreset(id);
     this.changed();
+  }
+
+  /** Saves the user's own keymap and makes it the active shortcut set. */
+  setCustomKeymap(custom) {
+    this.customKeymap = custom;
+    saveCustom(custom);
+    this.setKeymap('custom');
   }
 
   undo() {

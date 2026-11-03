@@ -257,6 +257,8 @@ export default {
   "Share to r/rigby2d": "Compartilhar no r/rigby2d",
   "Share to r/rigby2d…": "Compartilhar no r/rigby2d…",
   "Shortcuts: {name}": "Atalhos: {name}",
+  "Customize shortcuts…": "Personalizar atalhos…",
+  "Change any shortcut and save your own keymap": "Altere qualquer atalho e salve seu próprio mapa de teclas",
   "Show bones": "Mostrar ossos",
   "Show output frame": "Mostrar quadro de saída",
   "Show the welcome screen when the editor starts.": "Mostrar a tela de boas-vindas quando o editor inicia.",

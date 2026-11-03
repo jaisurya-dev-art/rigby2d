@@ -2161,6 +2161,102 @@ kbd {
   border-radius: 4px;
 }
 
+/* Custom keymap editing (Custom set active) */
+.shortcut-groups.editing {
+  columns: 1;
+}
+.shortcut-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: -4px 0 12px;
+  font-size: 12px;
+  color: #a4a8b0;
+}
+.shortcut-tools[hidden] {
+  display: none;
+}
+.shortcut-tools-spacer {
+  flex: 1;
+}
+.shortcut-tools button,
+.shortcut-base select {
+  font-size: 12px;
+}
+.shortcut-flash {
+  flex-basis: 100%;
+  margin: 2px 0 0;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: rgba(92, 145, 230, 0.14);
+  color: #d6e2f5;
+}
+.shortcut-row.flash {
+  background: rgba(92, 145, 230, 0.1);
+}
+.key-edits {
+  display: inline-flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 6px;
+}
+.key-edit {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 6px;
+}
+.key-edit:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+.key-edit-combo,
+.key-edit-remove,
+.key-add,
+.key-reset {
+  padding: 1px 3px;
+  border: 0;
+  background: none;
+  color: #a4a8b0;
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 1;
+}
+.key-edit-remove {
+  opacity: 0;
+}
+.key-edit:hover .key-edit-remove,
+.key-edit-remove:focus-visible {
+  opacity: 1;
+}
+.key-edit-remove:hover {
+  color: #ff8a80;
+}
+.key-add {
+  width: 22px;
+  height: 22px;
+  border: 1px dashed #55585f;
+  border-radius: 5px;
+}
+.key-add:hover,
+.key-reset:hover {
+  color: #e3e5ea;
+  border-color: #8d919a;
+}
+.key-record {
+  padding: 2px 8px;
+  border: 1px solid #5c91e6;
+  border-radius: 5px;
+  color: #cfe0fb;
+  font-size: 11.5px;
+  animation: key-record-pulse 1.2s ease-in-out infinite;
+}
+@keyframes key-record-pulse {
+  50% {
+    background: rgba(92, 145, 230, 0.2);
+  }
+}
+
 /* Help ▸ About */
 .modal.about-dialog {
   width: min(480px, calc(100vw - 32px));

@@ -1,11 +1,33 @@
 # Keyboard shortcuts
 
-Rigby2D has two shortcut presets. Choose one under *View ▸ Shortcuts*; *Help ▸ Keyboard shortcuts*
-lists the keys of the active preset, with a search box and the preset switch. On macOS, <kbd>Ctrl</kbd> also works as <kbd>Cmd</kbd>.
+Rigby2D has two shortcut presets, and you can make your own. Choose one under *View ▸ Shortcuts*;
+*Help ▸ Keyboard shortcuts* lists the keys of the active preset, with a search box and the preset
+switch. On macOS, <kbd>Ctrl</kbd> also works as <kbd>Cmd</kbd>.
 
 - **Spine-like** (default): the keys Spine animators know, with tools and playback on the left hand (B, N, C, V, X, Z; Q, W, E, A, S, D,
   R, F), as in common 2D animation tools.
 - **Blender-like**: G, R, S for translate, rotate and scale, I to key, the arrow keys for time.
+
+## Your own shortcuts
+
+*View ▸ Customize shortcuts…* (or **Customize…** in *Help ▸ Keyboard shortcuts*) makes a **Custom**
+keymap, starting from the preset you use. Every action can then be changed:
+
+| To | Do |
+| --- | --- |
+| Change a key | Click it and press the new key (with <kbd>Ctrl</kbd>, <kbd>Shift</kbd> or <kbd>Alt</kbd> if you like). <kbd>Esc</kbd> cancels. |
+| Add another key | Click **+** and press it. An action can have several. |
+| Remove a key | Hover it and click **×**. |
+| Undo your changes to an action | Click **↺**: it goes back to the preset you started from. |
+| Start over | **Start again from** a preset. |
+| Keep or share a keymap | **Export…** saves it as a `.json` file; **Import…** loads one. |
+
+A key that another action already used moves to the new one, and the dialog says which action lost
+it. <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>1</kbd> to <kbd>9</kbd> stay with saved window layouts.
+Changes save as you go, apply to every Rigby2D window at once (detached panels too), and switching
+to another preset keeps your keymap for later.
+
+## The presets
 
 This table is generated from the editor's keymap, so it always matches the current version.
 

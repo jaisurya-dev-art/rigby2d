@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
-// Help menu dialogs: Keyboard shortcuts (searchable, grouped, with the shortcut set switcher) and
+// Help menu dialogs: Keyboard shortcuts (searchable, grouped, with the shortcut set switcher and the
+// custom keymap editor) and
 // About Rigby2D (version, links, license).
 
-import { ACTIONS, PRESETS, shortcutLabel } from './keymap.js';
-import { fetchBytes, openExternal } from './platform.js';
+import { ACTIONS, PRESETS, bindCombo, comboLabel, comboOf, importKeymapFile, keymapFile, newCustom, reservedCombo, resetCustom, unbindCombo } from './keymap.js';
+import { confirmDialog, fetchBytes, openExternal, pickImportFiles as importFiles, pickSaveTarget as saveTarget } from './platform.js';
 import { t } from './i18n.js';
 import { h } from './widgets.js';
 import markUrl from '../../branding/rigby2d-mark.svg?url';
@@ -105,13 +106,129 @@ const MOUSE = [
   ['Wheel', 'Zoom'],
 ];
 
-/** Help ▸ Keyboard shortcuts: every bound action, grouped and searchable. */
+/**
+ * Help ▸ Keyboard shortcuts: every action, grouped and searchable, with the shortcut set switcher.
+ * With the Custom set active, every shortcut can be changed: click a key to replace it, + to add
+ * one, × to remove one, ↺ to put an action back; the keymap saves as you go and can be exported.
+ */
 export function openShortcuts(app) {
-  const { body } = dialog('shortcuts-dialog', 'Keyboard shortcuts', null);
+  let recording = null; // { action, replace } while waiting for a key press
+  let flash = null; // { action, text } after a change, explained under the toolbar
+  const onRecordKey = (e) => {
+    if (!recording) return;
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.key === 'Escape') {
+      recording = null;
+      return render();
+    }
+    const combo = comboOf(e);
+    if (!combo) return; // a modifier alone: wait for the key
+    if (reservedCombo(combo)) {
+      flash = { action: recording.action, text: `${comboLabel(combo)} is kept for window layouts (Ctrl+Alt+1 to 9). Pick another key.` };
+      return render();
+    }
+    const { custom, moved } = bindCombo(app.customKeymap, recording.action, combo, recording.replace);
+    const label = (id) => ACTIONS.find(([a]) => a === id)?.[1] ?? id;
+    flash = { action: recording.action, text: moved.length ? `${comboLabel(combo)} was ${moved.map(label).join(', ')}; it now does ${label(recording.action)}.` : null };
+    recording = null;
+    app.setCustomKeymap(custom);
+    render();
+  };
+  window.addEventListener('keydown', onRecordKey, true);
+  const { body } = dialog('shortcuts-dialog', 'Keyboard shortcuts', null, { onClose: () => window.removeEventListener('keydown', onRecordKey, true) });
   const search = h('input', { type: 'search', class: 'dialog-search', placeholder: 'Search shortcuts', 'aria-label': 'Search shortcuts' });
   const presets = h('div', { class: 'segmented', role: 'tablist', 'aria-label': 'Shortcut set' });
+  const tools = h('div', { class: 'shortcut-tools' });
   const list = h('div', { class: 'shortcut-groups' });
+
+  const customize = () => {
+    if (!app.customKeymap) app.setCustomKeymap(newCustom(app.keymap));
+    else app.setKeymap('custom');
+    app.setStatus('Keyboard shortcuts: Custom. Click a key to change it.');
+    render();
+  };
+
+  const exportKeymap = async () => {
+    try {
+      const target = await saveTarget('rigby2d-keymap.json', 'Rigby2D keymap', 'json', { single: true });
+      if (!target) return;
+      await target.fs.writeFile(target.path, new TextEncoder().encode(keymapFile(app.customKeymap)));
+      await target.fs.finish();
+      app.setStatus(`Saved the keymap: ${target.path}`);
+    } catch (e) {
+      app.setStatus(`Could not save the keymap: ${e.message ?? e}`);
+    }
+  };
+
+  const importKeymap = async () => {
+    try {
+      const [file] = await importFiles('Rigby2D keymap', ['json'], false);
+      if (!file) return;
+      app.setCustomKeymap(importKeymapFile(new TextDecoder().decode(file.bytes)));
+      app.setStatus(`Keyboard shortcuts loaded from ${file.name}`);
+      render();
+    } catch (e) {
+      app.setStatus(`Could not load the keymap: ${e.message ?? e}`);
+    }
+  };
+
+  /** One action's keys: plain chips, or editable ones in the Custom set. */
+  const keysFor = (id, combos, editing) => {
+    if (!editing) return combos.length ? keyChips(comboLabel(combos[0])) : null;
+    const isRecording = (replace) => recording && recording.action === id && recording.replace === replace;
+    const record = (replace) => () => {
+      recording = { action: id, replace };
+      flash = null;
+      render();
+    };
+    const chips = combos.map((combo) =>
+      isRecording(combo)
+        ? h('span', { class: 'key-record' }, 'Press a key…')
+        : h(
+            'span',
+            { class: 'key-edit' },
+            h('button', { class: 'key-edit-combo', title: 'Press to change this key', onclick: record(combo) }, keyChips(comboLabel(combo))),
+            h(
+              'button',
+              {
+                class: 'key-edit-remove',
+                title: 'Remove this key',
+                'aria-label': `Remove ${comboLabel(combo)}`,
+                onclick: () => {
+                  app.setCustomKeymap(unbindCombo(app.customKeymap, id, combo));
+                  render();
+                },
+              },
+              '×',
+            ),
+          ),
+    );
+    const changed = id in app.customKeymap.changes;
+    return h(
+      'span',
+      { class: 'key-edits' },
+      ...chips,
+      isRecording(null) ? h('span', { class: 'key-record' }, 'Press a key…') : h('button', { class: 'key-add', title: 'Add a key for this', onclick: record(null) }, '+'),
+      changed
+        ? h(
+            'button',
+            {
+              class: 'key-reset',
+              title: `Back to ${PRESETS[app.customKeymap.base].label}`,
+              onclick: () => {
+                app.setCustomKeymap(resetCustom(app.customKeymap, id));
+                render();
+              },
+            },
+            '↺',
+          )
+        : null,
+    );
+  };
+
   const render = () => {
+    const editing = app.keymap === 'custom' && !!app.customKeymap;
     presets.replaceChildren(
       ...Object.entries(PRESETS).map(([id, p]) =>
         h(
@@ -121,6 +238,7 @@ export function openShortcuts(app) {
             role: 'tab',
             'aria-selected': String(app.keymap === id),
             onclick: () => {
+              recording = null;
               app.setKeymap(id);
               app.setStatus(`Keyboard shortcuts: ${p.label}`);
               render();
@@ -129,33 +247,76 @@ export function openShortcuts(app) {
           p.label,
         ),
       ),
+      ...(app.customKeymap ? [] : [h('button', { onclick: customize, title: 'Make your own keymap, starting from this one' }, 'Customize…')]),
     );
+    tools.replaceChildren(
+      ...(editing
+        ? [
+            h('span', { class: 'shortcut-hint' }, recording ? 'Press the new key, or Esc to cancel.' : 'Click a key to change it, + to add one. Changes save as you go.'),
+            h('span', { class: 'shortcut-tools-spacer' }),
+            h('label', { class: 'shortcut-base' }, 'Start again from ', baseSelect()),
+            h('button', { onclick: importKeymap }, 'Import…'),
+            h('button', { onclick: exportKeymap }, 'Export…'),
+          ]
+        : []),
+      ...(flash?.text ? [h('p', { class: 'shortcut-flash' }, flash.text)] : []),
+    );
+    tools.hidden = !editing && !flash?.text;
+    const bindings = PRESETS[app.keymap]?.bindings ?? PRESETS.reference.bindings;
     const q = search.value.trim().toLowerCase();
     const match = (label, keys) => !q || label.toLowerCase().includes(q) || keys.toLowerCase().includes(q);
-    const groups = GROUPS.map(([title, test]) => [
+    const grouped = new Set();
+    const groups = [...GROUPS, ['Other', (id) => !grouped.has(id)]].map(([title, test]) => [
       title,
-      ACTIONS.filter(([id]) => test(id))
-        .map(([id, label]) => [label, shortcutLabel(app.keymap, id)])
-        .filter(([label, keys]) => keys && match(label, keys)),
+      ACTIONS.filter(([id]) => {
+        if (grouped.has(id) || !test(id)) return false;
+        grouped.add(id);
+        return true;
+      })
+        .map(([id, label]) => [id, label, bindings[id] ?? []])
+        .filter(([, label, combos]) => (editing || combos.length) && match(label, combos.map(comboLabel).join(' '))),
     ]);
-    groups.push(['Mouse', MOUSE.filter(([keys, label]) => match(label, keys)).map(([keys, label]) => [label, keys])]);
-    const shown = groups.filter(([, rows]) => rows.length);
+    const rows = groups.map(([title, items]) => [
+      title,
+      items.map(([id, label, combos]) => h('div', { class: `shortcut-row${flash?.action === id ? ' flash' : ''}` }, h('span', null, label), keysFor(id, combos, editing))),
+    ]);
+    rows.push(['Mouse', MOUSE.filter(([keys, label]) => match(label, keys)).map(([keys, label]) => h('div', { class: 'shortcut-row' }, h('span', null, label), keyChips(keys)))]);
+    const shown = rows.filter(([, r]) => r.length);
     list.classList.toggle('filtered', !!q);
+    list.classList.toggle('editing', editing);
     list.replaceChildren(
       ...(shown.length
-        ? shown.map(([title, rows]) =>
-            h(
-              'section',
-              { class: 'shortcut-group' },
-              h('h4', null, title),
-              rows.map(([label, keys]) => h('div', { class: 'shortcut-row' }, h('span', null, label), keyChips(keys))),
-            ),
-          )
+        ? shown.map(([title, r]) => h('section', { class: 'shortcut-group' }, h('h4', null, title), r))
         : [h('p', { class: 'dialog-empty' }, `No shortcut matches “${search.value.trim()}”.`)]),
     );
   };
+
+  /** Start the custom keymap again from a built-in preset (asks first if it has changes). */
+  const baseSelect = () => {
+    const el = h(
+      'select',
+      {
+        onchange: async () => {
+          const base = el.value;
+          el.value = '';
+          if (!base) return;
+          const changes = Object.keys(app.customKeymap.changes).length;
+          if (changes && !(await confirmDialog(`Start the custom keymap again from ${PRESETS[base].label}? Your ${changes} change${changes === 1 ? '' : 's'} will be lost.`, 'Keyboard shortcuts'))) return;
+          app.setCustomKeymap(newCustom(base));
+          flash = null;
+          render();
+        },
+      },
+      h('option', { value: '' }, '…'),
+      ...Object.entries(PRESETS)
+        .filter(([id]) => id !== 'custom')
+        .map(([id, p]) => h('option', { value: id }, p.label)),
+    );
+    return el;
+  };
+
   search.addEventListener('input', render);
-  body.append(h('div', { class: 'dialog-toolbar' }, search, presets), list);
+  body.append(h('div', { class: 'dialog-toolbar' }, search, presets), tools, list);
   render();
   search.focus();
 }

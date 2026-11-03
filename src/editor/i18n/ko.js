@@ -257,6 +257,8 @@ export default {
   "Share to r/rigby2d": "r/rigby2d에 공유",
   "Share to r/rigby2d…": "r/rigby2d에 공유…",
   "Shortcuts: {name}": "단축키: {name}",
+  "Customize shortcuts…": "단축키 사용자 지정…",
+  "Change any shortcut and save your own keymap": "모든 단축키를 바꾸고 나만의 키맵으로 저장합니다",
   "Show bones": "본 표시",
   "Show output frame": "출력 프레임 표시",
   "Show the welcome screen when the editor starts.": "에디터를 시작할 때 시작 화면을 표시합니다.",
