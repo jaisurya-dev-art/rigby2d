@@ -32,8 +32,9 @@
 <p align="center">
   <a href="../runtimes/godot/addons/rigby2d/README.md"><img alt="Godot" src="https://img.shields.io/badge/Godot-runtime-478cbf?logo=godotengine&logoColor=white"></a>
   <a href="../runtimes/unity/com.rigby2d.unity/README.md"><img alt="Unity" src="https://img.shields.io/badge/Unity-runtime-222429?logo=unity&logoColor=white"></a>
+  <a href="../runtimes/defold/README.md"><img alt="Defold" src="https://img.shields.io/badge/Defold-runtime-1c9be6"></a>
   <a href="../runtimes/cocos/README.md"><img alt="Cocos Creator" src="https://img.shields.io/badge/Cocos%20Creator-runtime-55c2e1?logo=cocos&logoColor=white"></a>
-  <a href="../runtimes/phaser/README.md"><img alt="Phaser" src="https://img.shields.io/badge/Phaser-runtime-7b5cd6"></a>
+  <a href="../runtimes/phaser/README.md"><img alt="Phaser" src="https://img.shields.io/badge/Phaser-runtime-8fd0ef"></a>
   <a href="../docs/runtimes.md"><img alt="JavaScript and Rust" src="https://img.shields.io/badge/JavaScript%20%7C%20Rust-runtimes-f7df1e?labelColor=555"></a>
   <br>
   <img alt="Status: public beta" src="https://img.shields.io/badge/status-public%20beta-blue">
@@ -78,11 +79,11 @@
 - **필름 작업 공간**: 4K, 타임코드, 애니메이션 가능한 카메라, 오디오 트랙, 기기 내 Whisper 전사를 이용한 비짐 립싱크. PNG 시퀀스, 투명 WebM, MP4로 렌더링.
 - **씬 구성**: 여러 캐릭터를 한 무대에 배우로 배치하고 NLE 방식의 클립(트림, 속도, 반복, 크로스페이드, 개별 오디오), 시차가 있는 배경 레이어, 카메라로 연출. 모든 런타임으로 게임에서도 재생됩니다.
 - **작업 보호**: 반쯤 쓰인 파일을 남기지 않는 안전한 저장, Blender의 `.blend1` 같은 `.rigby1` 백업, 자동 저장, 다음 실행 때 저장하지 않은 작업을 되돌려 주는 충돌 복구.
-- **시작 화면, 자동 업데이트, 런타임 받기**: 실행 시 새 프로젝트, 최근 작업, 스타터 프로젝트, 레슨. 데스크톱 앱은 서명된 업데이트. *파일 ▸ 런타임 받기*로 Unity, Godot, Phaser 런타임.
+- **시작 화면, 자동 업데이트, 런타임 받기**: 실행 시 새 프로젝트, 최근 작업, 스타터 프로젝트, 레슨. 데스크톱 앱은 서명된 업데이트. *파일 ▸ 런타임 받기*로 Unity, Godot, Defold, Cocos Creator, Phaser 런타임.
 - **환경설정과 애드온**: 언어(영어, 일본어, 중국어, 한국어, 스페인어, 포르투갈어), 인터페이스 배율, 단축키, 실행 취소 단계, 백업, 자동 저장, 샌드박스에서 실행되는 Python 애드온 갤러리.
 - **다른 도구에서 옮기기**: Spine 내보내기 파일(마이그레이션 검사기 포함)과 DragonBones 프로젝트를 엽니다.
 - **Python 스크립트**와 사용자 도구, 그리고 Claude 같은 AI 어시스턴트가 프로젝트를 살펴보고 리깅하고 애니메이션할 수 있는 **MCP 서버** 내장.
-- **손실 없는 스켈레톤 JSON(3.8, 4.2, 4.3)과 바이너리 `.skel`**, 텍스처 아틀라스. **JavaScript, Phaser, Rust, Unity, Godot 런타임**으로 재생.
+- **손실 없는 스켈레톤 JSON(3.8, 4.2, 4.3)과 바이너리 `.skel`**, 텍스처 아틀라스. **JavaScript, Phaser, Rust, C++(Defold), Unity, Godot, Cocos Creator 런타임**으로 재생.
 - **튜토리얼**과 데모 프로젝트(**NILA**, **Rigbytron**, 두 캐릭터의 **씬**) 내장. [데모 페이지](https://rigby2d.com/demos/)에서 게임용 내보내기 파일도 제공(데모 콘텐츠 © Rigby2D, [데모 라이선스](../branding/DEMO-LICENSE.md)).
 
 ## 시작하기

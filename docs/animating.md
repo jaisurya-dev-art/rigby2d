@@ -76,11 +76,30 @@ draw order and events. Diamonds are keys; their color tells the curve (stepped k
 | Select a key | Click it. <kbd>Ctrl</kbd>+click adds to the selection. |
 | Select several | Drag a box around them. |
 | Move keys | Drag a selected key; the others move with it. |
-| Retime keys | Drag the handles at the edges of the selection in the ruler: the keys stretch or squeeze relative to the opposite edge. |
+| Select whole frames | Turn on **▦ Frames** and drag across the ruler area: every key in those frame columns. |
+| Select several areas | <kbd>Alt</kbd>+drag adds another area, or turn on **＋ Multi** so every drag adds one. |
+| Retime keys | Click **⇔ Retime** and drag an edge of the selection (or right-drag at any time): the keys stretch or squeeze relative to the opposite edge. |
 | Change the curve | Right-click a key: *Linear*, *Ease in-out*, *Ease in*, *Ease out* or *Stepped*. |
 | Delete keys | Right-click ▸ *Delete key*, or <kbd>Delete</kbd>. |
 
 Keys always land on whole frames.
+
+### Copy and paste keys
+
+Select keys and press <kbd>Ctrl</kbd>+<kbd>C</kbd> (or **⧉ Copy**). The copied area stays marked in
+green and a preview follows the time cursor; move it to where the first key should land and press
+<kbd>Ctrl</kbd>+<kbd>V</kbd> (or **⎘ Paste**). <kbd>Escape</kbd> cancels.
+
+- Keys keep their tracks by name (bone, slot, deformed attachment, IK constraint), so a paste into
+  another animation, or after bones were added or deleted, lands on the same tracks. Deform and IK
+  tracks the target lacks are created.
+- The paste button cycles how existing keys are treated: **Merge** keeps them, **Overwrite**
+  replaces the copied span on the copied tracks, **Overwrite all** clears the whole copied area.
+  Keys about to be erased show a red ✕ in the preview.
+- A paste that runs past the end of the animation asks whether to extend the animation, paste what
+  fits, or cancel.
+
+Copy and paste work in the detached timeline too.
 
 ## Curves
 

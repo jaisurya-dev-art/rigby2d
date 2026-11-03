@@ -39,6 +39,8 @@ This table is generated from the editor's keymap, so it always matches the curre
 | Deselect | <kbd>Esc</kbd> | <kbd>Alt</kbd>+<kbd>A</kbd> or <kbd>Esc</kbd> |
 | Fit the skeleton in view | <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F</kbd> | <kbd>F</kbd> or <kbd>Home</kbd> |
 | Zoom to 100% | <kbd>Ctrl</kbd>+<kbd>F</kbd> | <kbd>Ctrl</kbd>+<kbd>F</kbd> |
+| Copy selected keys | <kbd>Ctrl</kbd>+<kbd>C</kbd> | <kbd>Ctrl</kbd>+<kbd>C</kbd> |
+| Paste keys at the playhead | <kbd>Ctrl</kbd>+<kbd>V</kbd> | <kbd>Ctrl</kbd>+<kbd>V</kbd> |
 | Delete selected key, bone or slot | <kbd>Delete</kbd> or <kbd>Backspace</kbd> | <kbd>Delete</kbd> or <kbd>Backspace</kbd> |
 | Undo | <kbd>Ctrl</kbd>+<kbd>Z</kbd> | <kbd>Ctrl</kbd>+<kbd>Z</kbd> |
 | Redo | <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd> or <kbd>Ctrl</kbd>+<kbd>Y</kbd> | <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd> or <kbd>Ctrl</kbd>+<kbd>Y</kbd> |
@@ -47,6 +49,7 @@ This table is generated from the editor's keymap, so it always matches the curre
 | Save as | <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>S</kbd> | <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>S</kbd> |
 | Export | <kbd>Ctrl</kbd>+<kbd>E</kbd> | <kbd>Ctrl</kbd>+<kbd>E</kbd> |
 | Close menus | <kbd>Esc</kbd> | <kbd>Esc</kbd> |
+| Preferences | <kbd>Ctrl</kbd>+<kbd>,</kbd> | <kbd>Ctrl</kbd>+<kbd>,</kbd> |
 
 <!-- /generated:shortcuts -->
 

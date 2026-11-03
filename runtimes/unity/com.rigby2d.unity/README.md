@@ -14,7 +14,7 @@ In Unity, open **Window ▸ Package Manager ▸ + ▸ Install package from git U
 https://github.com/jaisurya-dev-art/rigby2d.git?path=/runtimes/unity/com.rigby2d.unity
 ```
 
-Add `#v0.3.4` (or any release tag) to the end to pin a version. Each release also has the package as
+Add `#v0.4.3` (or any release tag) to the end to pin a version. Each release also has the package as
 a `.tgz` file for **Install package from tarball…**.
 
 To try it, open the package in the Package Manager and import the **Demo** sample: Rigbytron in a

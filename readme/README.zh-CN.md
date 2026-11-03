@@ -32,8 +32,9 @@
 <p align="center">
   <a href="../runtimes/godot/addons/rigby2d/README.md"><img alt="Godot" src="https://img.shields.io/badge/Godot-runtime-478cbf?logo=godotengine&logoColor=white"></a>
   <a href="../runtimes/unity/com.rigby2d.unity/README.md"><img alt="Unity" src="https://img.shields.io/badge/Unity-runtime-222429?logo=unity&logoColor=white"></a>
+  <a href="../runtimes/defold/README.md"><img alt="Defold" src="https://img.shields.io/badge/Defold-runtime-1c9be6"></a>
   <a href="../runtimes/cocos/README.zh-CN.md"><img alt="Cocos Creator" src="https://img.shields.io/badge/Cocos%20Creator-runtime-55c2e1?logo=cocos&logoColor=white"></a>
-  <a href="../runtimes/phaser/README.md"><img alt="Phaser" src="https://img.shields.io/badge/Phaser-runtime-7b5cd6"></a>
+  <a href="../runtimes/phaser/README.md"><img alt="Phaser" src="https://img.shields.io/badge/Phaser-runtime-8fd0ef"></a>
   <a href="../docs/runtimes.md"><img alt="JavaScript and Rust" src="https://img.shields.io/badge/JavaScript%20%7C%20Rust-runtimes-f7df1e?labelColor=555"></a>
   <br>
   <img alt="Status: public beta" src="https://img.shields.io/badge/status-public%20beta-blue">
@@ -78,11 +79,11 @@
 - **影片工作区**：4K、时间码、可动画的摄像机、音轨、基于本地 Whisper 转写的视位口型同步，可渲染为 PNG 序列、带透明通道的 WebM 和 MP4。
 - **场景组合**：多个角色作为演员同台，使用类似非线编的片段（裁剪、速度、循环、交叉淡入、各自的音频）、带视差的绘制图层和摄像机，并能通过所有运行时在游戏中播放。
 - **保护你的工作**：不会留下写了一半的文件的安全保存、类似 Blender `.blend1` 的 `.rigby1` 备份、自动保存，以及在下次启动时找回未保存工作的崩溃恢复。
-- **欢迎屏幕、自动更新和运行时下载**：启动时提供新建项目、最近工作、入门项目和课程；桌面版提供签名更新；通过 *文件 ▸ 获取运行时* 获取 Unity、Godot 和 Phaser 运行时。
+- **欢迎屏幕、自动更新和运行时下载**：启动时提供新建项目、最近工作、入门项目和课程；桌面版提供签名更新；通过 *文件 ▸ 获取运行时* 获取 Unity、Godot、Defold、Cocos Creator 和 Phaser 运行时。
 - **偏好设置与插件**：语言（英语、日语、中文、韩语、西班牙语、葡萄牙语）、界面缩放、快捷键、撤销步数、备份和自动保存，以及在沙盒中运行的 Python 插件库。
 - **从其他工具迁移**：可打开 Spine 导出文件（附迁移检查器）和 DragonBones 项目。
 - **Python 脚本**与自定义工具，以及内置的 **MCP 服务器**，让 Claude 等 AI 助手检查、绑定你的项目并为其制作动画。
-- **无损的骨骼 JSON（3.8、4.2、4.3）和二进制 `.skel`** 以及纹理图集，由 **JavaScript、Phaser、Rust、Unity 和 Godot 运行时**播放。
+- **无损的骨骼 JSON（3.8、4.2、4.3）和二进制 `.skel`** 以及纹理图集，由 **JavaScript、Phaser、Rust、C++（Defold）、Unity、Godot 和 Cocos Creator 运行时**播放。
 - 内置**教程**和演示项目（**NILA**、**Rigbytron** 以及二人同台的**场景**），也可在[演示页面](https://rigby2d.com/demos/)获取可用于游戏的导出文件（演示内容 © Rigby2D，适用其[演示许可](../branding/DEMO-LICENSE.md)）。
 
 ## 开始使用

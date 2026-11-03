@@ -8,7 +8,7 @@ their own windows.
 
 | | Area | What it is for |
 | --- | --- | --- |
-| 1 | **Menu bar** | *File* (with *New*, *Open recent*, *Import* and *Export* submenus), *Edit*, *View*, *Scripts* and *Help* (tutorials, keyboard shortcuts, documentation, about), and the **SETUP / ANIMATE** mode button. |
+| 1 | **Menu bar** | *File* (with *New*, *Open recent*, *Import* and *Export* submenus), *Edit*, *View*, *Scripts* and *Help* (see [The Help menu](#the-help-menu)), and the **SETUP / ANIMATE** mode button. When an update is ready, an **Update available** button appears here too. |
 | 2 | **Workspace switch** | **Game** or **Film**: which tools are shown. See [Workspaces](#workspaces). |
 | 3 | **Viewport toolbar** | Transform tools, the active tool's values with a key button, axes, onion skin, guides and auto key. |
 | 4 | **Viewport** | The character. Select, pose and edit here. |
@@ -148,3 +148,16 @@ for example on a second monitor. Everything stays in sync with the main window.
 - **Manage layouts…** renames, updates and deletes layouts, and binds a shortcut
   (<kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>1</kbd> to <kbd>9</kbd>) that recalls a layout from any
   Rigby2D window.
+
+## The Help menu
+
+| Item | What it does |
+| --- | --- |
+| *Welcome screen…* | New projects, recent work, demos and lessons. |
+| *Tutorials…*, *Keyboard shortcuts…* | Interactive lessons, and every shortcut with a search. |
+| *Documentation*, *Devlog*, *Community (r/rigby2d)* | These pages, release news, and the community. |
+| *Support Rigby2D*, *Supporters…* | How to fund Rigby2D, and everyone who does. |
+| *Connect an AI assistant…* | Sets up the [MCP server](mcp.md) for an AI assistant. |
+| *Report an issue*, *Report a crash…* | A GitHub issue, or a report of recent errors to copy or post. |
+| *Check for updates…* | Desktop app: looks for a new version now (it also checks at startup). |
+| *About Rigby2D* | Version, licenses and credits. |

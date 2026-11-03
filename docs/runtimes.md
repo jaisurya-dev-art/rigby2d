@@ -100,7 +100,7 @@ or the script-tag `rigby2d-phaser-<version>.js` from the
 [latest release](https://github.com/jaisurya-dev-art/rigby2d/releases/latest):
 
 ```js
-import { rigbyPhaser } from './rigby2d-phaser-0.4.0.mjs';
+import { rigbyPhaser } from './rigby2d-phaser-<version>.mjs';
 const { RigbyPlugin } = rigbyPhaser(Phaser);
 // game config: plugins: { scene: [{ key: 'RigbyPlugin', plugin: RigbyPlugin, mapping: 'rigby' }] }
 

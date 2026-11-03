@@ -1,8 +1,8 @@
 # Add-ons
 
 Add-ons extend the editor with Python, like Blender's add-ons. An add-on is a [Python script](scripting.md)
-packaged so anyone can install it: its tools appear in the **Scripts** menu, and it loads every time
-the editor starts.
+packaged so anyone can install it: its tools appear in the **Scripts** menu, in a submenu named
+after the add-on (a single tool stays a plain item), and it loads every time the editor starts.
 
 ## Installing
 
@@ -104,7 +104,7 @@ def unregister():
 tuples.
 
 - **Enabling** imports the package and calls `register()`. Tools made with `@rigby.tool` appear in
-  the **Scripts** menu.
+  the add-on's submenu of the **Scripts** menu.
 - **Disabling** calls `unregister()` and removes the add-on's tools.
 - Each run of a tool is one undo step, and an error rolls the project back, as with scripts. Errors
   go to *View ▸ Log*.

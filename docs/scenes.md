@@ -151,7 +151,7 @@ and crossfades exactly as in the editor. *File ▸ Export ▸ Scene for runtimes
 | `name.json` + `.atlas` + `.png` | The stage as a skeleton export (backgrounds, camera, anchor bones, shots). |
 | `name.<actor>.json` + `.atlas` + `.png` | Each character, as a skeleton export. |
 
-Every runtime plays it and matches the editor frame by frame: the [Rust runtime](runtimes.md#rust)
+Every runtime except Defold (characters only, for now) plays it and matches the editor frame by frame: the [Rust runtime](runtimes.md#rust)
 is checked against the JavaScript one on the demo scene, physics included.
 
 **Godot**: add a `RigbyScene2D` node and set *Scene File*. Follow the stage's camera with a

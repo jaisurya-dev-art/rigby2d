@@ -32,8 +32,9 @@
 <p align="center">
   <a href="../runtimes/godot/addons/rigby2d/README.md"><img alt="Godot" src="https://img.shields.io/badge/Godot-runtime-478cbf?logo=godotengine&logoColor=white"></a>
   <a href="../runtimes/unity/com.rigby2d.unity/README.md"><img alt="Unity" src="https://img.shields.io/badge/Unity-runtime-222429?logo=unity&logoColor=white"></a>
+  <a href="../runtimes/defold/README.md"><img alt="Defold" src="https://img.shields.io/badge/Defold-runtime-1c9be6"></a>
   <a href="../runtimes/cocos/README.md"><img alt="Cocos Creator" src="https://img.shields.io/badge/Cocos%20Creator-runtime-55c2e1?logo=cocos&logoColor=white"></a>
-  <a href="../runtimes/phaser/README.md"><img alt="Phaser" src="https://img.shields.io/badge/Phaser-runtime-7b5cd6"></a>
+  <a href="../runtimes/phaser/README.md"><img alt="Phaser" src="https://img.shields.io/badge/Phaser-runtime-8fd0ef"></a>
   <a href="../docs/runtimes.md"><img alt="JavaScript and Rust" src="https://img.shields.io/badge/JavaScript%20%7C%20Rust-runtimes-f7df1e?labelColor=555"></a>
   <br>
   <img alt="Status: public beta" src="https://img.shields.io/badge/status-public%20beta-blue">
@@ -78,11 +79,11 @@
 - **フィルムワークスペース**：4K、タイムコード、アニメーション可能なカメラ、オーディオトラック、端末内の Whisper 文字起こしによるビズィームリップシンク。PNG 連番、透過 WebM、MP4 に書き出し。
 - **シーン構成**：複数のキャラクターを 1 つのステージに配置し、NLE 風のクリップ（トリム、速度、ループ、クロスフェード、個別の音声）、視差付きの背景レイヤー、カメラで演出。すべてのランタイムでゲームでも再生できます。
 - **作業を守る仕組み**：書きかけのファイルを残さない安全な保存、Blender の `.blend1` のような `.rigby1` バックアップ、自動保存、次回起動時に未保存の作業を戻せるクラッシュ復元。
-- **ようこそ画面・自動アップデート・ランタイム入手**：起動時に新規プロジェクト、最近の作業、スタータープロジェクト、レッスン。デスクトップ版は署名付きアップデート。*ファイル ▸ ランタイムを入手* で Unity・Godot・Phaser 用ランタイム。
+- **ようこそ画面・自動アップデート・ランタイム入手**：起動時に新規プロジェクト、最近の作業、スタータープロジェクト、レッスン。デスクトップ版は署名付きアップデート。*ファイル ▸ ランタイムを入手* で Unity・Godot・Defold・Cocos Creator・Phaser 用ランタイム。
 - **環境設定とアドオン**：言語（英語、日本語、中国語、韓国語、スペイン語、ポルトガル語）、インターフェースの拡大率、ショートカット、元に戻す回数、バックアップ、自動保存。サンドボックスで動く Python アドオンのギャラリー。
 - **他のツールからの移行**：Spine の書き出しファイル（移行チェッカー付き）と DragonBones のプロジェクトを開けます。
 - **Python スクリプト**とカスタムツール、そして Claude などの AI アシスタントがプロジェクトを調べ、リグし、アニメーションできる **MCP サーバー**を内蔵。
-- **ロスレスなスケルトン JSON（3.8、4.2、4.3）とバイナリ `.skel`**、テクスチャアトラス。**JavaScript、Phaser、Rust、Unity、Godot のランタイム**で再生。
+- **ロスレスなスケルトン JSON（3.8、4.2、4.3）とバイナリ `.skel`**、テクスチャアトラス。**JavaScript、Phaser、Rust、C++（Defold）、Unity、Godot、Cocos Creator のランタイム**で再生。
 - **チュートリアル**とデモプロジェクト（**NILA**、**Rigbytron**、2 人の**シーン**）を内蔵。[デモページ](https://rigby2d.com/demos/)ではゲーム用の書き出しデータも配布（デモコンテンツ © Rigby2D、[デモライセンス](../branding/DEMO-LICENSE.md)）。
 
 ## はじめ方

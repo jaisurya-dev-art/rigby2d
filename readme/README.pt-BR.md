@@ -32,8 +32,9 @@
 <p align="center">
   <a href="../runtimes/godot/addons/rigby2d/README.md"><img alt="Godot" src="https://img.shields.io/badge/Godot-runtime-478cbf?logo=godotengine&logoColor=white"></a>
   <a href="../runtimes/unity/com.rigby2d.unity/README.md"><img alt="Unity" src="https://img.shields.io/badge/Unity-runtime-222429?logo=unity&logoColor=white"></a>
+  <a href="../runtimes/defold/README.md"><img alt="Defold" src="https://img.shields.io/badge/Defold-runtime-1c9be6"></a>
   <a href="../runtimes/cocos/README.md"><img alt="Cocos Creator" src="https://img.shields.io/badge/Cocos%20Creator-runtime-55c2e1?logo=cocos&logoColor=white"></a>
-  <a href="../runtimes/phaser/README.md"><img alt="Phaser" src="https://img.shields.io/badge/Phaser-runtime-7b5cd6"></a>
+  <a href="../runtimes/phaser/README.md"><img alt="Phaser" src="https://img.shields.io/badge/Phaser-runtime-8fd0ef"></a>
   <a href="../docs/runtimes.md"><img alt="JavaScript and Rust" src="https://img.shields.io/badge/JavaScript%20%7C%20Rust-runtimes-f7df1e?labelColor=555"></a>
   <br>
   <img alt="Status: public beta" src="https://img.shields.io/badge/status-public%20beta-blue">
@@ -78,11 +79,11 @@
 - **Espaço de filme**: 4K, timecode, câmera animável, faixas de áudio, sincronia labial por visemas com transcrição Whisper no próprio computador, e renderização em sequências PNG, WebM com transparência e MP4.
 - **Composição de cenas**: vários personagens em um palco como atores com clipes no estilo de editor de vídeo (corte, velocidade, loops, transições, áudio próprio), camadas pintadas com paralaxe e uma câmera; reproduzidas em jogos por todos os runtimes.
 - **Seu trabalho está seguro**: salvamentos que nunca deixam um arquivo pela metade, backups `.rigby1` como o `.blend1` do Blender, salvamento automático e recuperação após falhas que devolve o trabalho não salvo na próxima abertura.
-- **Tela de boas-vindas, atualização automática e runtimes pelo editor**: novos projetos, trabalhos recentes, projetos iniciais e lições ao abrir; atualizações assinadas no app para desktop; *Arquivo ▸ Obter runtimes* para Unity, Godot e Phaser.
+- **Tela de boas-vindas, atualização automática e runtimes pelo editor**: novos projetos, trabalhos recentes, projetos iniciais e lições ao abrir; atualizações assinadas no app para desktop; *Arquivo ▸ Obter runtimes* para Unity, Godot, Defold, Cocos Creator e Phaser.
 - **Preferências e complementos**: idioma (inglês, japonês, chinês, coreano, espanhol, português), escala da interface, atalhos, passos de desfazer, backups e salvamento automático, e uma galeria de complementos em Python que rodam isolados.
 - **Vindo de outras ferramentas**: abre exportações do Spine (com um verificador de migração) e projetos do DragonBones.
 - **Scripts em Python** e ferramentas próprias, e um **servidor MCP** integrado para que assistentes de IA como o Claude inspecionem, façam o rig e animem seus projetos.
-- **JSON de esqueleto (3.8, 4.2, 4.3) e `.skel` binário sem perdas**, com atlas de texturas, reproduzidos pelos **runtimes JavaScript, Phaser, Rust, Unity e Godot**.
+- **JSON de esqueleto (3.8, 4.2, 4.3) e `.skel` binário sem perdas**, com atlas de texturas, reproduzidos pelos **runtimes JavaScript, Phaser, Rust, C++ (Defold), Unity, Godot e Cocos Creator**.
 - **Tutoriais** e projetos de demonstração integrados (**NILA**, **Rigbytron** e uma **cena** com os dois), também na [página de demos](https://rigby2d.com/demos/) com as exportações prontas para jogos (conteúdo de demonstração © Rigby2D, sob a própria [licença de demos](../branding/DEMO-LICENSE.md)).
 
 ## Como começar

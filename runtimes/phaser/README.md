@@ -18,7 +18,7 @@ Export your character from Rigby2D (*File ▸ Export*): the `.skel` or `.json`, 
 
 ```js
 import Phaser from 'phaser';
-import { rigbyPhaser } from './rigby2d-phaser-0.4.0.mjs';
+import { rigbyPhaser } from './rigby2d-phaser-<version>.mjs';
 
 const { RigbyPlugin } = rigbyPhaser(Phaser);
 
@@ -47,7 +47,7 @@ With a script tag, Phaser and the plugin are globals:
 
 ```html
 <script src="phaser.min.js"></script>
-<script src="rigby2d-phaser-0.4.0.js"></script>
+<script src="rigby2d-phaser-<version>.js"></script>
 <script>
   const { RigbyPlugin } = RigbyPhaser.rigbyPhaser(Phaser);
 </script>
