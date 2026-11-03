@@ -929,8 +929,10 @@ export class Viewport {
     if (!app.showBones) return null;
     let best = null;
     app.doc.bones.forEach((b, i) => {
-      const o = this.toScreen(pose.world[i].apply([0, 0]));
-      const t = this.toScreen(pose.world[i].apply([b.length, 0]));
+      const m = pose.world[i];
+      if (!m) return; // a pose from before the skeleton changed (#25)
+      const o = this.toScreen(m.apply([0, 0]));
+      const t = this.toScreen(m.apply([b.length, 0]));
       const d = distToSegment(pos, o, t);
       const len = Math.hypot(t[0] - o[0], t[1] - o[1]);
       const reach = len < 4 ? 8 : Math.min(12, Math.max(5, len * 0.1));
