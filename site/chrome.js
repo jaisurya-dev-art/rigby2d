@@ -68,6 +68,7 @@ export function siteFooter({ base = '/', lockup = '/blog/lockup.svg' } = {}) {
           [`${base}#download`, 'Download'],
           [`${base}editor/`, 'Browser editor'],
           [`${base}runtimes/`, 'Runtimes'],
+          [`${base}studios/`, 'For studios'],
           [`${base}addons/`, 'Add-ons'],
           [`${base}demos/`, 'Demos'],
           [`${base}cloud/`, 'Cloud'],

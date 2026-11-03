@@ -4,11 +4,18 @@ Rigby2D is built to keep your work on your computer.
 
 ## The desktop app
 
-The Rigby2D editor for Windows does not send any information to other networked systems unless you
-ask it to:
+The Rigby2D desktop app (Windows, macOS and Linux) never sends anything about you or your work. What it
+reads from the network is listed here:
 
 - Your projects, images and sounds are read and written only where you choose.
-- There is no account, telemetry, crash reporting or automatic update check.
+- There is no account, telemetry, usage analytics or crash reporting.
+- **Updates**: at startup and every few hours the app reads the latest release's version file from
+  GitHub (`github.com/jaisurya-dev-art/rigby2d/releases`), and downloads an update only when you
+  install it. Turn this off in *Edit ▸ Preferences ▸ Check for updates*; *Help ▸ Check for updates*
+  still works on request.
+- **What's new** on the welcome screen reads the list of recent devlog posts from
+  `rigby2d.com/news.json`, and *Help ▸ Supporters* reads `rigby2d.com/supporters.json` when you
+  open it. Both are plain files on GitHub Pages; nothing about you or your projects is sent.
 - **Lip-sync transcription** downloads Whisper, a speech recognition model, from
   [Hugging Face](https://huggingface.co/onnx-community/whisper-base_timestamped) the first time you
   press *Transcribe* or *Generate lip-sync* with automatic transcription. Your audio is transcribed

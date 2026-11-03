@@ -2664,3 +2664,66 @@ dialog.thanks .goal {
     grid-template-columns: 1fr;
   }
 }
+
+/* For studios page (studios/) */
+.st-cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+.st-card {
+  padding: 24px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.st-card h3 {
+  margin: 0 0 8px;
+  font-size: 1.12rem;
+}
+.st-card p {
+  margin: 0;
+  color: var(--muted);
+}
+.st-shots {
+  margin-top: 28px;
+}
+.st-steps {
+  margin: 0 0 32px;
+  padding-left: 22px;
+  color: var(--muted);
+  font-size: 1.05rem;
+  line-height: 1.6;
+}
+.st-steps li {
+  margin: 8px 0;
+}
+.st-steps b {
+  color: var(--text);
+}
+.st-offer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 26px 28px;
+  border: 1px solid rgba(64, 140, 230, 0.4);
+  border-radius: var(--radius);
+  background: rgba(64, 140, 230, 0.07);
+}
+.st-offer h3 {
+  margin: 0 0 6px;
+}
+.st-offer p {
+  margin: 0;
+  color: var(--muted);
+}
+@media (max-width: 960px) {
+  .st-cards {
+    grid-template-columns: 1fr;
+  }
+  .st-offer {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
