@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Rigby2D Runtimes: every engine, every frame</title>
+    <meta name="description" content="Free, open-source runtimes for Godot, Unity, Defold, Cocos Creator, Phaser, the web and Rust. One rig plays the same, frame for frame, in every engine, tested in public CI." />
+    <meta name="theme-color" content="#0a0a0b" />
+    <meta property="og:title" content="Rigby2D Runtimes: every engine, every frame" />
+    <meta property="og:description" content="Seven official runtimes, free under MIT or Apache-2.0, matching each other frame for frame. They read Spine 3.8, 4.2 and 4.3 exports too." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://rigby2d.com/runtimes/" />
+    <meta property="og:image" content="https://rigby2d.com/og.jpg" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="icon" type="image/svg+xml" href="../../branding/rigby2d-icon-dark.svg" />
+    <link rel="stylesheet" href="../style.css" />
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+    <!--site-header:runtimes-->
+
+    <main id="main">
+      <section class="page-head rt-hero">
+        <div class="wrap">
+          <p class="eyebrow">Runtimes</p>
+          <h1>One rig.<br />Every engine. <span class="rt-accent">Every frame.</span></h1>
+          <p class="section-lede">
+            Export once and play the same animation in Godot, Unity, Defold, Cocos Creator, Phaser, the browser or Rust. Seven
+            official runtimes, free for any game, tested against each other frame by frame on every commit.
+          </p>
+          <div class="rt-hero-actions">
+            <a class="btn primary" href="#engines">Pick your engine</a>
+            <a class="btn" href="../docs/runtimes.html">Runtime guide</a>
+          </div>
+        </div>
+      </section>
+
+      <section class="section rt-live-section" aria-labelledby="live-title">
+        <div class="wrap">
+          <div class="rt-live">
+            <div class="rt-live-copy">
+              <p class="eyebrow">Live, in your browser</p>
+              <h2 id="live-title">How many NILAs can your device run?</h2>
+              <p>
+                Each NILA has 39 bones, 890 mesh vertices and physics on her braid. This is the JavaScript runtime and its WebGL
+                renderer, the same code a web game ships, and the slowest of the seven. The native runtimes are 3 to 4 times faster.
+              </p>
+              <div class="rt-counts" role="group" aria-label="Number of characters">
+                <button type="button" data-count="1">1</button>
+                <button type="button" data-count="10" aria-pressed="true">10</button>
+                <button type="button" data-count="50">50</button>
+                <button type="button" data-count="100">100</button>
+                <button type="button" data-count="200">200</button>
+              </div>
+              <dl class="rt-stats">
+                <div><dt>Characters</dt><dd data-stat="count">10</dd></div>
+                <div><dt>Animation, per frame</dt><dd data-stat="pose">–</dd></div>
+                <div><dt>Per character</dt><dd data-stat="each">–</dd></div>
+                <div><dt>Drawing</dt><dd data-stat="draw">–</dd></div>
+              </dl>
+            </div>
+            <div class="rt-stage">
+              <canvas id="crowd" aria-label="A crowd of NILAs, each playing her own animation"></canvas>
+              <p class="rt-stage-fallback" hidden>This browser can't run WebGL, so the crowd can't play here.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section alt" id="engines">
+        <div class="wrap">
+          <h2>Official runtimes</h2>
+          <p class="section-lede">Every one is maintained here, ships with each release and passes the same tests. No community ports to hope for.</p>
+          <div class="rt-grid">
+            <a class="rt-engine engine-godot" href="../docs/runtimes.html#godot">
+              <i data-mark="godot"></i>
+              <b>Godot</b>
+              <span>RigbySkeleton2D and RigbyScene2D nodes, a GDExtension on the Rust core.</span>
+              <small>Godot 4.3+ · Windows, macOS, Linux</small>
+            </a>
+            <a class="rt-engine engine-unity" href="../docs/runtimes.html#unity">
+              <i data-mark="unity"></i>
+              <b>Unity</b>
+              <span>Components in C#, posing on every core, no garbage in steady playback.</span>
+              <small>Unity 2021.3+ and Unity 6 · every platform</small>
+            </a>
+            <a class="rt-engine engine-defold" href="../docs/runtimes.html#defold">
+              <i data-mark="defold"></i>
+              <b>Defold <em>New</em></b>
+              <span>A native extension in C++ with a Lua player. One dependency URL.</span>
+              <small>Defold 1.14+ · every platform</small>
+            </a>
+            <a class="rt-engine engine-cocos" href="../docs/runtimes.html#cocos-creator">
+              <i data-mark="cocos"></i>
+              <b>Cocos Creator</b>
+              <span>A RigbySkeleton component that draws in order with sprites and UI.</span>
+              <small>Cocos Creator 3.8 · web and native</small>
+            </a>
+            <a class="rt-engine engine-phaser" href="../docs/runtimes.html#phaser">
+              <i data-mark="phaser"></i>
+              <b>Phaser</b>
+              <span>A plugin: this.load.rigby() and this.add.rigby(). One file.</span>
+              <small>Phaser 3.60+ and Phaser 4 · WebGL</small>
+            </a>
+            <a class="rt-engine engine-javascript" href="../docs/runtimes.html#javascript">
+              <i data-mark="javascript"></i>
+              <b>JavaScript</b>
+              <span>The reference runtime and a WebGL renderer, no dependencies.</span>
+              <small>Any browser or JS engine</small>
+            </a>
+            <a class="rt-engine engine-rust" href="../docs/runtimes.html#rust">
+              <i data-mark="rust"></i>
+              <b>Rust</b>
+              <span>The rigby-runtime crate, no dependencies, 3 to 4 times faster than JavaScript.</span>
+              <small>Any target Rust builds for</small>
+            </a>
+          </div>
+          <p class="fine">In the editor, <b>File ▸ Get runtimes</b> downloads the ones that match your version, or installs them straight into a Godot or Cocos project.</p>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="wrap">
+          <h2>Why Rigby2D runtimes</h2>
+          <p class="section-lede">Already using Spine? Your exports play in Rigby2D runtimes as they are. Here is what changes.</p>
+          <div class="table-scroll">
+            <table class="rt-compare">
+              <thead>
+                <tr><th scope="col"></th><th scope="col">Rigby2D runtimes</th><th scope="col">Spine runtimes</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <th scope="row">Cost</th>
+                  <td><b>Free.</b> MIT or Apache-2.0, for any game, any studio, any revenue.</td>
+                  <td>Need a Spine editor license.</td>
+                </tr>
+                <tr>
+                  <th scope="row">Defold, Cocos Creator, Rust</th>
+                  <td><b>Official</b>, released and tested with the editor.</td>
+                  <td>Listed as third-party runtimes, maintained by the community.</td>
+                </tr>
+                <tr>
+                  <th scope="row">Scenes</th>
+                  <td><b>Whole scenes play in the engine:</b> several characters on a stage, clips with crossfades, a camera with parallax.</td>
+                  <td>One skeleton at a time; the scene is built in each engine.</td>
+                </tr>
+                <tr>
+                  <th scope="row">File versions</th>
+                  <td><b>One runtime reads them all:</b> skeleton JSON 3.8, 4.2 and 4.3 and binary .skel 4.3.</td>
+                  <td>Each runtime version reads exports of its own editor version.</td>
+                </tr>
+                <tr>
+                  <th scope="row">Getting them</th>
+                  <td><b>From the editor:</b> File ▸ Get runtimes, matched to your version.</td>
+                  <td>From the runtimes repository, by hand.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="fine">Spine is a trademark of Esoteric Software. Rigby2D isn't affiliated with it; this compares the published runtime licenses and lists as of November 2026. See also <a href="../vs/spine/">Rigby2D vs Spine</a>.</p>
+        </div>
+      </section>
+
+      <section class="section alt">
+        <div class="wrap rt-proof">
+          <div>
+            <p class="eyebrow">Correct</p>
+            <h2>Frame for frame, to eight decimal places</h2>
+            <p>
+              The JavaScript runtime is the reference. Golden files record what it does with every demo rig: bone matrices,
+              vertices, colors, draw order and events, for every animation, crossfades, layered tracks, queues and skins. The
+              Rust, C++ and C# runtimes replay them on every commit and must match.
+            </p>
+            <a class="btn" href="https://github.com/jaisurya-dev-art/rigby2d/blob/develop/.github/workflows/runtimes.yml" rel="noopener">See the CI workflow</a>
+          </div>
+          <div class="table-scroll">
+            <table class="rt-numbers">
+              <caption>Largest relative difference from the JavaScript runtime</caption>
+              <thead><tr><th scope="col">Rig</th><th scope="col">Bone matrices</th><th scope="col">Vertices</th></tr></thead>
+              <tbody>
+                <tr><th scope="row">Rigbytron</th><td>2 × 10<sup>−16</sup></td><td>1 × 10<sup>−15</sup></td></tr>
+                <tr><th scope="row">NILA, with physics</th><td>3 × 10<sup>−11</sup></td><td>3 × 10<sup>−9</sup></td></tr>
+                <tr><th scope="row">Scene: NILA and Rigbytron on a stage</th><td>2 × 10<sup>−12</sup></td><td>5 × 10<sup>−11</sup></td></tr>
+                <tr><th scope="row">16 sample rigs, 3,500 frames</th><td colspan="2">under 10<sup>−10</sup> relative</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="wrap rt-proof">
+          <div>
+            <p class="eyebrow">Fast</p>
+            <h2>Native speed where it counts</h2>
+            <p>
+              Posing a character means animation, IK, transform, path and physics constraints, world transforms and every mesh
+              vertex. The native cores do it in microseconds and allocate nothing in steady playback.
+            </p>
+            <ul class="rt-facts">
+              <li><b>Unity:</b> 200 NILAs in 5.0 ms a frame on a 4-core laptop, upload included.</li>
+              <li><b>Defold:</b> NILA posed in 12 µs, her geometry built in 24 µs, written straight into vertex buffers.</li>
+              <li><b>Rust:</b> 3 to 4 times faster than JavaScript on every rig.</li>
+            </ul>
+          </div>
+          <div class="table-scroll">
+            <table class="rt-numbers">
+              <caption>One character, one frame (median of 2,000)</caption>
+              <thead><tr><th scope="col">Rig</th><th scope="col">JavaScript</th><th scope="col">Rust</th></tr></thead>
+              <tbody>
+                <tr><th scope="row">67 bones, 276 mesh vertices</th><td>50 µs</td><td>14.5 µs</td></tr>
+                <tr><th scope="row">76 bones, 667 weighted vertices, 9 IK</th><td>71 µs</td><td>22 µs</td></tr>
+                <tr><th scope="row">143 bones, 879 vertices, 21 constraints</th><td>90 µs</td><td>22 µs</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section class="section alt">
+        <div class="wrap">
+          <h2>Everything the editor does, in your game</h2>
+          <div class="rt-features">
+            <span>Meshes and weights</span><span>Deform keys</span><span>Linked meshes</span><span>IK, one and two bones</span>
+            <span>Transform constraints</span><span>Path constraints</span><span>Physics</span><span>Sliders</span><span>Skins</span>
+            <span>Image sequences</span><span>Clipping</span><span>Draw order keys</span><span>Two-color tint</span><span>Blend modes</span>
+            <span>Events with audio</span><span>Layered tracks</span><span>Crossfades</span><span>Queued animations</span>
+            <span>Bone followers</span><span>Scenes with cameras</span>
+          </div>
+          <p class="fine">Formats: skeleton JSON 3.8, 4.2, 4.3 · binary .skel 4.3 · texture atlas · .scene.json. Scenes play in every runtime except Defold so far.</p>
+        </div>
+      </section>
+
+      <section class="section rt-cta">
+        <div class="wrap">
+          <h2>Ship it anywhere. Pay nothing.</h2>
+          <p class="section-lede">The editor and every runtime are free and open source, for commercial games too.</p>
+          <div class="rt-hero-actions">
+            <a class="btn primary" href="../#download" data-goatcounter-click="site-runtimes-download">Download Rigby2D</a>
+            <a class="btn" href="../editor/" data-goatcounter-click="site-runtimes-editor">Open the browser editor</a>
+            <a class="btn" href="https://github.com/jaisurya-dev-art/rigby2d/tree/develop/runtimes" rel="noopener">Source on GitHub</a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!--site-footer-->
+    <script type="module" src="./runtimes.js"></script>
+  </body>
+</html>

@@ -252,7 +252,7 @@ function comparePages() {
     async generateBundle(_options, bundle) {
       const { COMPARISONS, comparePage } = await import('./compare/compare.js');
       for (const c of COMPARISONS) this.emitFile({ type: 'asset', fileName: `vs/${c.slug}/index.html`, source: comparePage(c) });
-      const pages = new Set(['', 'demos/', 'addons/', 'cloud/', 'fund/', 'blog/', 'editor/', ...COMPARISONS.map((c) => `vs/${c.slug}/`)]);
+      const pages = new Set(['', 'demos/', 'addons/', 'cloud/', 'fund/', 'runtimes/', 'blog/', 'editor/', ...COMPARISONS.map((c) => `vs/${c.slug}/`)]);
       for (const name of Object.keys(bundle)) {
         if (!name.endsWith('.html') || name.startsWith('editor/')) continue;
         pages.add(name.replace(/(^|\/)index\.html$/, '$1'));
@@ -404,6 +404,6 @@ export default defineConfig({
     target: 'es2021',
     outDir: path.join(repo, '_site'),
     emptyOutDir: true,
-    rollupOptions: { input: { main: path.join(here, 'index.html'), demos: path.join(here, 'demos/index.html'), addons: path.join(here, 'addons/index.html'), cloud: path.join(here, 'cloud/index.html'), fund: path.join(here, 'fund/index.html'), docs: path.join(here, 'docs/docs.js') } },
+    rollupOptions: { input: { main: path.join(here, 'index.html'), demos: path.join(here, 'demos/index.html'), addons: path.join(here, 'addons/index.html'), cloud: path.join(here, 'cloud/index.html'), fund: path.join(here, 'fund/index.html'), runtimes: path.join(here, 'runtimes/index.html'), docs: path.join(here, 'docs/docs.js') } },
   },
 });

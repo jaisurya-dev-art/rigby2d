@@ -21,6 +21,7 @@ export const brandIcon = (name, size = 18) =>
 const SECTIONS = [
   ['features', '#features', 'Features'],
   ['demos', 'demos/', 'Demos'],
+  ['runtimes', 'runtimes/', 'Runtimes'],
   ['addons', 'addons/', 'Add-ons'],
   ['docs', 'docs/', 'Docs'],
   ['vs', 'vs/spine/', 'Compare'],
@@ -62,7 +63,7 @@ export function siteFooter({ base = '/', lockup = '/blog/lockup.svg' } = {}) {
         ${col('Product', [
           [`${base}#download`, 'Download'],
           [`${base}editor/`, 'Browser editor'],
-          [`${base}#runtimes`, 'Runtimes'],
+          [`${base}runtimes/`, 'Runtimes'],
           [`${base}addons/`, 'Add-ons'],
           [`${base}demos/`, 'Demos'],
           [`${base}cloud/`, 'Cloud'],
