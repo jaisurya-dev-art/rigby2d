@@ -12,7 +12,7 @@ Rigby2D 0.5 got bigger. Two of the most asked-for features on
 export**. Both come with 0.5 on **Friday, November 6**, along with everything in the
 [first 0.5 preview](/blog/coming-in-0-5.html). [中文版本](/blog/defold-and-sprite-sheets-zh.html).
 
-![NILA and Rigbytron in a scene from the Rigby2D editor, playing in Defold 1.14](/docs/images/devlog-defold-scene.jpg)
+![The Defold 1.14 editor with the demo project open, and the game it launched playing NILA and Rigbytron in a scene from the Rigby2D editor](/docs/images/devlog-defold-scene.jpg)
 
 ## Defold, as a full runtime
 

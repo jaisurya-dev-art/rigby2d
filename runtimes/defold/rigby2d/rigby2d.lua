@@ -18,6 +18,8 @@ local M = {}
 
 local STREAMS = {
 	{ name = hash("position"), type = buffer.VALUE_TYPE_FLOAT32, count = 3 },
+	-- Unused by the shader, but Defold's editor requires a normal stream on world-space meshes.
+	{ name = hash("normal"), type = buffer.VALUE_TYPE_FLOAT32, count = 3 },
 	{ name = hash("texcoord0"), type = buffer.VALUE_TYPE_FLOAT32, count = 2 },
 	{ name = hash("color"), type = buffer.VALUE_TYPE_FLOAT32, count = 4 },
 	{ name = hash("dark"), type = buffer.VALUE_TYPE_FLOAT32, count = 4 },

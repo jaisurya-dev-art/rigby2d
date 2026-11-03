@@ -6,5 +6,6 @@ embedded_components {
   "textures: \"/builtins/graphics/particle_blob.png\"\n"
   "primitive_type: PRIMITIVE_TRIANGLES\n"
   "position_stream: \"position\"\n"
+  "normal_stream: \"normal\"\n"
   ""
 }

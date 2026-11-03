@@ -12,7 +12,7 @@ Rigby2D 0.5 的内容更多了。[r/rigby2d](https://www.reddit.com/r/rigby2d/) 
 **Defold 运行时** 和 **精灵图集导出**。它们将与 [第一篇 0.5 预告](/blog/coming-in-0-5-zh.html) 中的所有内容一起，
 在 **11 月 6 日（周五）** 随 0.5 发布。[English](/blog/defold-and-sprite-sheets.html)。
 
-![NILA 和 Rigbytron 在 Rigby2D 编辑器制作的场景中，于 Defold 1.14 里播放](/docs/images/devlog-defold-scene.jpg)
+![Defold 1.14 编辑器打开了演示项目，由它启动的游戏正在播放 Rigby2D 编辑器制作的 NILA 与 Rigbytron 场景](/docs/images/devlog-defold-scene.jpg)
 
 ## Defold：完整的运行时
 
