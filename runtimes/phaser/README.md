@@ -5,6 +5,8 @@ built on the JavaScript runtime and the reference WebGL renderer, so characters 
 the editor: meshes, weights, skins, IK, transform, path, physics and slider constraints, clipping,
 draw order, events, and layered tracks with crossfades and queues.
 
+![A Phaser game in VS Code and Chrome, playing NILA with the Rigby2D plugin](https://rigby2d.com/docs/images/runtime-phaser.jpg)
+
 ## Install
 
 Download `rigby2d-phaser-<version>.mjs` (ES module) or `rigby2d-phaser-<version>.js` (script tag,

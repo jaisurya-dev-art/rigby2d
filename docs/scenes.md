@@ -162,7 +162,7 @@ func _process(_delta: float) -> void:
 	$Camera2D.position = $Scene.get_camera_transform().origin
 ```
 
-![The demo scene playing in Godot with RigbyScene2D](images/godot-scene.png)
+![The demo scene in the Godot 4.7 editor, playing in the viewport of a RigbyScene2D node](images/runtime-godot.jpg)
 
 **Defold**: put the export in a folder listed in *Custom Resources* and play it from a script on a
 game object with the `rigby2d` factory (see the [Defold guide](../runtimes/defold/README.md)). Keep

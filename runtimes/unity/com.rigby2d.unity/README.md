@@ -6,6 +6,8 @@ Unity builds for, with IL2CPP or Mono. The runtime is pure C# and matches the Ri
 by frame. Tested in Unity 6.3 (Built-in and URP, Gamma and Linear) and 2022.3, and in Windows
 players built with IL2CPP and Mono.
 
+![Unity 6.3 in Play mode: Rigbytron slashing in the Game view, the Rigby Skeleton component in the Inspector](https://rigby2d.com/docs/images/runtime-unity.jpg)
+
 ## Install
 
 In Unity, open **Window ▸ Package Manager ▸ + ▸ Install package from git URL…** and enter:

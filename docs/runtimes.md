@@ -95,6 +95,8 @@ It matches the JavaScript runtime frame by frame (golden tests, including a scen
 
 ## Phaser
 
+![The Phaser tutorial: its main.js in VS Code, and NILA in the game running in Chrome](images/runtime-phaser.jpg)
+
 A plugin for [Phaser](https://phaser.io) 3.60 or newer, and Phaser 4 (WebGL). Download `rigby2d-phaser-<version>.mjs`
 or the script-tag `rigby2d-phaser-<version>.js` from the
 [latest release](https://github.com/jaisurya-dev-art/rigby2d/releases/latest):
@@ -119,6 +121,8 @@ for attaching objects. It plays exactly as the editor does. See the
 [Phaser guide](https://github.com/jaisurya-dev-art/rigby2d/blob/develop/runtimes/phaser/README.md).
 
 ## Defold
+
+![The Defold 1.14 editor with the demo project, and the game it launched playing a Rigby2D scene](images/runtime-defold.jpg)
 
 The `rigby2d` native extension for Defold 1.14 or newer. Its runtime is a C++ port of the Rust one,
 tested frame by frame against the JavaScript runtime in CI, and Defold's build server compiles it
@@ -180,6 +184,8 @@ export it for Cocos. See the [Cocos Creator guide](../runtimes/cocos/README.md)
 
 ## Unity
 
+![Unity 6.3 in Play mode: Rigbytron slashing in the Game view, the Rigby Skeleton component in the Inspector](images/runtime-unity.jpg)
+
 The `com.rigby2d.unity` package for Unity 2021.3 or newer (Unity 6 included), Built-in or
 Universal render pipeline. In Unity: *Window ▸ Package Manager ▸ + ▸ Install package from git URL…*
 
@@ -213,6 +219,8 @@ gun.position = hero.GetBoneWorldPosition("gun-tip");
 See the [Unity guide](https://github.com/jaisurya-dev-art/rigby2d/blob/develop/runtimes/unity/com.rigby2d.unity/README.md) for every component, property and event.
 
 ## Godot
+
+![The Godot 4.7 editor with a RigbyScene2D node selected: the scene plays in the viewport, and the running game logs to Output](images/runtime-godot.jpg)
 
 The `RigbySkeleton2D` node for Godot 4.3+ (prebuilt for Windows x64, macOS and Linux x64).
 Install the `rigby2d-godot-addon` zip for your system from the

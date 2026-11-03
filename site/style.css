@@ -2573,3 +2573,36 @@ dialog.thanks .goal {
     gap: 28px;
   }
 }
+.rt-shots {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+}
+.rt-shots figure {
+  margin: 0;
+}
+.rt-shots img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+.rt-shots figcaption {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+.rt-shots figcaption .m {
+  width: 18px;
+  height: 18px;
+  flex: none;
+}
+@media (max-width: 860px) {
+  .rt-shots {
+    grid-template-columns: 1fr;
+  }
+}

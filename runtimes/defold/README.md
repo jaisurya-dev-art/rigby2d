@@ -8,6 +8,8 @@ transform, path, physics and slider constraints, skins, image sequences, clippin
 events, two-color tint and blend modes, with layered tracks, crossfades and queued animations,
 and whole scenes (a stage, several characters, a camera and parallax).
 
+![The Defold 1.14 editor with the demo project, and the game it launched playing a Rigby2D scene](https://rigby2d.com/docs/images/runtime-defold.jpg)
+
 Defold's build server compiles the extension for every platform (Windows, macOS, Linux, Android,
 iOS, HTML5); nothing to install.
 

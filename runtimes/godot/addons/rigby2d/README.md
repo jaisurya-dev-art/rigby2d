@@ -6,6 +6,8 @@ them with the Rigby2D runtime written in Rust: meshes and weights, IK, transform
 slider constraints, skins, image sequences, clipping, draw order, events, two-color tint and blend
 modes, with layered tracks, crossfades and queued animations.
 
+![The Godot 4.7 editor with a RigbyScene2D node selected, the scene playing in the viewport](https://rigby2d.com/docs/images/runtime-godot.jpg)
+
 ## Install
 
 **Download** (Windows x64, macOS universal, Linux x64) from the [Releases](https://github.com/jaisurya-dev-art/rigby2d/releases)
