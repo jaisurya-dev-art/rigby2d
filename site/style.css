@@ -1261,6 +1261,23 @@ h3 {
   color: #fff;
   box-shadow: 0 24px 60px rgba(255, 69, 0, 0.3);
 }
+.post-discuss {
+  margin: 48px 0 28px;
+  padding-top: 28px;
+  border-top: 1px solid var(--line, rgba(255, 255, 255, 0.1));
+}
+.post-discuss h2 {
+  margin: 0 0 6px;
+  font-size: 22px;
+}
+.post-discuss-note {
+  margin: 0 0 18px;
+  color: var(--muted, #8e939c);
+  font-size: 15px;
+}
+.post-discuss .giscus {
+  min-height: 120px;
+}
 .community-callout {
   display: flex;
   align-items: center;

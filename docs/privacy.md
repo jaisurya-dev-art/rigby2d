@@ -40,6 +40,14 @@ anonymously with [GoatCounter](https://www.goatcounter.com): no cookies, no pers
 tracking across sites. Projects you open in the browser editor stay in your browser; nothing is
 uploaded.
 
+Likes and comments on devlog posts are provided by [giscus](https://giscus.app), which keeps each
+post's thread as a GitHub Discussion in the Rigby2D repository. The comments frame loads from
+giscus.app only when you scroll to it, and sets no cookies while you only read. To like or comment you
+sign in with GitHub; what you post is public on GitHub under your account, and
+[GitHub's privacy statement](https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement)
+and [giscus's privacy policy](https://github.com/giscus/giscus/blob/main/PRIVACY-POLICY.md) apply.
+You can edit or delete your comments on GitHub at any time.
+
 The [Rigby2D Cloud waitlist](https://rigby2d.com/cloud/) is the one place the website asks for
 personal data. The email address you enter is stored with the date in a database in our Cloudflare
 account and used only to tell you when Rigby2D Cloud opens. It is never shared or sold. To be removed
