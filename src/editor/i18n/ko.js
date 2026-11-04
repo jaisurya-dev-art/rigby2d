@@ -188,6 +188,8 @@ export default {
   "PNG images…": "PNG 이미지…",
   "PNG sequence, WebM or MP4": "PNG 시퀀스, WebM 또는 MP4",
   "PSD…": "PSD…",
+  "SVG…": "SVG…",
+  "An Inkscape, Affinity or Illustrator drawing: each layer becomes a part, placed where it was drawn": "Inkscape, Affinity, Illustrator 그림: 각 레이어가 그린 위치에 파츠로 배치됩니다",
   "Partly supported": "일부 지원",
   "Paste keys": "키 붙여넣기",
   "Path attachments": "패스 어태치먼트",

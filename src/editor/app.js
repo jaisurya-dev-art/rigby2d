@@ -840,6 +840,40 @@ export class App {
     }
   }
 
+  /** Imports an SVG drawing (Inkscape, Affinity…): each layer becomes a part, placed where it was drawn. */
+  async importSvg() {
+    const [file] = (await this.guard(() => platform.pickImportFiles('SVG drawing', ['svg'], false))) ?? [];
+    if (!file) return;
+    try {
+      const { svgSize } = await import('./svgimport.js');
+      const root = /<svg\b[^>]*>/i.exec(new TextDecoder().decode(file.bytes))?.[0] ?? '';
+      const attr = (n) => new RegExp(`\\s${n}\\s*=\\s*["']([^"']*)["']`, 'i').exec(root)?.[1] ?? null;
+      const size = svgSize({ width: attr('width'), height: attr('height'), viewBox: attr('viewBox') });
+      if (!size) throw new Error('the SVG has no size (width, height or viewBox)');
+      // Vector art draws sharp at any size: pick how many pixels the parts get.
+      const px = (k) => {
+        const f = Math.min(k, io.SVG_MAX_SIDE / Math.max(size.width, size.height));
+        return `${Math.round(size.width * f)}×${Math.round(size.height * f)} px`;
+      };
+      const big = Math.max(size.width, size.height);
+      const preferred = big <= 1024 ? 2 : big <= 3000 ? 1 : 0.5;
+      const scale = await askChoice({
+        title: `Import ${file.name}`,
+        detail: 'Each layer becomes a part, placed where you drew it. Vector art stays sharp at any size: choose how large to draw it.',
+        choices: [0.5, 1, 2, 4].map((k) => ({ label: `${k * 100}% · ${px(k)}`, value: k, primary: k === preferred })),
+      });
+      if (!scale) return;
+      const n = await io.importSvg(file, selBone(this.sel) ?? 0, this.doc, this.images, { scale });
+      this.frameRequest = true;
+      this.changed();
+      this.commitHistory?.();
+      track('editor-import-svg');
+      this.setStatus(`Imported ${n} layers from ${file.name}`);
+    } catch (e) {
+      this.setStatus(`SVG import failed: ${errorText(e)}`);
+    }
+  }
+
   /** Film: adds sound files as audio tracks of the current animation, starting at frame 0. */
   async importAudio() {
     const anim = this.currentAnimation();

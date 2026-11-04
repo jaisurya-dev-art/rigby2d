@@ -188,6 +188,8 @@ export default {
   "PNG images…": "Imágenes PNG…",
   "PNG sequence, WebM or MP4": "Secuencia PNG, WebM o MP4",
   "PSD…": "PSD…",
+  "SVG…": "SVG…",
+  "An Inkscape, Affinity or Illustrator drawing: each layer becomes a part, placed where it was drawn": "Un dibujo de Inkscape, Affinity o Illustrator: cada capa se convierte en una parte, colocada donde se dibujó",
   "Partly supported": "Compatible en parte",
   "Paste keys": "Pegar claves",
   "Path attachments": "Adjuntos de trayectoria",

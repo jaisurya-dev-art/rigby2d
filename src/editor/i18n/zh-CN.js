@@ -188,6 +188,8 @@ export default {
   "PNG images…": "PNG 图像…",
   "PNG sequence, WebM or MP4": "PNG 序列、WebM 或 MP4",
   "PSD…": "PSD…",
+  "SVG…": "SVG…",
+  "An Inkscape, Affinity or Illustrator drawing: each layer becomes a part, placed where it was drawn": "Inkscape、Affinity 或 Illustrator 绘图：每个图层都成为一个部件，放在绘制时的位置",
   "Partly supported": "部分支持",
   "Paste keys": "粘贴关键帧",
   "Path attachments": "路径附件",

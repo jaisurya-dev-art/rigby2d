@@ -1,7 +1,7 @@
 # Importing art
 
 Rigby2D animates bitmap artwork. Draw your character in any paint program, in separate pieces that
-can move on their own, and bring the pieces in as a layered PSD or as PNG files.
+can move on their own, and bring the pieces in as a layered PSD, an SVG with layers, or PNG files.
 
 ## Preparing artwork
 
@@ -33,6 +33,22 @@ can move on their own, and bring the pieces in as a layered PSD or as PNG files.
 
 Next: rig it in one step with [AutoRig](autorig.md), or by hand with
 [bones](bones-and-slots.md#bones).
+
+## Importing an SVG
+
+*File ▸ Import ▸ SVG…* brings in a vector drawing from Inkscape, Affinity, Illustrator or any tool
+that saves SVG, the same way as a PSD: every layer becomes a part, placed where it was drawn, in
+drawing order, ready for [AutoRig](autorig.md).
+
+- **Layers**: Inkscape's layers (a sublayer is a part of its own), or the groups Affinity and other
+  tools export (a single group around everything is looked inside). Names come from the layer names.
+- **Hidden layers** come in hidden, so spare parts (another hat, a closed hand) are there to switch on.
+- **Size**: vector art stays sharp at any size, so you choose how large to draw it (50 % to 400 %
+  of the drawing's own size). Pick the size the character will have in your game, or larger.
+- Shapes that are in no layer come in as one more part, `background`, at the back.
+
+Text is drawn with the fonts on your computer, and images linked from outside the file are left out
+(embedded images are kept).
 
 ## Importing PNG images
 

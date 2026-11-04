@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- A tiny character as Affinity Designer exports it: one wrapping group, named groups (serif:id). -->
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 300 400" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+  <g id="Artboard1" transform="matrix(1,0,0,1,0,0)">
+    <rect x="0" y="0" width="300" height="400" style="fill:none;" />
+    <g id="Tail" serif:id="Tail">
+      <path d="M200,300 C260,290 280,230 250,200" style="fill:none;stroke:#c98a3b;stroke-width:16px;stroke-linecap:round;" />
+    </g>
+    <g id="Body" serif:id="Body">
+      <ellipse cx="150" cy="290" rx="70" ry="80" style="fill:#e3a24c;" />
+    </g>
+    <g id="Head" serif:id="Head">
+      <circle cx="150" cy="150" r="75" style="fill:#e3a24c;" />
+      <circle cx="122" cy="140" r="9" style="fill:#2a2a2a;" />
+      <circle cx="178" cy="140" r="9" style="fill:#2a2a2a;" />
+    </g>
+    <g id="Ear-L" serif:id="Ear L">
+      <path d="M90,100 L100,40 L140,85 Z" style="fill:#c98a3b;" />
+    </g>
+    <g id="Ear-R" serif:id="Ear R">
+      <path d="M210,100 L200,40 L160,85 Z" style="fill:#c98a3b;" />
+    </g>
+  </g>
+</svg>

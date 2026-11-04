@@ -3613,3 +3613,5 @@ body.drop-open::after {
   font-size: 16px;
   pointer-events: none;
 }
+.result-dialog .modal-buttons.choice-stack { flex-direction: column; align-items: stretch; gap: 6px; }
+.result-dialog .modal-buttons.choice-stack button { text-align: left; white-space: nowrap; }

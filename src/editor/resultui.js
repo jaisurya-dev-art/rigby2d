@@ -67,7 +67,8 @@ export function askChoice({ title, detail = '', list = [], choices }) {
         h('h3', { id: 'choice-title' }, title),
         detail ? h('p', null, detail) : null,
         list.length ? h('ul', { class: 'small result-list' }, list.map((item) => h('li', null, item))) : null,
-        h('div', { class: 'modal-buttons' }, choices.map((c) => h('button', { class: c.primary ? 'primary' : null, onclick: () => done(c.value) }, c.label))),
+        // More than two answers stack as a list (labels stay on one line).
+        h('div', { class: choices.length > 2 ? 'modal-buttons choice-stack' : 'modal-buttons' }, choices.map((c) => h('button', { class: c.primary ? 'primary' : null, onclick: () => done(c.value) }, c.label))),
       ),
     );
     document.body.append(overlay);

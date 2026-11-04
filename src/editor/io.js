@@ -510,6 +510,41 @@ export async function importPsd(file, doc, images) {
   return count;
 }
 
+/** The largest side an imported SVG is drawn at (canvas limits, and memory for many layers). */
+export const SVG_MAX_SIDE = 8192;
+
+/**
+ * Imports an SVG drawing (`file` is { name, bytes }) like a PSD: every layer (Inkscape layers, or the
+ * groups Affinity and others export) is drawn at `scale` (1 = the drawing's own pixel size), cropped
+ * to what it shows and placed where it was drawn, on `bone`, back to front, ready for AutoRig.
+ * Anything outside the layers comes in as one more part, at the back. Returns the number of parts.
+ */
+export async function importSvg(file, bone, doc, images, { scale = 1 } = {}) {
+  const { parseSvg, drawLayer } = await import('./svgimport.js');
+  const parsed = parseSvg(new TextDecoder().decode(file.bytes));
+  const { size } = parsed;
+  const k = Math.min(scale, SVG_MAX_SIDE / Math.max(size.width, size.height));
+  const cw = Math.max(1, Math.round(size.width * k));
+  const ch = Math.max(1, Math.round(size.height * k));
+  let count = 0;
+  const place = (canvas, name, visible) => {
+    const bounds = alphaBounds(canvas.getContext('2d').getImageData(0, 0, cw, ch).data, cw, ch);
+    if (!bounds) return; // nothing drawn
+    const crop = document.createElement('canvas');
+    crop.width = bounds.width;
+    crop.height = bounds.height;
+    crop.getContext('2d').drawImage(canvas, bounds.x, bounds.y, bounds.width, bounds.height, 0, 0, bounds.width, bounds.height);
+    addImageSlot(doc, images, name, crop, bone, layerCenter(bounds, cw, ch), visible);
+    count++;
+  };
+  // Drawn one at a time, so only one full-size canvas is alive at once.
+  place(await drawLayer(parsed, null, cw, ch, size.viewBox), 'background', true);
+  for (const layer of parsed.layers) place(await drawLayer(parsed, layer, cw, ch, size.viewBox), layer.name, !layer.hidden);
+  if (count === 0) throw new Error('nothing is drawn in this SVG');
+  if (doc.name === 'untitled') doc.name = stem(file.name);
+  return count;
+}
+
 /**
  * Imports PNG files ([{ name, bytes }]) as slots on `bone`. Files that all share one size are layers
  * exported from a drawing (pngset.js): each is cropped to its visible pixels and placed where it was
