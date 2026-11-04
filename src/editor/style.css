@@ -3422,19 +3422,42 @@ kbd {
   letter-spacing: -0.035em;
   line-height: 1;
 }
-/* The 0.5, frosted: an icy gradient with a band of light that sweeps across it. */
+/* The 0.5, frosted: a still icy gradient with a soft glow behind it (both drawn once), and a band of
+   light that sweeps across on its own layer. The band is clear at both ends, so the loop never
+   jumps, and only that layer repaints. */
 .wn-ice {
-  background: linear-gradient(105deg, #9ec7e3 0%, #e8f5ff 38%, #ffffff 46%, #e8f5ff 54%, #8fb8d6 72%, #5f8fb2 100%);
-  background-size: 260% 100%;
+  position: relative;
+  display: inline-block;
+  background: linear-gradient(105deg, #a9d1ec 0%, #e8f5ff 42%, #cfe6f6 60%, #8fb8d6 80%, #6f9cbf 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  filter: drop-shadow(0 0 28px rgba(140, 195, 235, 0.35));
-  animation: wn-sweep 3.2s ease-in-out 0.6s infinite;
+}
+.wn-ice::before,
+.wn-ice::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.wn-ice::before {
+  z-index: -1;
+  color: rgba(140, 195, 235, 0.32);
+  filter: blur(22px);
+}
+.wn-ice::after {
+  background: linear-gradient(105deg, transparent 0%, transparent 38%, rgba(255, 255, 255, 0.95) 50%, transparent 62%, transparent 100%);
+  background-size: 300% 100%;
+  background-position: 100% 0;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  will-change: background-position;
+  animation: wn-sweep 3.6s cubic-bezier(0.45, 0, 0.25, 1) 0.8s infinite;
 }
 @keyframes wn-sweep {
   0% { background-position: 100% 0; }
-  45%, 100% { background-position: 0% 0; }
+  55%, 100% { background-position: 0% 0; }
 }
 .wn-lede { margin: 0; font-size: clamp(20px, 2.4vw, 30px); color: #a1a1a6; font-weight: 400; }
 .wn-art { display: flex; align-items: center; justify-content: center; min-height: 260px; }
@@ -3554,7 +3577,7 @@ kbd {
 .wn-dots button { width: 8px; height: 8px; padding: 0; border: 0; border-radius: 50%; background: rgba(255, 255, 255, 0.22); cursor: pointer; transition: width 0.25s, background 0.25s; }
 .wn-dots button.on { width: 26px; border-radius: 4px; background: #f5f5f7; }
 @media (prefers-reduced-motion: reduce) {
-  .wn-backdrop, .wn-page > *, .wn-chips span, .wn-sheet span, .wn-mesh-pt, .wn-more-item, .wn-ice, .wn-keys kbd { animation: none; }
+  .wn-backdrop, .wn-page > *, .wn-chips span, .wn-sheet span, .wn-mesh-pt, .wn-more-item, .wn-ice::after, .wn-keys kbd { animation: none; }
   .wn-mesh-tri { animation: none; stroke-dashoffset: 0; }
 }
 
@@ -3567,3 +3590,8 @@ kbd {
 .result-path { word-break: break-all; opacity: 0.8; user-select: text; }
 .result-backdrop { z-index: 2100; }
 .modal .small.warn { color: #e8b04a; }
+
+/* The tour's 0.5 once the frosted-glass canvas (icetext.js) draws it: the text stays for layout. */
+.wn-ice.ice-live { background: none; color: transparent; }
+.wn-ice.ice-live::before, .wn-ice.ice-live::after { display: none; }
+.ice-canvas { position: absolute; pointer-events: none; }

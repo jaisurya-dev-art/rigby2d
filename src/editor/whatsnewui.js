@@ -7,6 +7,7 @@
 import { VERSION } from './helpui.js';
 import { t } from './i18n.js';
 import { engineIcon } from './icons.js';
+import { iceText } from './icetext.js';
 import { openExternal } from './platform.js';
 import { openRuntimes } from './runtimeui.js';
 import { openSpriteSheetDialog } from './spritesheetui.js';
@@ -60,6 +61,13 @@ function sheetArt() {
 }
 
 /** The screens of the tour: the opening, each feature, and the rest. */
+/** The release number in frosted glass, with particles rising inside (icetext.js); stops itself once off the page. */
+function ice(text) {
+  const el = h('span', { class: 'wn-ice', 'data-text': text }, text);
+  iceText(el);
+  return el;
+}
+
 function screens(app, { showPreferences }) {
   const engines = (names, size) => h('div', { class: 'wn-engines' }, ...names.map((n) => h('span', { class: `wn-engine wn-${n}` }, engineIcon(n, size))));
   return [
@@ -67,7 +75,7 @@ function screens(app, { showPreferences }) {
       id: 'intro',
       body: () => [
         h('img', { class: 'wn-mark', src: markUrl, alt: '' }),
-        h('h1', { class: 'wn-hero' }, 'Rigby2D ', h('span', { class: 'wn-ice' }, '0.5')),
+        h('h1', { class: 'wn-hero' }, 'Rigby2D ', ice('0.5')),
         h('p', { class: 'wn-lede' }, t('Our biggest update yet.')),
       ],
     },
