@@ -82,7 +82,7 @@ function screens(app, { showPreferences }) {
       id: 'sheets',
       art: sheetArt,
       title: t('Sprite sheets.'),
-      text: t('Turn any animation into a packed sheet with its data, a Defold atlas, or loose frames. For any engine, or none at all.'),
+      text: t('Turn any animation into a sprite sheet, a Defold atlas, or loose frames. Drawn on your GPU, in seconds.'),
       cta: [t('Export a sprite sheet'), () => openSpriteSheetDialog(app)],
     },
     {
@@ -119,6 +119,8 @@ function screens(app, { showPreferences }) {
             [t('Layered PNGs in place'), t('like a PSD, ready for AutoRig')],
             [t('A smarter AutoRig'), t('the spine finds the neck and head')],
             [t('Seven runtimes'), t('Unity, Godot, Defold, Cocos, Phaser, JavaScript, Rust')],
+            [t('Big sheets, split'), t('over the size limit, on to the next sheet: Phaser and PixiJS load them as one')],
+            [t('Every export reports back'), t('where it went, or what went wrong')],
             [t('Fixes'), t('mesh rebinding, bone hover, DragonBones import')],
           ].map(([b, s], i) => h('div', { class: 'wn-more-item', style: `animation-delay:${0.15 + i * 0.07}s` }, h('b', null, b), h('span', null, s))),
         ),
