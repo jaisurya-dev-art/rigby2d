@@ -56,7 +56,6 @@
 
 ## Em destaque
 
-- **Análise de arquitetura no YouTube:** [Rigby2D GitHub Explained: 2D Rigging Across Game and Film Runtimes](https://www.youtube.com/watch?v=K9hDnlXZ2No) por [Alex Hitt](https://www.youtube.com/channel/UCKhKnxp8JhHu1FsbyZYxqwg) — análise técnica de 8 minutos sobre a topologia de malhas do AutoRig, paridade determinística de física entre runtimes, áreas de trabalho de jogos e filmes, e o servidor MCP integrado.
 - **Polydium (Briefing diário de CG · VFX · Games):** [Rigby2D — Editor de animação esquelética 2D de código aberto com AutoRig para PSD em camadas](https://polydium.net/briefing/8df9db93-0abf-4032-bd88-acbdf95ec431) — destaque no [Briefing de Pipeline da Polydium](https://polydium.net/briefing).
 - **Diretórios open-source e IA:** Listado no [Trendshift Top Game Engine Projects (2026)](https://trendshift.io/topics/game-engine), [Nicheloom](https://www.nicheloom.com/launches/57217/) e [Context7](https://context7.com/jaisurya-dev-art/rigby2d).
 

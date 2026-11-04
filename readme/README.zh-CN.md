@@ -56,7 +56,6 @@
 
 ## 媒体报道与社区收录
 
-- **YouTube 架构深度解析：** [Alex Hitt](https://www.youtube.com/channel/UCKhKnxp8JhHu1FsbyZYxqwg) 发布的 [Rigby2D GitHub Explained: 2D Rigging Across Game and Film Runtimes](https://www.youtube.com/watch?v=K9hDnlXZ2No) —— 8 分钟技术评测，深入解析 AutoRig 网格拓扑、跨引擎帧级一致的物理约束求解器、游戏与影视双工作区以及内置 MCP 服务器。
 - **Polydium（CG · VFX · 游戏每日简报）：** [Rigby2D — 自动绑定分层 PSD 的开源 2D 骨骼动画编辑器](https://polydium.net/briefing/8df9db93-0abf-4032-bd88-acbdf95ec431) —— 入选韩国 [Polydium 管线简报](https://polydium.net/briefing) 重点推荐工具。
 - **开源与 AI 索引目录：** 收录于 [Trendshift 2026 开源游戏引擎项目](https://trendshift.io/topics/game-engine)、[Nicheloom](https://www.nicheloom.com/launches/57217/) 与 [Context7](https://context7.com/jaisurya-dev-art/rigby2d)。
 

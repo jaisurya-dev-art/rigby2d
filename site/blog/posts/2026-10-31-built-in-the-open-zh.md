@@ -43,8 +43,6 @@ Rigby2D 于 10 月 13 日公开。十八天后，你今天打开的编辑器里�
 
 ## 来自外部的关注
 
-- Alex Hitt 发布了一期 [8 分钟的技术评测](https://www.youtube.com/watch?v=K9hDnlXZ2No)，
-  讲解 AutoRig、跨引擎一致的物理，以及内置的 MCP 服务器。
 - [Polydium](https://polydium.net/briefing/8df9db93-0abf-4032-bd88-acbdf95ec431) 在面向韩国游戏和
   特效工作室的每日简报中介绍了 Rigby2D。
 - 按 GitHub 活跃度为开源项目排名的 [Trendshift](https://trendshift.io/topics/game-engine)，

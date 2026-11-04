@@ -47,8 +47,6 @@ submission; the registry checks it automatically. [How to write one](/docs/addon
 
 ## People are talking about it
 
-- Alex Hitt made an [8-minute technical review](https://www.youtube.com/watch?v=K9hDnlXZ2No) of how
-  Rigby2D works: AutoRig, the physics that match across engines, and the built-in MCP server.
 - [Polydium](https://polydium.net/briefing/8df9db93-0abf-4032-bd88-acbdf95ec431) featured it in
   its daily briefing for Korean game and VFX studios.
 - [Trendshift](https://trendshift.io/topics/game-engine), which ranks open-source projects by their

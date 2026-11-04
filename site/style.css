@@ -2075,9 +2075,6 @@ h3 {
   width: 34px;
   height: 34px;
 }
-.press-card[data-goatcounter-click$='youtube-hitt'] .press-logo {
-  color: #ff0033;
-}
 .press-card[data-goatcounter-click$='alternativeto'] .press-logo {
   color: #0c9ef0;
 }
