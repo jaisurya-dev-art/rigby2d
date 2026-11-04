@@ -177,3 +177,26 @@ test('with no armature named, the character is imported, not a weapon or bullet 
   ske.armature.find((a) => a.name === 'bullet').name = 'hero_file';
   assert.ok(dragonBonesToSkeleton(ske, TEX).warnings.some((w) => w.includes("imported 'hero_file'")));
 });
+
+test('opening picked files: the project is found by its contents, never the texture atlas', async () => {
+  const { projectKind, isDragonBonesAtlasText, missingFiles } = await import('../src/editor/io.js');
+  const ske = JSON.stringify({ name: 'hero', armature: [{ name: 'hero' }] });
+  const tex = JSON.stringify({ name: 'hero', imagePath: 'hero_tex.png', SubTexture: [] });
+  const spine = JSON.stringify({ skeleton: { spine: '4.2' }, bones: [{ name: 'root' }] });
+  assert.equal(projectKind('hero_ske.json', ske).kind, 'DragonBones skeleton');
+  assert.equal(projectKind('hero_tex.json', tex), null, 'the texture atlas is not a project');
+  assert.ok(isDragonBonesAtlasText(tex));
+  assert.equal(projectKind('hero.json', spine).kind, 'skeleton JSON');
+  assert.equal(projectKind('settings.json', '{"a":1}'), null);
+  assert.equal(projectKind('hero.png'), null);
+  assert.equal(projectKind('hero.atlas'), null);
+  // Work files beat skeletons, binary beats JSON, backups come last.
+  const ranks = ['a.rigby', 'a.skel', 'a.rigby3'].map((n) => projectKind(n).rank);
+  assert.deepEqual(ranks, [0, 1, 4]);
+  assert.ok(projectKind('hero_ske.json', ske).rank < projectKind('hero.json', spine).rank);
+  // What an import still needs, read from its warnings.
+  const m = missingFiles(["image 'arm' not found", "image 'leg' is missing", 'atlas page hero.png: file not found: hero.png', 'no DragonBones texture atlas (_tex.json) found next to the skeleton: images are looked up by name instead', 'something else']);
+  assert.deepEqual(m.names, ['hero.png'], 'a missing atlas page is asked for, not each image in it');
+  assert.deepEqual(missingFiles(["image 'arm' not found"]).names, ['arm']);
+  assert.equal(m.dragonBonesAtlas, true);
+});

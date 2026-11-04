@@ -10,7 +10,7 @@ import * as edit from './edit.js';
 import { Images } from './images.js';
 import * as io from './io.js';
 import * as platform from './platform.js';
-import { showResult } from './resultui.js';
+import { askChoice, showResult } from './resultui.js';
 import { addSound, sounds, stopAudio } from './audio.js';
 import { WORKSPACES, workspace as workspaceDef } from './workspaces.js';
 import * as onion from './onion.js';
@@ -593,9 +593,72 @@ export class App {
       track(imported ? 'editor-import-skeleton' : 'editor-open');
       const note = backup ? ' (Save asks where to keep it)' : '';
       this.setStatus(warnings.length ? `${what} with warnings: ${warnings.join('; ')}` : `${what} ${path}${note}`);
+      return { ok: true, warnings };
     } catch (e) {
       this.setStatus(`Could not open ${path}: ${errorText(e)}`);
+      return { ok: false, error: e };
     }
+  }
+
+  /**
+   * Browser: opens the project among picked or dropped files (a work file, a skeleton .json/.skel,
+   * a DragonBones _ske.json), reading its images and atlas from the same files. When files it needs
+   * are missing, names them and asks for just those. `path` keeps the project chosen before.
+   */
+  async openFiles(files, path = null) {
+    let chosen = path ? files.find((f) => f.name === path) : null;
+    if (!chosen) {
+      const ranked = [];
+      let texAtlas = false;
+      for (const f of files) {
+        const text = /\.json$/i.test(f.name) ? await f.text() : null;
+        const kind = io.projectKind(f.name, text);
+        if (kind) ranked.push({ file: f, ...kind });
+        else if (text !== null && io.isDragonBonesAtlasText(text)) texAtlas = true;
+      }
+      if (!ranked.length) {
+        return showResult(this, {
+          ok: false,
+          title: 'Nothing to open',
+          detail: texAtlas
+            ? 'That is the DragonBones texture atlas (_tex.json). Pick the skeleton (_ske.json) with it, and its image.'
+            : 'Pick a Rigby2D work file (.rigby), a skeleton (.json or .skel) or a DragonBones skeleton (_ske.json), together with its images and atlas.',
+        });
+      }
+      // Best kind first; among equals the plainest name (hero_ske.json before hero_show_ske.json).
+      ranked.sort((a, b) => a.rank - b.rank || a.file.name.length - b.file.name.length || a.file.name.localeCompare(b.file.name));
+      const best = ranked.filter((r) => r.rank === ranked[0].rank);
+      chosen = best[0].file;
+      if (best.length > 1) {
+        chosen = await askChoice({
+          title: 'Which one?',
+          detail: `These files are all ${best[0].kind} files. Pick the one to open.`,
+          choices: best.map((r, i) => ({ label: r.file.name, value: r.file, primary: i === 0 })),
+        });
+        if (!chosen) return;
+      }
+    }
+    const opened = await this.openFrom(chosen.name, platform.memoryFs(files));
+    if (!opened.ok || /\.rigby\d?$/i.test(chosen.name)) return;
+    // Imported skeletons read their images from the other picked files: ask for any that weren't.
+    const { names, dragonBonesAtlas } = io.missingFiles(opened.warnings);
+    if (!names.length && !dragonBonesAtlas) return;
+    const list = [...(dragonBonesAtlas ? [chosen.name.replace(/_ske\.json$/i, '_tex.json')] : []), ...names.map((n) => (/\.\w+$/.test(n) ? n : `${n}.png`))];
+    const more = await askChoice({
+      title: 'Some files are missing',
+      detail: `${chosen.name} opened, but these files weren't picked with it. Add them to see the whole character.`,
+      list: list.length > 12 ? [...list.slice(0, 12), `… and ${list.length - 12} more`] : list,
+      choices: [
+        { label: 'Continue without', value: false },
+        { label: 'Add files…', value: true, primary: true },
+      ],
+    });
+    if (!more) return;
+    const added = await platform.pickProjectFiles();
+    if (!added.length) return;
+    // The new files win over same-named earlier ones; the project stays the one chosen.
+    const replaced = new Set(added.map((f) => f.name));
+    await this.openFiles([...files.filter((f) => !replaced.has(f.name)), ...added], chosen.name);
   }
 
   async confirmDiscard() {
@@ -664,6 +727,11 @@ export class App {
 
   async openDialog() {
     if (!(await this.confirmDiscard())) return;
+    if (!platform.isDesktop) {
+      const files = await platform.pickProjectFiles();
+      if (files.length) await this.openFiles(files);
+      return;
+    }
     const picked = await this.guard(() => platform.pickProject());
     if (picked) await this.openFrom(picked.path, picked.fs);
   }

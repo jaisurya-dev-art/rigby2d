@@ -56,8 +56,11 @@ function normalize(path) {
 /** Read-only file system over files picked from a folder (keyed by their relative paths). */
 export function memoryFs(files) {
   const byPath = new Map(files.map((f) => [normalize(f.webkitRelativePath || f.name), f]));
+  // Files picked one by one have no folders: `images/arm.png` is then found as the one `arm.png`.
+  const byName = new Map();
+  for (const f of files) byName.set(f.name.toLowerCase(), byName.has(f.name.toLowerCase()) ? null : f);
   const get = (p) => {
-    const f = byPath.get(normalize(p));
+    const f = byPath.get(normalize(p)) ?? byName.get(normalize(p).split('/').pop().toLowerCase());
     if (!f) throw new Error(`file not found: ${p}`);
     return f;
   };
@@ -335,8 +338,8 @@ export async function confirmDialog(message, title) {
 }
 
 /**
- * Asks for a project to open. Desktop: a file dialog. Browser: a folder picker (so the
- * project's images can be read too). Returns { path, fs } or null.
+ * Asks for a project to open (desktop: a file dialog; its images are read from next to it). Returns
+ * { path, fs } or null. The browser picks files with pickProjectFiles instead (App.openFiles).
  */
 export async function pickProject() {
   if (isDesktop) {
@@ -349,18 +352,18 @@ export async function pickProject() {
     });
     return path ? { path, fs: desktopFs } : null;
   }
-  const files = await pickWithInput({ directory: true });
-  const projects = files.filter((f) => /\.(rigby\d?|json|skel)$/i.test(f.name));
-  if (!projects.length) return files.length ? Promise.reject(new Error('no .rigby, .json or .skel file in that folder')) : null;
-  projects.sort((a, b) => Number(/\.rigby$/i.test(b.name)) - Number(/\.rigby$/i.test(a.name)));
-  let chosen = projects[0];
-  if (projects.length > 1) {
-    const list = projects.map((f, i) => `${i + 1}. ${f.webkitRelativePath}`).join('\n');
-    const answer = window.prompt(`Several skeleton files found. Which one?\n${list}`, '1');
-    if (answer === null) return null;
-    chosen = projects[Number(answer) - 1] ?? chosen;
-  }
-  return { path: normalize(chosen.webkitRelativePath || chosen.name), fs: memoryFs(files) };
+  return null;
+}
+
+/** What the browser's Open picker offers: projects and the files that come with them. */
+const PROJECT_FILES = ['.rigby', ...'123456789'.split('').map((n) => `.rigby${n}`), '.json', '.skel', '.atlas', '.txt', '.png', '.jpg', '.jpeg', '.webp'].join(',');
+
+/**
+ * Browser: an ordinary file picker for a project and the files that come with it (its images,
+ * atlas, DragonBones _tex.json), several at once. Resolves with the files (empty if cancelled).
+ */
+export function pickProjectFiles() {
+  return pickWithInput({ accept: PROJECT_FILES, multiple: true });
 }
 
 /**

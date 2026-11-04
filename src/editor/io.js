@@ -82,6 +82,56 @@ export const WORKFILE_EXT = 'rigby';
  * Opens a `.rigby` work file, or imports a skeleton (.json or binary .skel, with its .atlas or loose
  * images from the skeleton's images folder). Returns { doc, warnings, imported }.
  */
+/**
+ * Whether a picked file is a project to open, and how good a pick it is: `rank` 0 (a work file),
+ * 1 (binary skeleton), 2 (DragonBones skeleton), 3 (skeleton JSON), 4 (a work file backup). Null for
+ * the files that come with a project (images, atlases, a DragonBones texture atlas, other JSON).
+ * `text` is the file's text, needed for .json only.
+ */
+export function projectKind(name, text = null) {
+  if (/\.rigby$/i.test(name)) return { rank: 0, kind: 'Rigby2D work file' };
+  if (/\.skel$/i.test(name)) return { rank: 1, kind: 'binary skeleton' };
+  if (/\.rigby\d$/i.test(name)) return { rank: 4, kind: 'Rigby2D backup' };
+  if (!/\.json$/i.test(name) || text === null) return null;
+  let obj;
+  try {
+    obj = JSON.parse(text);
+  } catch {
+    return null;
+  }
+  if (isDragonBones(obj)) return { rank: 2, kind: 'DragonBones skeleton' };
+  if (isSkeletonJson(obj)) return { rank: 3, kind: 'skeleton JSON' };
+  return null;
+}
+
+/** Whether JSON text is a DragonBones texture atlas (the _tex.json that comes with a _ske.json). */
+export function isDragonBonesAtlasText(text) {
+  try {
+    return isDragonBonesAtlas(JSON.parse(text));
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * The files an opened project still needs, from its import warnings: image and atlas page names,
+ * and whether the DragonBones texture atlas was missing.
+ */
+export function missingFiles(warnings) {
+  const images = [];
+  const pages = [];
+  let dragonBonesAtlas = false;
+  for (const w of warnings) {
+    const image = /^image '(.+)' (?:not found|is missing)$/.exec(w);
+    const page = /^atlas page (\S+):/.exec(w);
+    if (image) images.push(image[1]);
+    else if (page) pages.push(page[1]);
+    else if (/no DragonBones texture atlas/.test(w)) dragonBonesAtlas = true;
+  }
+  // A missing atlas page holds the images: ask for the page, not each image in it.
+  return { names: pages.length ? pages : images, dragonBonesAtlas };
+}
+
 export async function openProject(path, fs, images) {
   // Numbered backups (walk.rigby1, see recovery.js) are work files too.
   if (/\.rigby\d?$/i.test(path)) return { ...(await openWorkfile(path, fs, images)), imported: false };

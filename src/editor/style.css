@@ -3582,7 +3582,7 @@ kbd {
 }
 
 /* Export / render result dialog (resultui.js). */
-.result-dialog { max-width: 520px; }
+.result-dialog { max-width: 520px; background: #1d2024; box-shadow: 0 18px 60px rgba(0, 0, 0, 0.55); }
 .result-dialog h3 { margin: 0 0 8px; }
 .result-dialog p { margin: 0 0 8px; line-height: 1.45; }
 .result-ok { color: #6fcf8f; }
@@ -3595,3 +3595,21 @@ kbd {
 .wn-ice.ice-live { background: none; color: transparent; }
 .wn-ice.ice-live::before, .wn-ice.ice-live::after { display: none; }
 .ice-canvas { position: absolute; pointer-events: none; }
+.result-list { margin: 0 0 10px; padding-left: 18px; max-height: 180px; overflow: auto; }
+.result-list li { margin: 2px 0; word-break: break-all; }
+
+/* Browser: files dragged over the window (main.js) open as a project when dropped. */
+body.drop-open::after {
+  content: 'Drop to open: a project with its images and atlas';
+  position: fixed;
+  inset: 10px;
+  z-index: 3000;
+  display: grid;
+  place-items: center;
+  border: 2px dashed #7ba7c7;
+  border-radius: 12px;
+  background: rgba(10, 14, 20, 0.72);
+  color: #e8f2f8;
+  font-size: 16px;
+  pointer-events: none;
+}

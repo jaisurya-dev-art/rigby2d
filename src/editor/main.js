@@ -590,6 +590,35 @@ else {
 // anyway if the splash never does.
 if (inTauri) setTimeout(() => getCurrentWindow().show().catch(() => {}), 10000);
 
+// Browser: drop a project with its images and atlas on the window to open it (as File ▸ Open).
+if (!isDesktop) {
+  let depth = 0;
+  const hasFiles = (e) => [...(e.dataTransfer?.types ?? [])].includes('Files');
+  const hint = (on) => document.body.classList.toggle('drop-open', on);
+  window.addEventListener('dragenter', (e) => {
+    if (!hasFiles(e)) return;
+    depth++;
+    hint(true);
+  });
+  window.addEventListener('dragleave', (e) => {
+    if (hasFiles(e) && --depth <= 0) (depth = 0), hint(false);
+  });
+  window.addEventListener('dragover', (e) => {
+    if (!hasFiles(e)) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'copy';
+  });
+  window.addEventListener('drop', async (e) => {
+    if (!hasFiles(e)) return;
+    e.preventDefault();
+    depth = 0;
+    hint(false);
+    const files = [...e.dataTransfer.files];
+    if (!files.length || !(await app.confirmDiscard())) return;
+    await app.openFiles(files);
+  });
+}
+
 // Development builds expose the editor for debugging from the console.
 if (import.meta.env.DEV) window.rigby = { app, memoryFs, dopesheet, graph, viewport, scripts, log, tutorials, recovery, addons };
 

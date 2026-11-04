@@ -12,8 +12,10 @@ to every Rigby2D runtime.
    - `name_ske.json`: the skeleton and animations
    - `name_tex.json`: the texture atlas
    - `name_tex.png`: the texture
-2. In Rigby2D, *File ▸ Open…* and pick `name_ske.json`. The atlas and texture load from the same
-   folder.
+2. In Rigby2D, *File ▸ Open…* and pick `name_ske.json`. In the desktop app the atlas and texture
+   load from the same folder. In the [browser editor](https://rigby2d.com/editor/), select all
+   three files together (or drop them on the window): Rigby2D finds the skeleton among them, and
+   if a file is missing it tells you which one to add.
 3. *File ▸ Save* keeps it as a `.rigby` work file.
 
 The import report (in the status bar and *View ▸ Log*) lists anything that didn't come over.
