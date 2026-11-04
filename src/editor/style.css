@@ -3615,3 +3615,10 @@ body.drop-open::after {
 }
 .result-dialog .modal-buttons.choice-stack { flex-direction: column; align-items: stretch; gap: 6px; }
 .result-dialog .modal-buttons.choice-stack button { text-align: left; white-space: nowrap; }
+/* askOption (resultui.js): pick one, then confirm. */
+.option-list { display: flex; flex-direction: column; gap: 4px; margin: 4px 0 14px; }
+.option-row { display: flex; align-items: center; gap: 10px; text-align: left; white-space: nowrap; padding: 7px 10px; border: 1px solid transparent; background: rgba(255, 255, 255, 0.04); }
+.option-row:hover { background: rgba(255, 255, 255, 0.08); }
+.option-row.selected { border-color: #4f8fd6; background: rgba(79, 143, 214, 0.18); }
+.option-dot { width: 12px; height: 12px; flex: none; border-radius: 50%; border: 2px solid #7d8794; }
+.option-row.selected .option-dot { border-color: #4f8fd6; background: radial-gradient(circle, #4f8fd6 0 45%, transparent 50%); }

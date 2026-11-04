@@ -77,6 +77,63 @@ export function askChoice({ title, detail = '', list = [], choices }) {
   });
 }
 
+/**
+ * Asks to pick one option from a list, then confirm. `options`: [{ label, value }]; `value` is
+ * selected at first. Clicking an option only selects it; `okLabel` (or Enter, or a double-click)
+ * confirms. Resolves with the chosen value, or null when cancelled (Cancel or Escape).
+ */
+export function askOption({ title, detail = '', options, value, okLabel = 'OK' }) {
+  return new Promise((resolve) => {
+    let selected = options.some((o) => o.value === value) ? value : options[0]?.value;
+    const overlay = h('div', { class: 'modal-backdrop result-backdrop' });
+    const done = (v) => {
+      overlay.remove();
+      document.removeEventListener('keydown', onKey, true);
+      resolve(v);
+    };
+    const onKey = (e) => {
+      if (e.key === 'Escape' || e.key === 'Enter') {
+        e.preventDefault();
+        e.stopPropagation();
+        done(e.key === 'Enter' ? selected : null);
+      } else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        const i = options.findIndex((o) => o.value === selected) + (e.key === 'ArrowDown' ? 1 : -1);
+        if (options[i]) select(options[i].value);
+      }
+    };
+    const rows = options.map((o) =>
+      h(
+        'button',
+        { class: 'option-row', role: 'radio', onclick: () => select(o.value), ondblclick: () => done(o.value) },
+        h('span', { class: 'option-dot' }),
+        o.label,
+      ),
+    );
+    const select = (v) => {
+      selected = v;
+      options.forEach((o, i) => {
+        rows[i].classList.toggle('selected', o.value === v);
+        rows[i].setAttribute('aria-checked', String(o.value === v));
+      });
+    };
+    overlay.append(
+      h(
+        'div',
+        { class: 'modal result-dialog', role: 'dialog', 'aria-labelledby': 'option-title' },
+        h('h3', { id: 'option-title' }, title),
+        detail ? h('p', null, detail) : null,
+        h('div', { class: 'option-list', role: 'radiogroup' }, rows),
+        h('div', { class: 'modal-buttons' }, h('button', { onclick: () => done(null) }, 'Cancel'), h('button', { class: 'primary', onclick: () => done(selected) }, okLabel)),
+      ),
+    );
+    select(selected);
+    document.body.append(overlay);
+    document.addEventListener('keydown', onKey, true);
+    overlay.querySelector('button.primary')?.focus();
+  });
+}
+
 /** Stops playback for a long export or render, so the viewport doesn't compete for the CPU/GPU. */
 export function pausePlayback(app) {
   if (!app.playing) return;

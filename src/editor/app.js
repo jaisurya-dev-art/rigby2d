@@ -10,7 +10,7 @@ import * as edit from './edit.js';
 import { Images } from './images.js';
 import * as io from './io.js';
 import * as platform from './platform.js';
-import { askChoice, showResult } from './resultui.js';
+import { askChoice, askOption, showResult } from './resultui.js';
 import { addSound, sounds, stopAudio } from './audio.js';
 import { WORKSPACES, workspace as workspaceDef } from './workspaces.js';
 import * as onion from './onion.js';
@@ -857,10 +857,12 @@ export class App {
       };
       const big = Math.max(size.width, size.height);
       const preferred = big <= 1024 ? 2 : big <= 3000 ? 1 : 0.5;
-      const scale = await askChoice({
+      const scale = await askOption({
         title: `Import ${file.name}`,
         detail: 'Each layer becomes a part, placed where you drew it. Vector art stays sharp at any size: choose how large to draw it.',
-        choices: [0.5, 1, 2, 4].map((k) => ({ label: `${k * 100}% · ${px(k)}`, value: k, primary: k === preferred })),
+        options: [0.5, 1, 2, 4].map((k) => ({ label: `${k * 100}% · ${px(k)}`, value: k })),
+        value: preferred,
+        okLabel: 'Import',
       });
       if (!scale) return;
       const n = await io.importSvg(file, selBone(this.sel) ?? 0, this.doc, this.images, { scale });
