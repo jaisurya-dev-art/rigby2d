@@ -56,7 +56,7 @@ it doesn't use, so a round trip doesn't strip your files.
 | Dopesheet, Graph | **Dopesheet** and **Graph** tabs under the viewport |
 | Export JSON / Binary | *File ▸ Export ▸ JSON + atlas* or *Binary .skel + atlas*, with the format version |
 | Texture packer | Built into every export |
-| — | **AutoRig** a layered PSD, **lip-sync** from audio, **film** rendering, **scenes**, **Python scripting** and add-ons, an **MCP server** for AI assistants |
+| — | **AutoRig** a layered PSD or SVG, **lip-sync** from audio, **film** rendering, **scenes**, **Python scripting** and add-ons, an **MCP server** for AI assistants |
 
 ## Switching runtimes
 

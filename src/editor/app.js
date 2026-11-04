@@ -160,7 +160,7 @@ export class App {
     this.playing = false;
     this.looping = true;
     this.selectedKeys.clear();
-    this.status = 'Welcome to Rigby2D. Open a demo (File ▸ Open demo), or import a PSD / PNGs.';
+    this.status = 'Welcome to Rigby2D. Open a demo (File ▸ Open demo), or import a PSD, an SVG or PNGs.';
     this.showBones = true;
     /** Shows the output frame (resolution and framing) in the viewport. */
     this.showFrame = false;

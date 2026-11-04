@@ -74,7 +74,7 @@ runtimes and the MCP server. The pages are also in [`docs/`](docs/).
 
 ## Features
 
-- **AutoRig**: a layered PSD becomes an editable rig in one step: bones, joints, bending meshes and IK.
+- **AutoRig**: a layered PSD or SVG becomes an editable rig in one step: bones, joints, bending meshes and IK.
 - **Full rigging toolset**: bones, weighted meshes, linked meshes, image sequences, skins, events,
   clipping and paths, with IK, transform, path, physics and slider constraints.
 - **Animation**: Setup and Animate modes, dopesheet, graph editor with Bézier handles, onion

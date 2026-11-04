@@ -384,6 +384,8 @@ export default {
   "over the size limit, on to the next sheet: Phaser and PixiJS load them as one": "si pasa del límite, sigue en la siguiente hoja: Phaser y PixiJS las cargan como una",
   "Every export reports back": "Cada exportación te avisa",
   "where it went, or what went wrong": "dónde quedó, o qué salió mal",
+  "SVG import": "Importar SVG",
+  "Inkscape and Affinity layers, each one in place": "capas de Inkscape y Affinity, cada una en su sitio",
   "Free. Forever.": "Gratis. Para siempre.",
   "Start animating": "Empezar a animar",
   "Back": "Atrás",

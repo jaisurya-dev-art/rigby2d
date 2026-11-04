@@ -384,6 +384,8 @@ export default {
   "over the size limit, on to the next sheet: Phaser and PixiJS load them as one": "크기 한도를 넘으면 다음 시트로. Phaser와 PixiJS는 하나처럼 불러옵니다",
   "Every export reports back": "내보낼 때마다 결과 안내",
   "where it went, or what went wrong": "저장된 위치, 또는 무엇이 잘못됐는지",
+  "SVG import": "SVG 가져오기",
+  "Inkscape and Affinity layers, each one in place": "Inkscape와 Affinity 레이어를 각각 제자리에",
   "Free. Forever.": "무료. 영원히.",
   "Start animating": "애니메이션 시작하기",
   "Back": "뒤로",

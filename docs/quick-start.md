@@ -11,7 +11,8 @@ upper arm, forearm, hand, thigh, shin, foot, and so on). No PSD at hand? Open a 
 
 ## 1. Import the artwork
 
-Open the editor and choose *File ▸ Import ▸ PSD…*. Every pixel layer becomes an image in its own slot,
+Open the editor and choose *File ▸ Import ▸ PSD…* (or *SVG…* for a drawing from Inkscape,
+Affinity or Illustrator: its layers come in the same way). Every pixel layer becomes an image in its own slot,
 exactly where it was drawn. Hidden layers are imported hidden.
 
 ![A layered PSD of NILA imported into Rigby2D: every layer is an image on the root bone](images/psd-imported.jpg "After File ▸ Import ▸ PSD: the layers are in place, but nothing is rigged yet")

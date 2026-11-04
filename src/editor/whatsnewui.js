@@ -129,6 +129,7 @@ function screens(app, { showPreferences }) {
             [t('Seven runtimes'), t('Unity, Godot, Defold, Cocos, Phaser, JavaScript, Rust')],
             [t('Big sheets, split'), t('over the size limit, on to the next sheet: Phaser and PixiJS load them as one')],
             [t('Every export reports back'), t('where it went, or what went wrong')],
+            [t('SVG import'), t('Inkscape and Affinity layers, each one in place')],
             [t('Fixes'), t('mesh rebinding, bone hover, DragonBones import')],
           ].map(([b, s], i) => h('div', { class: 'wn-more-item', style: `animation-delay:${0.15 + i * 0.07}s` }, h('b', null, b), h('span', null, s))),
         ),

@@ -384,6 +384,8 @@ export default {
   "over the size limit, on to the next sheet: Phaser and PixiJS load them as one": "超出尺寸上限就续到下一张：Phaser 和 PixiJS 当作一个加载",
   "Every export reports back": "每次导出都有结果",
   "where it went, or what went wrong": "保存到了哪里，或出了什么问题",
+  "SVG import": "导入 SVG",
+  "Inkscape and Affinity layers, each one in place": "Inkscape 和 Affinity 的图层，各自留在原位",
   "Free. Forever.": "免费，永远免费。",
   "Start animating": "开始制作动画",
   "Back": "返回",

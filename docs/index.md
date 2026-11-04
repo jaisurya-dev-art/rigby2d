@@ -15,7 +15,7 @@ and meshes, animate it for games or film, and play it anywhere with the included
 ## What you can do with it
 
 <div class="cards">
-<a href="autorig.html" data-icon="wand-sparkles"><strong>Rig in one step</strong>Import a layered PSD; AutoRig finds the parts and builds bones, meshes and IK.</a>
+<a href="autorig.html" data-icon="wand-sparkles"><strong>Rig in one step</strong>Import a layered PSD or SVG; AutoRig finds the parts and builds bones, meshes and IK.</a>
 <a href="bones-and-slots.html" data-icon="bone"><strong>Rig by hand</strong>Bones, weighted meshes, constraints, skins and events.</a>
 <a href="animating.html" data-icon="play"><strong>Animate</strong>Dopesheet, graph editor, onion skin, poses and face controls.</a>
 <a href="retargeting.html" data-icon="repeat-2"><strong>Reuse animation</strong>Retarget animations from one character to another.</a>
@@ -29,7 +29,7 @@ and meshes, animate it for games or film, and play it anywhere with the included
 
 <div class="cards">
 <a href="installation.html" data-icon="download"><strong>Installation</strong>Use it in the browser, download the app for Windows, macOS or Linux, or build from source.</a>
-<a href="quick-start.html" data-icon="rocket"><strong>Quick start</strong>From a layered PSD to a moving character in ten minutes.</a>
+<a href="quick-start.html" data-icon="rocket"><strong>Quick start</strong>From a layered PSD or SVG to a moving character in ten minutes.</a>
 <a href="interface.html" data-icon="panels-top-left"><strong>The interface</strong>A tour of the viewport, tree, inspector and timeline.</a>
 <a href="autorig.html" data-icon="wand-sparkles"><strong>AutoRig</strong>Rig layered artwork in one step.</a>
 <a href="animating.html" data-icon="play"><strong>Animating</strong>Keys, the dopesheet, curves and playback.</a>
