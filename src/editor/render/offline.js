@@ -7,6 +7,7 @@
 import { Pose } from '../../core/pose.js';
 import { AnimationState } from '../../core/state.js';
 import { WebGLRenderer } from '../../webgl/renderer.js';
+import { readFrame } from '../glframes.js';
 import { animationBounds, outputFrame } from '../output.js';
 import { writeMp4 } from './mp4.js';
 import { writeWebm } from './webm.js';
@@ -154,39 +155,6 @@ export function frameRange(doc, animation, fps, start, end) {
   const s = Math.max(0, Math.min(start ?? 0, last));
   const e = Math.max(s, Math.min(end ?? last, last));
   return { start: s, end: e, count: e - s + 1, last };
-}
-
-/**
- * The current frame as straight-alpha RGBA rows, top row first (WebGL reads bottom-up and
- * premultiplied).
- */
-function readFrame(gl, width, height, out) {
-  const px = out.raw ?? (out.raw = new Uint8Array(width * height * 4));
-  gl.readPixels(0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, px);
-  const rgba = out.rgba ?? (out.rgba = new Uint8ClampedArray(width * height * 4));
-  const row = width * 4;
-  for (let y = 0; y < height; y++) {
-    const src = (height - 1 - y) * row;
-    const dst = y * row;
-    for (let x = 0; x < row; x += 4) {
-      const a = px[src + x + 3];
-      if (a === 0) {
-        rgba[dst + x] = rgba[dst + x + 1] = rgba[dst + x + 2] = rgba[dst + x + 3] = 0;
-      } else if (a === 255) {
-        rgba[dst + x] = px[src + x];
-        rgba[dst + x + 1] = px[src + x + 1];
-        rgba[dst + x + 2] = px[src + x + 2];
-        rgba[dst + x + 3] = 255;
-      } else {
-        const k = 255 / a;
-        rgba[dst + x] = px[src + x] * k;
-        rgba[dst + x + 1] = px[src + x + 1] * k;
-        rgba[dst + x + 2] = px[src + x + 2] * k;
-        rgba[dst + x + 3] = a;
-      }
-    }
-  }
-  return rgba;
 }
 
 /**

@@ -84,7 +84,8 @@ Render animations frame by frame into a sprite sheet for engines that play frame
 | `trim` | boolean | Trim empty space around frames (json; default true). |
 | `dedupe` | boolean | Store identical frames once (json; default true). |
 | `loop` | boolean | Animations loop: leave out the last frame, which repeats the first (default true). |
-| `max_width` | integer | Widest sheet in pixels (default 4096). |
+| `max_width` | integer | Largest side of each sheet in pixels (default 4096); frames that don't fit go on more sheets (name-0.png + name-0.json …, and name.json as a Phaser multi-atlas). |
+| `power_of_two` | boolean | Round each sheet up to power-of-two sides (json; default false). |
 | `skin` | string | Skin to show (default: the default skin). |
 | `defold_folder` | string | Project path the Defold atlas lists frames under (default '/<name>'). |
 | `overwrite` | boolean | Replace existing files (default false). |

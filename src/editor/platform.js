@@ -9,7 +9,7 @@
 
 import { ask, open, save } from '@tauri-apps/plugin-dialog';
 import * as tfs from '@tauri-apps/plugin-fs';
-import { openUrl } from '@tauri-apps/plugin-opener';
+import { openUrl, revealItemInDir } from '@tauri-apps/plugin-opener';
 
 import { replaceWithBackups } from './recovery.js';
 import { zip } from './zip.js';
@@ -316,6 +316,13 @@ export const userStoreFs = {
 export async function openExternal(url) {
   if (isDesktop) await openUrl(url);
   else window.open(url, '_blank', 'noopener');
+}
+
+/** Shows a saved file (or folder) in the system file manager. Desktop only; false on the web. */
+export async function revealPath(path) {
+  if (!isDesktop) return false;
+  await revealItemInDir(path);
+  return true;
 }
 
 /** A project file at `path` on the desktop's disk (reopened from File ▸ Open recent), or null on the web. */

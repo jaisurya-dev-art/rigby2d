@@ -10,6 +10,7 @@ import * as edit from './edit.js';
 import { Images } from './images.js';
 import * as io from './io.js';
 import * as platform from './platform.js';
+import { showResult } from './resultui.js';
 import { addSound, sounds, stopAudio } from './audio.js';
 import { WORKSPACES, workspace as workspaceDef } from './workspaces.js';
 import * as onion from './onion.js';
@@ -718,9 +719,9 @@ export class App {
       await target.fs.finish();
       const note = warnings.length ? ` (warnings: ${warnings.join('; ')})` : '';
       track('editor-export-json');
-      this.setStatus(`Exported skeleton JSON ${version}: ${target.path} and ${atlasPath}${note}`);
+      showResult(this, { ok: true, title: `Skeleton JSON ${version} exported`, detail: `With its atlas ${atlasPath}.${note}`, path: target.path });
     } catch (e) {
-      this.setStatus(`Skeleton JSON export failed: ${errorText(e)}`);
+      showResult(this, { ok: false, title: 'Skeleton JSON export failed', detail: errorText(e) });
     }
   }
 
@@ -737,9 +738,9 @@ export class App {
       await target.fs.finish();
       const note = warnings.length ? ` (warnings: ${warnings.join('; ')})` : '';
       track('editor-export-scene');
-      this.setStatus(`Exported the scene: ${files.length} files, ${files[0]}${note}`);
+      showResult(this, { ok: true, title: 'Scene exported', detail: `${files.length} files.${note}`, path: files[0] });
     } catch (e) {
-      this.setStatus(`Scene export failed: ${errorText(e)}`);
+      showResult(this, { ok: false, title: 'Scene export failed', detail: errorText(e) });
     }
   }
 
@@ -752,9 +753,9 @@ export class App {
       await target.fs.finish();
       const note = warnings.length ? ` (warnings: ${warnings.join('; ')})` : '';
       track('editor-export-skel');
-      this.setStatus(`Exported ${target.path} and ${atlasPath}${note}`);
+      showResult(this, { ok: true, title: 'Binary skeleton exported', detail: `With its atlas ${atlasPath}.${note}`, path: target.path });
     } catch (e) {
-      this.setStatus(`Binary export failed: ${errorText(e)}`);
+      showResult(this, { ok: false, title: 'Binary export failed', detail: errorText(e) });
     }
   }
 

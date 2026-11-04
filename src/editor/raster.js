@@ -83,64 +83,128 @@ export class SoftRenderer {
     const maxY = Math.min(this.sh - 1, Math.ceil(Math.max(y0, y1, y2)));
     if (minX > maxX || minY > maxY) return;
     // Edge functions with the top-left rule, so samples on a shared edge belong to one triangle.
-    const edges = [
-      [x1, y1, x2, y2],
-      [x2, y2, x0, y0],
-      [x0, y0, x1, y1],
-    ].map(([ax, ay, bx, by]) => {
-      const a = ay - by;
-      const b = bx - ax;
-      const c = ax * by - ay * bx;
-      return { a, b, c, topLeft: a > 0 || (a === 0 && b < 0) };
-    });
-    const [e0, e1, e2] = edges;
+    // Kept in plain locals (this loop runs for every sample of every frame).
+    const a0 = y1 - y2, b0e = x2 - x1, c0 = x1 * y2 - y1 * x2, tl0 = a0 > 0 || (a0 === 0 && b0e < 0);
+    const a1 = y2 - y0, b1e = x0 - x2, c1 = x2 * y0 - y2 * x0, tl1 = a1 > 0 || (a1 === 0 && b1e < 0);
+    const a2 = y0 - y1, b2e = x1 - x0, c2 = x0 * y1 - y0 * x1, tl2 = a2 > 0 || (a2 === 0 && b2e < 0);
     const inv = 1 / area;
     const hasDark = dark ? 1 : 0;
     const dr = dark ? dark[0] : 0;
     const dg = dark ? dark[1] : 0;
     const db = dark ? dark[2] : 0;
-    const out = this.rgba;
+    const lr = light[0];
+    const lg = light[1];
+    const lb = light[2];
+    const la = light[3];
     const buf = this.buf;
+    const sw = this.sw;
+    const mode = BLEND[blend] ?? 0;
+    const smooth = this.smooth;
+    const { width: tw, height: th, data } = tex;
+    const pma = !!tex.pma;
     for (let py = minY; py <= maxY; py++) {
       const cy = py + 0.5;
       // The span of this row inside all three edges (each is linear in x), widened by a pixel so
       // the exact tests below decide the boundary pixels.
       let from = minX;
       let to = maxX;
-      for (const e of edges) {
-        const k = e.b * cy + e.c;
-        if (e.a > 0) from = Math.max(from, Math.floor(-k / e.a - 0.5) - 1);
-        else if (e.a < 0) to = Math.min(to, Math.ceil(-k / e.a - 0.5) + 1);
-        else if (k < 0 || (k === 0 && !e.topLeft)) to = -1;
-      }
+      let k = b0e * cy + c0;
+      if (a0 > 0) from = Math.max(from, Math.floor(-k / a0 - 0.5) - 1);
+      else if (a0 < 0) to = Math.min(to, Math.ceil(-k / a0 - 0.5) + 1);
+      else if (k < 0 || (k === 0 && !tl0)) to = -1;
+      k = b1e * cy + c1;
+      if (a1 > 0) from = Math.max(from, Math.floor(-k / a1 - 0.5) - 1);
+      else if (a1 < 0) to = Math.min(to, Math.ceil(-k / a1 - 0.5) + 1);
+      else if (k < 0 || (k === 0 && !tl1)) to = -1;
+      k = b2e * cy + c2;
+      if (a2 > 0) from = Math.max(from, Math.floor(-k / a2 - 0.5) - 1);
+      else if (a2 < 0) to = Math.min(to, Math.ceil(-k / a2 - 0.5) + 1);
+      else if (k < 0 || (k === 0 && !tl2)) to = -1;
       for (let px = from; px <= to; px++) {
         const cx = px + 0.5;
-        const w0 = e0.a * cx + e0.b * cy + e0.c;
-        if (w0 < 0 || (w0 === 0 && !e0.topLeft)) continue;
-        const w1 = e1.a * cx + e1.b * cy + e1.c;
-        if (w1 < 0 || (w1 === 0 && !e1.topLeft)) continue;
-        const w2 = e2.a * cx + e2.b * cy + e2.c;
-        if (w2 < 0 || (w2 === 0 && !e2.topLeft)) continue;
-        const b0 = w0 * inv;
-        const b1 = w1 * inv;
-        const b2 = 1 - b0 - b1;
-        this.sample(tex, b0 * u0 + b1 * u1 + b2 * u2, b0 * v0 + b1 * v1 + b2 * v2, out);
-        let ta = out[3];
+        const w0 = a0 * cx + b0e * cy + c0;
+        if (w0 < 0 || (w0 === 0 && !tl0)) continue;
+        const w1 = a1 * cx + b1e * cy + c1;
+        if (w1 < 0 || (w1 === 0 && !tl1)) continue;
+        const w2 = a2 * cx + b2e * cy + c2;
+        if (w2 < 0 || (w2 === 0 && !tl2)) continue;
+        const bc0 = w0 * inv;
+        const bc1 = w1 * inv;
+        const bc2 = 1 - bc0 - bc1;
+        const u = bc0 * u0 + bc1 * u1 + bc2 * u2;
+        const v = bc0 * v0 + bc1 * v1 + bc2 * v2;
+        // The texel color (as sample() below, inlined).
+        let cr, cg, cb, ta;
+        if (!smooth) {
+          const x = Math.min(tw - 1, Math.max(0, Math.floor(u * tw)));
+          const y = Math.min(th - 1, Math.max(0, Math.floor(v * th)));
+          const o = (y * tw + x) * 4;
+          cr = data[o] / 255;
+          cg = data[o + 1] / 255;
+          cb = data[o + 2] / 255;
+          ta = data[o + 3] / 255;
+        } else {
+          const fx = u * tw - 0.5;
+          const fy = v * th - 0.5;
+          const xa = Math.floor(fx);
+          const ya = Math.floor(fy);
+          const tx = fx - xa;
+          const ty = fy - ya;
+          const xb = Math.min(tw - 1, Math.max(0, xa + 1));
+          const yb = Math.min(th - 1, Math.max(0, ya + 1));
+          const xc = Math.min(tw - 1, Math.max(0, xa));
+          const yc = Math.min(th - 1, Math.max(0, ya));
+          const o00 = (yc * tw + xc) * 4;
+          const o10 = (yc * tw + xb) * 4;
+          const o01 = (yb * tw + xc) * 4;
+          const o11 = (yb * tw + xb) * 4;
+          const w00 = (1 - tx) * (1 - ty);
+          const w10 = tx * (1 - ty);
+          const w01 = (1 - tx) * ty;
+          const w11 = tx * ty;
+          const t00 = data[o00 + 3];
+          const t10 = data[o10 + 3];
+          const t01 = data[o01 + 3];
+          const t11 = data[o11 + 3];
+          const k00 = pma ? w00 : w00 * t00;
+          const k10 = pma ? w10 : w10 * t10;
+          const k01 = pma ? w01 : w01 * t01;
+          const k11 = pma ? w11 : w11 * t11;
+          const sa = t00 * w00 + t10 * w10 + t01 * w01 + t11 * w11;
+          const sr = data[o00] * k00 + data[o10] * k10 + data[o01] * k01 + data[o11] * k11;
+          const sg = data[o00 + 1] * k00 + data[o10 + 1] * k10 + data[o01 + 1] * k01 + data[o11 + 1] * k11;
+          const sb = data[o00 + 2] * k00 + data[o10 + 2] * k10 + data[o01 + 2] * k01 + data[o11 + 2] * k11;
+          if (pma) {
+            cr = sr / 255;
+            cg = sg / 255;
+            cb = sb / 255;
+          } else if (sa > 0) {
+            cr = sr / sa / 255;
+            cg = sg / sa / 255;
+            cb = sb / sa / 255;
+          } else {
+            cr = cg = cb = 0;
+          }
+          ta = sa / 255;
+        }
         if (ta <= 0) continue;
-        let cr = out[0];
-        let cg = out[1];
-        let cb = out[2];
-        if (tex.pma) {
+        if (pma) {
           cr /= ta;
           cg /= ta;
           cb /= ta;
         }
-        const a = ta * light[3];
-        const r = (cr * light[0] + (1 - cr) * dr * hasDark) * a;
-        const g = (cg * light[1] + (1 - cg) * dg * hasDark) * a;
-        const bl = (cb * light[2] + (1 - cb) * db * hasDark) * a;
-        const o = (py * this.sw + px) * 4;
-        blendInto(buf, o, blend, r, g, bl, a);
+        const a = ta * la;
+        const r = (cr * lr + (1 - cr) * dr * hasDark) * a;
+        const g = (cg * lg + (1 - cg) * dg * hasDark) * a;
+        const bl = (cb * lb + (1 - cb) * db * hasDark) * a;
+        const o = (py * sw + px) * 4;
+        if (mode === 0) {
+          // ONE, ONE_MINUS_SRC_ALPHA (blendInto's normal case, inlined)
+          buf[o] = r + buf[o] * (1 - a);
+          buf[o + 1] = g + buf[o + 1] * (1 - a);
+          buf[o + 2] = bl + buf[o + 2] * (1 - a);
+          buf[o + 3] = a + buf[o + 3] * (1 - a);
+        } else blendInto(buf, o, blend, r, g, bl, a);
       }
     }
   }
@@ -238,6 +302,8 @@ export class SoftRenderer {
     return out;
   }
 }
+
+const BLEND = { normal: 0, additive: 1, multiply: 2, screen: 3 };
 
 /** Blends a premultiplied color into `buf` at `o`, like the WebGL renderer's blend functions. */
 function blendInto(buf, o, blend, r, g, b, a) {

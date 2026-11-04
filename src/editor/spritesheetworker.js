@@ -5,6 +5,7 @@
 import { Skeleton } from '../core/model.js';
 import { imageLookup } from '../core/draw.js';
 import { buildSpriteSheet } from './spritesheet.js';
+import { createGLFrameRenderer } from './glframes.js';
 
 async function encode({ width, height, rgba }) {
   const canvas = new OffscreenCanvas(width, height);
@@ -20,6 +21,8 @@ self.onmessage = async (e) => {
     let shown = 0;
     const result = buildSpriteSheet(doc, lookup, {
       ...options,
+      // Drawn on the GPU when this thread has WebGL; the software renderer otherwise.
+      renderer: createGLFrameRenderer,
       progress: (done, total) => {
         const now = Date.now();
         if (now - shown > 100 || done === total) {
@@ -28,12 +31,21 @@ self.onmessage = async (e) => {
         }
       },
     });
-    const files = [];
-    for (const [k, f] of result.files.entries()) {
-      if (f.png && k % 8 === 0) self.postMessage({ progress: 1, text: `Encoding ${f.path}` });
-      files.push({ path: f.path, bytes: f.png ? await encode(f.png) : new TextEncoder().encode(f.text) });
-    }
-    self.postMessage({ done: true, files, summary: result.summary }, files.map((f) => f.bytes.buffer));
+    // PNGs encode several at a time (the browser compresses them off this thread), in file order.
+    const files = new Array(result.files.length);
+    let next = 0;
+    let encoded = 0;
+    const pngs = result.files.filter((f) => f.png).length;
+    const lane = async () => {
+      while (next < result.files.length) {
+        const k = next++;
+        const f = result.files[k];
+        files[k] = { path: f.path, bytes: f.png ? await encode(f.png) : new TextEncoder().encode(f.text) };
+        if (f.png && ++encoded % 8 === 0) self.postMessage({ progress: 1, text: `Encoding PNG ${encoded} of ${pngs}` });
+      }
+    };
+    await Promise.all(Array.from({ length: Math.max(1, Math.min(8, (self.navigator?.hardwareConcurrency ?? 4) - 1)) }, lane));
+    self.postMessage({ done: true, files, summary: result.summary, gpu: result.gpu, gpuIssue: result.gpuIssue }, files.map((f) => f.bytes.buffer));
   } catch (err) {
     self.postMessage({ error: err.message ?? String(err) });
   }

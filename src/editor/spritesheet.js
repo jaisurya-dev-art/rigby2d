@@ -21,7 +21,7 @@ export const FORMATS = [
   ['frames', 'PNG frames'],
 ];
 
-export const DEFAULTS = { fps: 30, scale: 1, padding: 2, layout: 'packed', trim: true, dedupe: true, loop: true, maxWidth: 4096, smooth: null };
+export const DEFAULTS = { fps: 30, scale: 1, padding: 2, layout: 'packed', trim: true, dedupe: true, loop: true, maxWidth: 4096, pot: false, smooth: null };
 
 /** Number of frames an animation is cut into: a loop leaves out its last frame (it is the first). */
 export function frameCount(duration, fps, loop) {
@@ -64,6 +64,7 @@ export function framesBounds(doc, names, options) {
       for (const q of pose.quads(doc)) {
         if (q.color[3] <= 0) continue;
         for (const [x, y] of q.positions) {
+          if (!Number.isFinite(x) || !Number.isFinite(y)) continue;
           if (!b) b = [x, y, x, y];
           else {
             if (x < b[0]) b[0] = x;
@@ -115,21 +116,41 @@ export function hashBytes(bytes) {
 }
 
 /**
- * Places rectangles [{ w, h }] on a sheet. `packed`: shelves of decreasing height, the sheet about
- * square; `grid`: equal cells in rows. Returns { width, height, places: [{ x, y }] } (same order).
+ * Places rectangles [{ w, h }] on sheets. `packed`: shelves of decreasing height, the sheet about
+ * square; `grid`: equal cells in rows. A sheet is at most `maxWidth` wide and `maxHeight` tall
+ * (rectangles that don't fit start the next sheet). Returns { width, height (the first sheet's),
+ * pages: [{ width, height }], places: [{ x, y, page }] (same order as `sizes`) }.
  */
-export function packRects(sizes, { layout = 'packed', padding = 2, maxWidth = 4096 } = {}) {
-  const places = sizes.map(() => ({ x: 0, y: 0 }));
-  if (!sizes.length) return { width: 1, height: 1, places };
+export function packRects(sizes, { layout = 'packed', padding = 2, maxWidth = 4096, maxHeight = Infinity, pot = false } = {}) {
+  const result = packShelves(sizes, { layout, padding, maxWidth, maxHeight });
+  // Power-of-two sheets (some engines and older GPUs need them): each side rounds up.
+  if (pot) for (const p of result.pages) [p.width, p.height] = [nextPow2(p.width), nextPow2(p.height)];
+  result.width = result.pages[0].width;
+  result.height = result.pages[0].height;
+  return result;
+}
+
+const nextPow2 = (v) => 2 ** Math.ceil(Math.log2(Math.max(1, v)));
+
+function packShelves(sizes, { layout, padding, maxWidth, maxHeight }) {
+  const places = sizes.map(() => ({ x: 0, y: 0, page: 0 }));
+  if (!sizes.length) return { width: 1, height: 1, places, pages: [{ width: 1, height: 1 }] };
   const widest = Math.max(...sizes.map((s) => s.w));
   if (layout === 'grid') {
     const cw = widest + padding;
     const ch = Math.max(...sizes.map((s) => s.h)) + padding;
     const columns = Math.max(1, Math.min(sizes.length, Math.ceil(Math.sqrt((sizes.length * ch) / cw)), Math.floor((maxWidth - padding) / cw) || 1));
+    // Rows per sheet: as many as fit under maxHeight (always at least one).
+    const allRows = Math.ceil(sizes.length / columns);
+    const rows = Number.isFinite(maxHeight) ? Math.max(1, Math.min(allRows, Math.floor((maxHeight - padding) / ch) || 1)) : allRows;
+    const perPage = rows * columns;
     sizes.forEach((_, i) => {
-      places[i] = { x: padding + (i % columns) * cw, y: padding + Math.floor(i / columns) * ch };
+      const k = i % perPage;
+      places[i] = { x: padding + (k % columns) * cw, y: padding + Math.floor(k / columns) * ch, page: Math.floor(i / perPage) };
     });
-    return { width: padding + columns * cw, height: padding + Math.ceil(sizes.length / columns) * ch, places };
+    const count = Math.ceil(sizes.length / perPage);
+    const pages = Array.from({ length: count }, (_, p) => ({ width: padding + columns * cw, height: padding + Math.ceil(Math.min(perPage, sizes.length - p * perPage) / columns) * ch }));
+    return { width: pages[0].width, height: pages[0].height, places, pages };
   }
   const area = sizes.reduce((n, s) => n + (s.w + padding) * (s.h + padding), 0);
   const width = Math.min(Math.max(widest + 2 * padding, Math.ceil(Math.sqrt(area) * 1.05)), Math.max(maxWidth, widest + 2 * padding));
@@ -138,6 +159,8 @@ export function packRects(sizes, { layout = 'packed', padding = 2, maxWidth = 40
   let y = padding;
   let shelf = 0;
   let used = 0;
+  let page = 0;
+  const pages = [];
   for (const i of order) {
     const s = sizes[i];
     if (x + s.w + padding > width && x > padding) {
@@ -145,12 +168,23 @@ export function packRects(sizes, { layout = 'packed', padding = 2, maxWidth = 40
       x = padding;
       shelf = 0;
     }
-    places[i] = { x, y };
+    // The next shelf would pass maxHeight: this sheet is full, start the next one.
+    if (y + s.h + padding > maxHeight && y > padding) {
+      // (Only right after a new shelf starts, the shelves above end at y.)
+      pages.push({ width: Math.max(used, 1), height: y });
+      page++;
+      x = padding;
+      y = padding;
+      shelf = 0;
+      used = 0;
+    }
+    places[i] = { x, y, page };
     x += s.w + padding;
     shelf = Math.max(shelf, s.h);
     used = Math.max(used, x);
   }
-  return { width: Math.max(used, 1), height: y + shelf + padding, places };
+  pages.push({ width: Math.max(used, 1), height: y + shelf + padding });
+  return { width: pages[0].width, height: pages[0].height, places, pages };
 }
 
 /**
@@ -162,29 +196,106 @@ export function packRects(sizes, { layout = 'packed', padding = 2, maxWidth = 40
 export function renderFrames(doc, lookup, names, options = {}) {
   const o = { ...DEFAULTS, ...options };
   const smooth = o.smooth ?? doc.textureFilter !== 'nearest';
-  const bounds = framesBounds(doc, names, o);
+  const rect = frameRect(framesBounds(doc, names, o), o.scale);
+  if (!rect) return null;
+  const { width, height, x0, y1, scale } = rect;
+  // `o.renderer(width, height, frame, { smooth })` may give a faster drawer (the GPU's, glframes.js)
+  // with the same clear / drawSkeleton / resolve; null falls back to the software renderer.
+  const frame = { x0, y1, scale };
+  const total = names.reduce((n, name) => n + frameCount(doc.animations.find((a) => a.name === name).duration, o.fps, o.loop), 0);
+  const draw = (renderer) => {
+    const frames = [];
+    try {
+      for (const name of names) {
+        const count = frameCount(doc.animations.find((a) => a.name === name).duration, o.fps, o.loop);
+        const digits = Math.max(3, String(count - 1).length);
+        playFrames(doc, name, o, (pose, index) => {
+          renderer.clear();
+          renderer.drawSkeleton(doc, pose, lookup);
+          frames.push({ name: frameName(name, index, digits), animation: name, index, rgba: renderer.resolve() });
+          o.progress?.(frames.length, total);
+        });
+      }
+    } finally {
+      renderer.dispose?.();
+    }
+    return frames;
+  };
+  const result = (frames, gpu, gpuIssue = null) => ({ width, height, origin: [-x0 / scale, y1 / scale], frames, gpu, gpuIssue });
+  const soft = () => new SoftRenderer(width, height, frame, { smooth });
+  let gpu = null;
+  try {
+    gpu = o.renderer?.(width, height, frame, { smooth }) ?? null;
+  } catch {
+    gpu = null;
+  }
+  if (!gpu) return result(draw(soft()), false);
+  // The GPU's frames, unless it failed or drew nothing (a lost context reads back empty) while
+  // something is there to draw: then the software renderer draws them again.
+  let issue;
+  try {
+    const frames = draw(gpu);
+    if (frames.some((f) => hasPixels(f.rgba))) return result(frames, true);
+    issue = 'the GPU drew empty frames';
+  } catch (e) {
+    issue = e?.message ?? String(e);
+  }
+  const frames = draw(soft());
+  return result(frames, false, frames.some((f) => hasPixels(f.rgba)) ? issue : null);
+}
+
+/**
+ * The canvas every frame is drawn on, from world `bounds` at output `size` (1 = 100%): its pixel
+ * width and height, its left / top world edges `x0` / `y1`, and `scale` in world units per pixel.
+ */
+function frameRect(bounds, size) {
   if (!bounds) return null;
-  const scale = 1 / o.scale; // world units per pixel
+  const scale = 1 / size; // world units per pixel
   const margin = 2;
   const width = Math.max(1, Math.ceil((bounds[2] - bounds[0]) / scale) + 2 * margin);
   const height = Math.max(1, Math.ceil((bounds[3] - bounds[1]) / scale) + 2 * margin);
   // Whole pixels: the origin lands on a pixel corner, so pixel art stays crisp.
   const x0 = Math.floor(bounds[0] / scale - margin) * scale;
   const y1 = Math.ceil(bounds[3] / scale + margin) * scale;
-  const renderer = new SoftRenderer(width, height, { x0, y1, scale }, { smooth });
-  const frames = [];
-  const total = names.reduce((n, name) => n + frameCount(doc.animations.find((a) => a.name === name).duration, o.fps, o.loop), 0);
-  for (const name of names) {
-    const count = frameCount(doc.animations.find((a) => a.name === name).duration, o.fps, o.loop);
-    const digits = Math.max(3, String(count - 1).length);
-    playFrames(doc, name, o, (pose, index) => {
-      renderer.clear();
-      renderer.drawSkeleton(doc, pose, lookup);
-      frames.push({ name: frameName(name, index, digits), animation: name, index, rgba: renderer.resolve() });
-      o.progress?.(frames.length, total);
-    });
-  }
-  return { width, height, origin: [-x0 / scale, y1 / scale], frames };
+  return { width, height, x0, y1, scale };
+}
+
+/**
+ * What an export will make, before drawing anything (poses only, so it is quick): the frame size,
+ * the frame count and, for a sheet, how many sheets and how big at most. Trimming and dedupe only
+ * make it smaller. `sizes` (e.g. [0.25, 0.5, 1]) also reports `fitsOne`, the largest size that fits
+ * on one sheet. Null when nothing is drawn.
+ */
+export function estimateSheet(doc, names, options = {}, sizes = []) {
+  const o = { ...DEFAULTS, ...options };
+  const bounds = framesBounds(doc, names, o);
+  if (!bounds) return null;
+  const frames = names.reduce((n, name) => n + frameCount(doc.animations.find((a) => a.name === name).duration, o.fps, o.loop), 0);
+  const at = (size) => {
+    const r = frameRect(bounds, size);
+    const packed = packRects(Array.from({ length: frames }, () => ({ w: r.width, h: r.height })), { ...o, maxHeight: o.maxWidth });
+    return {
+      frameWidth: r.width,
+      frameHeight: r.height,
+      sheets: packed.pages.length,
+      width: Math.max(...packed.pages.map((p) => p.width)),
+      height: Math.max(...packed.pages.map((p) => p.height)),
+      tooBig: r.width > MAX_SHEET_SIDE || r.height > MAX_SHEET_SIDE || r.width * r.height > MAX_SHEET_AREA,
+    };
+  };
+  const result = { frames, ...at(o.scale) };
+  result.fitsOne = [...sizes].sort((a, b) => b - a).find((s) => at(s).sheets === 1) ?? null;
+  return result;
+}
+
+/** The largest PNG browsers encode: Chromium refuses canvases over 16384² pixels or 32767 on a side. */
+export const MAX_SHEET_AREA = 16384 * 16384;
+export const MAX_SHEET_SIDE = 32767;
+
+/** Whether straight-alpha RGBA has any visible pixel. */
+function hasPixels(rgba) {
+  for (let i = 3; i < rgba.length; i += 4) if (rgba[i] !== 0) return true;
+  return false;
 }
 
 /**
@@ -213,16 +324,25 @@ export function packSheet(rendered, options = {}) {
     }
     return { name: f.name, animation: f.animation, index: f.index, unique: u, source: r };
   });
-  const packed = packRects(unique, o);
-  const rgba = new Uint8ClampedArray(packed.width * packed.height * 4);
+  // Sheets of at most maxWidth × maxWidth (what GPUs load): frames that don't fit go on more sheets.
+  const packed = packRects(unique, { ...o, maxHeight: o.maxWidth });
+  for (const pg of packed.pages) {
+    if (pg.width > MAX_SHEET_SIDE || pg.height > MAX_SHEET_SIDE || pg.width * pg.height > MAX_SHEET_AREA) {
+      throw new Error(`one frame is ${W}×${H} px, larger than one image can be (about 16384×16384, or 32767 on a side). Lower the size, or choose the PNG frames format.`);
+    }
+  }
+  const pages = packed.pages.map((pg) => ({ width: pg.width, height: pg.height, rgba: new Uint8ClampedArray(pg.width * pg.height * 4) }));
   unique.forEach((u, i) => {
     const p = packed.places[i];
-    for (let y = 0; y < u.h; y++) rgba.set(u.pixels.subarray(y * u.w * 4, (y + 1) * u.w * 4), ((p.y + y) * packed.width + p.x) * 4);
+    const pg = pages[p.page];
+    for (let y = 0; y < u.h; y++) pg.rgba.set(u.pixels.subarray(y * u.w * 4, (y + 1) * u.w * 4), ((p.y + y) * pg.width + p.x) * 4);
   });
   return {
-    width: packed.width,
-    height: packed.height,
-    rgba,
+    // The first sheet as width / height / rgba (the only one when everything fits).
+    width: pages[0].width,
+    height: pages[0].height,
+    rgba: pages[0].rgba,
+    pages,
     unique: unique.length,
     sprites: sprites.map((s) => {
       const p = packed.places[s.unique];
@@ -230,6 +350,7 @@ export function packSheet(rendered, options = {}) {
         name: s.name,
         animation: s.animation,
         index: s.index,
+        page: p.page,
         frame: { x: p.x, y: p.y, w: s.source.w, h: s.source.h },
         trimmed: s.source.w !== W || s.source.h !== H,
         source: s.source,
@@ -248,43 +369,66 @@ function equalBytes(a, b) {
  * The JSON hash for a sheet: TexturePacker's layout, with each frame's duration and pivot (the
  * skeleton's origin), Aseprite's frameTags and PixiJS's animations lists.
  */
-export function sheetJson(sheet, rendered, { image, fps, version = '' }) {
+export function sheetJson(sheet, rendered, { image, fps, version = '', page = null, related = null }) {
   const frames = {};
   const tags = [];
   const animations = {};
-  const [ox, oy] = rendered.origin;
-  sheet.sprites.forEach((s, i) => {
-    frames[s.name] = {
-      frame: s.frame,
-      rotated: false,
-      trimmed: s.trimmed,
-      spriteSourceSize: { x: s.source.x, y: s.source.y, w: s.source.w, h: s.source.h },
-      sourceSize: { w: rendered.width, h: rendered.height },
-      pivot: { x: round(ox / rendered.width), y: round(oy / rendered.height) },
-      duration: Math.round(1000 / fps),
-    };
+  const sprites = page === null ? sheet.sprites : sheet.sprites.filter((s) => s.page === page);
+  const size = page === null ? sheet : sheet.pages[page];
+  sprites.forEach((s, i) => {
+    frames[s.name] = frameEntry(s, rendered, fps);
     const tag = tags[tags.length - 1];
     if (tag && tag.name === s.animation) tag.to = i;
     else tags.push({ name: s.animation, from: i, to: i, direction: 'forward' });
     (animations[s.animation] ??= []).push(s.name);
   });
-  return `${JSON.stringify(
-    {
-      frames,
-      animations,
-      meta: {
-        app: 'https://rigby2d.com',
-        version,
-        image,
-        format: 'RGBA8888',
-        size: { w: sheet.width, h: sheet.height },
-        scale: '1',
-        frameTags: tags,
-      },
-    },
-    null,
-    2,
-  )}\n`;
+  const meta = {
+    app: 'https://rigby2d.com',
+    version,
+    image,
+    format: 'RGBA8888',
+    size: { w: size.width, h: size.height },
+    scale: '1',
+    frameTags: tags,
+  };
+  // A sheet of several: PixiJS loads the others with this one (TexturePacker's multipack).
+  if (related?.length) meta.related_multi_packs = related;
+  return `${JSON.stringify({ frames, animations, meta }, null, 2)}\n`;
+}
+
+/** One frame's entry in a JSON hash (TexturePacker's fields plus duration and pivot). */
+function frameEntry(s, rendered, fps) {
+  const [ox, oy] = rendered.origin;
+  return {
+    frame: s.frame,
+    rotated: false,
+    trimmed: s.trimmed,
+    spriteSourceSize: { x: s.source.x, y: s.source.y, w: s.source.w, h: s.source.h },
+    sourceSize: { w: rendered.width, h: rendered.height },
+    pivot: { x: round(ox / rendered.width), y: round(oy / rendered.height) },
+    duration: Math.round(1000 / fps),
+  };
+}
+
+/**
+ * A multi-atlas over several sheets (Phaser's `load.multiatlas`, TexturePacker's "Phaser 3"
+ * format): `images[page]` names each sheet. frameTags count frames in export order.
+ */
+export function multiAtlasJson(sheet, rendered, { images, fps, version = '' }) {
+  const tags = [];
+  sheet.sprites.forEach((s, i) => {
+    const tag = tags[tags.length - 1];
+    if (tag && tag.name === s.animation) tag.to = i;
+    else tags.push({ name: s.animation, from: i, to: i, direction: 'forward' });
+  });
+  const textures = sheet.pages.map((pg, page) => ({
+    image: images[page],
+    format: 'RGBA8888',
+    size: { w: pg.width, h: pg.height },
+    scale: 1,
+    frames: sheet.sprites.filter((s) => s.page === page).map((s) => ({ filename: s.name, ...frameEntry(s, rendered, fps) })),
+  }));
+  return `${JSON.stringify({ textures, meta: { app: 'https://rigby2d.com', version, format: 'RGBA8888', scale: '1', frameTags: tags } }, null, 2)}\n`;
 }
 
 const round = (v) => Math.round(v * 10000) / 10000;
@@ -325,13 +469,27 @@ export function buildSpriteSheet(doc, lookup, { name, format = 'json', animation
   let summary;
   if (format === 'json') {
     const sheet = packSheet(rendered, o);
-    files.push({ path: `${name}.png`, png: { width: sheet.width, height: sheet.height, rgba: sheet.rgba } });
-    files.push({ path: `${name}.json`, text: sheetJson(sheet, rendered, { image: `${name}.png`, fps: o.fps, version }) });
-    summary = { frames: rendered.frames.length, unique: sheet.unique, width: sheet.width, height: sheet.height, frameWidth: rendered.width, frameHeight: rendered.height };
+    if (sheet.pages.length === 1) {
+      files.push({ path: `${name}.png`, png: { width: sheet.width, height: sheet.height, rgba: sheet.rgba } });
+      files.push({ path: `${name}.json`, text: sheetJson(sheet, rendered, { image: `${name}.png`, fps: o.fps, version }) });
+    } else {
+      // Several sheets: name-0.png + name-0.json … (each a JSON hash naming the others, for PixiJS),
+      // and name.json, a multi-atlas over all of them (Phaser).
+      const images = sheet.pages.map((_, i) => `${name}-${i}.png`);
+      const jsons = sheet.pages.map((_, i) => `${name}-${i}.json`);
+      sheet.pages.forEach((pg, i) => {
+        files.push({ path: images[i], png: { width: pg.width, height: pg.height, rgba: pg.rgba } });
+        files.push({ path: jsons[i], text: sheetJson(sheet, rendered, { image: images[i], fps: o.fps, version, page: i, related: jsons.filter((_, k) => k !== i) }) });
+      });
+      files.push({ path: `${name}.json`, text: multiAtlasJson(sheet, rendered, { images, fps: o.fps, version }) });
+    }
+    const widest = Math.max(...sheet.pages.map((p) => p.width));
+    const tallest = Math.max(...sheet.pages.map((p) => p.height));
+    summary = { frames: rendered.frames.length, unique: sheet.unique, width: widest, height: tallest, sheets: sheet.pages.length, frameWidth: rendered.width, frameHeight: rendered.height };
   } else {
     for (const f of rendered.frames) files.push({ path: `${name}/${f.name}.png`, png: { width: rendered.width, height: rendered.height, rgba: f.rgba } });
     if (format === 'defold') files.push({ path: `${name}.atlas`, text: defoldAtlas(rendered.frames, { folder: defoldFolder ?? name, fps: o.fps, loop: o.loop }) });
     summary = { frames: rendered.frames.length, unique: rendered.frames.length, width: rendered.width, height: rendered.height, frameWidth: rendered.width, frameHeight: rendered.height };
   }
-  return { files, summary: { ...summary, animations: names } };
+  return { files, summary: { ...summary, animations: names }, gpu: rendered.gpu, gpuIssue: rendered.gpuIssue };
 }

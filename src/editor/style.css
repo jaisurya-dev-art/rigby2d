@@ -3396,6 +3396,7 @@ kbd {
 }
 /* Each screen springs in: the 0.4 promo's pop (from 92% with a little overshoot). */
 .wn-page {
+  font-family: Inter, "Segoe UI Variable Display", system-ui, "Segoe UI", sans-serif;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -3417,8 +3418,8 @@ kbd {
 .wn-hero {
   margin: 0;
   font-size: clamp(64px, 11vw, 150px);
-  font-weight: 800;
-  letter-spacing: -0.05em;
+  font-weight: 700;
+  letter-spacing: -0.035em;
   line-height: 1;
 }
 /* The 0.5, frosted: an icy gradient with a band of light that sweeps across it. */
@@ -3435,9 +3436,9 @@ kbd {
   0% { background-position: 100% 0; }
   45%, 100% { background-position: 0% 0; }
 }
-.wn-lede { margin: 0; font-size: clamp(20px, 2.4vw, 30px); color: #a1a1a6; font-weight: 500; }
+.wn-lede { margin: 0; font-size: clamp(20px, 2.4vw, 30px); color: #a1a1a6; font-weight: 400; }
 .wn-art { display: flex; align-items: center; justify-content: center; min-height: 260px; }
-.wn-title { margin: 0; font-size: clamp(40px, 6vw, 76px); font-weight: 800; letter-spacing: -0.045em; line-height: 1.04; }
+.wn-title { margin: 0; font-size: clamp(40px, 6vw, 76px); font-weight: 700; letter-spacing: -0.03em; line-height: 1.04; }
 .wn-text { margin: 0 auto; max-width: 640px; font-size: clamp(17px, 1.8vw, 22px); line-height: 1.45; color: #a1a1a6; }
 .wn-copy { display: flex; flex-direction: column; gap: 14px; }
 .wn-cta {
@@ -3530,9 +3531,9 @@ kbd {
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
   animation: wn-pop 0.5s cubic-bezier(0.2, 1.5, 0.35, 1) both;
 }
-.wn-more-item b { font-size: 17px; }
+.wn-more-item b { font-size: 17px; font-weight: 600; }
 .wn-more-item span { color: #a1a1a6; font-size: 14px; line-height: 1.35; }
-.wn-free { margin: 16px 0 0; font-size: clamp(22px, 2.6vw, 32px); font-weight: 700; color: #9fd0f0; }
+.wn-free { margin: 16px 0 0; font-size: clamp(22px, 2.6vw, 32px); font-weight: 500; color: #9fd0f0; }
 /* The bar: back, the dots, next. */
 .wn-bar { display: flex; align-items: center; justify-content: space-between; padding: 22px 28px 30px; }
 .wn-nav {
@@ -3556,3 +3557,13 @@ kbd {
   .wn-backdrop, .wn-page > *, .wn-chips span, .wn-sheet span, .wn-mesh-pt, .wn-more-item, .wn-ice, .wn-keys kbd { animation: none; }
   .wn-mesh-tri { animation: none; stroke-dashoffset: 0; }
 }
+
+/* Export / render result dialog (resultui.js). */
+.result-dialog { max-width: 520px; }
+.result-dialog h3 { margin: 0 0 8px; }
+.result-dialog p { margin: 0 0 8px; line-height: 1.45; }
+.result-ok { color: #6fcf8f; }
+.result-failed { color: #f07b7b; }
+.result-path { word-break: break-all; opacity: 0.8; user-select: text; }
+.result-backdrop { z-index: 2100; }
+.modal .small.warn { color: #e8b04a; }

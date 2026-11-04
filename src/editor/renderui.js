@@ -8,6 +8,7 @@ import { describeOutput } from './output.js';
 import * as platform from './platform.js';
 import { FORMATS, canEncodeVideo, frameRange, renderJob, renderMerged } from './render/offline.js';
 import { h, select } from './widgets.js';
+import { pausePlayback, showResult } from './resultui.js';
 import { mixWav } from './audio.js';
 import { clipTracks } from './actors.js';
 
@@ -189,10 +190,11 @@ export function openRenderDialog(app) {
     try {
       target = await platform.pickSaveTarget(`${first.name}${first.format === 'png' ? '_0000' : ''}.${ext}`, label, ext, { single: list.length === 1 && first.format !== 'png' });
     } catch (e) {
-      app.setStatus(`Render failed: ${e.message ?? e}`);
+      showResult(app, { ok: false, title: 'Render failed', detail: String(e?.message ?? e) });
       return;
     }
     if (!target) return;
+    pausePlayback(app);
     last = { format: first.format, quality: first.quality, merge: choice.merge };
     const dir = dirname(target.path);
     const pathFor = (name) => (dir === '.' ? name : joinPath(dir, name));
@@ -230,13 +232,18 @@ export function openRenderDialog(app) {
       const cancelled = running.cancelled;
       running = null;
       if (!cancelled) track('editor-render');
-      app.setStatus(cancelled ? `Render cancelled after ${written} file(s)` : `Rendered ${written} file(s) to ${dir === '.' ? target.path : dir}`);
-      if (!cancelled) close();
-      else draw();
+      if (cancelled) {
+        app.setStatus(`Render cancelled after ${written} file(s)`);
+        draw();
+      } else {
+        close();
+        const where = list.length === 1 && written === 1 ? target.path : dir === '.' ? target.path : dir;
+        showResult(app, { ok: true, title: 'Render complete', detail: `${written} file(s) written.`, path: platform.isDesktop || written === 1 ? where : null });
+      }
     } catch (e) {
       running = null;
       draw();
-      app.setStatus(`Render failed: ${e.message ?? e}`);
+      showResult(app, { ok: false, title: 'Render failed', detail: String(e?.message ?? e) });
     }
   }
 
@@ -249,10 +256,11 @@ export function openRenderDialog(app) {
     try {
       target = await platform.pickSaveTarget(`${name}.${ext}`, { webm: 'WebM video', mp4: 'MP4 video' }[ext], ext, { single: true });
     } catch (e) {
-      app.setStatus(`Render failed: ${e.message ?? e}`);
+      showResult(app, { ok: false, title: 'Render failed', detail: String(e?.message ?? e) });
       return;
     }
     if (!target) return;
+    pausePlayback(app);
     last = { format: first.format, quality: first.quality, merge: true };
     const dir = dirname(target.path);
     running = { cancelled: false, fraction: 0, text: 'Starting…' };
@@ -270,13 +278,17 @@ export function openRenderDialog(app) {
       }
       running = null;
       if (files) track('editor-render-batch');
-      app.setStatus(files ? `Rendered ${list.length} animations into ${target.path}` : 'Render cancelled');
-      if (files) close();
-      else draw();
+      if (files) {
+        close();
+        showResult(app, { ok: true, title: 'Render complete', detail: `${list.length} animations in one video.`, path: target.path });
+      } else {
+        app.setStatus('Render cancelled');
+        draw();
+      }
     } catch (e) {
       running = null;
       draw();
-      app.setStatus(`Render failed: ${e.message ?? e}`);
+      showResult(app, { ok: false, title: 'Render failed', detail: String(e?.message ?? e) });
     }
   }
 

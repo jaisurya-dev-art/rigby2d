@@ -512,6 +512,7 @@ async function exportSpriteSheet(ws, args) {
       dedupe: args.dedupe ?? true,
       loop: args.loop ?? true,
       maxWidth: args.max_width ?? 4096,
+      pot: args.power_of_two ?? false,
       defoldFolder: args.defold_folder ?? name,
       version: String(p.doc.format ?? ''),
     });
@@ -636,7 +637,8 @@ export function createTools(ws) {
           trim: { type: 'boolean', description: 'Trim empty space around frames (json; default true).' },
           dedupe: { type: 'boolean', description: 'Store identical frames once (json; default true).' },
           loop: { type: 'boolean', description: 'Animations loop: leave out the last frame, which repeats the first (default true).' },
-          max_width: { type: 'integer', minimum: 64, maximum: 16384, description: 'Widest sheet in pixels (default 4096).' },
+          max_width: { type: 'integer', minimum: 64, maximum: 16384, description: "Largest side of each sheet in pixels (default 4096); frames that don't fit go on more sheets (name-0.png + name-0.json …, and name.json as a Phaser multi-atlas)." },
+          power_of_two: { type: 'boolean', description: 'Round each sheet up to power-of-two sides (json; default false).' },
           skin: { type: 'string', description: 'Skin to show (default: the default skin).' },
           defold_folder: { type: 'string', description: "Project path the Defold atlas lists frames under (default '/<name>')." },
           overwrite: { type: 'boolean', description: 'Replace existing files (default false).' },

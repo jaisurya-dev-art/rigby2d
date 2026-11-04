@@ -23,7 +23,7 @@ For engines and tools that play frames instead of bones (or to hand an animation
 
 | Format | Writes | For |
 | --- | --- | --- |
-| **JSON hash + PNG** | `name.png` and `name.json`: TexturePacker's JSON hash with each frame's duration and a pivot at the skeleton's origin, Aseprite's `frameTags` (one per animation) and PixiJS's `animations` lists | Phaser, PixiJS, Godot and Unity importers, anything that reads TexturePacker or Aseprite JSON |
+| **JSON hash + PNG** | `name.png` and `name.json` (or several sheets, below): TexturePacker's JSON hash with each frame's duration and a pivot at the skeleton's origin, Aseprite's `frameTags` (one per animation) and PixiJS's `animations` lists | Phaser, PixiJS, Godot and Unity importers, anything that reads TexturePacker or Aseprite JSON |
 | **Defold atlas + frames** | `name/<animation>_000.png` … and `name.atlas` with one animation per animation, at the frame rate | Defold sprites (put the folder and the atlas at the project root, or edit the paths) |
 | **PNG frames** | `name/<animation>_000.png` … | Video tools, other engines |
 
@@ -33,12 +33,21 @@ For engines and tools that play frames instead of bones (or to hand an animation
   before the frames are taken, so hair and cloth carry over from the last frame into the first.
 - **Sheets** are packed tight or laid out in a grid, with padding, trimmed to each frame's visible
   pixels (the JSON keeps where each frame sits on the full canvas), and identical frames are stored
-  once.
+  once. **Power-of-two sheet sizes** round each sheet up for engines and GPUs that need them.
+- **Max sheet size** is the largest side of each sheet: 2048 loads on every phone, 4096 on most
+  devices, 16384 on desktop GPUs. Frames that don't fit go on more sheets: `name-0.png` +
+  `name-0.json`, `name-1.png` + `name-1.json` … (each JSON names the others in
+  `related_multi_packs`, so PixiJS loads them all from the first), and `name.json`, a multi-atlas
+  over every sheet for Phaser's `load.multiatlas`. When everything fits, you get one `name.png` and
+  `name.json` as before.
+- **Before you export**, the dialog shows the frame size and how many sheets it will take at most,
+  and the largest size that fits on one sheet.
+
+Frames are drawn on the GPU when there is one (WebGL), and by a renderer built into Rigby2D
+otherwise (the same one the [MCP server](mcp.md) uses), with two-color tint and every blend mode, so
+a sheet looks the same wherever it is made.
 - **Pixel art**: with the project's **Textures** set to `Nearest`, frames are sampled without
   smoothing, one sample per pixel.
-
-Frames are drawn by a renderer built into Rigby2D (the same one the [MCP server](mcp.md) uses), with
-two-color tint and every blend mode, so a sheet comes out the same wherever it is made.
 
 ## What is exported
 
