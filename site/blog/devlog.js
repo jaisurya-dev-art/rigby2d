@@ -67,6 +67,7 @@ function shell({ title, description, url, image, main, lang = 'en' }) {
     <main id="main">${main}</main>
     ${siteFooter()}
     ${NAV_SCRIPT}
+    ${READS_SCRIPT}
   </body>
 </html>
 `;
@@ -90,6 +91,42 @@ const discussBlock = (post) =>
           </section>`
     : '';
 
+/**
+ * Read counts (site/reads/worker.js at /api/reads): each post and index card shows its running total,
+ * and a post page counts one read once it has been visible for 5 seconds in all. Only on rigby2d.com,
+ * so local previews never count; with no count yet, nothing shows.
+ */
+const readsSpan = (post, count = false) => `<span class="post-reads" data-reads="${esc(post.slug)}"${count ? ' data-count' : ''} hidden></span>`;
+const READS_SCRIPT = `<script>
+(() => {
+  if (location.hostname !== 'rigby2d.com') return;
+  const els = [...document.querySelectorAll('[data-reads]')];
+  if (!els.length) return;
+  const zh = document.documentElement.lang === 'zh-CN';
+  const show = (slug, n) => {
+    for (const e of els) if (e.dataset.reads === slug && n > 0) {
+      e.textContent = zh ? \`\${n.toLocaleString()} 次阅读\` : \`\${n.toLocaleString()} \${n === 1 ? 'read' : 'reads'}\`;
+      e.hidden = false;
+    }
+  };
+  fetch('/api/reads?slugs=' + [...new Set(els.map((e) => e.dataset.reads))].join(','))
+    .then((r) => r.json()).then((t) => Object.entries(t).forEach(([s, n]) => show(s, n))).catch(() => {});
+  const mine = els.find((e) => 'count' in e.dataset);
+  if (!mine) return;
+  let seen = 0, since = document.visibilityState === 'visible' ? Date.now() : 0, sent = false;
+  const tick = () => {
+    if (since) { seen += Date.now() - since; since = document.visibilityState === 'visible' ? Date.now() : 0; }
+    if (!sent && seen >= 5000) {
+      sent = true;
+      fetch('/api/reads', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ slug: mine.dataset.reads }), keepalive: true })
+        .then((r) => r.json()).then((d) => d.reads && show(mine.dataset.reads, d.reads)).catch(() => {});
+    }
+  };
+  document.addEventListener('visibilitychange', () => { tick(); if (document.visibilityState === 'visible') since = Date.now(); });
+  const timer = setInterval(() => { tick(); if (sent) clearInterval(timer); }, 1000);
+})();
+</script>`;
+
 /** A video poster that opens the video on YouTube (no embed, so no third-party cookies). */
 const videoBlock = (post) =>
   post.video
@@ -104,7 +141,7 @@ export function postPage(post) {
   const main = `
       <article class="section post">
         <div class="wrap post-wrap">
-          <p class="post-meta"><a href="/blog/">Devlog</a> · <time datetime="${esc(post.date)}">${longDate(post.date)}</time> ${tag(post)}</p>
+          <p class="post-meta"><a href="/blog/">Devlog</a> · <time datetime="${esc(post.date)}">${longDate(post.date)}</time> ${tag(post)}${readsSpan(post, true)}</p>
           <h1>${esc(post.title)}</h1>
           <p class="section-lede">${esc(post.summary)}</p>
           ${videoBlock(post)}
@@ -123,7 +160,7 @@ export function indexPage(posts) {
       (p) => `
           <a class="post-card" href="/blog/${esc(p.slug)}.html">
             ${p.image ? `<img src="${esc(p.image)}" alt="" loading="lazy" width="640" />` : ''}
-            <span class="post-meta"><time datetime="${esc(p.date)}">${longDate(p.date)}</time> ${tag(p)}</span>
+            <span class="post-meta"><time datetime="${esc(p.date)}">${longDate(p.date)}</time> ${tag(p)}${readsSpan(p)}</span>
             <b>${esc(p.title)}</b>
             <span>${esc(p.summary)}</span>
           </a>`,

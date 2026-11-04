@@ -40,6 +40,13 @@ anonymously with [GoatCounter](https://www.goatcounter.com): no cookies, no pers
 tracking across sites. Projects you open in the browser editor stay in your browser; nothing is
 uploaded.
 
+Devlog posts show how many times they have been read. A post counts a read once it has been
+visible for five seconds, at most once per reader, per post, per day. To tell repeat visits apart,
+our server (a Cloudflare Worker on rigby2d.com) makes a one-way hash of your IP address, browser
+name, the post and the date with a secret value, keeps only that hash, and deletes it after the
+day. What is stored is the number of reads per post per day; no IP address, cookie or anything
+that identifies you.
+
 Likes and comments on devlog posts are provided by [giscus](https://giscus.app), which keeps each
 post's thread as a GitHub Discussion in the Rigby2D repository. The comments frame loads from
 giscus.app only when you scroll to it, and sets no cookies while you only read. To like or comment you

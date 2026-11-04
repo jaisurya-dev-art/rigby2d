@@ -1,0 +1,13 @@
+# Devlog read counts: a Cloudflare Worker at rigby2d.com/api/reads that stores reads per post per day in D1.
+# Deploy: npx wrangler deploy --config site/reads/wrangler.toml
+# The daily-hash secret: npx wrangler secret put SALT --config site/reads/wrangler.toml
+name = "rigby2d-reads"
+main = "worker.js"
+compatibility_date = "2026-10-01"
+workers_dev = false
+routes = [{ pattern = "rigby2d.com/api/reads*", zone_name = "rigby2d.com" }]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "rigby2d-reads"
+database_id = "45f11044-a5c3-4d7a-a19e-11d5695479c2"
