@@ -24,7 +24,7 @@ export const STARTERS = [
   },
 ];
 
-export function openWelcome(app, { tutorials, onClose } = {}) {
+export function openWelcome(app, { tutorials, whatsNew, onClose } = {}) {
   const overlay = h('div', { class: 'modal-backdrop welcome-backdrop' });
   const close = () => {
     overlay.remove();
@@ -133,7 +133,7 @@ export function openWelcome(app, { tutorials, onClose } = {}) {
         tutorials ? action('play', t('Take the tour'), t('Four minutes around the editor'), () => tutorials.tour()) : null,
         tutorials ? action('graduation-cap', t('Tutorials'), t('Lessons from drawing to moving character'), () => tutorials.open()) : null,
         action('book-open', t('Documentation'), 'rigby2d.com/docs', () => openExternal(LINKS.docs)),
-        action('sparkles', t("What's new"), VERSION ? `${t('Version')} ${VERSION}` : '', () => openExternal(LINKS.releaseNotes)),
+        action('sparkles', t("What's new"), VERSION ? `${t('Version')} ${VERSION}` : '', () => (whatsNew ? whatsNew() : openExternal(LINKS.releaseNotes))),
         action('users', t('Community'), 'r/rigby2d', () => openExternal(COMMUNITY_URL)),
         action('star', t('Star on GitHub'), t('Help other animators find Rigby2D'), () => openExternal(LINKS.repo)),
       ),

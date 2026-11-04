@@ -44,6 +44,7 @@ import { languageFor, setLanguage, t } from './i18n.js';
 import { openRuntimes } from './runtimeui.js';
 import { checkForUpdates, scheduleUpdateCheck, updateBadge } from './updateui.js';
 import { openWelcome } from './welcomeui.js';
+import { TOUR_RELEASE, openWhatsNew, shouldShowWhatsNew } from './whatsnewui.js';
 import { COMMUNITY_URL, DEVLOG_URL } from './news.js';
 import { openMigrationCheck } from './migrationui.js';
 import markUrl from '../../branding/rigby2d-mark.svg?url';
@@ -69,6 +70,8 @@ const recovery = installRecovery(app);
 const addons = new AddonManager(app, scripts);
 scripts.afterStop = () => addons.loadEnabled();
 const showPreferences = (page) => openPreferences(app, addons, page);
+// The launch tour of this release (Help ▸ What's new, and What's new on the welcome screen).
+const whatsNew = () => openWhatsNew(app, { showPreferences });
 applyInterfaceScale(app);
 const inTauri = '__TAURI_INTERNALS__' in window;
 const $ = (sel) => document.querySelector(sel);
@@ -207,7 +210,8 @@ function menus() {
     ],
     Scripts: scripts.menu(),
     Help: [
-      { label: t('Welcome screen…'), action: () => openWelcome(app, { tutorials }) },
+      { label: t("What's new in {version}…", { version: TOUR_RELEASE }), action: whatsNew },
+      { label: t('Welcome screen…'), action: () => openWelcome(app, { tutorials, whatsNew }) },
       { label: t('Tutorials…'), action: () => tutorials.open() },
       { label: t('Keyboard shortcuts…'), action: () => openShortcuts(app) },
       { label: t('Documentation'), shortcut: '↗', action: () => openExternal(LINKS.docs) },
@@ -573,7 +577,12 @@ else {
     if (offered) return;
     const last = recentProjects()[0];
     if (inTauri && app.prefs.get('files.reopenLast') && last?.kind === 'file') await app.openRecent(last);
-    else if (app.prefs.get('general.welcome')) openWelcome(app, { tutorials });
+    else {
+      // A new release opens with its tour (once), then the welcome screen as usual.
+      const welcome = () => app.prefs.get('general.welcome') && openWelcome(app, { tutorials, whatsNew });
+      if (shouldShowWhatsNew() || new URLSearchParams(location.search).has('whatsnew')) openWhatsNew(app, { showPreferences, onClose: welcome });
+      else welcome();
+    }
   });
 }
 

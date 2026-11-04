@@ -3352,3 +3352,207 @@ kbd {
   align-items: center;
   gap: 8px;
 }
+
+/* What's new in 0.5 (whatsnewui.js): a full-screen launch tour. */
+.wn-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  background: radial-gradient(ellipse at 50% 38%, #111a25 0%, #050607 70%);
+  color: #f5f5f7;
+  animation: wn-in 0.45s ease-out both;
+  -webkit-font-smoothing: antialiased;
+}
+.wn-backdrop.wn-out {
+  animation: wn-fade-out 0.26s ease-in both;
+}
+@keyframes wn-in {
+  from { opacity: 0; transform: scale(1.02); }
+}
+@keyframes wn-fade-out {
+  to { opacity: 0; transform: scale(0.99); }
+}
+.wn-skip {
+  position: absolute;
+  top: 18px;
+  right: 22px;
+  padding: 6px 14px;
+  background: none;
+  border: 0;
+  color: #86868b;
+  font-size: 14px;
+  cursor: pointer;
+}
+.wn-skip:hover { color: #f5f5f7; }
+.wn-stage {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  padding: 0 6vw;
+}
+/* Each screen springs in: the 0.4 promo's pop (from 92% with a little overshoot). */
+.wn-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 18px;
+  max-width: 980px;
+}
+.wn-page > * {
+  animation: wn-pop 0.62s cubic-bezier(0.2, 1.5, 0.35, 1) both;
+}
+.wn-page > :nth-child(2) { animation-delay: 0.08s; }
+.wn-page > :nth-child(3) { animation-delay: 0.16s; }
+.wn-page > :nth-child(4) { animation-delay: 0.24s; }
+@keyframes wn-pop {
+  from { opacity: 0; transform: translateY(18px) scale(0.92); }
+  30% { opacity: 1; }
+}
+.wn-mark { width: 92px; height: 92px; }
+.wn-hero {
+  margin: 0;
+  font-size: clamp(64px, 11vw, 150px);
+  font-weight: 800;
+  letter-spacing: -0.05em;
+  line-height: 1;
+}
+/* The 0.5, frosted: an icy gradient with a band of light that sweeps across it. */
+.wn-ice {
+  background: linear-gradient(105deg, #9ec7e3 0%, #e8f5ff 38%, #ffffff 46%, #e8f5ff 54%, #8fb8d6 72%, #5f8fb2 100%);
+  background-size: 260% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 28px rgba(140, 195, 235, 0.35));
+  animation: wn-sweep 3.2s ease-in-out 0.6s infinite;
+}
+@keyframes wn-sweep {
+  0% { background-position: 100% 0; }
+  45%, 100% { background-position: 0% 0; }
+}
+.wn-lede { margin: 0; font-size: clamp(20px, 2.4vw, 30px); color: #a1a1a6; font-weight: 500; }
+.wn-art { display: flex; align-items: center; justify-content: center; min-height: 260px; }
+.wn-title { margin: 0; font-size: clamp(40px, 6vw, 76px); font-weight: 800; letter-spacing: -0.045em; line-height: 1.04; }
+.wn-text { margin: 0 auto; max-width: 640px; font-size: clamp(17px, 1.8vw, 22px); line-height: 1.45; color: #a1a1a6; }
+.wn-copy { display: flex; flex-direction: column; gap: 14px; }
+.wn-cta {
+  margin-top: 8px;
+  padding: 11px 22px;
+  border: 0;
+  border-radius: 999px;
+  background: #f5f5f7;
+  color: #0a0a0b;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.wn-cta:hover { background: #ffffff; }
+.wn-art-stack { display: flex; flex-direction: column; align-items: center; gap: 26px; }
+.wn-engine { display: block; filter: drop-shadow(0 0 40px currentColor); }
+.wn-defold { color: #1c9be6; }
+.wn-godot { color: #478cbf; }
+.wn-chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+.wn-chips span {
+  padding: 7px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+  font-size: 14px;
+  font-weight: 600;
+  animation: wn-pop 0.5s cubic-bezier(0.2, 1.5, 0.35, 1) both;
+}
+.wn-badge {
+  padding: 8px 18px;
+  border-radius: 999px;
+  background: rgba(71, 140, 191, 0.16);
+  box-shadow: inset 0 0 0 1px rgba(71, 140, 191, 0.6);
+  color: #9fd0f0;
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+/* The sprite sheet filling up. */
+.wn-sheet { display: grid; grid-template-columns: repeat(8, 46px); gap: 6px; }
+.wn-sheet span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 62px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+  animation: wn-pop 0.45s cubic-bezier(0.2, 1.5, 0.35, 1) both;
+}
+.wn-sheet i { width: 8px; height: 34px; border-radius: 4px; background: linear-gradient(#e8f5ff, #7ba7c7); transform-origin: 50% 90%; }
+/* The mesh drawing itself. */
+.wn-mesh { width: 250px; height: 250px; overflow: visible; }
+.wn-mesh-fill { fill: rgba(123, 167, 199, 0.12); stroke: none; }
+.wn-mesh-tri { fill: none; stroke: #9fd0f0; stroke-width: 1.4; stroke-dasharray: 600; stroke-dashoffset: 600; animation: wn-draw 0.9s ease-out both; }
+.wn-mesh-pt { fill: #ffffff; animation: wn-pop 0.4s cubic-bezier(0.2, 1.5, 0.35, 1) both; transform-box: fill-box; transform-origin: center; }
+@keyframes wn-draw { to { stroke-dashoffset: 0; } }
+/* Shortcuts. */
+.wn-keyart { display: flex; align-items: center; gap: 22px; font-size: 22px; }
+.wn-keys { display: flex; gap: 10px; }
+.wn-keys kbd {
+  min-width: 56px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: linear-gradient(#2a2d33, #1b1d21);
+  box-shadow: 0 3px 0 #0b0c0e, inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  font-family: inherit;
+  font-size: 20px;
+  font-weight: 600;
+  animation: wn-key 2.4s ease-in-out 0.6s infinite;
+}
+.wn-keys kbd:nth-child(2) { animation-delay: 0.7s; }
+.wn-keys kbd:nth-child(3) { animation-delay: 0.8s; }
+@keyframes wn-key {
+  0%, 60%, 100% { transform: none; }
+  30% { transform: translateY(3px); box-shadow: 0 0 0 #0b0c0e, inset 0 1px 0 rgba(255, 255, 255, 0.12); color: #9fd0f0; }
+}
+.wn-keyarrow { color: #5f6670; }
+.wn-keyto { font-weight: 600; color: #f5f5f7; }
+/* And more. */
+.wn-more { display: grid; grid-template-columns: repeat(3, minmax(0, 260px)); gap: 14px; margin-top: 10px; text-align: left; }
+.wn-more-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px 18px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.045);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  animation: wn-pop 0.5s cubic-bezier(0.2, 1.5, 0.35, 1) both;
+}
+.wn-more-item b { font-size: 17px; }
+.wn-more-item span { color: #a1a1a6; font-size: 14px; line-height: 1.35; }
+.wn-free { margin: 16px 0 0; font-size: clamp(22px, 2.6vw, 32px); font-weight: 700; color: #9fd0f0; }
+/* The bar: back, the dots, next. */
+.wn-bar { display: flex; align-items: center; justify-content: space-between; padding: 22px 28px 30px; }
+.wn-nav {
+  min-width: 120px;
+  padding: 10px 18px;
+  border-radius: 999px;
+  border: 0;
+  background: rgba(255, 255, 255, 0.08);
+  color: #f5f5f7;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.wn-nav:hover { background: rgba(255, 255, 255, 0.14); }
+.wn-next { background: #f5f5f7; color: #0a0a0b; }
+.wn-next:hover { background: #fff; }
+.wn-dots { display: flex; gap: 9px; }
+.wn-dots button { width: 8px; height: 8px; padding: 0; border: 0; border-radius: 50%; background: rgba(255, 255, 255, 0.22); cursor: pointer; transition: width 0.25s, background 0.25s; }
+.wn-dots button.on { width: 26px; border-radius: 4px; background: #f5f5f7; }
+@media (prefers-reduced-motion: reduce) {
+  .wn-backdrop, .wn-page > *, .wn-chips span, .wn-sheet span, .wn-mesh-pt, .wn-more-item, .wn-ice, .wn-keys kbd { animation: none; }
+  .wn-mesh-tri { animation: none; stroke-dashoffset: 0; }
+}
