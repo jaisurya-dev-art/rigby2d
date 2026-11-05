@@ -25,7 +25,7 @@ export const NAV = [
   },
   {
     title: 'Shipping',
-    pages: ['export', 'runtimes', 'file-formats'],
+    pages: ['export', 'runtimes', 'file-formats', 'runtime-spec'],
   },
   {
     title: 'Reference',
@@ -66,6 +66,7 @@ export const PAGE_ICONS = {
   export: 'package',
   runtimes: 'gamepad-2',
   'file-formats': 'file-code',
+  'runtime-spec': 'file-code',
   shortcuts: 'keyboard',
   recovery: 'life-buoy',
   troubleshooting: 'bug',

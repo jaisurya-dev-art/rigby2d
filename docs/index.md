@@ -50,7 +50,7 @@ clipping polygon. Swapping attachments is how mouths, hands and eyes change shap
 
 **Work files and exports.** You save your work as one `.rigby` file holding the whole project and
 its images. For games you *export* skeleton JSON or `.skel` plus a texture atlas, which the runtimes
-load. See [File formats](file-formats.md).
+load. See [File formats](file-formats.md), and the [runtime specification](runtime-spec.md) for writing a runtime.
 
 **Two workspaces.** The **Game** and **Film** workspaces show the tools for each kind of work. They
 never change the animation data, so exports are identical either way.
