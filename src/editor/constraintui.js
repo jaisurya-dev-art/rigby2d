@@ -19,6 +19,9 @@ import { FPS, Mode } from './app.js';
 import { dragValue, h, select, textField } from './widgets.js';
 
 export const CONSTRAINT_LABELS = { ik: 'IK', transform: 'Transform', path: 'Path', physics: 'Physics', slider: 'Slider' };
+
+/** Physics only simulates during playback: said where it's set up and when it's created. */
+export const PHYSICS_HINT = 'Physics only moves while an animation plays: key the parent bone, then press play to see it.';
 const PROPERTIES = ['rotate', 'x', 'y', 'scaleX', 'scaleY', 'shearY'];
 const PROPERTY_LABELS = { rotate: 'Rotate', x: 'X', y: 'Y', scaleX: 'Scale X', scaleY: 'Scale Y', shearY: 'Shear Y' };
 const OFFSET_KEYS = { rotate: 'rotation', x: 'x', y: 'y', scaleX: 'scaleX', scaleY: 'scaleY', shearY: 'shearY' };
@@ -426,6 +429,8 @@ const TYPE_UI = {
     const set = setter(app, d);
     const globalBox = (key) => checkbox(d[`${key}Global`], (v) => set(`${key}Global`, v, false), 'Global', 'Also follows skeleton-wide physics keys');
     return [
+      // First, where it can't be missed: in Setup, or paused, nothing visibly happens (#27).
+      h('div', { class: 'small physics-hint' }, PHYSICS_HINT),
       h(
         'div',
         { class: 'grid' },
@@ -445,7 +450,6 @@ const TYPE_UI = {
         row('Gravity', num(d.gravity ?? 0, (v) => set('gravity', v, 0), { speed: 0.1, decimals: 2 }), globalBox('gravity')),
         row('Mix', num(d.mix ?? 1, (v) => set('mix', v, 1), { min: 0, max: 1 }), globalBox('mix')),
       ),
-      h('div', { class: 'small weak' }, 'Physics runs while an animation plays.'),
     ];
   },
 

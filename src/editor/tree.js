@@ -4,7 +4,7 @@
 
 import { listConstraints } from '../core/constraintdata.js';
 import { Mode, selBone, selSlot } from './app.js';
-import { CONSTRAINT_LABELS, createConstraint } from './constraintui.js';
+import { CONSTRAINT_LABELS, PHYSICS_HINT, createConstraint } from './constraintui.js';
 import { dragOrderRow } from './draworderdnd.js';
 import * as edit from './edit.js';
 import { onionBonePanel, rgbCss } from './onionui.js';
@@ -247,7 +247,7 @@ export function render(app, el) {
               else {
                 app.sel = { constraint: result };
                 app.multi.clear();
-                app.setStatus(`Created ${label} constraint '${result}'`);
+                app.setStatus(`Created ${label} constraint '${result}'${type === 'physics' ? `. ${PHYSICS_HINT}` : ''}`);
               }
               app.changed();
             },
