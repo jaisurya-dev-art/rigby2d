@@ -58,6 +58,9 @@
     "license": "MIT OR Apache-2.0"
   },
   "plugins": {
+    "fs": {
+      "requireLiteralLeadingDot": false
+    },
     "updater": {
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEFDMDcyRDM5RTk1NjAxMTUKUldRVkFWYnBPUzBIcktsVytrd1IwbXBWNG5uUGR0bjk5b2ViYytGdWtJOW0zNGEvbEdVMUlKZU4K",
       "endpoints": [
