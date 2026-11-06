@@ -201,6 +201,36 @@ h3 {
   border-color: #ff6b8a;
   background: rgba(255, 107, 138, 0.08);
 }
+/* Studios: always visible in the header, in the brand's ice blue. */
+.nav-studios {
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 13px;
+  border: 1px solid rgba(181, 211, 231, 0.45);
+  border-radius: 999px;
+  color: var(--ice);
+  background: rgba(181, 211, 231, 0.07);
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+}
+.nav-studios:hover,
+.nav-studios[aria-current='page'] {
+  border-color: var(--ice);
+  background: rgba(181, 211, 231, 0.14);
+  color: #fff;
+}
+.nav nav .nav-studios-extra {
+  color: var(--ice);
+  font-weight: 600;
+}
+.nav nav .nav-studios-extra svg {
+  vertical-align: -2px;
+}
 /* Narrower desktops: the header keeps one line by dropping the download button (still in the page)
    and tightening the links. */
 @media (max-width: 1440px) {
@@ -2401,7 +2431,7 @@ h3 {
 /* Tiers: whole cards are links; the studio tiers stand apart. */
 .tiers {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 14px;
 }
 .tier {
@@ -2764,6 +2794,9 @@ dialog.thanks .goal {
 }
 .home-founding {
   margin-top: 56px;
+}
+.home-studios {
+  margin-top: 48px;
 }
 .home-founding > h3 {
   margin: 0 0 4px;
@@ -3226,11 +3259,18 @@ dialog.thanks .goal {
 .st-points b {
   color: var(--text);
 }
+.st-sponsor .fund-hero-grid {
+  grid-template-columns: 1fr;
+  gap: 36px;
+}
 .st-tiers {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 14px;
-  align-content: center;
+}
+.tier.featured {
+  border-color: rgba(181, 211, 231, 0.55);
+  box-shadow: 0 20px 50px rgba(64, 140, 230, 0.14);
 }
 .st-tiers .fine {
   grid-column: 1 / -1;
@@ -3289,6 +3329,12 @@ dialog.thanks .goal {
   border-color: var(--steel);
   color: var(--ice);
 }
+@media (max-width: 820px) {
+  .st-tiers,
+  .tiers {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
 @media (max-width: 480px) {
   .st-tiers {
     grid-template-columns: 1fr;
@@ -3296,4 +3342,44 @@ dialog.thanks .goal {
   .st-logo.pro {
     grid-column: auto;
   }
+}
+
+/* The Studios link stays in the header on tablets (the other links fold into the menu), and leads
+   the phone menu in ice blue. */
+@media (max-width: 960px) {
+  .nav nav .nav-studios-extra {
+    color: var(--ice);
+    font-weight: 600;
+  }
+}
+@media (max-width: 560px) {
+  .nav-studios {
+    padding: 0 10px;
+  }
+  .nav-studios span {
+    display: none;
+  }
+}
+/* With Studios in the header, narrower desktops make room step by step: Support shrinks to its
+   heart (where Download also goes), then the Reddit and GitHub icons go (both stay in the menu and the footer). */
+@media (max-width: 1440px) {
+  .nav-fund span {
+    display: none;
+  }
+  .nav-fund {
+    padding: 0 10px;
+  }
+}
+@media (max-width: 1180px) {
+  .nav-actions .nav-icon {
+    display: none;
+  }
+  .nav nav a {
+    padding: 6px 7px;
+  }
+}
+/* The header may run wider than the page content on big screens, so every link, Studios and
+   Download fit on one line. */
+.nav .nav-row {
+  max-width: 1320px;
 }

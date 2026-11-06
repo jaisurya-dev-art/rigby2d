@@ -16,6 +16,12 @@ export function loadSupporters() {
   return cached;
 }
 
+/** The tier a monthly amount belongs to (GitHub Sponsors tiers). */
+export const tierName = (t = 0) =>
+  t >= 1000 ? 'Studio Partner' : t >= 250 ? 'Studio' : t >= 50 ? 'Indie Team' : t >= 10 ? 'Sponsor' : t >= 5 ? 'Backer' : 'Supporter';
+/** Studio tiers start here. */
+export const STUDIO_TIER = 50;
+
 /** Everyone to thank, best supported first (tier, then Founding, then the order they joined). */
 export function people(data) {
   const founding = new Set(data.founding);
@@ -46,7 +52,7 @@ export function renderGoal(root, goal) {
 function chip(p) {
   const linked = p.url && (p.tier ?? 10) >= 10;
   const a = document.createElement(linked ? 'a' : 'span');
-  a.className = `supporter${(p.tier ?? 0) >= 25 ? ' studio' : ''}`;
+  a.className = `supporter${(p.tier ?? 0) >= STUDIO_TIER ? ' studio' : ''}`;
   if (linked) {
     a.href = p.url;
     a.rel = 'noopener';
@@ -119,9 +125,9 @@ function seat(n, p) {
 
 /** A supporter who isn't one of the Founding 20. */
 function patron(p) {
-  const tier = p.tier >= 25 ? 'Studio' : p.tier >= 10 ? 'Sponsor' : p.tier >= 5 ? 'Backer' : 'Supporter';
+  const tier = tierName(p.tier);
   const inner = [avatar(p, 44), el('span', { class: 'patron-text' }, el('span', { class: 'patron-name' }, p.name), el('span', { class: 'patron-tier' }, tier))];
-  const attrs = { class: `patron${p.tier >= 25 ? ' studio' : ''}` };
+  const attrs = { class: `patron${p.tier >= STUDIO_TIER ? ' studio' : ''}` };
   return linkedProfile(p) ? el('a', { ...attrs, href: p.url, rel: 'noopener' }, ...inner) : el('div', attrs, ...inner);
 }
 
@@ -141,4 +147,27 @@ export function renderFounding(data, ids) {
   if ($('empty')) $('empty').hidden = everyone.length > 0 || founders.length > 0;
   if ($('supporters')) $('supporters').textContent = String(everyone.length);
   if ($('spotsLeft')) $('spotsLeft').textContent = String(Math.max(0, FOUNDING_SEATS - data.founding.length));
+}
+
+// ---- Studio sponsors (studios page, home page) ----
+
+/** A studio sponsor's logo (their GitHub avatar) and name, linked to their profile. */
+function studioLogo(p) {
+  const a = el(p.url ? 'a' : 'div', { class: `st-logo${p.tier >= 1000 ? ' pro' : ''}`, href: p.url, rel: p.url ? 'noopener' : null });
+  if (p.avatar) a.append(el('img', { src: p.avatar, alt: '', loading: 'lazy' }));
+  a.append(el('span', {}, p.name));
+  return a;
+}
+
+/**
+ * Fills `wall` with the studios sponsoring at `min` dollars a month or more, biggest first. With
+ * `spots`, empty "Your studio here" places fill the row up to that many; without, `block` (the
+ * wall's section) hides while there are none.
+ */
+export function renderStudios(wall, data, { min = STUDIO_TIER, spots = 0, block = null } = {}) {
+  if (!wall) return;
+  const studios = people(data).filter((p) => (p.tier ?? 0) >= min);
+  const open = Array.from({ length: spots ? Math.max(1, spots - studios.length) : 0 }, () => el('a', { class: 'st-logo open', href: SPONSOR_URL, rel: 'noopener' }, 'Your studio here'));
+  wall.replaceChildren(...studios.map(studioLogo), ...open);
+  if (block) block.hidden = studios.length === 0;
 }
