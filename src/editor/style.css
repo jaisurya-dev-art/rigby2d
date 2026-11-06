@@ -3459,7 +3459,7 @@ kbd {
   0% { background-position: 100% 0; }
   55%, 100% { background-position: 0% 0; }
 }
-.wn-lede { margin: 0; font-size: clamp(20px, 2.4vw, 30px); color: #a1a1a6; font-weight: 400; }
+.wn-lede { margin: clamp(18px, 2.4vw, 34px) 0 0; font-size: clamp(20px, 2.4vw, 30px); color: #a1a1a6; font-weight: 400; }
 .wn-art { display: flex; align-items: center; justify-content: center; min-height: 260px; }
 .wn-title { margin: 0; font-size: clamp(40px, 6vw, 76px); font-weight: 700; letter-spacing: -0.03em; line-height: 1.04; }
 .wn-text { margin: 0 auto; max-width: 640px; font-size: clamp(17px, 1.8vw, 22px); line-height: 1.45; color: #a1a1a6; }
