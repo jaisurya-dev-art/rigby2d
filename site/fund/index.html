@@ -20,93 +20,107 @@
     <!--site-header:fund-->
 
     <main id="main">
-      <section class="page-head">
-        <div class="wrap fund-head">
-          <p class="eyebrow">Support Rigby2D</p>
-          <h1>Free for everyone.<br />Paid for by a few.</h1>
-          <p class="section-lede">
-            Rigby2D is free and open source, and it stays that way: the editor, every runtime, every feature. Monthly support pays
-            for what one person can't, starting with code signing in Rigby2D's name, so Windows and macOS stop warning the people
-            who download it.
-          </p>
+      <section class="page-head fund-hero">
+        <div class="wrap fund-hero-grid">
+          <div class="fund-hero-copy">
+            <p class="eyebrow">Support Rigby2D</p>
+            <h1>Free for everyone.<br /><span class="fund-accent">Paid for by a few.</span></h1>
+            <p class="section-lede">
+              Rigby2D is free and open source, and it stays that way: the editor, every runtime, every feature. Monthly support pays
+              for what one person can't, starting with code signing in Rigby2D's name, so Windows and macOS stop warning the people
+              who download it.
+            </p>
+            <div class="fund-actions">
+              <a class="btn primary fund-sponsor" href="https://github.com/sponsors/jaisurya-dev-art" rel="noopener" data-goatcounter-click="site-fund-github">
+                <i data-mark="github"></i> Sponsor on GitHub
+              </a>
+              <a class="btn" id="kofi" href="#" rel="noopener" hidden data-goatcounter-click="site-fund-kofi">Support on Ko-fi</a>
+              <a class="btn fund-link" href="#supporters">See the supporters <i data-icon="arrow-right"></i></a>
+            </div>
+            <p class="fine">Monthly or one-time, cancel any time. GitHub takes no fee on personal sponsorships.</p>
+          </div>
 
-          <div class="goal" id="goal">
-            <div class="goal-top">
-              <span class="goal-title" id="goal-title">Signed by Rigby2D</span>
-              <span class="goal-amount" id="goal-amount">Goal: $25 a month</span>
+          <div class="goal fund-goal" id="goal">
+            <div class="fund-goal-head">
+              <span class="fund-goal-icon"><i data-icon="heart"></i></span>
+              <div>
+                <span class="goal-title" id="goal-title">Signed by Rigby2D</span>
+                <span class="goal-amount" id="goal-amount">Goal: $25 a month</span>
+              </div>
             </div>
             <div class="goal-bar" role="progressbar" aria-label="Progress toward the monthly goal" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
               <span id="goal-fill"></span>
             </div>
             <p class="goal-note" id="goal-note">Every dollar a month gets it there sooner.</p>
+            <dl class="fund-stats">
+              <div><dt>Supporters</dt><dd id="stat-supporters">0</dd></div>
+              <div><dt>Founding spots left</dt><dd id="stat-founding">20</dd></div>
+            </dl>
           </div>
-
-          <div class="fund-actions">
-            <a class="btn primary" href="https://github.com/sponsors/jaisurya-dev-art" rel="noopener" data-goatcounter-click="site-fund-github">
-              <i data-mark="github"></i> Sponsor on GitHub
-            </a>
-            <a class="btn" id="kofi" href="#" rel="noopener" hidden data-goatcounter-click="site-fund-kofi">Support on Ko-fi</a>
-          </div>
-          <p class="fine">Monthly or one-time, cancel any time. GitHub takes no fee on personal sponsorships.</p>
         </div>
       </section>
 
       <section class="section alt">
         <div class="wrap">
-          <h2>Where the money goes</h2>
-          <div class="goals-list">
-            <div class="goal-step">
+          <p class="eyebrow">Where the money goes</p>
+          <h2>Every goal, in the open.</h2>
+          <ol class="fund-steps">
+            <li class="fund-step current">
+              <div class="fund-step-top"><span class="fund-step-icon"><i data-icon="shield"></i></span><span class="fund-step-tag">Current goal</span></div>
               <span class="step-amount">$25<small>/month</small></span>
-              <div>
-                <h3>Signed by Rigby2D</h3>
-                <p>A code-signing certificate in Rigby2D's name for Windows, and an Apple Developer membership to notarize the Mac app. No more "unknown publisher" screens.</p>
-              </div>
-            </div>
-            <div class="goal-step">
+              <h3>Signed by Rigby2D</h3>
+              <p>A code-signing certificate in Rigby2D's name for Windows, and an Apple Developer membership to notarize the Mac app. No more "unknown publisher" screens.</p>
+            </li>
+            <li class="fund-step">
+              <div class="fund-step-top"><span class="fund-step-icon"><i data-icon="monitor"></i></span><span class="fund-step-tag">Next</span></div>
               <span class="step-amount">$60<small>/month</small></span>
-              <div>
-                <h3>Keep the lights on</h3>
-                <p>The domain, test devices for every platform, engine licences for testing the runtimes, and GPU time for AutoRig and the AI features.</p>
-              </div>
-            </div>
-            <div class="goal-step">
+              <h3>Keep the lights on</h3>
+              <p>The domain, test devices for every platform, engine licences for testing the runtimes, and GPU time for AutoRig and the AI features.</p>
+            </li>
+            <li class="fund-step">
+              <div class="fund-step-top"><span class="fund-step-icon"><i data-icon="zap"></i></span><span class="fund-step-tag">Then</span></div>
               <span class="step-amount">$300<small>/month</small></span>
-              <div>
-                <h3>Days for Rigby2D</h3>
-                <p>Whole days each month spent only on Rigby2D: faster releases, more runtimes, and quicker answers to your issues.</p>
-              </div>
-            </div>
-          </div>
+              <h3>Days for Rigby2D</h3>
+              <p>Whole days each month spent only on Rigby2D: faster releases, more runtimes, and quicker answers to your issues.</p>
+            </li>
+          </ol>
           <p class="fine">Each month the devlog shows what came in and what it paid for.</p>
         </div>
       </section>
 
       <section class="section">
         <div class="wrap">
-          <h2>Monthly tiers</h2>
+          <p class="eyebrow">Monthly tiers</p>
+          <h2>Pick what feels right.</h2>
           <p class="section-lede">Nothing is locked behind a tier. Support buys thanks, and a little recognition.</p>
           <div class="tiers">
-            <div class="tier"><span class="tier-price">$3</span><h3>Supporter</h3><p>Your name on the supporters wall.</p></div>
-            <div class="tier"><span class="tier-price">$5</span><h3>Backer</h3><p>Your name in the editor's Supporters list, and a supporter flair on r/rigby2d.</p></div>
-            <div class="tier"><span class="tier-price">$10</span><h3>Sponsor</h3><p>Name and link on this page, and a vote in the roadmap polls.</p></div>
-            <div class="tier"><span class="tier-price">$25</span><h3>Studio</h3><p>Your studio's logo in the README and on this page.</p></div>
-            <div class="tier"><span class="tier-price">$100</span><h3>Studio Pro</h3><p>A large logo at the top of the README and this page.</p></div>
+            <a class="tier" href="https://github.com/sponsors/jaisurya-dev-art" rel="noopener"><span class="tier-icon"><i data-icon="heart"></i></span><span class="tier-price">$3</span><h3>Supporter</h3><p>Your name on the supporters wall.</p><span class="tier-go">Choose <i data-icon="arrow-right"></i></span></a>
+            <a class="tier" href="https://github.com/sponsors/jaisurya-dev-art" rel="noopener"><span class="tier-icon"><i data-icon="sparkles"></i></span><span class="tier-price">$5</span><h3>Backer</h3><p>Your name in the editor's Supporters list, and a supporter flair on r/rigby2d.</p><span class="tier-go">Choose <i data-icon="arrow-right"></i></span></a>
+            <a class="tier" href="https://github.com/sponsors/jaisurya-dev-art" rel="noopener"><span class="tier-icon"><i data-icon="users"></i></span><span class="tier-price">$10</span><h3>Sponsor</h3><p>Name and link on this page, and a vote in the roadmap polls.</p><span class="tier-go">Choose <i data-icon="arrow-right"></i></span></a>
+            <a class="tier studio" href="https://github.com/sponsors/jaisurya-dev-art" rel="noopener"><span class="tier-icon"><i data-icon="gamepad-2"></i></span><span class="tier-price">$25</span><h3>Studio</h3><p>Your studio's logo in the README and on this page.</p><span class="tier-go">Choose <i data-icon="arrow-right"></i></span></a>
+            <a class="tier studio" href="https://github.com/sponsors/jaisurya-dev-art" rel="noopener"><span class="tier-icon"><i data-icon="rocket"></i></span><span class="tier-price">$100</span><h3>Studio Pro</h3><p>A large logo at the top of the README and this page.</p><span class="tier-go">Choose <i data-icon="arrow-right"></i></span></a>
           </div>
-          <p class="founding"><b>Founding Supporters.</b> The first 20 monthly supporters keep a Founding Supporter mark for good.</p>
         </div>
       </section>
 
-      <section class="section alt">
+      <section class="section alt fund-people" id="supporters">
         <div class="wrap">
-          <h2>Supporters</h2>
-          <div class="wall" id="wall"></div>
+          <p class="eyebrow">Supporters</p>
+          <h2>The Founding 20.</h2>
+          <p class="section-lede">The first 20 monthly supporters keep a Founding Supporter mark for good. These are the people who believed in Rigby2D first.</p>
+          <ol class="seats" id="seats" aria-label="Founding Supporters"></ol>
+          <div class="fund-others" id="others-block" hidden>
+            <h3>Also supporting Rigby2D</h3>
+            <div class="patrons" id="wall"></div>
+          </div>
           <p class="fine" id="wall-empty">No one yet. Be the first, and a Founding Supporter.</p>
         </div>
       </section>
 
       <section class="section">
         <div class="wrap faq">
-          <h2>Questions</h2>
+          <p class="eyebrow">Questions</p>
+          <h2>Good to know.</h2>
           <details>
             <summary>Will Rigby2D stay free?</summary>
             <p>Yes. The editor, the runtimes and the file formats are open source (MIT or Apache-2.0) and free to use in commercial games and films, with no runtime fees. Support never unlocks features.</p>

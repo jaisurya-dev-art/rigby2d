@@ -82,3 +82,63 @@ export function renderWall(wall, empty, data) {
 export function renderContributors(list, data) {
   list.replaceChildren(...data.contributors.map((c) => chip({ ...c, tier: 10 })));
 }
+
+// ---- The Founding 20 (Support page and home page) ----
+
+export const FOUNDING_SEATS = 20;
+
+const el = (tag, attrs = {}, ...children) => {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) if (v !== undefined && v !== null) e.setAttribute(k, v);
+  e.append(...children.filter((c) => c !== null && c !== undefined));
+  return e;
+};
+
+/** A supporter's picture: their avatar, or the first letter of their name. */
+function avatar(p, size) {
+  const src = p.avatar ?? (p.login ? `https://github.com/${encodeURIComponent(p.login)}.png?size=${size * 2}` : null);
+  if (!src) return el('span', { class: 'avatar letter', 'aria-hidden': 'true' }, (p.name ?? '?').slice(0, 1).toUpperCase());
+  return el('img', { class: 'avatar', src, alt: '', width: size, height: size, loading: 'lazy' });
+}
+
+/** Names link to their profile for Sponsor tiers and up, as in the chips. */
+const linkedProfile = (p) => p.url && (p.tier ?? 10) >= 10;
+
+/** One of the Founding seats: filled with the supporter who took it, or open for the next. */
+function seat(n, p) {
+  if (!p) {
+    return el(
+      'li',
+      { class: 'seat open' },
+      el('a', { href: SPONSOR_URL, rel: 'noopener', 'aria-label': `Founding seat ${n}: open. Become a Founding Supporter` }, el('span', { class: 'seat-ring' }, el('span', { class: 'seat-num' }, String(n))), el('span', { class: 'seat-name' }, 'Open')),
+    );
+  }
+  const inner = [el('span', { class: 'seat-ring' }, avatar(p, 72), el('span', { class: 'seat-badge' }, `#${n}`)), el('span', { class: 'seat-name' }, p.name), el('span', { class: 'seat-role' }, 'Founding Supporter')];
+  return el('li', { class: 'seat filled' }, linkedProfile(p) ? el('a', { href: p.url, rel: 'noopener' }, ...inner) : el('div', {}, ...inner));
+}
+
+/** A supporter who isn't one of the Founding 20. */
+function patron(p) {
+  const tier = p.tier >= 25 ? 'Studio' : p.tier >= 10 ? 'Sponsor' : p.tier >= 5 ? 'Backer' : 'Supporter';
+  const inner = [avatar(p, 44), el('span', { class: 'patron-text' }, el('span', { class: 'patron-name' }, p.name), el('span', { class: 'patron-tier' }, tier))];
+  const attrs = { class: `patron${p.tier >= 25 ? ' studio' : ''}` };
+  return linkedProfile(p) ? el('a', { ...attrs, href: p.url, rel: 'noopener' }, ...inner) : el('div', attrs, ...inner);
+}
+
+/**
+ * Fills the Founding seats (in the order they were taken, kept for good even after a sponsorship
+ * ends), the other supporters, and the counts. `ids` are element ids; any of them may be missing.
+ */
+export function renderFounding(data, ids) {
+  const $ = (k) => (ids[k] ? document.getElementById(ids[k]) : null);
+  const everyone = people(data);
+  const byId = new Map(everyone.map((p) => [p.login ?? p.name, p]));
+  const founders = data.founding.slice(0, FOUNDING_SEATS).map((id) => byId.get(id) ?? { login: id, name: id, url: `https://github.com/${id}` });
+  $('seats')?.replaceChildren(...Array.from({ length: FOUNDING_SEATS }, (_, i) => seat(i + 1, founders[i])));
+  const others = everyone.filter((p) => !data.founding.includes(p.login ?? p.name));
+  $('others')?.replaceChildren(...others.map(patron));
+  if ($('othersBlock')) $('othersBlock').hidden = others.length === 0;
+  if ($('empty')) $('empty').hidden = everyone.length > 0 || founders.length > 0;
+  if ($('supporters')) $('supporters').textContent = String(everyone.length);
+  if ($('spotsLeft')) $('spotsLeft').textContent = String(Math.max(0, FOUNDING_SEATS - data.founding.length));
+}

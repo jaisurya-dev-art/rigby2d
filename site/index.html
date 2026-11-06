@@ -228,6 +228,64 @@
         </div>
       </section>
 
+      <section id="support" class="section support-section home-fund" aria-labelledby="support-title">
+        <div class="wrap">
+          <div class="fund-hero-grid">
+            <div class="fund-hero-copy">
+              <p class="eyebrow">Support and contribute</p>
+              <h2 id="support-title">Free for everyone.<br /><span class="fund-accent">Paid for by a few.</span></h2>
+              <p class="section-lede">Rigby2D is open source and stays free. It grows with the people who use it: some give a few dollars a month, others give code, add-ons, bug reports and translations.</p>
+              <div class="fund-actions">
+                <a class="btn primary fund-sponsor" href="https://github.com/sponsors/jaisurya-dev-art" rel="noopener" data-goatcounter-click="site-support-sponsor"><i data-mark="github"></i> Sponsor on GitHub</a>
+                <a class="btn fund-link" href="./fund/" data-goatcounter-click="site-support-fund">Where the money goes <i data-icon="arrow-right"></i></a>
+              </div>
+            </div>
+            <div class="goal fund-goal" id="home-goal">
+              <div class="fund-goal-head">
+                <span class="fund-goal-icon"><i data-icon="heart"></i></span>
+                <div>
+                  <span class="goal-title">Signed by Rigby2D</span>
+                  <span class="goal-amount">Goal: $25 a month</span>
+                </div>
+              </div>
+              <div class="goal-bar" role="progressbar" aria-label="Progress toward the monthly goal" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span></span></div>
+              <p class="goal-note"></p>
+              <dl class="fund-stats">
+                <div><dt>Supporters</dt><dd id="home-stat-supporters">0</dd></div>
+                <div><dt>Founding spots left</dt><dd id="home-stat-founding">20</dd></div>
+              </dl>
+            </div>
+          </div>
+
+          <div class="home-founding">
+            <h3>The Founding 20</h3>
+            <p class="fine">The first 20 monthly supporters keep a Founding Supporter mark for good.</p>
+            <ol class="seats" id="home-seats" aria-label="Founding Supporters"></ol>
+            <div class="fund-others" id="home-others-block" hidden>
+              <h3>Also supporting Rigby2D</h3>
+              <div class="patrons" id="home-others"></div>
+            </div>
+          </div>
+
+          <div class="support-grid">
+            <div class="support-card">
+              <h3>Contribute</h3>
+              <ul class="contribute-list">
+                <li><a href="https://github.com/jaisurya-dev-art/rigby2d/blob/develop/CONTRIBUTING.md" rel="noopener"><b>Write code</b></a><span>Fix a bug or build a feature. Every pull request gets a review.</span></li>
+                <li><a href="./addons/#publish"><b>Publish an add-on</b></a><span>Python tools for the Scripts menu, listed in the marketplace.</span></li>
+                <li><a href="https://github.com/jaisurya-dev-art/rigby2d/issues" rel="noopener"><b>Report bugs and ideas</b></a><span>A file that won't import, a feature you miss: it shapes the next release.</span></li>
+                <li><a href="https://www.reddit.com/r/rigby2d/" rel="noopener"><b>Share your work</b></a><span>Post what you make on r/rigby2d and help the next animator find Rigby2D.</span></li>
+              </ul>
+            </div>
+            <div class="support-card">
+              <h3>Contributors</h3>
+              <p>Everyone whose code is in Rigby2D.</p>
+              <div class="wall" id="home-contributors"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section id="ai" class="section alt">
         <div class="wrap split">
           <div>
@@ -358,48 +416,6 @@
             </a>
           </div>
           <p class="fine">Downloads are not code-signed yet: Windows may warn and macOS needs a right-click ▸ Open the first time (<a href="./docs/installation.html">installation guide</a>). Each release lists SHA-256 checksums, so compare them before running anything.</p>
-        </div>
-      </section>
-      <section id="support" class="section support-section" aria-labelledby="support-title">
-        <div class="wrap">
-          <p class="eyebrow">Support and contribute</p>
-          <h2 id="support-title">Free for everyone. Paid for by a few.</h2>
-          <p class="section-lede">Rigby2D is open source and stays free. It grows with the people who use it: some give a few dollars a month, others give code, add-ons, bug reports and translations.</p>
-          <div class="support-grid">
-            <div class="support-card">
-              <h3>Fund it</h3>
-              <p>Monthly support pays for code signing in Rigby2D's name first, so Windows and macOS stop warning people who download it.</p>
-              <div class="goal" id="home-goal">
-                <div class="goal-top"><span class="goal-title">Signed by Rigby2D</span><span class="goal-amount">Goal: $25 a month</span></div>
-                <div class="goal-bar" role="progressbar" aria-label="Progress toward the monthly goal" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span></span></div>
-                <p class="goal-note"></p>
-              </div>
-              <div class="cta">
-                <a class="btn primary" href="https://github.com/sponsors/jaisurya-dev-art" rel="noopener" data-goatcounter-click="site-support-sponsor">Sponsor on GitHub</a>
-                <a class="btn" href="./fund/" data-goatcounter-click="site-support-fund">Where the money goes</a>
-              </div>
-            </div>
-            <div class="support-card">
-              <h3>Contribute</h3>
-              <ul class="contribute-list">
-                <li><a href="https://github.com/jaisurya-dev-art/rigby2d/blob/develop/CONTRIBUTING.md" rel="noopener"><b>Write code</b></a><span>Fix a bug or build a feature. Every pull request gets a review.</span></li>
-                <li><a href="./addons/#publish"><b>Publish an add-on</b></a><span>Python tools for the Scripts menu, listed in the marketplace.</span></li>
-                <li><a href="https://github.com/jaisurya-dev-art/rigby2d/issues" rel="noopener"><b>Report bugs and ideas</b></a><span>A file that won't import, a feature you miss: it shapes the next release.</span></li>
-                <li><a href="https://www.reddit.com/r/rigby2d/" rel="noopener"><b>Share your work</b></a><span>Post what you make on r/rigby2d and help the next animator find Rigby2D.</span></li>
-              </ul>
-            </div>
-          </div>
-          <div class="support-people">
-            <div>
-              <h3>Supporters</h3>
-              <div class="wall" id="home-wall"></div>
-              <p class="fine" id="home-wall-empty">No one yet. <a href="./fund/">Be the first</a>, and a Founding Supporter for good.</p>
-            </div>
-            <div>
-              <h3>Contributors</h3>
-              <div class="wall" id="home-contributors"></div>
-            </div>
-          </div>
         </div>
       </section>
     </main>

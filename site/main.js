@@ -14,7 +14,7 @@ import { animationBounds } from '../src/editor/output.js';
 import { startAnalytics } from '../src/editor/analytics.js';
 import { installMobileNav } from './nav.js';
 import { installDownloadThanks } from './thanks.js';
-import { loadSupporters, renderContributors, renderGoal, renderWall } from './supporters.js';
+import { loadSupporters, renderContributors, renderFounding, renderGoal } from './supporters.js';
 import skelUrl from '../branding/nila/export/nila.skel?url&no-inline';
 import atlasText from '../branding/nila/export/nila.atlas?raw';
 import pageUrl from '../branding/nila/export/nila.png?url';
@@ -31,7 +31,7 @@ installMobileNav();
 installDownloadThanks();
 loadSupporters().then((data) => {
   renderGoal(document.getElementById('home-goal'), data.goal);
-  renderWall(document.getElementById('home-wall'), document.getElementById('home-wall-empty'), data);
+  renderFounding(data, { seats: 'home-seats', others: 'home-others', othersBlock: 'home-others-block', supporters: 'home-stat-supporters', spotsLeft: 'home-stat-founding' });
   renderContributors(document.getElementById('home-contributors'), data);
 });
 
