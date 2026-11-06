@@ -2229,6 +2229,30 @@ h3 {
   border-radius: 999px;
   padding: 0 7px;
 }
+/* A chip with a role (the founder among the contributors): name, then the role beneath it. */
+.supporter:has(.supporter-text) {
+  padding-top: 7px;
+  padding-bottom: 7px;
+}
+.supporter-text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.supporter-text > span {
+  line-height: 1.2;
+}
+.supporter .supporter-text small.role {
+  display: block;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  font-size: 11px;
+  line-height: 13px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
 .step-amount {
   font-size: 30px;
   font-weight: 700;

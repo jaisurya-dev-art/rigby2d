@@ -68,7 +68,15 @@ function chip(p) {
   }
   const name = document.createElement('span');
   name.textContent = p.name;
-  a.append(name);
+  if (p.role) {
+    const text = document.createElement('span');
+    text.className = 'supporter-text';
+    const role = document.createElement('small');
+    role.className = 'role';
+    role.textContent = p.role;
+    text.append(name, role);
+    a.append(text);
+  } else a.append(name);
   if (p.founding) {
     const mark = document.createElement('small');
     mark.textContent = 'Founding';
@@ -84,9 +92,12 @@ export function renderWall(wall, empty, data) {
   if (empty) empty.hidden = list.length > 0;
 }
 
+/** Rigby2D's founder, marked quietly among the code contributors. */
+const FOUNDER = 'jaisurya-dev-art';
+
 /** Fills a list with the code contributors, each linked to their GitHub profile. */
 export function renderContributors(list, data) {
-  list.replaceChildren(...data.contributors.map((c) => chip({ ...c, tier: 10 })));
+  list.replaceChildren(...data.contributors.map((c) => chip({ ...c, tier: 10, role: c.login === FOUNDER ? 'Founder' : null })));
 }
 
 // ---- The Founding 20 (Support page and home page) ----

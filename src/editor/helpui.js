@@ -359,6 +359,9 @@ export function openAbout() {
  * Help ▸ Supporters: the people who fund Rigby2D (Backer tier and up) and the people who contributed
  * code, from rigby2d.com/supporters.json, kept in step with GitHub Sponsors by the website.
  */
+/** Rigby2D's founder, marked quietly among the code contributors. */
+const FOUNDER = 'jaisurya-dev-art';
+
 export async function openSupporters() {
   const { body } = dialog('supporters-dialog', t('Supporters'), t('Rigby2D is free because of these people.'));
   const status = h('p', { class: 'weak' }, t('Loading…'));
@@ -379,7 +382,7 @@ export async function openSupporters() {
     h('h3', null, t('Supporters')),
     backers.length ? h('ul', { class: 'supporters-list' }, backers.map(name)) : h('p', { class: 'weak' }, t('No one yet. The first 20 monthly supporters are Founding Supporters, for good.')),
     h('h3', null, t('Code contributors')),
-    h('ul', { class: 'supporters-list' }, (data.contributors ?? []).map(name)),
+    h('ul', { class: 'supporters-list' }, (data.contributors ?? []).map((c) => h('li', null, c.name ?? c.login, c.login === FOUNDER ? h('span', { class: 'role' }, t('Founder')) : null))),
     h('p', { class: 'weak' }, t('{title}: {percent}% of ${monthly} a month.', { title: goal.title ?? 'Signed by Rigby2D', percent: Math.round(goal.percent ?? 0), monthly: goal.monthly ?? 25 })),
     h('div', { class: 'buttons' }, h('button', { class: 'primary', onclick: () => openExternal(LINKS.fund) }, t('Support Rigby2D ↗'))),
   );

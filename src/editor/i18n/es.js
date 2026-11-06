@@ -342,6 +342,7 @@ export default {
   "Rigby2D is free because of these people.": "Rigby2D es gratis gracias a estas personas.",
   "Loading…": "Cargando…",
   "Could not load the list. Check your connection, or see it on rigby2d.com/fund.": "No se pudo cargar la lista. Revisa tu conexión o consúltala en rigby2d.com/fund.",
+  "Founder": "Creador",
   "Founding": "Fundador",
   "No one yet. The first 20 monthly supporters are Founding Supporters, for good.": "Aún nadie. Las primeras 20 personas que apoyen cada mes serán Founding Supporters para siempre.",
   "Code contributors": "Contribuidores de código",

@@ -342,6 +342,7 @@ export default {
   "Rigby2D is free because of these people.": "Rigby2D 之所以免费，要感谢这些人。",
   "Loading…": "正在加载…",
   "Could not load the list. Check your connection, or see it on rigby2d.com/fund.": "无法加载列表。请检查网络连接，或访问 rigby2d.com/fund 查看。",
+  "Founder": "创始人",
   "Founding": "创始",
   "No one yet. The first 20 monthly supporters are Founding Supporters, for good.": "还没有人。前 20 位每月支持者将永久成为创始支持者。",
   "Code contributors": "代码贡献者",

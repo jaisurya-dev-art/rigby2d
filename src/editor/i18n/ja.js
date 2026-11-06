@@ -342,6 +342,7 @@ export default {
   "Rigby2D is free because of these people.": "Rigby2D が無料なのは、この方々のおかげです。",
   "Loading…": "読み込み中…",
   "Could not load the list. Check your connection, or see it on rigby2d.com/fund.": "一覧を読み込めませんでした。接続を確認するか、rigby2d.com/fund をご覧ください。",
+  "Founder": "創設者",
   "Founding": "創設",
   "No one yet. The first 20 monthly supporters are Founding Supporters, for good.": "まだいません。最初の 20 人の月額支援者は、ずっと Founding Supporter です。",
   "Code contributors": "コードの貢献者",

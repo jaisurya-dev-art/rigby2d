@@ -3347,6 +3347,11 @@ kbd {
 .supporters-list .badge {
   margin-left: 6px;
 }
+.supporters-list .role {
+  margin-left: 6px;
+  font-size: 0.85em;
+  color: var(--weak);
+}
 .pref-shortcuts {
   display: inline-flex;
   align-items: center;
