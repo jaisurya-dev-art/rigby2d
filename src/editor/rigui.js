@@ -62,12 +62,13 @@ export function openAutoRig(app) {
   const fill = fillWith(body);
   const choice = { roles: {}, sides: {}, meshes: 'deforming', ik: true };
 
-  // Fresh artwork from a PSD or an SVG: in a new project when this one already has some.
+  // Fresh artwork from a PSD, an SVG or same-size PNGs (one per part, landing where they were drawn):
+  // in a new project when this one already has some.
   const importArt = (kind) => async () => {
     const before = app.doc;
     if (app.doc.bones.length > 1 || app.doc.slots.length) await app.newDocument(app.workspace);
     if (app.doc === before && (app.doc.bones.length > 1 || app.doc.slots.length)) return;
-    await (kind === 'svg' ? app.importSvg() : app.importPsd());
+    await (kind === 'svg' ? app.importSvg() : kind === 'png' ? app.importImages() : app.importPsd());
     choice.roles = {};
     choice.sides = {};
     draw();
@@ -149,7 +150,7 @@ export function openAutoRig(app) {
       problem
         ? h('p', null, problem)
         : !parts?.length
-          ? h('p', null, 'Import layered artwork first: a PSD or SVG with one layer per body part.')
+          ? h('p', null, 'Import layered artwork first: a PSD or SVG with one layer per body part, or one PNG per part, all exported at the same canvas size so each lands where it was drawn.')
           : h('div', { class: 'autorig-table', 'data-tut': 'autorig:parts' }, h('table', null, h('thead', null, h('tr', null, h('th', null, 'Layer'), h('th', null, 'Part'), h('th', null, 'Side'), h('th', null, 'Found by'))), h('tbody', null, rows))),
       parts?.length
         ? h(
@@ -177,6 +178,7 @@ export function openAutoRig(app) {
         { class: 'modal-buttons' },
         h('button', { onclick: importArt('psd') }, parts?.length || problem ? 'Start over from a PSD…' : 'Import PSD…'),
         h('button', { onclick: importArt('svg') }, parts?.length || problem ? 'Start over from an SVG…' : 'Import SVG…'),
+        h('button', { onclick: importArt('png') }, parts?.length || problem ? 'Start over from PNGs…' : 'Import PNGs…'),
         h('span', { class: 'float-spacer' }),
         h('button', { onclick: close }, 'Cancel'),
         h('button', { class: 'primary', 'data-tut': 'autorig:generate', disabled: !parts?.length, onclick: generate }, 'Generate rig'),
