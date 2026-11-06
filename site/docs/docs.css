@@ -198,6 +198,21 @@ a {
 .top-links a:hover {
   color: var(--text);
 }
+.top-links .studios {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border: 1px solid rgba(181, 211, 231, 0.45);
+  border-radius: 999px;
+  background: rgba(181, 211, 231, 0.07);
+  color: var(--ice);
+  font-weight: 600;
+}
+.top-links .studios:hover {
+  border-color: var(--ice);
+  color: #fff;
+}
 .top-links .btn {
   padding: 7px 14px;
   border-radius: 8px;
@@ -709,7 +724,7 @@ kbd {
     gap: 12px;
     padding: 0 16px;
   }
-  .top-links a:not(.btn) {
+  .top-links a:not(.btn):not(.studios) {
     display: none;
   }
   .search {
@@ -750,7 +765,17 @@ kbd {
 
 @media (max-width: 600px) {
   .brand-docs,
+  .top-links a:not(.studios) {
+    display: none;
+  }
   .top-links {
+    flex: none;
+    margin-left: 8px;
+  }
+  .top-links .studios {
+    padding: 6px 8px;
+  }
+  .top-links .studios span {
     display: none;
   }
   .doc h2 {

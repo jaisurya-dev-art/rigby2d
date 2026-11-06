@@ -200,6 +200,7 @@ export function pageHtml(page, pages, assets) {
         <div class="results" role="listbox" hidden></div>
       </div>
       <nav class="top-links" aria-label="Site">
+        <a class="studios" href="../studios/" data-goatcounter-click="docs-studios">${icon('building', 15)}<span>Studios</span></a>
         <a href="../">Home</a>
         <a href="../addons/">Add-ons</a>
         <a href="../blog/">Devlog</a>
