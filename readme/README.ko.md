@@ -45,8 +45,8 @@
 </p>
 
 <p align="center">
-  <a href="https://youtu.be/T1MdcD_rxeQ"><img src="../docs/images/promo-0.4.jpg" alt="YouTube에서 Rigby2D 0.4 영상 보기" width="800"></a><br>
-  <sub>▶ <a href="https://youtu.be/T1MdcD_rxeQ"><b>Rigby2D 0.4</b> 보기</a>: 45초에 담은 새 기능 · <a href="https://youtu.be/3StZlHwZeSo">Meet NILA</a>: Rigby2D로 애니메이션한 마스코트</sub>
+  <a href="https://youtu.be/I9G-ZbvNlGw"><img src="../docs/images/promo-0.5.jpg" alt="YouTube에서 Rigby2D 0.5 영상 보기" width="800"></a><br>
+  <sub>▶ <a href="https://youtu.be/I9G-ZbvNlGw"><b>Rigby2D 0.5</b> 보기</a>: 54초에 담은 새 기능 · <a href="https://youtu.be/3StZlHwZeSo">Meet NILA</a>: Rigby2D로 애니메이션한 마스코트</sub>
 </p>
 
 <p align="center">

@@ -45,8 +45,8 @@
 </p>
 
 <p align="center">
-  <a href="https://youtu.be/T1MdcD_rxeQ"><img src="../docs/images/promo-0.4.jpg" alt="YouTube で Rigby2D 0.4 の紹介映像を見る" width="800"></a><br>
-  <sub>▶ <a href="https://youtu.be/T1MdcD_rxeQ"><b>Rigby2D 0.4</b> を見る</a>：新機能を 45 秒で · <a href="https://youtu.be/3StZlHwZeSo">Meet NILA</a>：Rigby2D でアニメーションしたマスコット</sub>
+  <a href="https://youtu.be/I9G-ZbvNlGw"><img src="../docs/images/promo-0.5.jpg" alt="YouTube で Rigby2D 0.5 の紹介映像を見る" width="800"></a><br>
+  <sub>▶ <a href="https://youtu.be/I9G-ZbvNlGw"><b>Rigby2D 0.5</b> を見る</a>：新機能を 54 秒で · <a href="https://youtu.be/3StZlHwZeSo">Meet NILA</a>：Rigby2D でアニメーションしたマスコット</sub>
 </p>
 
 <p align="center">

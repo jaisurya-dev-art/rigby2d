@@ -45,8 +45,8 @@
 </p>
 
 <p align="center">
-  <a href="https://youtu.be/T1MdcD_rxeQ"><img src="../docs/images/promo-0.4.jpg" alt="在 YouTube 上观看 Rigby2D 0.4 影片" width="800"></a><br>
-  <sub>▶ <a href="https://youtu.be/T1MdcD_rxeQ">观看 <b>Rigby2D 0.4</b></a>：45 秒看完全部新功能 · 另见：<a href="https://youtu.be/3StZlHwZeSo">Meet NILA</a>，用 Rigby2D 制作动画的吉祥物</sub>
+  <a href="https://youtu.be/I9G-ZbvNlGw"><img src="../docs/images/promo-0.5.jpg" alt="在 YouTube 上观看 Rigby2D 0.5 影片" width="800"></a><br>
+  <sub>▶ <a href="https://youtu.be/I9G-ZbvNlGw">观看 <b>Rigby2D 0.5</b></a>：54 秒看完全部新功能 · 另见：<a href="https://youtu.be/3StZlHwZeSo">Meet NILA</a>，用 Rigby2D 制作动画的吉祥物</sub>
 </p>
 
 <p align="center">

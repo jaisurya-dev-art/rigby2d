@@ -45,8 +45,8 @@
 </p>
 
 <p align="center">
-  <a href="https://youtu.be/T1MdcD_rxeQ"><img src="../docs/images/promo-0.4.jpg" alt="Assista ao vídeo do Rigby2D 0.4 no YouTube" width="800"></a><br>
-  <sub>▶ <a href="https://youtu.be/T1MdcD_rxeQ">Assista ao <b>Rigby2D 0.4</b></a>: todas as novidades em 45 segundos · Veja também: <a href="https://youtu.be/3StZlHwZeSo">Meet NILA</a>, nossa mascote animada no Rigby2D</sub>
+  <a href="https://youtu.be/I9G-ZbvNlGw"><img src="../docs/images/promo-0.5.jpg" alt="Assista ao vídeo do Rigby2D 0.5 no YouTube" width="800"></a><br>
+  <sub>▶ <a href="https://youtu.be/I9G-ZbvNlGw">Assista ao <b>Rigby2D 0.5</b></a>: todas as novidades em 54 segundos · Veja também: <a href="https://youtu.be/3StZlHwZeSo">Meet NILA</a>, nossa mascote animada no Rigby2D</sub>
 </p>
 
 <p align="center">

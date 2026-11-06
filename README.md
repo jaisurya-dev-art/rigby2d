@@ -45,8 +45,8 @@
 </p>
 
 <p align="center">
-  <a href="https://youtu.be/T1MdcD_rxeQ"><img src="docs/images/promo-0.4.jpg" alt="Watch the Rigby2D 0.4 film on YouTube" width="800"></a><br>
-  <sub>▶ <a href="https://youtu.be/T1MdcD_rxeQ">Watch <b>Rigby2D 0.4</b></a>: everything new in 45 seconds · Also: <a href="https://youtu.be/3StZlHwZeSo">Meet NILA</a>, our mascot, animated in Rigby2D</sub>
+  <a href="https://youtu.be/I9G-ZbvNlGw"><img src="docs/images/promo-0.5.jpg" alt="Watch the Rigby2D 0.5 film on YouTube" width="800"></a><br>
+  <sub>▶ <a href="https://youtu.be/I9G-ZbvNlGw">Watch <b>Rigby2D 0.5</b></a>: everything new in 54 seconds · Also: <a href="https://youtu.be/3StZlHwZeSo">Meet NILA</a>, our mascot, animated in Rigby2D</sub>
 </p>
 
 <p align="center">
