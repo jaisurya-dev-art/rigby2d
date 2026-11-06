@@ -57,7 +57,7 @@ back the next time you open the editor.
 ## When something goes wrong
 
 When the editor runs into an unexpected error, it auto-saves your work at once and shows a red
-banner. **Report…** (also *Help ▸ Report a crash…*) shows a report of the recent errors, with the
+banner. **Report…** (also *Help ▸ Report a problem ▸ Report a crash…*) shows a report of the recent errors, with the
 version and platform and your folder names hidden. You can copy it or post it as a GitHub issue.
 Nothing is sent unless you choose to. *View ▸ Log* has the full details.
 

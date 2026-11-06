@@ -14,7 +14,7 @@ reads from the network is listed here:
   install it. Turn this off in *Edit ▸ Preferences ▸ Check for updates*; *Help ▸ Check for updates*
   still works on request.
 - **What's new** on the welcome screen reads the list of recent devlog posts from
-  `rigby2d.com/news.json`, and *Help ▸ Supporters* reads `rigby2d.com/supporters.json` when you
+  `rigby2d.com/news.json`, and *Help ▸ Support Rigby2D* reads `rigby2d.com/supporters.json` when you
   open it. Both are plain files on GitHub Pages; nothing about you or your projects is sent.
 - **Lip-sync transcription** downloads Whisper, a speech recognition model, from
   [Hugging Face](https://huggingface.co/onnx-community/whisper-base_timestamped) the first time you

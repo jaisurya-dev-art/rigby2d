@@ -3332,25 +3332,173 @@ kbd {
   color: #1a1a1a;
 }
 
-/* Help ▸ Supporters. */
-.supporters-dialog h3 {
-  margin: 14px 0 6px;
+/* Help ▸ Support Rigby2D (helpui.js openSupporters): the goal, then people as monogram cards. */
+.supporters-dialog {
+  width: min(620px, calc(100vw - 48px));
 }
-.supporters-list {
-  list-style: none;
+.supporters-dialog .dialog-body {
+  gap: 18px;
+  max-height: min(640px, calc(100vh - 160px));
+}
+.sp-goal {
+  padding: 16px 18px;
+  border: 1px solid #34465e;
+  border-radius: 10px;
+  background: linear-gradient(160deg, rgba(90, 143, 214, 0.14), rgba(38, 38, 38, 0) 70%);
+}
+.sp-goal-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.sp-goal-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #eceef2;
+}
+.sp-goal-amount {
+  color: var(--weak);
+  font-size: 12px;
+}
+.sp-bar {
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.07);
+  overflow: hidden;
+}
+.sp-fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #5a8fd6, #9cc3ef);
+  box-shadow: 0 0 12px rgba(156, 195, 239, 0.45);
+}
+.sp-stats {
+  display: flex;
+  gap: 18px;
+  margin-top: 12px;
+  color: var(--weak);
+  font-size: 12px;
+}
+.sp-stats b {
+  color: #eceef2;
+  font-size: 15px;
+  font-weight: 600;
+  margin-right: 2px;
+}
+.sp-section h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 10px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--weak);
+}
+.sp-count {
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--widget);
+  color: var(--text);
+  font-size: 11px;
+  letter-spacing: 0;
+}
+.sp-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(176px, 1fr));
+  gap: 8px;
   margin: 0;
   padding: 0;
+  list-style: none;
+}
+.sp-person {
   display: flex;
-  flex-wrap: wrap;
-  gap: 6px 14px;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 9px 11px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.02);
 }
-.supporters-list .badge {
-  margin-left: 6px;
+.sp-person.founding {
+  border-color: #34465e;
 }
-.supporters-list .role {
-  margin-left: 6px;
-  font-size: 0.85em;
+.sp-person.open {
+  border-style: dashed;
+  background: transparent;
+}
+.sp-avatar {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+}
+.sp-person.founding .sp-avatar {
+  box-shadow: 0 0 0 2px var(--panel), 0 0 0 3.5px #7fa9dd;
+}
+.sp-avatar.hue-0 { background: #4f74b8; }
+.sp-avatar.hue-1 { background: #3f8f84; }
+.sp-avatar.hue-2 { background: #8a62b3; }
+.sp-avatar.hue-3 { background: #b36a4f; }
+.sp-avatar.hue-4 { background: #5f8a3e; }
+.sp-avatar.hue-5 { background: #a8577a; }
+.sp-avatar.empty {
+  border: 1.5px dashed #555;
+  background: transparent;
   color: var(--weak);
+  font-size: 11px;
+  font-weight: 600;
+}
+.sp-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.sp-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #eceef2;
+  font-size: 13px;
+  line-height: 16px;
+}
+.sp-person.open .sp-name {
+  color: var(--weak);
+}
+.sp-note {
+  color: var(--weak);
+  font-size: 11px;
+  line-height: 13px;
+}
+.sp-person.founding .sp-note {
+  color: #9cc3ef;
+}
+.sp-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+.sp-footer p {
+  margin: 0;
+  font-size: 12px;
+}
+.sp-footer .buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
 }
 .pref-shortcuts {
   display: inline-flex;

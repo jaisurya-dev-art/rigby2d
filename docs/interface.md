@@ -153,11 +153,13 @@ for example on a second monitor. Everything stays in sync with the main window.
 
 | Item | What it does |
 | --- | --- |
+| *What's new in 0.5…* | A short tour of this release. |
 | *Welcome screen…* | New projects, recent work, demos and lessons. |
 | *Tutorials…*, *Keyboard shortcuts…* | Interactive lessons, and every shortcut with a search. |
-| *Documentation*, *Devlog*, *Community (r/rigby2d)* | These pages, release news, and the community. |
-| *Support Rigby2D*, *Supporters…* | How to fund Rigby2D, and everyone who does. |
+| *Documentation* | These pages. |
 | *Connect an AI assistant…* | Sets up the [MCP server](mcp.md) for an AI assistant. |
-| *Report an issue*, *Report a crash…* | A GitHub issue, or a report of recent errors to copy or post. |
+| *Community ▸* | *r/rigby2d* (the community), the *Devlog* (release news) and this version's *Release notes*. |
+| *Report a problem ▸* | *Report an issue* on GitHub, or *Report a crash…*: a report of recent errors to copy or post. |
+| *Support Rigby2D…* | The monthly goal, the Founding Supporters, everyone who funds Rigby2D and the code contributors, with a link to sponsor. |
 | *Check for updates…* | Desktop app: looks for a new version now (it also checks at startup). |
 | *About Rigby2D* | Version, licenses and credits. |

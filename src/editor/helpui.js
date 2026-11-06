@@ -22,6 +22,7 @@ export const LINKS = {
   issues: `${REPO}/issues/new/choose`,
   releaseNotes: VERSION ? `${REPO}/releases/tag/v${VERSION}` : `${REPO}/releases`,
   fund: `${SITE}fund/`,
+  sponsor: 'https://github.com/sponsors/jaisurya-dev-art',
 };
 
 /**
@@ -356,14 +357,30 @@ export function openAbout() {
 }
 
 /**
- * Help ▸ Supporters: the people who fund Rigby2D (Backer tier and up) and the people who contributed
- * code, from rigby2d.com/supporters.json, kept in step with GitHub Sponsors by the website.
+ * Help ▸ Support Rigby2D: the monthly goal, the Founding Supporters (the first 20 monthly ones, in
+ * the order they joined), the other supporters (Backer tier and up) and the code contributors, from
+ * rigby2d.com/supporters.json, kept in step with GitHub Sponsors by the website. People show as
+ * initials: the editor loads no images from other sites (docs/privacy.md).
  */
 /** Rigby2D's founder, marked quietly among the code contributors. */
 const FOUNDER = 'jaisurya-dev-art';
+const FOUNDING_SEATS = 20;
+
+/** A round monogram for a person: their initials on a colour picked from their name. */
+function monogram(name) {
+  const words = String(name ?? '?').replace(/[-_]+/g, ' ').trim().split(/\s+/);
+  const letters = (words.length > 1 ? words[0][0] + words[words.length - 1][0] : words[0].slice(0, 2)).toUpperCase();
+  let hash = 0;
+  for (const ch of String(name)) hash = Math.imul(hash ^ ch.codePointAt(0), 2654435761) >>> 0;
+  return h('span', { class: `sp-avatar hue-${(hash >>> 13) % 6}`, 'aria-hidden': 'true' }, letters);
+}
+
+/** One person: monogram, name, and a quiet line under it (seat, tier or role). */
+const person = (name, note, extra = '') =>
+  h('li', { class: `sp-person${extra}` }, monogram(name), h('span', { class: 'sp-text' }, h('span', { class: 'sp-name' }, name), note ? h('span', { class: 'sp-note' }, note) : null));
 
 export async function openSupporters() {
-  const { body } = dialog('supporters-dialog', t('Supporters'), t('Rigby2D is free because of these people.'));
+  const { body } = dialog('supporters-dialog', t('Support Rigby2D'), t('Rigby2D is free because of these people.'));
   const status = h('p', { class: 'weak' }, t('Loading…'));
   body.append(status);
   let data;
@@ -374,16 +391,50 @@ export async function openSupporters() {
     return;
   }
   status.remove();
-  const founding = new Set(data.founding ?? []);
-  const name = (p) => h('li', null, p.name ?? p.login, founding.has(p.login ?? p.name) ? h('span', { class: 'badge' }, t('Founding')) : null);
-  const backers = [...(data.github ?? []), ...(data.others ?? [])].filter((p) => (p.tier ?? 5) >= 5);
+
   const goal = data.goal ?? {};
-  body.append(
-    h('h3', null, t('Supporters')),
-    backers.length ? h('ul', { class: 'supporters-list' }, backers.map(name)) : h('p', { class: 'weak' }, t('No one yet. The first 20 monthly supporters are Founding Supporters, for good.')),
-    h('h3', null, t('Code contributors')),
-    h('ul', { class: 'supporters-list' }, (data.contributors ?? []).map((c) => h('li', null, c.name ?? c.login, c.login === FOUNDER ? h('span', { class: 'role' }, t('Founder')) : null))),
-    h('p', { class: 'weak' }, t('{title}: {percent}% of ${monthly} a month.', { title: goal.title ?? 'Signed by Rigby2D', percent: Math.round(goal.percent ?? 0), monthly: goal.monthly ?? 25 })),
-    h('div', { class: 'buttons' }, h('button', { class: 'primary', onclick: () => openExternal(LINKS.fund) }, t('Support Rigby2D ↗'))),
+  const percent = Math.max(0, Math.min(100, Math.round(goal.percent ?? 0)));
+  const everyone = [...(data.github ?? []), ...(data.others ?? [])];
+  const byId = new Map(everyone.map((p) => [p.login ?? p.name, p]));
+  const foundingIds = (data.founding ?? []).slice(0, FOUNDING_SEATS);
+  const founders = foundingIds.map((id) => byId.get(id) ?? { login: id, name: id });
+  const others = everyone.filter((p) => (p.tier ?? 5) >= 5 && !foundingIds.includes(p.login ?? p.name));
+  const left = FOUNDING_SEATS - foundingIds.length;
+
+  // The goal: what it's for, how far along, and two counts.
+  const fill = h('span', { class: 'sp-fill' });
+  fill.style.width = `${Math.max(percent, 2)}%`;
+  const goalCard = h(
+    'section',
+    { class: 'sp-goal' },
+    h('div', { class: 'sp-goal-top' }, h('span', { class: 'sp-goal-title' }, goal.title ?? 'Signed by Rigby2D'), h('span', { class: 'sp-goal-amount' }, t('{percent}% of ${monthly} a month', { percent, monthly: goal.monthly ?? 25 }))),
+    h('div', { class: 'sp-bar', role: 'progressbar', 'aria-valuemin': '0', 'aria-valuemax': '100', 'aria-valuenow': String(percent) }, fill),
+    h(
+      'div',
+      { class: 'sp-stats' },
+      h('span', null, h('b', null, String(everyone.length)), ' ', everyone.length === 1 ? t('supporter') : t('supporters')),
+      h('span', null, h('b', null, String(Math.max(0, left))), ' ', t('Founding spots left')),
+    ),
   );
+
+  // The Founding Supporters: taken seats, then one open seat inviting the next person.
+  const seats = founders.map((p, i) => person(p.name ?? p.login, `#${i + 1}`, ' founding'));
+  if (left > 0) seats.push(h('li', { class: 'sp-person open' }, h('span', { class: 'sp-avatar empty', 'aria-hidden': 'true' }, `#${foundingIds.length + 1}`), h('span', { class: 'sp-text' }, h('span', { class: 'sp-name' }, t('Your name here')), h('span', { class: 'sp-note' }, t('From $3 a month')))));
+
+  const section = (title, count, list) => h('section', { class: 'sp-section' }, h('h3', null, title, count ? h('span', { class: 'sp-count' }, count) : null), list);
+  const tierName = (n = 0) => (n >= 1000 ? 'Studio Partner' : n >= 250 ? 'Studio' : n >= 50 ? 'Indie Team' : n >= 10 ? 'Sponsor' : 'Backer');
+
+  const parts = [
+    goalCard,
+    section(t('Founding Supporters'), `${foundingIds.length} / ${FOUNDING_SEATS}`, h('ul', { class: 'sp-grid' }, seats)),
+    others.length ? section(t('Supporters'), String(others.length), h('ul', { class: 'sp-grid' }, others.map((p) => person(p.name ?? p.login, tierName(p.tier))))) : null,
+    section(t('Code contributors'), String((data.contributors ?? []).length), h('ul', { class: 'sp-grid' }, (data.contributors ?? []).map((c) => person(c.name ?? c.login, c.login === FOUNDER ? t('Founder') : null)))),
+    h(
+      'div',
+      { class: 'sp-footer' },
+      h('p', { class: 'weak' }, t('Nothing is locked behind a tier. Support keeps Rigby2D free for everyone.')),
+      h('div', { class: 'buttons' }, h('button', { onclick: () => openExternal(LINKS.fund) }, t('Where the money goes ↗')), h('button', { class: 'primary', onclick: () => openExternal(LINKS.sponsor) }, t('Sponsor on GitHub ↗'))),
+    ),
+  ];
+  body.append(...parts.filter(Boolean));
 }
