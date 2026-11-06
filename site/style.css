@@ -3185,3 +3185,115 @@ dialog.thanks .goal {
     align-items: flex-start;
   }
 }
+
+/* Studios page: sponsor as a studio (#sponsor). Builds on the Support page's tier cards. */
+.st-sponsor {
+  border-top: 1px solid var(--line);
+  background:
+    radial-gradient(45% 70% at 90% 30%, rgba(123, 167, 199, 0.13), transparent 70%),
+    var(--bg-alt);
+}
+.st-sponsor h2 {
+  margin: 0 0 18px;
+  font-size: clamp(2rem, 4.4vw, 3.2rem);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+}
+.st-sponsor .section-lede {
+  margin-bottom: 26px;
+}
+.st-points {
+  display: grid;
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.st-points li {
+  display: grid;
+  grid-template-columns: 36px 1fr;
+  gap: 14px;
+  align-items: start;
+  color: var(--muted);
+}
+.st-points svg {
+  box-sizing: content-box;
+  padding: 7px;
+  border-radius: 10px;
+  color: var(--ice);
+  background: rgba(181, 211, 231, 0.08);
+}
+.st-points b {
+  color: var(--text);
+}
+.st-tiers {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  align-content: center;
+}
+.st-tiers .fine {
+  grid-column: 1 / -1;
+  margin: 2px 0 0;
+}
+.tier-price small {
+  margin-left: 2px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--muted);
+}
+.st-sponsors {
+  margin-top: 56px;
+}
+.st-sponsors h3 {
+  margin: 0 0 16px;
+  font-size: 1rem;
+  color: var(--muted);
+}
+.st-logos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+}
+.st-logo {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 76px;
+  padding: 14px 18px;
+  border-radius: 16px;
+  background: var(--surface);
+  border: 1px solid rgba(123, 167, 199, 0.3);
+  color: var(--text);
+  font-weight: 600;
+  text-decoration: none;
+}
+.st-logo.pro {
+  grid-column: span 2;
+  border-color: rgba(181, 211, 231, 0.5);
+}
+.st-logo img {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+}
+.st-logo.open {
+  justify-content: center;
+  border: 1.5px dashed #3a3d44;
+  background: transparent;
+  color: #6b6f78;
+  font-weight: 500;
+  transition: border-color 0.15s, color 0.15s;
+}
+.st-logo.open:hover {
+  border-color: var(--steel);
+  color: var(--ice);
+}
+@media (max-width: 480px) {
+  .st-tiers {
+    grid-template-columns: 1fr;
+  }
+  .st-logo.pro {
+    grid-column: auto;
+  }
+}
