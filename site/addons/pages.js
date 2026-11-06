@@ -6,6 +6,7 @@
 import { Marked } from 'marked';
 
 import { brandIcon, NAV_SCRIPT, siteFooter, siteHeader } from '../chrome.js';
+import { SITE_CSS } from '../blog/devlog.js';
 
 const SITE = 'https://rigby2d.com';
 export const SUBMIT_URL = 'https://github.com/jaisurya-dev-art/rigby2d/issues/new?template=addon-submission.yml';
@@ -126,7 +127,7 @@ export function addonPage(a, download) {
     <meta property="og:url" content="${SITE}/addons/${esc(a.id)}/" />
     <meta property="og:image" content="${SITE}/og.jpg" />
     <link rel="icon" type="image/svg+xml" href="/blog/icon.svg" />
-    <link rel="stylesheet" href="/blog/site.css" />
+    <link rel="stylesheet" href="${SITE_CSS}" />
   </head>
   <body>
     <a class="skip" href="#main">Skip to content</a>

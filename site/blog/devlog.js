@@ -5,6 +5,7 @@
 // the editor's welcome screen reads ("What's new"). Each published release gets a post written
 // from its notes (.github/workflows/release-post.yml) unless one was written by hand first.
 
+import { createHash } from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -12,6 +13,12 @@ import { NAV_SCRIPT, siteFooter, siteHeader } from '../chrome.js';
 import { renderMarkdown } from '../docs/build.js';
 
 const SITE = 'https://rigby2d.com';
+/**
+ * The website's stylesheet as the generated pages (devlog, add-on pages) link it: blog/site.css with a
+ * hash of its contents, so browsers fetch it again whenever it changes instead of keeping an old copy.
+ */
+export const SITE_CSS = `/blog/site.css?v=${createHash('sha256').update(fs.readFileSync(new URL('../style.css', import.meta.url))).digest('hex').slice(0, 10)}`;
+
 const POSTS = path.join(path.dirname(fileURLToPath(import.meta.url)), 'posts'); // decoded (spaces), every platform
 const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
@@ -59,7 +66,7 @@ function shell({ title, description, url, image, main, lang = 'en' }) {
     <meta name="twitter:card" content="summary_large_image" />
     <link rel="icon" type="image/svg+xml" href="/blog/icon.svg" />
     <link rel="alternate" type="application/rss+xml" title="Rigby2D devlog" href="/blog/feed.xml" />
-    <link rel="stylesheet" href="/blog/site.css" />
+    <link rel="stylesheet" href="${SITE_CSS}" />
   </head>
   <body>
     <a class="skip" href="#main">Skip to content</a>
