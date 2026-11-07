@@ -3117,7 +3117,7 @@ kbd {
   font-weight: 600;
 }
 
-/* r/rigby2d in the editor */
+/* The community (Discord) in the editor */
 .welcome-community {
   display: flex;
   align-items: center;
@@ -3127,11 +3127,11 @@ kbd {
   padding: 12px 14px;
   text-align: left;
   border-radius: 12px;
-  border: 1px solid rgba(255, 69, 0, 0.45);
-  background: linear-gradient(100deg, rgba(255, 69, 0, 0.16), rgba(255, 69, 0, 0.04));
+  border: 1px solid rgba(88, 101, 242, 0.45);
+  background: linear-gradient(100deg, rgba(88, 101, 242, 0.16), rgba(88, 101, 242, 0.04));
 }
 .welcome-community:hover {
-  border-color: #ff4500;
+  border-color: #5865f2;
 }
 .welcome-community-mark {
   display: grid;
@@ -3140,7 +3140,7 @@ kbd {
   width: 42px;
   height: 42px;
   border-radius: 11px;
-  background: #ff4500;
+  background: #5865f2;
   color: #fff;
 }
 .welcome-community-text {
@@ -3160,7 +3160,7 @@ kbd {
   flex: none;
   padding: 6px 16px;
   border-radius: 999px;
-  background: #ff4500;
+  background: #5865f2;
   color: #fff;
   font-weight: 600;
   font-size: 12.5px;
@@ -3170,7 +3170,7 @@ kbd {
   color: #ff7a45;
 }
 #status-community:hover {
-  color: #ff4500;
+  color: #5865f2;
 }
 
 /* Add-on gallery: tags and the way to the marketplace */
@@ -3188,7 +3188,7 @@ kbd {
   font-size: 12px;
 }
 
-/* Share to r/rigby2d (shareui.js) */
+/* Share to Discord (shareui.js) */
 .share-dialog {
   width: min(520px, calc(100vw - 32px));
 }
@@ -3208,7 +3208,7 @@ kbd {
   width: 40px;
   height: 40px;
   border-radius: 11px;
-  background: #ff4500;
+  background: #5865f2;
   color: #fff;
 }
 .share-title {
@@ -3280,7 +3280,7 @@ kbd {
   color: var(--accent);
 }
 .nudge-share .nudge-mark {
-  background: #ff4500;
+  background: #5865f2;
   color: #fff;
 }
 .nudge-star .nudge-mark {
@@ -3325,7 +3325,7 @@ kbd {
   font-weight: 600;
 }
 .nudge-share .nudge-buttons button.primary {
-  background: #ff4500;
+  background: #5865f2;
 }
 .nudge-star .nudge-buttons button.primary {
   background: #facc15;

@@ -134,7 +134,7 @@ export function openWelcome(app, { tutorials, whatsNew, onClose } = {}) {
         tutorials ? action('graduation-cap', t('Tutorials'), t('Lessons from drawing to moving character'), () => tutorials.open()) : null,
         action('book-open', t('Documentation'), 'rigby2d.com/docs', () => openExternal(LINKS.docs)),
         action('sparkles', t("What's new"), VERSION ? `${t('Version')} ${VERSION}` : '', () => (whatsNew ? whatsNew() : openExternal(LINKS.releaseNotes))),
-        action('users', t('Community'), 'r/rigby2d', () => openExternal(COMMUNITY_URL)),
+        action('users', t('Community'), 'Discord', () => openExternal(COMMUNITY_URL)),
         action('star', t('Star on GitHub'), t('Help other animators find Rigby2D'), () => openExternal(LINKS.repo)),
       ),
       h(
@@ -144,8 +144,8 @@ export function openWelcome(app, { tutorials, whatsNew, onClose } = {}) {
         h(
           'button',
           { class: 'welcome-community', onclick: () => openExternal(COMMUNITY_URL) },
-          h('span', { class: 'welcome-community-mark' }, engineIcon('reddit', 26)),
-          h('span', { class: 'welcome-community-text' }, h('b', null, t('Join r/rigby2d')), h('small', null, t('Show your work, get help, and hear about every release first.'))),
+          h('span', { class: 'welcome-community-mark' }, engineIcon('discord', 26)),
+          h('span', { class: 'welcome-community-text' }, h('b', null, t('Join our Discord')), h('small', null, t('Show your work, get help, and hear about every release first.'))),
           h('span', { class: 'welcome-community-join' }, t('Join')),
         ),
         newsRow,

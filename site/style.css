@@ -175,8 +175,8 @@ h3 {
   color: var(--text);
   background: var(--surface);
 }
-.nav-icon.reddit:hover {
-  color: #ff4500;
+.nav-icon.discord:hover {
+  color: #5865f2;
 }
 .nav-fund {
   white-space: nowrap;
@@ -1265,21 +1265,21 @@ h3 {
   letter-spacing: -0.01em;
 }
 
-/* r/rigby2d: the community, everywhere */
-.btn.reddit {
+/* Discord: the community, everywhere */
+.btn.discord {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: #ff4500;
-  border-color: #ff4500;
+  background: #5865f2;
+  border-color: #5865f2;
   color: #fff;
 }
-.btn.reddit:hover {
-  background: #ff5f24;
-  border-color: #ff5f24;
+.btn.discord:hover {
+  background: #6d78f5;
+  border-color: #6d78f5;
 }
 .community {
-  background: radial-gradient(60% 120% at 12% 50%, rgba(255, 69, 0, 0.16), transparent 70%);
+  background: radial-gradient(60% 120% at 12% 50%, rgba(88, 101, 242, 0.16), transparent 70%);
 }
 .community-row {
   display: flex;
@@ -1293,9 +1293,9 @@ h3 {
   width: 150px;
   height: 150px;
   border-radius: 36px;
-  background: #ff4500;
+  background: #5865f2;
   color: #fff;
-  box-shadow: 0 24px 60px rgba(255, 69, 0, 0.3);
+  box-shadow: 0 24px 60px rgba(88, 101, 242, 0.3);
 }
 .post-discuss {
   margin: 48px 0 28px;
@@ -1321,8 +1321,8 @@ h3 {
   margin: 28px 0;
   padding: 16px 20px;
   border-radius: var(--radius);
-  border: 1px solid rgba(255, 69, 0, 0.45);
-  background: rgba(255, 69, 0, 0.08);
+  border: 1px solid rgba(88, 101, 242, 0.45);
+  background: rgba(88, 101, 242, 0.08);
 }
 .community-callout p {
   margin: 0;
@@ -3385,7 +3385,7 @@ dialog.thanks .goal {
   }
 }
 /* With Studios in the header, narrower desktops make room step by step: Support shrinks to its
-   heart (where Download also goes), then the Reddit and GitHub icons go (both stay in the menu and the footer). */
+   heart (where Download also goes), then the Discord and GitHub icons go (both stay in the menu and the footer). */
 @media (max-width: 1440px) {
   .nav-fund span {
     display: none;

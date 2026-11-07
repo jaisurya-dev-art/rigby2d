@@ -7,7 +7,9 @@ import { fetchBytes } from './platform.js';
 
 export const NEWS_URL = 'https://rigby2d.com/news.json';
 export const DEVLOG_URL = 'https://rigby2d.com/blog/';
-export const COMMUNITY_URL = 'https://www.reddit.com/r/rigby2d/';
+export const COMMUNITY_URL = 'https://discord.gg/PGgaTwbNH';
+/** The community's #showcase forum on Discord, where shared clips go. */
+export const SHOWCASE_URL = 'https://discord.com/channels/1568464683487334422/1568464818615091362';
 const CACHE = 'rigby.news';
 const SEEN = 'rigby.news.seen';
 

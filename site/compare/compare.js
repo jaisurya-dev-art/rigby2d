@@ -194,7 +194,7 @@ export function comparePage(c) {
           <h2>Questions</h2>
           <div class="vs-faq">${c.faq.map(([q, a]) => `<details><summary>${esc(q)}</summary><p>${esc(a)}</p></details>`).join('')}</div>
 
-          <div class="community-callout"><p><b>Questions about switching?</b> Ask on r/rigby2d: people who made the move answer there.</p><a class="btn reddit" href="https://www.reddit.com/r/rigby2d/" rel="noopener">${brandIcon('reddit', 18)}Join r/rigby2d</a></div>
+          <div class="community-callout"><p><b>Questions about switching?</b> Ask on Discord: people who made the move answer there.</p><a class="btn discord" href="https://discord.gg/PGgaTwbNH" rel="noopener">${brandIcon('discord', 18)}Join our Discord</a></div>
           <p class="fine vs-others">Also: ${others}</p>
         </div>
       </section>`;

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 // Friendly prompts, at the right moment and rarely: after you render, export or AutoRig something,
-// a card offers to share it on r/rigby2d; after a few days of use, one asks for a GitHub star. Each
+// a card offers to share it on Discord; after a few days of use, one asks for a GitHub star. Each
 // stops for good once acted on, and after a couple of "Not now"s (nudge.js). Milestones come from
 // analytics.js (the same moments it counts), as `rigby-milestone` events.
 
@@ -61,10 +61,10 @@ export function installNudges({ share, star, fund }) {
     setTimeout(
       () =>
         show('share', {
-          mark: engineIcon('reddit', 22),
+          mark: engineIcon('discord', 22),
           title: t('Nice work! Show it to the community?'),
-          text: t('Share a GIF of your animation on r/rigby2d. Other animators would love to see it.'),
-          primary: t('Share to r/rigby2d…'),
+          text: t('Share a GIF of your animation in our Discord. Other animators would love to see it.'),
+          primary: t('Share to Discord…'),
           onPrimary: share,
         }),
       1200,

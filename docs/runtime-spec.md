@@ -284,7 +284,7 @@ within `1e-6`.
 
 ## Publishing a runtime
 
-If you write a runtime, tell us on [r/rigby2d](https://www.reddit.com/r/rigby2d/) or in an
+If you write a runtime, tell us on [Discord](https://discord.gg/PGgaTwbNH) or in an
 [issue](https://github.com/jaisurya-dev-art/rigby2d/issues). Once it passes the golden tests, we'll
 list it on the [runtimes page](https://rigby2d.com/runtimes/). Any license is fine. The reference
 runtime is MIT or Apache-2.0, so you can port it freely.

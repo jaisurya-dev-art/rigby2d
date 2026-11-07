@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
-// Share to r/rigby2d: renders the current animation as a GIF or MP4 sized for Reddit, saves it,
-// and opens the subreddit's new-post page with the title filled in, ready for the file.
+// Share to Discord: renders the current animation as a GIF or MP4, saves it, and opens the
+// community's #showcase forum, ready for the file.
 
 import { track } from './analytics.js';
 import { t } from './i18n.js';
@@ -14,7 +14,7 @@ import { h, select } from './widgets.js';
 
 const safe = (s) => s.replace(/[\\/:*?"<>|\s]+/g, '_').replace(/^_+|_+$/g, '') || 'rigby2d';
 const toHex = (c) => `#${c.slice(0, 3).map((v) => Math.round(v * 255).toString(16).padStart(2, '0')).join('')}`;
-// Reddit takes longer videos, but a short loop is what people watch.
+// Longer videos work too, but a short loop is what people watch.
 const MAX_SECONDS = 20;
 
 /** Remembered choices for the next share. */
@@ -70,7 +70,7 @@ export function openShareDialog(app) {
     const seconds = (r.end - r.start + 1) / choice.fps;
     const row = (label, ...control) => [h('label', null, label), h('div', { class: 'cell' }, ...control)];
     const parts = [
-      h('div', { class: 'share-head' }, h('span', { class: 'share-mark' }, engineIcon('reddit', 22)), h('div', null, h('h3', null, t('Share to r/rigby2d')), h('div', { class: 'small weak' }, t('Render a clip, then post it to the community.')))),
+      h('div', { class: 'share-head' }, h('span', { class: 'share-mark' }, engineIcon('discord', 22)), h('div', null, h('h3', null, t('Share to Discord')), h('div', { class: 'small weak' }, t('Render a clip, then post it to the community.')))),
     ];
     if (done) {
       parts.push(
@@ -78,14 +78,14 @@ export function openShareDialog(app) {
           'ol',
           { class: 'share-steps' },
           h('li', null, t('Saved {file}', { file: done.path })),
-          h('li', null, t('The new-post page is open in your browser with the title filled in: drop the file in.')),
+          h('li', null, t('#showcase is open in Discord: start a post and drop the file in.')),
           h('li', null, t('Pick the Showcase flair, then post.')),
         ),
         h(
           'div',
           { class: 'modal-buttons' },
-          h('button', { onclick: () => platform.openExternal(COMMUNITY_URL) }, t('Visit r/rigby2d')),
-          h('button', { onclick: () => platform.openExternal(submitUrl(title())) }, t('Open the post page again')),
+          h('button', { onclick: () => platform.openExternal(COMMUNITY_URL) }, t('Open the Discord')),
+          h('button', { onclick: () => platform.openExternal(submitUrl(title())) }, t('Open #showcase again')),
           h('button', { class: 'primary', onclick: close }, t('Done')),
         ),
       );
@@ -195,7 +195,7 @@ export function openShareDialog(app) {
       done = { path: target.path };
       track('editor-share-reddit');
       await platform.openExternal(submitUrl(title()));
-      app.setStatus(t('Saved {file}: drop it into the r/rigby2d post', { file: target.path }));
+      app.setStatus(t('Saved {file}: drop it into #showcase on Discord', { file: target.path }));
     } catch (e) {
       running = null;
       app.setStatus(t('Could not share: {error}', { error: e.message ?? e }));

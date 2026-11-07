@@ -65,4 +65,4 @@ export class Hero extends Component {
   复制文件夹时请保留 `.meta` 文件。
 - 绘制顺序中，每种贴图与混合模式的组合是一次 draw call，与编辑器一致。
 
-许可证：MIT 或 Apache-2.0，与其他 Rigby2D 运行时相同。社区：[r/rigby2d](https://www.reddit.com/r/rigby2d/)。
+许可证：MIT 或 Apache-2.0，与其他 Rigby2D 运行时相同。社区：[Discord](https://discord.gg/PGgaTwbNH)。

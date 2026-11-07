@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
-// Share to r/rigby2d (share.js): clip settings sized for Reddit and the new-post address.
+// Share to Discord (share.js): clip settings and the #showcase address.
 
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
@@ -24,7 +24,7 @@ test('a fixed framing shows the same part of the scene when smaller', () => {
 });
 
 test('the post page opens with the title filled in', () => {
-  assert.equal(submitUrl(' NILA: wave & wink '), 'https://www.reddit.com/r/rigby2d/submit/?type=IMAGE&title=NILA%3A%20wave%20%26%20wink');
+  assert.equal(submitUrl(), 'https://discord.com/channels/1568464683487334422/1568464818615091362');
   assert.equal(shareTitle('NILA', 'wave'), 'NILA: wave, made in Rigby2D');
   assert.equal(shareTitle('', 'walk'), 'walk, made in Rigby2D');
 });

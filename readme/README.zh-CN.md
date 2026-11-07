@@ -15,7 +15,7 @@
 <p align="center">
   <a href="https://rigby2d.com/editor/"><img alt="Try it in your browser" src="https://img.shields.io/badge/%E2%96%B6%20Try%20it-in%20your%20browser-b5d3e7?style=for-the-badge&labelColor=0a0a0b" height="34"></a>
   <a href="https://rigby2d.com/#download"><img alt="Download" src="https://img.shields.io/badge/%E2%AC%87%20Download-Windows%20%C2%B7%20macOS%20%C2%B7%20Linux-5ea2ff?style=for-the-badge&labelColor=0a0a0b" height="34"></a>
-  <a href="https://www.reddit.com/r/rigby2d/"><img alt="Join r/rigby2d" src="https://img.shields.io/badge/Join-r%2Frigby2d-ff4500?style=for-the-badge&logo=reddit&logoColor=white&labelColor=0a0a0b" height="34"></a>
+  <a href="https://discord.gg/PGgaTwbNH"><img alt="Join our Discord" src="https://img.shields.io/badge/Join-Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white&labelColor=0a0a0b" height="34"></a>
   <br>
   <sub>Windows · macOS · Linux · 也可在浏览器中使用完整编辑器，无需安装</sub>
 </p>

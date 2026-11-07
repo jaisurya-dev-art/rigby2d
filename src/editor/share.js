@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
-// Share to r/rigby2d, without the DOM (tests run this under Node): the output settings for a short
-// clip sized for Reddit, and the subreddit's new-post address with the title filled in.
+// Share to Discord, without the DOM (tests run this under Node): the output settings for a short
+// clip sized for sharing, and the Discord #showcase forum where it is posted.
 
-import { COMMUNITY_URL } from './news.js';
+import { SHOWCASE_URL } from './news.js';
 
 export const SIZES = [360, 480, 640, 720];
 export const RATES = [12, 15, 20, 25, 30];
@@ -22,9 +22,9 @@ export function shareSettings(settings, { size, fps, background, fit = false }) 
   return { ...settings, width, height, fps, background, frame };
 }
 
-/** The r/rigby2d new-post page for an image or video post, with `title` filled in. */
-export function submitUrl(title) {
-  return `${COMMUNITY_URL}submit/?type=IMAGE&title=${encodeURIComponent(title.trim().slice(0, 300))}`;
+/** Where shared clips are posted: the #showcase forum of the Rigby2D Discord. */
+export function submitUrl() {
+  return SHOWCASE_URL;
 }
 
 /** The default post title. */

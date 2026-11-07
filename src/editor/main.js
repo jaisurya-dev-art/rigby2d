@@ -121,7 +121,7 @@ function menus() {
       'separator',
       // Film renders video; skeleton exports (for game engines) are in both workspaces.
       ...(has(app, 'render') ? [{ label: t('Render animation…'), title: t('PNG sequence, WebM or MP4'), action: () => openRenderDialog(app) }] : []),
-      { label: t('Share to r/rigby2d…'), title: t('Render a GIF or MP4 and post it to the community'), action: () => openShareDialog(app) },
+      { label: t('Share to Discord…'), title: t('Render a GIF or MP4 and post it to the community'), action: () => openShareDialog(app) },
       submenuItem(t('Export'), [
         { label: t('JSON + atlas…'), shortcut: 'Ctrl+E', action: () => app.exportSkeletonJson(app.saveVersion()) },
         { label: t('Binary .skel + atlas (4.3)…'), action: () => app.exportSkeletonBinary() },
@@ -221,7 +221,7 @@ function menus() {
       { label: t('Connect an AI assistant…'), action: () => openAiConnect() },
       'separator',
       submenuItem(t('Community'), [
-        { label: 'r/rigby2d', shortcut: '↗', title: t('Show your work, get help, and hear about every release first.'), action: () => openExternal(COMMUNITY_URL) },
+        { label: 'Discord', shortcut: '↗', title: t('Show your work, get help, and hear about every release first.'), action: () => openExternal(COMMUNITY_URL) },
         { label: t('Devlog'), shortcut: '↗', title: t('Releases and news on rigby2d.com'), action: () => openExternal(DEVLOG_URL) },
         { label: t('Release notes'), shortcut: '↗', action: () => openExternal(LINKS.releaseNotes) },
       ]),
