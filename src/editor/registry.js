@@ -8,6 +8,7 @@
 // website build mirrors the newest version of each add-on on rigby2d.com and lists it.
 
 import { addonManifest, compareVersions, versionText } from './addons.js';
+import { t } from './i18n.js';
 
 export const ID_PATTERN = /^[a-z][a-z0-9_]{1,39}$/;
 export const TAGS = ['rigging', 'animation', 'mesh', 'export', 'import', 'film', 'workflow', 'utility'];
@@ -152,8 +153,8 @@ export function entryProblems(id, entry) {
   const problems = [];
   if (!ID_PATTERN.test(id)) problems.push(`the id "${id}" must be 2-40 lowercase letters, digits and _, starting with a letter`);
   if (!entry || typeof entry !== 'object') return [...problems, 'the entry is not a JSON object'];
-  if (!entry.path && !parseRepo(entry.repo)) problems.push('"repo" must be a GitHub repository ("owner/name")');
-  if (entry.path && !/^addons\/[a-z0-9_]+$/.test(entry.path)) problems.push('"path" is only for the official add-ons in addons/');
+  if (!entry.path && !parseRepo(entry.repo)) problems.push(t('"repo" must be a GitHub repository ("owner/name")'));
+  if (entry.path && !/^addons\/[a-z0-9_]+$/.test(entry.path)) problems.push(t('"path" is only for the official add-ons in addons/'));
   if (!Array.isArray(entry.tags) || !entry.tags.length) problems.push(`"tags" needs at least one of: ${TAGS.join(', ')}`);
   else for (const tag of entry.tags) if (!TAGS.includes(tag)) problems.push(`unknown tag "${tag}" (use ${TAGS.join(', ')})`);
   if (entry.official && !entry.path) problems.push('only the add-ons in addons/ are official');

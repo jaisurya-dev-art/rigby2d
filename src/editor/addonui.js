@@ -120,9 +120,9 @@ export class AddonManager {
     const manifest = addonManifest(pkg.id, info, { editorVersion: VERSION, file: name });
     const existing = this.installed.get(pkg.id);
     if (existing) {
-      const ok = await askChoice('Replace add-on?', `${existing.name} ${existing.version} is installed. Replace it with ${manifest.version || 'this version'}?`, [
-        { id: 'cancel', label: 'Cancel' },
-        { id: 'replace', label: 'Replace', primary: true },
+      const ok = await askChoice(t('Replace add-on?'), t('{name} {version} is installed. Replace it with {newVersion}?', { name: existing.name, version: existing.version, newVersion: manifest.version || t('this version') }), [
+        { id: 'cancel', label: t('Cancel') },
+        { id: 'replace', label: t('Replace'), primary: true },
       ]);
       if (ok !== 'replace') return null;
       if (this.enabled(pkg.id)) await this.unload(pkg.id);

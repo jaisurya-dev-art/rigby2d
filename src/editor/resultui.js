@@ -4,6 +4,7 @@
 
 import * as platform from './platform.js';
 import { h } from './widgets.js';
+import { t } from './i18n.js';
 
 /**
  * Shows the outcome of an export or render. `ok`: whether it worked; `title`: e.g. 'Sprite sheet
@@ -24,7 +25,7 @@ export function showResult(app, { ok, title, detail = '', path = null }) {
     }
   };
   const reveal = ok && path && platform.isDesktop
-    ? h('button', { onclick: () => platform.revealPath(path).catch((e) => app.setStatus(`Could not open the folder: ${e?.message ?? e}`)) }, 'Show in folder')
+    ? h('button', { onclick: () => platform.revealPath(path).catch((e) => app.setStatus(t('Could not open the folder: {error}', { error: e?.message ?? e }))) }, t('Show in folder'))
     : null;
   overlay.append(
     h(
@@ -124,7 +125,7 @@ export function askOption({ title, detail = '', options, value, okLabel = 'OK' }
         h('h3', { id: 'option-title' }, title),
         detail ? h('p', null, detail) : null,
         h('div', { class: 'option-list', role: 'radiogroup' }, rows),
-        h('div', { class: 'modal-buttons' }, h('button', { onclick: () => done(null) }, 'Cancel'), h('button', { class: 'primary', onclick: () => done(selected) }, okLabel)),
+        h('div', { class: 'modal-buttons' }, h('button', { onclick: () => done(null) }, t('Cancel')), h('button', { class: 'primary', onclick: () => done(selected) }, okLabel)),
       ),
     );
     select(selected);

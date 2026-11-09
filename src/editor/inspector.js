@@ -19,6 +19,7 @@ import { has } from './workspaces.js';
 import { sounds } from './audio.js';
 import { renameOnionBone } from './onion.js';
 import { openLipSync } from './lipsyncui.js';
+import { t, tn } from './i18n.js';
 
 export function render(app, el) {
   const b = selBone(app.sel);
@@ -43,10 +44,22 @@ export function render(app, el) {
 
 const row = (label, ...content) => [h('label', null, label), h('div', { class: 'cell' }, ...content)];
 
+/** Display names of the bone inherit and slot blend modes (the values stay the format's names). */
+const MODE_LABELS = {
+  normal: tn('Normal'),
+  onlyTranslation: tn('Only translation'),
+  noRotationOrReflection: tn('No rotation or reflection'),
+  noScale: tn('No scale'),
+  noScaleOrReflection: tn('No scale or reflection'),
+  additive: tn('Additive'),
+  multiply: tn('Multiply'),
+  screen: tn('Screen'),
+};
+
 const KEY_STATE_TITLES = {
-  none: 'Not keyed at this frame. Click to key.',
-  changed: 'Changed but not keyed. Click to key (or press K).',
-  keyed: 'Keyed at this frame. Click to key again.',
+  none: tn('Not keyed at this frame. Click to key.'),
+  changed: tn('Changed but not keyed. Click to key (or press K).'),
+  keyed: tn('Keyed at this frame. Click to key again.'),
 };
 
 /** Key button: green = no key, orange = unkeyed change, red = keyed at this frame. */
@@ -57,7 +70,7 @@ function keyMarker(app, bone, channel) {
     'button',
     {
       class: `keybtn ${state}`,
-      title: KEY_STATE_TITLES[state],
+      title: t(KEY_STATE_TITLES[state]),
       onclick: () => edit.keyChannels(app, app.selectedBones().length ? app.selectedBones() : [bone], [channel]),
     },
     '◆',
@@ -69,7 +82,7 @@ function boneUi(app, b) {
   const bone = app.doc.bones[b];
   const props = [
     ...row(
-      'Name',
+      t('Name'),
       textField(bone.name, (name) => {
         if (name && app.doc.boneIndex(name) === null) {
           renameBoneRefs(app.doc, bone.name, name);
@@ -81,12 +94,12 @@ function boneUi(app, b) {
     ),
   ];
   if (b === 0) {
-    props.push(...row('Parent', '(none)'));
+    props.push(...row(t('Parent'), t('(none)')));
   } else {
     const options = app.doc.bones.map((x, i) => [i, x.name]).filter(([i]) => !app.doc.isDescendant(i, b));
     props.push(
       ...row(
-        'Parent',
+        t('Parent'),
         select(options, bone.parent ?? 0, (i) => {
           if (i !== bone.parent) edit.reparentBoneKeepWorld(app, b, i);
         }, { disabled: !setupMode }),
@@ -95,15 +108,15 @@ function boneUi(app, b) {
   }
   props.push(
     ...row(
-      'Length',
+      t('Length'),
       dragValue(bone.length, (v) => {
         bone.length = v;
         app.changed();
       }, { speed: 0.5, min: 0, disabled: !setupMode }),
     ),
     ...row(
-      'Inherit',
-      select(INHERIT_MODES.map((m) => [m, m]), bone.inherit ?? 'normal', (m) => {
+      t('Inherit'),
+      select(INHERIT_MODES.map((m) => [m, t(MODE_LABELS[m] ?? m)]), bone.inherit ?? 'normal', (m) => {
         bone.inherit = m;
         app.changed();
       }, { disabled: !setupMode }),
@@ -113,41 +126,41 @@ function boneUi(app, b) {
   const local = app.pose().local[b];
   const field = (key, opts) =>
     dragValue(local[key], (v) => {
-      const t = { ...app.pose().local[b], [key]: v };
-      if (!transformEquals(t, app.pose().local[b])) edit.setBoneLocal(app, b, t);
+      const local = { ...app.pose().local[b], [key]: v };
+      if (!transformEquals(local, app.pose().local[b])) edit.setBoneLocal(app, b, local);
     }, opts);
   const pos = { speed: 0.5, decimals: 2 };
   const scl = { speed: 0.01, decimals: 3 };
 
   return [
     actorUi(app, b),
-    h('h2', null, app.selectedBones().length > 1 ? `Bone (${app.selectedBones().length} selected)` : 'Bone'),
+    h('h2', null, app.selectedBones().length > 1 ? t('Bone ({count} selected)', { count: app.selectedBones().length }) : t('Bone')),
     h('div', { class: 'grid' }, props),
     depthUi(app, b),
     h('hr'),
-    h('strong', null, setupMode ? 'Setup pose' : app.autoKey ? 'Pose at current frame (auto key on)' : 'Pose at current frame'),
+    h('strong', null, setupMode ? t('Setup pose') : app.autoKey ? t('Pose at current frame (auto key on)') : t('Pose at current frame')),
     h(
       'div',
       { class: 'grid three' },
-      h('label', null, 'Rotation'),
+      h('label', null, t('Rotation')),
       h('div', { class: 'cell' }, field('rotation', { ...pos, suffix: '°' })),
       keyMarker(app, b, 'rotate') ?? h('span'),
-      h('label', null, 'Position'),
+      h('label', null, t('Position')),
       h('div', { class: 'cell' }, field('x', { ...pos, prefix: 'x ' }), field('y', { ...pos, prefix: 'y ' })),
       keyMarker(app, b, 'translate') ?? h('span'),
-      h('label', null, 'Scale'),
+      h('label', null, t('Scale')),
       h('div', { class: 'cell' }, field('scale_x', { ...scl, prefix: 'x ' }), field('scale_y', { ...scl, prefix: 'y ' })),
       keyMarker(app, b, 'scale') ?? h('span'),
-      h('label', null, 'Shear'),
+      h('label', null, t('Shear')),
       h('div', { class: 'cell' }, field('shear_x', { ...pos, prefix: 'x ', suffix: '°' }), field('shear_y', { ...pos, prefix: 'y ', suffix: '°' })),
       keyMarker(app, b, 'shear') ?? h('span'),
     ),
     h(
       'div',
       { class: 'buttons' },
-      !setupMode ? h('button', { onclick: () => edit.keySelection(app) }, '◆ Key all (K)') : null,
-      setupMode ? h('button', { onclick: () => edit.addChildBone(app, b) }, '＋ Child bone') : null,
-      setupMode && b !== 0 ? h('button', { onclick: () => edit.deleteSelection(app) }, '🗑 Delete') : null,
+      !setupMode ? h('button', { onclick: () => edit.keySelection(app) }, t('◆ Key all (K)')) : null,
+      setupMode ? h('button', { onclick: () => edit.addChildBone(app, b) }, t('＋ Child bone')) : null,
+      setupMode && b !== 0 ? h('button', { onclick: () => edit.deleteSelection(app) }, t('🗑 Delete')) : null,
     ),
   ];
 }
@@ -174,12 +187,12 @@ function slotUi(app, s) {
   }, { speed: 0.005, min: 0, max: 1, decimals: 2, prefix: 'a ', disabled: !setupMode });
 
   const out = [
-    h('h2', null, 'Slot'),
+    h('h2', null, t('Slot')),
     h(
       'div',
       { class: 'grid' },
       row(
-        'Name',
+        t('Name'),
         textField(slot.name, (name) => {
           if (name && app.doc.slotIndex(name) === null) {
             renameSlotRefs(app.doc, slot.name, name);
@@ -189,23 +202,23 @@ function slotUi(app, s) {
         }, { disabled: !setupMode }),
       ),
       row(
-        'Bone',
+        t('Bone'),
         select(app.doc.bones.map((x, i) => [i, x.name]), slot.bone, (i) => {
           if (i !== slot.bone) edit.setSlotBoneKeepWorld(app, s, i);
         }, { disabled: !setupMode, tut: 'slot-bone' }),
       ),
-      row('Tint', color, alpha),
+      row(t('Tint'), color, alpha),
       row(
-        'Blend',
-        select(BLEND_MODES.map((m) => [m, m]), slot.blend ?? 'normal', (m) => {
+        t('Blend'),
+        select(BLEND_MODES.map((m) => [m, t(MODE_LABELS[m] ?? m)]), slot.blend ?? 'normal', (m) => {
           slot.blend = m;
           app.changed();
         }, { disabled: !setupMode }),
       ),
     ),
     h('hr'),
-    h('strong', null, 'Attachments'),
-    h('div', { class: 'small weak' }, 'Pick which image is visible. In animate mode this sets a key.'),
+    h('strong', null, t('Attachments')),
+    h('div', { class: 'small weak' }, t('Pick which image is visible. In animate mode this sets a key.')),
   ];
 
   const visible = app.pose().attachment[s];
@@ -223,20 +236,20 @@ function slotUi(app, s) {
     );
   const skinAtts = app.doc.skin ? app.doc.skinAttachments(s, app.doc.skin) : [];
   const names = [...new Set([...skinAtts, ...slot.attachments].map((a) => a.name))];
-  out.push(radio(null, '(none)'), ...names.map((n) => radio(n, skinAtts.some((a) => a.name === n) ? `${n}  [${app.doc.skin}]` : n)));
+  out.push(radio(null, t('(none)')), ...names.map((n) => radio(n, skinAtts.some((a) => a.name === n) ? `${n}  [${app.doc.skin}]` : n)));
   if (setupMode && app.doc.images.length) {
     out.push(
       select(app.doc.images.map((i) => [i.name, i.name]), undefined, (name) => {
         const img = app.doc.images.find((i) => i.name === name);
         addToSlot(app, s, (attName) => makeAttachment(attName, name, identityTransform(), img.width, img.height), name);
-      }, { placeholder: app.doc.skin ? `＋ Add image to skin '${app.doc.skin}'…` : '＋ Add image to this slot…' }),
+      }, { placeholder: app.doc.skin ? t("＋ Add image to skin '{skin}'…", { skin: app.doc.skin }) : t('＋ Add image to this slot…') }),
     );
   }
   if (setupMode) {
     out.push(
-      select([['boundingbox', 'Bounding box'], ['clipping', 'Clipping'], ['point', 'Point'], ['path', 'Path']], undefined, (type) => {
+      select([['boundingbox', t('Bounding box')], ['clipping', t('Clipping')], ['point', t('Point')], ['path', t('Path')]], undefined, (type) => {
         addToSlot(app, s, (attName) => makeShape(app, s, type, attName), type);
-      }, { placeholder: '＋ Add shape…' }),
+      }, { placeholder: t('＋ Add shape…') }),
     );
   }
 
@@ -250,21 +263,21 @@ function slotUi(app, s) {
         'div',
         { class: 'grid' },
         att.type === 'mesh' || att.type === 'linkedmesh'
-          ? row('Image', select(app.doc.images.map((i) => [i.name, i.name]), att.image, (name) => ((att.image = name), app.changed()), { disabled: !setupMode }))
+          ? row(t('Image'), select(app.doc.images.map((i) => [i.name, i.name]), att.image, (name) => ((att.image = name), app.changed()), { disabled: !setupMode }))
           : null,
-        source ? row('Vertices', `${vertexCount(source)}${source.weights ? ' (weighted)' : ''}`) : null,
-        source?.triangles ? row('Triangles', String(source.triangles.length / 3)) : null,
-        att.type === 'linkedmesh' ? row('Parent', `${att.parent}${att.skin ? ` (${att.skin})` : ''}`) : null,
+        source ? row(t('Vertices'), source.weights ? t('{count} (weighted)', { count: vertexCount(source) }) : String(vertexCount(source))) : null,
+        source?.triangles ? row(t('Triangles'), String(source.triangles.length / 3)) : null,
+        att.type === 'linkedmesh' ? row(t('Parent'), `${att.parent}${att.skin ? ` (${att.skin})` : ''}`) : null,
         att.type === 'linkedmesh'
-          ? row('', h('label', { class: 'check', title: 'Use the deform keys of the parent mesh' }, h('input', { type: 'checkbox', disabled: !setupMode, checked: att.deform !== false, onchange: (e) => ((att.deform = e.target.checked), app.changed()) }), ' Inherit deform'))
+          ? row('', h('label', { class: 'check', title: t('Use the deform keys of the parent mesh') }, h('input', { type: 'checkbox', disabled: !setupMode, checked: att.deform !== false, onchange: (e) => ((att.deform = e.target.checked), app.changed()) }), ' ' + t('Inherit deform')))
           : null,
       ),
       att.type === 'mesh' && setupMode && app.doc.images.length
         ? select(app.doc.images.map((i) => [i.name, i.name]), undefined, (image) => {
             const img = app.doc.images.find((i) => i.name === image);
             addToSlot(app, s, (name) => ({ name, type: 'linkedmesh', image, parent: att.name, skin: null, deform: true, width: img?.width ?? att.width, height: img?.height ?? att.height }), image); // named after its image, like exported linked meshes
-            app.setStatus('Linked mesh added: it shares this mesh\'s shape and weights with another image');
-          }, { placeholder: '＋ Linked mesh with image…' })
+            app.setStatus(t("Linked mesh added: it shares this mesh's shape and weights with another image"));
+          }, { placeholder: t('＋ Linked mesh with image…') })
         : null,
       att.type === 'mesh' || att.type === 'linkedmesh' ? sequenceUi(app, s, att, setupMode) : null,
       att.type === 'clipping'
@@ -272,7 +285,7 @@ function slotUi(app, s) {
             'div',
             { class: 'grid' },
             row(
-              'Clip until',
+              t('Clip until'),
               select([['', '(end of draw order)'], ...app.doc.slots.map((sl, i) => [String(i), sl.name])], att.end === null || att.end === undefined || att.end === s ? '' : String(att.end), (v) => {
                 att.end = v === '' ? null : Number(v);
                 app.changed();
@@ -285,7 +298,7 @@ function slotUi(app, s) {
             'div',
             { class: 'grid' },
             row('', h('label', { class: 'check' }, h('input', { type: 'checkbox', disabled: !setupMode, checked: !!att.closed, onchange: (e) => ((att.closed = e.target.checked), app.changed()) }), ' Closed')),
-            row('', h('label', { class: 'check' }, h('input', { type: 'checkbox', disabled: !setupMode, checked: att.constantSpeed !== false, onchange: (e) => ((att.constantSpeed = e.target.checked), app.changed()) }), ' Constant speed')),
+            row('', h('label', { class: 'check' }, h('input', { type: 'checkbox', disabled: !setupMode, checked: att.constantSpeed !== false, onchange: (e) => ((att.constantSpeed = e.target.checked), app.changed()) }), ' ' + t('Constant speed'))),
           )
         : null,
       setupMode && ['boundingbox', 'clipping', 'path'].includes(att.type)
@@ -293,20 +306,20 @@ function slotUi(app, s) {
             'div',
             { class: 'buttons' },
             app.shapeEdit?.slot === s && app.shapeEdit?.name === visible
-              ? h('button', { class: 'active', onclick: () => ((app.shapeEdit = null), app.changed()) }, '✓ Done editing')
-              : h('button', { onclick: () => ((app.shapeEdit = { slot: s, name: visible, selected: null }), (app.meshEdit = null), app.changed()) }, '✎ Edit shape'),
+              ? h('button', { class: 'active', onclick: () => ((app.shapeEdit = null), app.changed()) }, t('✓ Done editing'))
+              : h('button', { onclick: () => ((app.shapeEdit = { slot: s, name: visible, selected: null }), (app.meshEdit = null), app.changed()) }, t('✎ Edit shape')),
             h(
               'span',
               { class: 'small weak' },
-              att.type === 'path' ? ' Drag points or handles (Alt: unlinked), click to add, Delete removes.' : ' Drag vertices, click to add on the nearest edge, Delete removes.',
+              att.type === 'path' ? ' ' + t('Drag points or handles (Alt: unlinked), click to add, Delete removes.') : ' ' + t('Drag vertices, click to add on the nearest edge, Delete removes.'),
             ),
           )
         : null,
-      setupMode ? h('div', { class: 'buttons' }, h('button', { onclick: () => removeAttachment(app, s, att) }, `🗑 Remove ${att.type}`)) : null,
+      setupMode ? h('div', { class: 'buttons' }, h('button', { onclick: () => removeAttachment(app, s, att) }, t('🗑 Remove {type}', { type: att.type }))) : null,
       att.type === 'mesh' && !(app.meshEdit?.slot === s && app.meshEdit?.name === visible)
-        ? h('div', { class: 'buttons' }, h('button', { onclick: () => startMeshEdit(app, s, visible) }, setupMode ? '✎ Edit mesh' : '✎ Deform mesh'))
+        ? h('div', { class: 'buttons' }, h('button', { onclick: () => startMeshEdit(app, s, visible) }, setupMode ? t('✎ Edit mesh') : t('✎ Deform mesh')))
         : att.type === 'linkedmesh'
-          ? h('div', { class: 'small weak' }, 'Linked meshes share their parent mesh; edit the parent.')
+          ? h('div', { class: 'small weak' }, t('Linked meshes share their parent mesh; edit the parent.'))
           : null,
     );
   }
@@ -320,21 +333,21 @@ function slotUi(app, s) {
     const scl = { speed: 0.01, decimals: 3 };
     out.push(
       h('hr'),
-      h('strong', null, `Image placement: ${visible}`),
+      h('strong', null, t('Image placement: {image}', { image: visible })),
       h(
         'div',
         { class: 'grid' },
         row(
-          'Image',
+          t('Image'),
           select(app.doc.images.map((i) => [i.name, i.name]), att.image, (name) => {
             att.image = name;
             app.changed();
           }),
         ),
-        row('Position', num(att.offset, 'x', { ...pos, prefix: 'x ' }), num(att.offset, 'y', { ...pos, prefix: 'y ' })),
-        row('Rotation', num(att.offset, 'rotation', { ...pos, suffix: '°' })),
-        row('Scale', num(att.offset, 'scale_x', { ...scl, prefix: 'x ' }), num(att.offset, 'scale_y', { ...scl, prefix: 'y ' })),
-        row('Size', num(att, 'width', { ...pos, prefix: 'w ', min: 0 }), num(att, 'height', { ...pos, prefix: 'h ', min: 0 })),
+        row(t('Position'), num(att.offset, 'x', { ...pos, prefix: 'x ' }), num(att.offset, 'y', { ...pos, prefix: 'y ' })),
+        row(t('Rotation'), num(att.offset, 'rotation', { ...pos, suffix: '°' })),
+        row(t('Scale'), num(att.offset, 'scale_x', { ...scl, prefix: 'x ' }), num(att.offset, 'scale_y', { ...scl, prefix: 'y ' })),
+        row(t('Size'), num(att, 'width', { ...pos, prefix: 'w ', min: 0 }), num(att, 'height', { ...pos, prefix: 'h ', min: 0 })),
       ),
       sequenceUi(app, s, att, setupMode),
       h(
@@ -352,19 +365,19 @@ function slotUi(app, s) {
               }
             },
           },
-          'Reset size',
+          t('Reset size'),
         ),
         setupMode
           ? h(
               'button',
               {
-                title: 'Replace this image with a mesh you can reshape and bind to bones',
+                title: t('Replace this image with a mesh you can reshape and bind to bones'),
                 onclick: () => {
                   regionToMesh(app.doc, s, att);
                   startMeshEdit(app, s, att.name);
                 },
               },
-              '▦ Convert to mesh',
+              t('▦ Convert to mesh'),
             )
           : null,
         setupMode
@@ -373,37 +386,37 @@ function slotUi(app, s) {
               {
                 onclick: () => removeAttachment(app, s, att),
               },
-              '🗑 Remove image',
+              t('🗑 Remove image'),
             )
           : null,
       ),
     );
   }
-  if (setupMode) out.push(h('div', { class: 'buttons' }, h('button', { onclick: () => edit.deleteSelection(app) }, '🗑 Delete slot')));
+  if (setupMode) out.push(h('div', { class: 'buttons' }, h('button', { onclick: () => edit.deleteSelection(app) }, t('🗑 Delete slot'))));
   return out;
 }
 
 function projectUi(app) {
   return [
-    h('h2', null, 'Project'),
+    h('h2', null, t('Project')),
     h(
       'div',
       { class: 'grid' },
       row(
-        'Name',
+        t('Name'),
         textField(app.doc.name, (v) => {
           app.doc.name = v;
           app.changed();
         }),
       ),
-      row('Textures', textureFilterSelect(app)),
+      row(t('Textures'), textureFilterSelect(app)),
     ),
     app.doc.skins.length
       ? h(
           'div',
           { class: 'grid' },
           row(
-            'Skin',
+            t('Skin'),
             select([['', 'default'], ...app.doc.skins.map((k) => [k.name, k.name])], app.doc.skin ?? '', (name) => {
               app.doc.skin = name || null;
               app.changed();
@@ -412,29 +425,29 @@ function projectUi(app) {
         )
       : null,
     app.doc.header
-      ? h('div', { class: 'small weak' }, `Imported from skeleton JSON ${app.doc.header.version ?? ''}. Export again with File ▸ Export ▸ JSON + atlas.`)
+      ? h('div', { class: 'small weak' }, t('Imported from skeleton JSON {version}. Export again with File ▸ Export ▸ JSON + atlas.', { version: app.doc.header.version ?? '' }))
       : null,
     h('hr'),
     has(app, 'output') ? outputUi(app) : frameRateUi(app),
     has(app, 'audio') ? audioUi(app) : null,
     h('hr'),
-    h('strong', null, 'Rig'),
-    h('div', null, `${app.doc.bones.length} bones · ${app.doc.slots.length} slots · ${app.doc.skins.length + 1} skins`),
-    h('div', null, `${app.doc.ik.length} IK constraints · ${app.doc.events.length} events · ${app.doc.animations.length} animations`),
+    h('strong', null, t('Rig')),
+    h('div', null, t('{bones} bones · {slots} slots · {skins} skins', { bones: app.doc.bones.length, slots: app.doc.slots.length, skins: app.doc.skins.length + 1 })),
+    h('div', null, t('{ik} IK constraints · {events} events · {animations} animations', { ik: app.doc.ik.length, events: app.doc.events.length, animations: app.doc.animations.length })),
     h('hr'),
-    h('strong', null, `Images (${app.doc.images.length})`),
-    app.doc.images.length ? null : h('p', null, 'Use File ▸ Import ▸ PSD, SVG or PNG images to add art.'),
+    h('strong', null, t('Images ({count})', { count: app.doc.images.length })),
+    app.doc.images.length ? null : h('p', null, t('Use File ▸ Import ▸ PSD, SVG or PNG images to add art.')),
     app.doc.images.map((img) => h('div', null, `${img.name}  (${img.width}×${img.height})`)),
     h('hr'),
-    h('strong', null, 'Getting started'),
+    h('strong', null, t('Getting started')),
     h(
       'ol',
       null,
-      h('li', null, "Import your character's art (PSD or SVG layers, or PNG parts)."),
-      h('li', null, 'Pick the Create tool and drag in the canvas to draw bones (select a bone first to chain children).'),
-      h('li', null, 'Select an image and set its Bone in the inspector.'),
-      h('li', null, 'Press Tab for Animate mode, move the time cursor, pose bones and set keys with the key buttons (or turn on Auto key).'),
-      h('li', null, 'File ▸ Save writes the .rigby work file; File ▸ Export writes skeleton JSON or .skel + a packed atlas for runtimes.'),
+      h('li', null, t("Import your character's art (PSD or SVG layers, or PNG parts).")),
+      h('li', null, t('Pick the Create tool and drag in the canvas to draw bones (select a bone first to chain children).')),
+      h('li', null, t('Select an image and set its Bone in the inspector.')),
+      h('li', null, t('Press Tab for Animate mode, move the time cursor, pose bones and set keys with the key buttons (or turn on Auto key).')),
+      h('li', null, t('File ▸ Save writes the .rigby work file; File ▸ Export writes skeleton JSON or .skel + a packed atlas for runtimes.')),
     ),
   ];
 }
@@ -443,8 +456,8 @@ function projectUi(app) {
 function textureFilterSelect(app) {
   const el = select(
     [
-      ['linear', 'Smooth (linear)'],
-      ['nearest', 'Pixel art (nearest)'],
+      ['linear', t('Smooth (linear)')],
+      ['nearest', t('Pixel art (nearest)')],
     ],
     app.doc.textureFilter,
     (v) => {
@@ -452,33 +465,33 @@ function textureFilterSelect(app) {
       app.changed();
     },
   );
-  el.title = 'How images are drawn when scaled. Pixel art keeps every pixel sharp in the viewport, in renders and in exported atlases (filter: Nearest).';
+  el.title = t('How images are drawn when scaled. Pixel art keeps every pixel sharp in the viewport, in renders and in exported atlases (filter: Nearest).');
   return el;
 }
 
 /** Film: audio tracks of the current animation (offset and volume). */
 function audioUi(app) {
   const anim = app.currentAnimation();
-  const tracks = anim ? app.doc.audio.filter((t) => t.animation === anim.name) : [];
+  const tracks = anim ? app.doc.audio.filter((tr) => tr.animation === anim.name) : [];
   return [
     h('hr'),
-    h('strong', null, `Audio${anim ? ` · ${anim.name}` : ''}`),
-    tracks.map((t) =>
+    h('strong', null, `${t('Audio')}${anim ? ` · ${anim.name}` : ''}`),
+    tracks.map((tr) =>
       h(
         'div',
         { class: 'grid' },
-        row(t.sound + (sounds.get(t.sound) ? '' : ' (missing)'), h('button', { class: 'small', title: 'Remove this track', onclick: () => ((app.doc.audio = app.doc.audio.filter((x) => x !== t)), app.changed()) }, '✕')),
-        row('Starts at', dragValue(t.offset, (v) => ((t.offset = v), app.changed()), { speed: 0.01, decimals: 3, suffix: ' s' })),
-        row('Volume', dragValue(t.volume * 100, (v) => ((t.volume = Math.max(0, v) / 100), app.changed()), { speed: 1, min: 0, max: 400, decimals: 0, suffix: ' %' })),
+        row(sounds.get(tr.sound) ? tr.sound : t('{sound} (missing)', { sound: tr.sound }), h('button', { class: 'small', title: t('Remove this track'), onclick: () => ((app.doc.audio = app.doc.audio.filter((x) => x !== tr)), app.changed()) }, '✕')),
+        row(t('Starts at'), dragValue(tr.offset, (v) => ((tr.offset = v), app.changed()), { speed: 0.01, decimals: 3, suffix: ' s' })),
+        row(t('Volume'), dragValue(tr.volume * 100, (v) => ((tr.volume = Math.max(0, v) / 100), app.changed()), { speed: 1, min: 0, max: 400, decimals: 0, suffix: ' %' })),
       ),
     ),
     h(
       'div',
       { class: 'buttons' },
-      h('button', { disabled: !anim, onclick: () => app.importAudio() }, 'Import audio…'),
-      h('button', { disabled: !tracks.length, 'data-tut': 'lipsync', title: 'Key mouth shapes (visemes) from the speech in a track', onclick: () => openLipSync(app) }, 'Lip-sync…'),
+      h('button', { disabled: !anim, onclick: () => app.importAudio() }, t('Import audio…')),
+      h('button', { disabled: !tracks.length, 'data-tut': 'lipsync', title: t('Key mouth shapes (visemes) from the speech in a track'), onclick: () => openLipSync(app) }, t('Lip-sync…')),
     ),
-    h('div', { class: 'small weak' }, 'Tracks play with the timeline. Lip-sync keys a mouth slot shape by shape from the speech; face controls can also follow loudness.'),
+    h('div', { class: 'small weak' }, t('Tracks play with the timeline. Lip-sync keys a mouth slot shape by shape from the speech; face controls can also follow loudness.')),
   ];
 }
 
@@ -490,7 +503,7 @@ function frameRateUi(app) {
     'div',
     { class: 'grid' },
     row(
-      'Frame rate',
+      t('Frame rate'),
       select(
         options.map((f) => [f, `${formatFps(f)} fps`]),
         s.fps,
@@ -515,18 +528,18 @@ function outputUi(app) {
   return h(
     'div',
     null,
-    h('strong', null, 'Output'),
+    h('strong', null, t('Output')),
     h(
       'div',
       { class: 'grid' },
       row(
-        'Frame rate',
-        select([...FPS_PRESETS.map((f) => [f, `${formatFps(f)} fps`]), ['custom', 'Custom']], fpsValue, (v) => v !== 'custom' && set({ fps: v })),
+        t('Frame rate'),
+        select([...FPS_PRESETS.map((f) => [f, `${formatFps(f)} fps`]), ['custom', t('Custom')]], fpsValue, (v) => v !== 'custom' && set({ fps: v })),
         dragValue(s.fps, (v) => set({ fps: v }), { speed: 0.1, min: 1, max: 240, decimals: 3, suffix: ' fps' }),
       ),
       row(
-        'Size',
-        select([...SIZE_PRESETS.map(([w, hgt, label]) => [`${w}x${hgt}`, `${w}×${hgt} ${label}`]), ['custom', 'Custom']], sizeValue, (v) => {
+        t('Size'),
+        select([...SIZE_PRESETS.map(([w, hgt, label]) => [`${w}x${hgt}`, `${w}×${hgt} ${t(label)}`]), ['custom', t('Custom')]], sizeValue, (v) => {
           if (v === 'custom') return;
           const [w, hgt] = v.split('x').map(Number);
           set({ width: w, height: hgt });
@@ -538,16 +551,16 @@ function outputUi(app) {
         dragValue(s.height, (v) => set({ height: Math.round(v) }), { speed: 1, min: 16, max: 16384, decimals: 0, suffix: ' px' }),
       ),
       row(
-        'Background',
+        t('Background'),
         h('label', null, h('input', { type: 'checkbox', checked: !s.background, onchange: (e) => set({ background: e.target.checked ? null : [0, 0, 0, 1] }) }), ' Transparent'),
         s.background ? h('input', { type: 'color', value: rgbaToHex(s.background), oninput: (e) => set({ background: hexToRgba(e.target.value) }) }) : null,
       ),
       row(
-        'Framing',
+        t('Framing'),
         select(
           [
-            ['auto', 'Fit the animation'],
-            ['fixed', 'Fixed'],
+            ['auto', t('Fit the animation')],
+            ['fixed', t('Fixed')],
             ['camera', "Follow the 'camera' bone"],
           ],
           s.frame?.camera ? 'camera' : s.frame ? 'fixed' : 'auto',
@@ -570,29 +583,29 @@ function outputUi(app) {
       s.frame
         ? [
             row(
-              'Center',
+              t('Center'),
               dragValue(s.frame.x, (v) => set({ frame: { ...s.frame, x: v } }), { speed: 1, decimals: 1 }),
               dragValue(s.frame.y, (v) => set({ frame: { ...s.frame, y: v } }), { speed: 1, decimals: 1 }),
             ),
-            row('Units / pixel', dragValue(s.frame.scale, (v) => set({ frame: { ...s.frame, scale: v } }), { speed: 0.005, min: 0.001, max: 1000, decimals: 3 })),
+            row(t('Units / pixel'), dragValue(s.frame.scale, (v) => set({ frame: { ...s.frame, scale: v } }), { speed: 0.005, min: 0.001, max: 1000, decimals: 3 })),
             row(
               '',
               h(
                 'button',
                 {
-                  title: 'Frame what the viewport shows',
+                  title: t('Frame what the viewport shows'),
                   onclick: () => {
                     if (app.viewport) set({ frame: app.viewport.frameFromView() });
                     app.showFrame = true;
                   },
                 },
-                'Use the current view',
+                t('Use the current view'),
               ),
             ),
           ]
         : null,
     ),
-    h('div', { class: 'small weak' }, 'Used when rendering image sequences and video. View ▸ Show output frame shows the framed area.'),
+    h('div', { class: 'small weak' }, t('Used when rendering image sequences and video. View ▸ Show output frame shows the framed area.')),
   );
 }
 
@@ -604,8 +617,8 @@ function generateUi(app, e, att) {
   const o = generateOptions;
   const run = () => {
     const r = generateFromImage(app, e.slot, att, o);
-    if (!r) app.setStatus('Generate mesh: the image has no pixels above the alpha threshold');
-    else app.setStatus(`Generated ${r.points.length} vertices (${r.hull} on the outline), ${r.triangles.length / 3} triangles${r.islands > 1 ? `; used the largest of ${r.islands} separate shapes` : ''}${r.removed ? `; removed ${r.removed} deform timeline(s)` : ''}`);
+    if (!r) app.setStatus(t('Generate mesh: the image has no pixels above the alpha threshold'));
+    else app.setStatus(t('Generated {vertices} vertices ({hull} on the outline), {triangles} triangles', { vertices: r.points.length, hull: r.hull, triangles: r.triangles.length / 3 }) + (r.islands > 1 ? '; ' + t('used the largest of {count} separate shapes', { count: r.islands }) : '') + (r.removed ? '; ' + t('removed {count} deform timeline(s)', { count: r.removed }) : ''));
     app.changed();
   };
   // After the first generate, changing a setting regenerates (live preview); before it, nothing changes.
@@ -614,21 +627,21 @@ function generateUi(app, e, att) {
     if (e.generated) run();
   };
   return [
-    h('div', { class: 'section-title' }, 'Generate from image'),
+    h('div', { class: 'section-title' }, t('Generate from image')),
     h(
       'div',
       { class: 'grid' },
-      row('Outline points', dragValue(o.points, live('points', Math.round), { min: 3, max: 400, decimals: 0, speed: 0.25 })),
-      row('Alpha threshold', dragValue(o.threshold, live('threshold', Math.round), { min: 1, max: 254, decimals: 0 })),
-      row('Expand', dragValue(o.expand, live('expand', Math.round), { min: -30, max: 30, decimals: 0, speed: 0.2, suffix: ' px' })),
-      row('Smoothing', dragValue(o.smoothing, live('smoothing', Math.round), { min: 0, max: 6, decimals: 0, speed: 0.1 })),
-      row('Interior', select([['none', 'None'], ['low', 'Low'], ['medium', 'Medium'], ['high', 'High']], o.interior, live('interior'))),
+      row(t('Outline points'), dragValue(o.points, live('points', Math.round), { min: 3, max: 400, decimals: 0, speed: 0.25 })),
+      row(t('Alpha threshold'), dragValue(o.threshold, live('threshold', Math.round), { min: 1, max: 254, decimals: 0 })),
+      row(t('Expand'), dragValue(o.expand, live('expand', Math.round), { min: -30, max: 30, decimals: 0, speed: 0.2, suffix: ' px' })),
+      row(t('Smoothing'), dragValue(o.smoothing, live('smoothing', Math.round), { min: 0, max: 6, decimals: 0, speed: 0.1 })),
+      row(t('Interior'), select([['none', t('None')], ['low', t('Low')], ['medium', t('Medium')], ['high', t('High')]], o.interior, live('interior'))),
     ),
     h(
       'div',
       { class: 'buttons' },
-      h('button', { title: 'Trace the image outline, simplify it to the number of points, fill the inside and triangulate. Replaces this mesh; weights are kept.', onclick: () => ((e.generated = true), run()) }, '✦ Generate mesh'),
-      h('button', { title: 'Back to the default settings', onclick: () => (Object.assign(o, MESH_DEFAULTS), app.changed()) }, 'Reset'),
+      h('button', { title: t('Trace the image outline, simplify it to the number of points, fill the inside and triangulate. Replaces this mesh; weights are kept.'), onclick: () => ((e.generated = true), run()) }, t('✦ Generate mesh')),
+      h('button', { title: t('Back to the default settings'), onclick: () => (Object.assign(o, MESH_DEFAULTS), app.changed()) }, t('Reset')),
     ),
   ];
 }
@@ -646,9 +659,9 @@ function meshUi(app) {
   if (!att || att.type !== 'mesh') return null;
   if (app.mode === Mode.Animate) {
     return [
-      h('h2', null, `Deform mesh: ${e.name}`),
-      h('div', { class: 'small weak' }, 'Drag vertices to key their positions at the current frame; drag a box (or Ctrl+click) to select several and move them together. Keys appear in the dopesheet as the deform row.'),
-      h('div', { class: 'buttons' }, h('button', { onclick: () => { app.meshEdit = null; app.changed(); } }, '✓ Done')),
+      h('h2', null, t('Deform mesh: {name}', { name: e.name })),
+      h('div', { class: 'small weak' }, t('Drag vertices to key their positions at the current frame; drag a box (or Ctrl+click) to select several and move them together. Keys appear in the dopesheet as the deform row.')),
+      h('div', { class: 'buttons' }, h('button', { onclick: () => { app.meshEdit = null; app.changed(); } }, t('✓ Done'))),
       h('hr'),
     ];
   }
@@ -661,15 +674,15 @@ function meshUi(app) {
   const bound = att.weights ? [...new Set(att.weights.flatMap((v) => v.map((w) => w.bone)))].sort((x, y) => x - y) : [];
   const selectedBones = app.selectedBones();
   const out = [
-    h('h2', null, `Mesh: ${e.name}`),
-    h('div', { class: 'grid' }, row('Slot', doc.slots[e.slot].name), row('Vertices', `${att.uvs.length / 2} (outline ${att.hull})${att.weights ? ', weighted' : ''}`)),
-    h('div', { class: 'buttons' }, h('span', { class: 'segmented' }, mode('vertices', 'Vertices'), mode('weights', 'Weights')), h('button', { onclick: () => { app.meshEdit = null; app.changed(); } }, '✓ Done')),
+    h('h2', null, t('Mesh: {name}', { name: e.name })),
+    h('div', { class: 'grid' }, row(t('Slot'), doc.slots[e.slot].name), row(t('Vertices'), att.weights ? t('{count} (outline {outline}), weighted', { count: att.uvs.length / 2, outline: att.hull }) : t('{count} (outline {outline})', { count: att.uvs.length / 2, outline: att.hull }))),
+    h('div', { class: 'buttons' }, h('span', { class: 'segmented' }, mode('vertices', t('Vertices')), mode('weights', t('Weights'))), h('button', { onclick: () => { app.meshEdit = null; app.changed(); } }, t('✓ Done'))),
   ];
   if (e.mode === 'vertices') {
-    out.push(h('div', { class: 'small weak' }, 'Click inside to add a vertex, near or outside the outline to extend it. Drag vertices to move them over the image. Ctrl+click or Ctrl+drag a box to select several; Delete removes the selection.'));
+    out.push(h('div', { class: 'small weak' }, t('Click inside to add a vertex, near or outside the outline to extend it. Drag vertices to move them over the image. Ctrl+click or Ctrl+drag a box to select several; Delete removes the selection.')));
     out.push(...generateUi(app, e, att));
   } else {
-    const bindLabel = selectedBones.length ? `Bind to ${selectedBones.length} selected bone${selectedBones.length === 1 ? '' : 's'}` : 'Select bones to bind (Ctrl+click in the tree)';
+    const bindLabel = selectedBones.length ? selectedBones.length === 1 ? t('Bind to 1 selected bone') : t('Bind to {count} selected bones', { count: selectedBones.length }) : t('Select bones to bind (Ctrl+click in the tree)');
     out.push(
       h(
         'div',
@@ -678,11 +691,11 @@ function meshUi(app) {
           'button',
           {
             disabled: !selectedBones.length,
-            title: 'Weights each vertex to the nearest of the selected bones',
+            title: t('Weights each vertex to the nearest of the selected bones'),
             onclick: () => {
               const removed = bindMesh(doc, e.slot, att, selectedBones);
               e.bone = selectedBones[0];
-              app.setStatus(`Bound to ${selectedBones.length} bone${selectedBones.length === 1 ? '' : 's'}${removed ? `; removed ${removed} deform timeline(s)` : ''}`);
+              app.setStatus(`${selectedBones.length === 1 ? t('Bound to 1 bone') : t('Bound to {count} bones', { count: selectedBones.length })}${removed ? `; ${t('removed {count} deform timeline(s)', { count: removed })}` : ''}`);
               app.changed();
             },
           },
@@ -697,7 +710,7 @@ function meshUi(app) {
                   app.changed();
                 },
               },
-              'Unbind',
+              t('Unbind'),
             )
           : null,
       ),
@@ -708,18 +721,18 @@ function meshUi(app) {
         h(
           'div',
           { class: 'grid' },
-          row('Paint bone', select(choices, e.bone ?? bound[0], (v) => set('bone', Number(v)))),
-          row('Brush', dragValue(e.radius ?? 40, (v) => set('radius', v), { speed: 0.5, min: 2, max: 400, suffix: ' px', decimals: 0 })),
-          row('Strength', dragValue(e.strength ?? 0.5, (v) => set('strength', v), { speed: 0.01, min: 0.01, max: 1, decimals: 2 })),
+          row(t('Paint bone'), select(choices, e.bone ?? bound[0], (v) => set('bone', Number(v)))),
+          row(t('Brush'), dragValue(e.radius ?? 40, (v) => set('radius', v), { speed: 0.5, min: 2, max: 400, suffix: ' px', decimals: 0 })),
+          row(t('Strength'), dragValue(e.strength ?? 0.5, (v) => set('strength', v), { speed: 0.01, min: 0.01, max: 1, decimals: 2 })),
           row(
-            'Mode',
+            t('Mode'),
             h('span', { class: 'segmented' },
-              h('button', { class: e.subtract ? '' : 'active', onclick: () => set('subtract', false) }, 'Add'),
-              h('button', { class: e.subtract ? 'active' : '', onclick: () => set('subtract', true) }, 'Subtract'),
+              h('button', { class: e.subtract ? '' : 'active', onclick: () => set('subtract', false) }, t('Add')),
+              h('button', { class: e.subtract ? 'active' : '', onclick: () => set('subtract', true) }, t('Subtract')),
             ),
           ),
         ),
-        h('div', { class: 'small weak' }, 'Drag over the mesh to paint (Shift subtracts). Colors show the paint bone: red = full weight, blue = none. ● marks bones the mesh uses.'),
+        h('div', { class: 'small weak' }, t('Drag over the mesh to paint (Shift subtracts). Colors show the paint bone: red = full weight, blue = none. ● marks bones the mesh uses.')),
       );
     }
   }
@@ -778,13 +791,13 @@ function makeShape(app, s, type, name) {
 }
 
 const SEQUENCE_MODES = [
-  ['hold', 'Hold'],
-  ['once', 'Once'],
-  ['loop', 'Loop'],
-  ['pingpong', 'Ping-pong'],
-  ['onceReverse', 'Once reverse'],
-  ['loopReverse', 'Loop reverse'],
-  ['pingpongReverse', 'Ping-pong reverse'],
+  ['hold', tn('Hold')],
+  ['once', tn('Once')],
+  ['loop', tn('Loop')],
+  ['pingpong', tn('Ping-pong')],
+  ['onceReverse', tn('Once reverse')],
+  ['loopReverse', tn('Loop reverse')],
+  ['pingpongReverse', tn('Ping-pong reverse')],
 ];
 
 /** Sequence keys of an attachment in the current animation (created when `create`). */
@@ -807,7 +820,7 @@ function sequenceUi(app, s, att, setupMode) {
     const seq = att.sequence;
     const toggle = h(
       'label',
-      { class: 'check', title: 'Show numbered images (name01, name02, …) one at a time' },
+      { class: 'check', title: t('Show numbered images (name01, name02, …) one at a time') },
       h('input', {
         type: 'checkbox',
         checked: !!seq,
@@ -817,7 +830,7 @@ function sequenceUi(app, s, att, setupMode) {
           app.changed();
         },
       }),
-      ' Image sequence',
+      ' ' + t('Image sequence'),
     );
     if (!seq) return h('div', { class: 'buttons' }, toggle);
     const set = (key, v, def) => {
@@ -833,11 +846,11 @@ function sequenceUi(app, s, att, setupMode) {
       h(
         'div',
         { class: 'grid' },
-        row('Frames', dragValue(count, (v) => set('count', Math.max(1, Math.round(v)), undefined), { speed: 0.1, min: 1, decimals: 0 })),
-        row('Start', dragValue(seq.start ?? 1, (v) => set('start', Math.round(v), 1), { speed: 0.1, min: 0, decimals: 0 })),
-        row('Digits', dragValue(seq.digits ?? 0, (v) => set('digits', Math.max(0, Math.round(v)), 0), { speed: 0.05, min: 0, max: 8, decimals: 0 })),
-        row('Setup frame', dragValue(seq.setup ?? 0, (v) => set('setup', Math.min(count - 1, Math.max(0, Math.round(v))), 0), { speed: 0.1, decimals: 0 })),
-        row('Images', `${frames[0]} … ${frames.at(-1)} (${found} of ${count} found)`),
+        row(t('Frames'), dragValue(count, (v) => set('count', Math.max(1, Math.round(v)), undefined), { speed: 0.1, min: 1, decimals: 0 })),
+        row(t('Start'), dragValue(seq.start ?? 1, (v) => set('start', Math.round(v), 1), { speed: 0.1, min: 0, decimals: 0 })),
+        row(t('Digits'), dragValue(seq.digits ?? 0, (v) => set('digits', Math.max(0, Math.round(v)), 0), { speed: 0.05, min: 0, max: 8, decimals: 0 })),
+        row(t('Setup frame'), dragValue(seq.setup ?? 0, (v) => set('setup', Math.min(count - 1, Math.max(0, Math.round(v))), 0), { speed: 0.1, decimals: 0 })),
+        row(t('Images'), t('{first} … {last} ({found} of {count} found)', { first: frames[0], last: frames.at(-1), found, count })),
       ),
     ];
   }
@@ -873,14 +886,14 @@ function sequenceUi(app, s, att, setupMode) {
     app.changed();
   };
   return [
-    h('strong', null, 'Sequence'),
+    h('strong', null, t('Sequence')),
     h(
       'div',
       { class: 'grid' },
-      row('Mode', select(SEQUENCE_MODES, state.mode, (v) => write({ mode: v }))),
-      row('Frame', dragValue(state.index, (v) => write({ index: Math.max(0, Math.round(v)) }), { speed: 0.1, min: 0, max: (att.sequence.count ?? 1) - 1, decimals: 0 })),
-      row('Frame time', dragValue(state.delay, (v) => write({ delay: Math.max(0, v) }), { speed: 0.001, min: 0, decimals: 3, suffix: ' s' })),
-      row('', h('button', { class: `keybtn ${keyed ? 'keyed' : 'none'}`, onclick: () => write({}) }, '◆'), h('span', { class: 'small weak' }, ` Key at frame ${Math.round(time * FPS)}`)),
+      row(t('Mode'), select(SEQUENCE_MODES.map(([v, l]) => [v, t(l)]), state.mode, (v) => write({ mode: v }))),
+      row(t('Frame'), dragValue(state.index, (v) => write({ index: Math.max(0, Math.round(v)) }), { speed: 0.1, min: 0, max: (att.sequence.count ?? 1) - 1, decimals: 0 })),
+      row(t('Frame time'), dragValue(state.delay, (v) => write({ delay: Math.max(0, v) }), { speed: 0.001, min: 0, decimals: 3, suffix: ' s' })),
+      row('', h('button', { class: `keybtn ${keyed ? 'keyed' : 'none'}`, onclick: () => write({}) }, '◆'), h('span', { class: 'small weak' }, ' ' + t('Key at frame {frame}', { frame: Math.round(time * FPS) }))),
     ),
   ];
 }

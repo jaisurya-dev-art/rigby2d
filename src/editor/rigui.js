@@ -11,6 +11,7 @@ import * as io from './io.js';
 import * as log from './log.js';
 import * as platform from './platform.js';
 import { h } from './widgets.js';
+import { t } from './i18n.js';
 
 /** A modal dialog; returns { body, close }. Escape closes it. */
 function modal(title, wide = false) {
@@ -58,7 +59,7 @@ const ROLE_LABELS = { upperarm: 'upper arm', forearm: 'forearm', arm: 'arm (whol
 
 /** File ▸ AutoRig: identify the layers of imported artwork and build the rig. */
 export function openAutoRig(app) {
-  const { body, close } = modal('AutoRig', true);
+  const { body, close } = modal(t('AutoRig'), true);
   const fill = fillWith(body);
   const choice = { roles: {}, sides: {}, meshes: 'deforming', ik: true };
 
@@ -86,12 +87,12 @@ export function openAutoRig(app) {
       app.changed();
       for (const w of report.warnings) log.warn(w, { source: 'autorig' });
       track('editor-autorig');
-      app.setStatus(`AutoRig: ${report.bones.length} bones, ${report.parts.filter((p) => p.mesh).length} meshes, ${report.ik.length} IK${report.warnings.length ? ` (${report.warnings.length} note${report.warnings.length === 1 ? '' : 's'} in View ▸ Log)` : ''}. Undo reverts it.`);
+      app.setStatus(t('AutoRig: {bones} bones, {meshes} meshes, {ik} IK', { bones: report.bones.length, meshes: report.parts.filter((p) => p.mesh).length, ik: report.ik.length }) + (report.warnings.length ? ' ' + t('({count} note(s) in View ▸ Log)', { count: report.warnings.length }) : '') + '. ' + t('Undo reverts it.'));
       close();
     } catch (e) {
       if (app.doc.toSnapshot() !== before) app.restore(before);
       log.exception(e, { source: 'autorig' });
-      app.setStatus(`AutoRig failed: ${log.errorMessage(e)}`);
+      app.setStatus(t('AutoRig failed: {error}', { error: log.errorMessage(e) }));
     }
   };
 
@@ -106,7 +107,7 @@ export function openAutoRig(app) {
     const intro = h(
       'p',
       { class: 'weak' },
-      'AutoRig identifies each layer from its name (head, torso, arm_l, upperarm_r, hand, leg, eye, tail…) or its position, places joints where the parts meet, and builds bones, meshes and IK. Check the roles below, then generate. Everything it makes stays editable, and Undo reverts it.',
+      t('AutoRig identifies each layer from its name (head, torso, arm_l, upperarm_r, hand, leg, eye, tail…) or its position, places joints where the parts meet, and builds bones, meshes and IK. Check the roles below, then generate. Everything it makes stays editable, and Undo reverts it.'),
     );
     const rows = parts?.map((p) =>
       h(
@@ -117,7 +118,7 @@ export function openAutoRig(app) {
           'td',
           null,
           select(
-            [...PART_ROLES.map((r) => [r, ROLE_LABELS[r] ?? r]), ['none', '— leave unrigged —']],
+            [...PART_ROLES.map((r) => [r, ROLE_LABELS[r] ?? r]), ['none', t('— leave unrigged —')]],
             choice.roles[p.name] ?? p.role,
             (v) => {
               choice.roles[p.name] = v;
@@ -145,13 +146,13 @@ export function openAutoRig(app) {
       ),
     );
     fill(
-      h('h3', null, 'AutoRig'),
+      h('h3', null, t('AutoRig')),
       intro,
       problem
         ? h('p', null, problem)
         : !parts?.length
-          ? h('p', null, 'Import layered artwork first: a PSD or SVG with one layer per body part, or one PNG per part, all exported at the same canvas size so each lands where it was drawn.')
-          : h('div', { class: 'autorig-table', 'data-tut': 'autorig:parts' }, h('table', null, h('thead', null, h('tr', null, h('th', null, 'Layer'), h('th', null, 'Part'), h('th', null, 'Side'), h('th', null, 'Found by'))), h('tbody', null, rows))),
+          ? h('p', null, t('Import layered artwork first: a PSD or SVG with one layer per body part, or one PNG per part, all exported at the same canvas size so each lands where it was drawn.'))
+          : h('div', { class: 'autorig-table', 'data-tut': 'autorig:parts' }, h('table', null, h('thead', null, h('tr', null, h('th', null, t('Layer')), h('th', null, t('Part')), h('th', null, t('Side')), h('th', null, t('Found by')))), h('tbody', null, rows))),
       parts?.length
         ? h(
             'div',
@@ -159,7 +160,7 @@ export function openAutoRig(app) {
             h(
               'label',
               null,
-              'Meshes ',
+              t('Meshes '),
               select(
                 [
                   ['deforming', 'for bending parts'],
@@ -176,12 +177,12 @@ export function openAutoRig(app) {
       h(
         'div',
         { class: 'modal-buttons' },
-        h('button', { onclick: importArt('psd') }, parts?.length || problem ? 'Start over from a PSD…' : 'Import PSD…'),
-        h('button', { onclick: importArt('svg') }, parts?.length || problem ? 'Start over from an SVG…' : 'Import SVG…'),
-        h('button', { onclick: importArt('png') }, parts?.length || problem ? 'Start over from PNGs…' : 'Import PNGs…'),
+        h('button', { onclick: importArt('psd') }, parts?.length || problem ? t('Start over from a PSD…') : t('Import PSD…')),
+        h('button', { onclick: importArt('svg') }, parts?.length || problem ? t('Start over from an SVG…') : t('Import SVG…')),
+        h('button', { onclick: importArt('png') }, parts?.length || problem ? t('Start over from PNGs…') : t('Import PNGs…')),
         h('span', { class: 'float-spacer' }),
-        h('button', { onclick: close }, 'Cancel'),
-        h('button', { class: 'primary', 'data-tut': 'autorig:generate', disabled: !parts?.length, onclick: generate }, 'Generate rig'),
+        h('button', { onclick: close }, t('Cancel')),
+        h('button', { class: 'primary', 'data-tut': 'autorig:generate', disabled: !parts?.length, onclick: generate }, t('Generate rig')),
       ),
     );
   };
@@ -198,14 +199,14 @@ export async function openRetarget(app) {
   try {
     ({ doc: source } = await io.openProject(picked.path, picked.fs, new Images()));
   } catch (e) {
-    app.setStatus(`Could not open ${picked.path}: ${log.errorMessage(e)}`);
+    app.setStatus(t('Could not open {path}: {error}', { path: picked.path, error: log.errorMessage(e) }));
     return;
   }
   if (!source.animations.length) {
     app.setStatus(`${picked.path} has no animations to retarget`);
     return;
   }
-  const { body, close } = modal('Retarget', true);
+  const { body, close } = modal(t('Retarget'), true);
   const fill = fillWith(body);
   const choice = { animations: new Set([source.animations[0].name]), mode: 'relative', scale: null, mapping: {}, replace: false };
   const target = app.doc;
@@ -221,12 +222,12 @@ export async function openRetarget(app) {
       app.time = 0;
       app.changed();
       track('editor-retarget');
-      app.setStatus(`Retargeted ${reports.map((r) => r.animation).join(', ')} (scale ${reports[0].scale.toFixed(2)}). Undo reverts it.`);
+      app.setStatus(t('Retargeted {animations} (scale {scale}). Undo reverts it.', { animations: reports.map((r) => r.animation).join(', '), scale: reports[0].scale.toFixed(2) }));
       close();
     } catch (e) {
       if (target.toSnapshot() !== before) app.restore(before);
       log.exception(e, { source: 'retarget' });
-      app.setStatus(`Retarget failed: ${log.errorMessage(e)}`);
+      app.setStatus(t('Retarget failed: {error}', { error: log.errorMessage(e) }));
       draw();
     }
   };
@@ -235,7 +236,7 @@ export async function openRetarget(app) {
     const { pairs, unmapped } = mapBones(source, target, choice.mapping);
     const byS = new Map(pairs.map((p) => [p.source, p]));
     const keyed = new Set(source.animations.filter((a) => choice.animations.has(a.name)).flatMap((a) => a.bones.map((t) => t.bone)));
-    const targetOptions = [['', '— none —'], ...target.bones.map((b) => [b.name, b.name])];
+    const targetOptions = [['', t('— none —')], ...target.bones.map((b) => [b.name, b.name])];
     const sh = skeletonHeight(source);
     const auto = sh > 1e-6 ? skeletonHeight(target) / sh : 1;
     const rows = source.bones
@@ -260,15 +261,15 @@ export async function openRetarget(app) {
       });
     const clash = [...choice.animations].filter((n) => target.animations.some((a) => a.name === n));
     fill(
-      h('h3', null, `Retarget from ${picked.path.split(/[\\/]/).pop()}`),
-      h('p', { class: 'weak' }, 'Bones are matched by name, then by body part. Movement is scaled to this character\'s size. Check the matches of the animated bones below.'),
+      h('h3', null, t('Retarget from {file}', { file: picked.path.split(/[\\/]/).pop() })),
+      h('p', { class: 'weak' }, t('Bones are matched by name, then by body part. Movement is scaled to this character\'s size. Check the matches of the animated bones below.')),
       h(
         'div',
         { class: 'modal-columns' },
         h(
           'div',
           null,
-          h('strong', null, 'Animations'),
+          h('strong', null, t('Animations')),
           h(
             'div',
             { class: 'checklist' },
@@ -293,11 +294,11 @@ export async function openRetarget(app) {
         h(
           'div',
           null,
-          h('strong', null, 'Options'),
+          h('strong', null, t('Options')),
           h(
             'p',
             null,
-            'Rotations ',
+            t('Rotations '),
             select(
               [
                 ['relative', 'relative to each rest pose'],
@@ -310,7 +311,7 @@ export async function openRetarget(app) {
           h(
             'p',
             null,
-            'Movement scale ',
+            t('Movement scale '),
             h('input', {
               type: 'number',
               step: '0.05',
@@ -321,16 +322,16 @@ export async function openRetarget(app) {
             }),
             h('span', { class: 'weak' }, ` (auto ${auto.toFixed(2)})`),
           ),
-          clash.length ? h('label', null, h('input', { type: 'checkbox', checked: choice.replace, onchange: (e) => (choice.replace = e.target.checked) }), ` Replace ${clash.join(', ')}`) : null,
+          clash.length ? h('label', null, h('input', { type: 'checkbox', checked: choice.replace, onchange: (e) => (choice.replace = e.target.checked) }), ' ' + t('Replace {names}', { names: clash.join(', ') })) : null,
         ),
       ),
-      h('div', { class: 'autorig-table' }, h('table', null, h('thead', null, h('tr', null, h('th', null, 'Source bone'), h('th', null, 'This character'), h('th', null, 'Matched by'))), h('tbody', null, rows))),
-      unmapped.some((i) => keyed.has(i)) ? h('p', { class: 'weak' }, 'Keys of unmatched bones are left out.') : null,
+      h('div', { class: 'autorig-table' }, h('table', null, h('thead', null, h('tr', null, h('th', null, t('Source bone')), h('th', null, t('This character')), h('th', null, t('Matched by')))), h('tbody', null, rows))),
+      unmapped.some((i) => keyed.has(i)) ? h('p', { class: 'weak' }, t('Keys of unmatched bones are left out.')) : null,
       h(
         'div',
         { class: 'modal-buttons' },
-        h('button', { onclick: close }, 'Cancel'),
-        h('button', { class: 'primary', disabled: !choice.animations.size || (clash.length > 0 && !choice.replace), onclick: run }, 'Retarget'),
+        h('button', { onclick: close }, t('Cancel')),
+        h('button', { class: 'primary', disabled: !choice.animations.size || (clash.length > 0 && !choice.replace), onclick: run }, t('Retarget')),
       ),
     );
   };

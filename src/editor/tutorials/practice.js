@@ -7,6 +7,7 @@ import { autoRig } from '../../core/autorig.js';
 import { toAffine } from '../../core/math.js';
 import { Skeleton } from '../../core/model.js';
 import { Pose } from '../../core/pose.js';
+import { t } from '../i18n.js';
 
 export const PRACTICE_NAME = 'practice-character';
 /** Effects and extras that are not body parts. */
@@ -58,7 +59,7 @@ export async function openPractice(app, { rigged = false } = {}) {
   app.mode = 'setup';
   app.tool = 'rotate';
   app.frameRequest = true;
-  app.setStatus(rigged ? 'Practice character, rigged: ready to animate' : 'Practice character: loose layers, like a freshly imported PSD');
+  app.setStatus(rigged ? t('Practice character, rigged: ready to animate') : t('Practice character: loose layers, like a freshly imported PSD'));
   return true;
 }
 

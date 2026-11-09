@@ -12,6 +12,7 @@ import { EV_SYNC, EV_CONTROL, EV_CLOSED, EV_PLACE, EV_IMAGE, PANELS, panelLabel 
 import { saveSetting } from './app.js';
 import { keySelectionIndices, applyKeySelection } from './keyorder.js';
 import { byHotkey, layoutHotkeyDigit, loadLayouts } from './layouts.js';
+import { t } from './i18n.js';
 
 // The shortcut matcher lives in layouts.js (no Tauri imports, so it is unit-tested in Node).
 export { layoutHotkeyDigit };
@@ -112,11 +113,11 @@ export function installPanelSync(app, { inTauri, appEl, runForwardedAction }) {
     detachedWindows.set(id, win);
     trackGeom(id, win);
     win.once('tauri://error', (e) => {
-      app.setStatus(`Could not open the ${label} window: ${e.payload}`);
+      app.setStatus(t('Could not open the {name} window: {error}', { name: t(label), error: e.payload }));
       dockPanel(id);
     });
     markLayoutDirty();
-    app.setStatus(`${label} popped out to its own window. Close it to dock it back.`);
+    app.setStatus(t('{name} popped out to its own window. Close it to dock it back.', { name: t(label) }));
   }
 
   function dockPanel(id) {
@@ -166,7 +167,7 @@ export function installPanelSync(app, { inTauri, appEl, runForwardedAction }) {
     const layout = byHotkey(loadLayouts(), digit);
     if (!layout) return false;
     applyLayout(layout.panels, layout.id);
-    app.setStatus(`Window layout: ${layout.name}`);
+    app.setStatus(t('Window layout: {name}', { name: layout.name }));
     return true;
   }
 

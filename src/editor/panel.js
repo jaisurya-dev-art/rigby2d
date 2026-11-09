@@ -18,6 +18,7 @@ import { EV_SYNC, EV_CONTROL, EV_CLOSED, EV_IMAGE, PANELS } from './dock.js';
 import { layoutHotkeyDigit, listenForPlacement } from './panelsync.js';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import { emit, listen } from '@tauri-apps/api/event';
+import { t } from './i18n.js';
 
 // ---- panel views ------------------------------------------------------------------------------
 // A builder returns { el, draw?(), rebuild?(), followsTime?, every? }: el is inserted into the
@@ -28,7 +29,7 @@ function buildTimeline(app) {
   const controls = h('div', { id: 'controls' });
   const dopeDiv = h('div', { id: 'dopesheet' }, h('canvas'));
   const graphDiv = h('div', { id: 'graph', hidden: true }, h('canvas'));
-  const wrap = h('div', { class: 'dopesheet-wrap' }, h('div', { class: 'empty' }, 'No animation. Create one in the editor window.'), dopeDiv, graphDiv);
+  const wrap = h('div', { class: 'dopesheet-wrap' }, h('div', { class: 'empty' }, t('No animation. Create one in the editor window.')), dopeDiv, graphDiv);
   const el = h('section', { id: 'timeline' }, controls, wrap);
   const dopesheet = new Dopesheet(app, dopeDiv, dopeDiv.querySelector('canvas'));
   const graph = new GraphEditor(app, graphDiv, graphDiv.querySelector('canvas'));

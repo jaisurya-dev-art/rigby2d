@@ -27,7 +27,7 @@ self.onmessage = async (e) => {
         const now = Date.now();
         if (now - shown > 100 || done === total) {
           shown = now;
-          self.postMessage({ progress: done / total, text: `Frame ${done} of ${total}` });
+          self.postMessage({ progress: done / total, text: 'Frame {done} of {total}', vars: { done, total } });
         }
       },
     });
@@ -41,7 +41,7 @@ self.onmessage = async (e) => {
         const k = next++;
         const f = result.files[k];
         files[k] = { path: f.path, bytes: f.png ? await encode(f.png) : new TextEncoder().encode(f.text) };
-        if (f.png && ++encoded % 8 === 0) self.postMessage({ progress: 1, text: `Encoding PNG ${encoded} of ${pngs}` });
+        if (f.png && ++encoded % 8 === 0) self.postMessage({ progress: 1, text: 'Encoding PNG {done} of {total}', vars: { done: encoded, total: pngs } });
       }
     };
     await Promise.all(Array.from({ length: Math.max(1, Math.min(8, (self.navigator?.hardwareConcurrency ?? 4) - 1)) }, lane));

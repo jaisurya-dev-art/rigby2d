@@ -4,46 +4,47 @@
 // A binding is a lowercase combo string: optional "ctrl+", "shift+", "alt+" (in that order)
 // followed by a key name ("c", "space", "arrowleft", "delete", "f", "pageup", ...). Ctrl also
 // matches Cmd on macOS.
+import { t, tn } from './i18n.js';
 
 /** Actions in display order: [id, description]. */
 export const ACTIONS = [
-  ['tool.pose', 'Pose tool'],
-  ['tool.create', 'Create bone tool'],
-  ['tool.rotate', 'Rotate tool'],
-  ['tool.translate', 'Translate tool'],
-  ['tool.scale', 'Scale tool'],
-  ['tool.shear', 'Shear tool'],
-  ['mode.toggle', 'Switch Setup / Animate'],
-  ['play.forward', 'Play forward / stop'],
-  ['play.backward', 'Play backward / stop'],
-  ['time.start', 'Go to first frame'],
-  ['time.end', 'Go to last key'],
-  ['key.next', 'Next key'],
-  ['key.previous', 'Previous key'],
-  ['frame.next', 'Next frame'],
-  ['frame.previous', 'Previous frame'],
-  ['frame.next10', 'Forward 10 frames'],
-  ['frame.previous10', 'Back 10 frames'],
-  ['loop.toggle', 'Toggle looping'],
-  ['key.changed', 'Key changed properties'],
-  ['key.tool', 'Key the current tool\'s property'],
-  ['key.transforms', 'Key all transforms of the selection'],
-  ['key.shown', 'Key everything shown in the dopesheet'],
-  ['autokey.toggle', 'Toggle auto key'],
-  ['select.none', 'Deselect'],
-  ['view.fit', 'Fit the skeleton in view'],
-  ['view.actual', 'Zoom to 100%'],
-  ['edit.copyKeys', 'Copy selected keys'],
-  ['edit.pasteKeys', 'Paste keys at the playhead'],
-  ['edit.delete', 'Delete selected key, bone or slot'],
-  ['edit.undo', 'Undo'],
-  ['edit.redo', 'Redo'],
-  ['file.open', 'Open'],
-  ['file.save', 'Save'],
-  ['file.saveAs', 'Save as'],
-  ['file.export', 'Export'],
-  ['menu.close', 'Close menus'],
-  ['app.preferences', 'Preferences'],
+  ['tool.pose', tn('Pose tool')],
+  ['tool.create', tn('Create bone tool')],
+  ['tool.rotate', tn('Rotate tool')],
+  ['tool.translate', tn('Translate tool')],
+  ['tool.scale', tn('Scale tool')],
+  ['tool.shear', tn('Shear tool')],
+  ['mode.toggle', tn('Switch Setup / Animate')],
+  ['play.forward', tn('Play forward / stop')],
+  ['play.backward', tn('Play backward / stop')],
+  ['time.start', tn('Go to first frame')],
+  ['time.end', tn('Go to last key')],
+  ['key.next', tn('Next key')],
+  ['key.previous', tn('Previous key')],
+  ['frame.next', tn('Next frame')],
+  ['frame.previous', tn('Previous frame')],
+  ['frame.next10', tn('Forward 10 frames')],
+  ['frame.previous10', tn('Back 10 frames')],
+  ['loop.toggle', tn('Toggle looping')],
+  ['key.changed', tn('Key changed properties')],
+  ['key.tool', tn('Key the current tool\'s property')],
+  ['key.transforms', tn('Key all transforms of the selection')],
+  ['key.shown', tn('Key everything shown in the dopesheet')],
+  ['autokey.toggle', tn('Toggle auto key')],
+  ['select.none', tn('Deselect')],
+  ['view.fit', tn('Fit the skeleton in view')],
+  ['view.actual', tn('Zoom to 100%')],
+  ['edit.copyKeys', tn('Copy selected keys')],
+  ['edit.pasteKeys', tn('Paste keys at the playhead')],
+  ['edit.delete', tn('Delete selected key, bone or slot')],
+  ['edit.undo', tn('Undo')],
+  ['edit.redo', tn('Redo')],
+  ['file.open', tn('Open')],
+  ['file.save', tn('Save')],
+  ['file.saveAs', tn('Save as')],
+  ['file.export', tn('Export')],
+  ['menu.close', tn('Close menus')],
+  ['app.preferences', tn('Preferences')],
 ];
 
 const COMMON = {
@@ -64,7 +65,7 @@ const COMMON = {
 export const PRESETS = {
   // The id stays 'reference' so saved preferences keep working.
   reference: {
-    label: 'Spine-like (default)',
+    label: tn('Spine-like (default)'),
     bindings: {
       ...COMMON,
       'tool.pose': ['b'],
@@ -96,7 +97,7 @@ export const PRESETS = {
     },
   },
   blender: {
-    label: 'Blender-like',
+    label: tn('Blender-like'),
     bindings: {
       ...COMMON,
       'tool.rotate': ['r'],
@@ -284,7 +285,7 @@ export function importKeymapFile(text) {
 
 /** Makes `custom` the preset 'custom' (or removes it, with null). */
 export function registerCustom(custom) {
-  if (custom) PRESETS.custom = { label: 'Custom', bindings: customBindings(custom) };
+  if (custom) PRESETS.custom = { label: t('Custom'), bindings: customBindings(custom) };
   else delete PRESETS.custom;
 }
 

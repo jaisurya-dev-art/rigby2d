@@ -124,7 +124,7 @@ async function offerUpdate(app, update) {
     const { relaunch } = await import('@tauri-apps/plugin-process');
     await relaunch();
   } catch (e) {
-    log.exception(e, { source: 'updates', context: 'Update failed' });
+    log.exception(e, { source: 'updates', context: t('Update failed') });
     app.setStatus(t('The update failed: {error}', { error: e?.message ?? e }));
   }
 }

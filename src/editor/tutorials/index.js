@@ -6,6 +6,7 @@ import { h } from '../widgets.js';
 import { runArena } from './arena.js';
 import { Coach, finishedLessons, resetProgress } from './coach.js';
 import { LESSONS } from './lessons.js';
+import { t } from '../i18n.js';
 
 const WELCOMED = 'rigby.welcomed.v2';
 
@@ -37,7 +38,7 @@ export function createTutorials(app, viewport, { refresh = () => {} } = {}) {
     // At the end of a lesson, offer the next one.
     onFinish: (lesson) => {
       const next = LESSONS[LESSONS.indexOf(lesson) + 1];
-      app.setStatus(`Lesson complete: ${lesson.title}`);
+      app.setStatus(t('Lesson complete: {title}', { title: t(lesson.title) }));
       if (next) open(next.id);
     },
   });
@@ -57,8 +58,8 @@ export function createTutorials(app, viewport, { refresh = () => {} } = {}) {
     const done = finishedLessons();
     const suggested = highlight ?? LESSONS.find((l) => !done.has(l.id))?.id ?? LESSONS[0].id;
     modal((close) => [
-      h('h3', null, 'Tutorials'),
-      h('p', { class: 'weak' }, 'Short, hands-on lessons. Each one points at the buttons to use and moves on when you have done a step. Start with the first one if Rigby2D is new to you.'),
+      h('h3', null, t('Tutorials')),
+      h('p', { class: 'weak' }, t('Short, hands-on lessons. Each one points at the buttons to use and moves on when you have done a step. Start with the first one if Rigby2D is new to you.')),
       h(
         'div',
         { class: 'lesson-list' },
@@ -67,7 +68,7 @@ export function createTutorials(app, viewport, { refresh = () => {} } = {}) {
             'div',
             { class: `lesson${l.id === suggested ? ' suggested' : ''}` },
             h('div', { class: 'lesson-mark' }, done.has(l.id) ? '✓' : ''),
-            h('div', { class: 'lesson-text' }, h('div', { class: 'lesson-title' }, l.title, h('span', { class: 'weak small' }, ` · ${l.minutes} min`)), h('div', { class: 'small weak' }, l.summary)),
+            h('div', { class: 'lesson-text' }, h('div', { class: 'lesson-title' }, t(l.title), h('span', { class: 'weak small' }, ' · ' + t('{minutes} min', { minutes: l.minutes }))), h('div', { class: 'small weak' }, t(l.summary))),
             h(
               'button',
               {
@@ -77,12 +78,12 @@ export function createTutorials(app, viewport, { refresh = () => {} } = {}) {
                   start(l);
                 },
               },
-              done.has(l.id) ? 'Again' : 'Start',
+              done.has(l.id) ? t('Again') : t('Start'),
             ),
           ),
         ),
       ),
-      h('p', { class: 'small weak' }, 'More lessons are coming: smooth motion and curves, meshes, IK, faces and lip-sync, film rendering, game export, retargeting and scripting.'),
+      h('p', { class: 'small weak' }, t('More lessons are coming: smooth motion and curves, meshes, IK, faces and lip-sync, film rendering, game export, retargeting and scripting.')),
       h(
         'div',
         { class: 'modal-buttons' },
@@ -90,18 +91,18 @@ export function createTutorials(app, viewport, { refresh = () => {} } = {}) {
           ? h(
               'button',
               {
-                title: 'Mark every lesson as not done, to take the course again',
+                title: t('Mark every lesson as not done, to take the course again'),
                 onclick: () => {
                   resetProgress();
                   close();
                   open();
                 },
               },
-              'Reset progress',
+              t('Reset progress'),
             )
           : null,
         h('span', { class: 'float-spacer' }),
-        h('button', { onclick: close }, 'Close'),
+        h('button', { onclick: close }, t('Close')),
       ),
     ]);
   }
@@ -116,8 +117,8 @@ export function createTutorials(app, viewport, { refresh = () => {} } = {}) {
     }
     if (seen || document.querySelector('.modal-backdrop')) return;
     modal((close) => [
-      h('h3', null, 'Welcome to Rigby2D'),
-      h('p', null, 'New here? A 4-minute tour shows you around, and the next lessons take you from a drawing to a moving character.'),
+      h('h3', null, t('Welcome to Rigby2D')),
+      h('p', null, t('New here? A 4-minute tour shows you around, and the next lessons take you from a drawing to a moving character.')),
       h(
         'div',
         { class: 'modal-buttons' },
@@ -133,7 +134,7 @@ export function createTutorials(app, viewport, { refresh = () => {} } = {}) {
               close();
             },
           },
-          'Not now',
+          t('Not now'),
         ),
         h(
           'button',
@@ -144,10 +145,10 @@ export function createTutorials(app, viewport, { refresh = () => {} } = {}) {
               start(LESSONS[0]);
             },
           },
-          'Start the tour',
+          t('Start the tour'),
         ),
       ),
-      h('p', { class: 'small weak' }, 'You can find the lessons any time in Help ▸ Tutorials.'),
+      h('p', { class: 'small weak' }, t('You can find the lessons any time in Help ▸ Tutorials.')),
     ]);
   }
 

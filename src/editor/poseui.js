@@ -10,6 +10,7 @@ import { h, select, textField } from './widgets.js';
 import { has } from './workspaces.js';
 import { frameLevels, tracksOf } from './audio.js';
 import { FPS } from './app.js';
+import { t } from './i18n.js';
 
 /** Section state that survives panel rebuilds. */
 const ui = { open: false, name: '', amount: 1, controllerName: '', controllerTo: '' };
@@ -40,7 +41,7 @@ function savePose(app, name) {
   const slots = app.doc.slots.map((s, i) => (set.has(s.bone) ? i : -1)).filter((i) => i >= 0);
   const pose = capturePose(app.doc, app.pose(), uniquePoseName(app, name), bones, slots);
   app.doc.poses.push(pose);
-  app.setStatus(`Saved pose '${pose.name}': ${bones.length} bone(s), ${slots.length} slot(s)`);
+  app.setStatus(t("Saved pose '{name}': {bones} bone(s), {slots} slot(s)", { name: pose.name, bones: bones.length, slots: slots.length }));
 }
 
 function poseRow(app, pose, index) {
@@ -52,33 +53,33 @@ function poseRow(app, pose, index) {
       'button',
       {
         class: 'small',
-        title: app.mode === Mode.Animate ? 'Key this pose at the current frame' : 'Set the setup pose to this pose',
+        title: app.mode === Mode.Animate ? t('Key this pose at the current frame') : t('Set the setup pose to this pose'),
         onclick: () => {
           write(app, applyAmount(app.doc, app.pose(), pose, ui.amount));
-          app.setStatus(`Applied pose '${pose.name}'${ui.amount < 1 ? ` at ${Math.round(ui.amount * 100)}%` : ''}${app.mode === Mode.Animate ? ' as keys' : ''}`);
+          app.setStatus(t("Applied pose '{name}'", { name: pose.name }) + (ui.amount < 1 ? t(' at {percent}%', { percent: Math.round(ui.amount * 100) }) : '') + (app.mode === Mode.Animate ? t(' as keys') : ''));
         },
       },
-      'Apply',
+      t('Apply'),
     ),
     h(
       'button',
       {
         class: 'small',
-        title: 'Replace with the current pose of the same bones',
+        title: t('Replace with the current pose of the same bones'),
         onclick: () => {
           const bones = Object.keys(pose.bones).map((n) => app.doc.bones.findIndex((b) => b.name === n)).filter((i) => i >= 0);
           const slots = Object.keys(pose.slots).map((n) => app.doc.slots.findIndex((s) => s.name === n)).filter((i) => i >= 0);
           app.doc.poses[index] = capturePose(app.doc, app.pose(), pose.name, bones, slots);
-          app.setStatus(`Updated pose '${pose.name}'`);
+          app.setStatus(t("Updated pose '{name}'", { name: pose.name }));
         },
       },
-      'Update',
+      t('Update'),
     ),
     h(
       'button',
       {
         class: 'small',
-        title: 'Delete this pose',
+        title: t('Delete this pose'),
         onclick: () => {
           app.doc.poses.splice(index, 1);
           app.doc.controllers = app.doc.controllers.filter((c) => c.to !== pose.name && c.from !== pose.name);
@@ -110,7 +111,7 @@ function controllerRow(app, c, index) {
     max: 1,
     step: 0.01,
     value: c.value,
-    title: app.mode === Mode.Animate ? 'Drag to key the blend at the current frame' : 'Drag to blend the setup pose',
+    title: app.mode === Mode.Animate ? t('Drag to key the blend at the current frame') : t('Drag to blend the setup pose'),
     onpointerdown: begin,
     onkeydown: (e) => {
       e.stopPropagation();
@@ -128,7 +129,7 @@ function controllerRow(app, c, index) {
   return h(
     'div',
     { class: 'controller' },
-    h('div', { class: 'controller-head' }, h('strong', null, c.name), h('span', { class: 'small weak' }, ` ${Math.round(c.value * 100)}%`), h('button', { class: 'small', title: 'Key this control from the loudness of the animation\'s audio (mouth open on speech)', onclick: () => lipSync(app, c) }, 'Lip-sync'), h('button', { class: 'small', title: 'Delete this controller', onclick: () => (app.doc.controllers.splice(index, 1), app.changed()) }, '✕')),
+    h('div', { class: 'controller-head' }, h('strong', null, c.name), h('span', { class: 'small weak' }, ` ${Math.round(c.value * 100)}%`), h('button', { class: 'small', title: t('Key this control from the loudness of the animation\'s audio (mouth open on speech)'), onclick: () => lipSync(app, c) }, t('Lip-sync')), h('button', { class: 'small', title: t('Delete this controller'), onclick: () => (app.doc.controllers.splice(index, 1), app.changed()) }, '✕')),
     slider,
     h(
       'div',
@@ -144,10 +145,10 @@ function controllerRow(app, c, index) {
 function lipSync(app, c) {
   const anim = app.currentAnimation();
   const track = anim && tracksOf(app.doc, anim.name)[0];
-  if (app.mode !== Mode.Animate || !track) return app.setStatus('Lip-sync needs Animate mode and an audio track on this animation (Import audio)');
+  if (app.mode !== Mode.Animate || !track) return app.setStatus(t('Lip-sync needs Animate mode and an audio track on this animation (Import audio)'));
   const to = app.doc.poses.find((p) => p.name === c.to);
   const from = c.from ? app.doc.poses.find((p) => p.name === c.from) : null;
-  if (!to) return app.setStatus(`Pose '${c.to}' not found`);
+  if (!to) return app.setStatus(t("Pose '{name}' not found", { name: c.to }));
   const frames = Math.max(1, Math.round(anim.duration * FPS)) + 1;
   const levels = frameLevels(track, FPS, frames);
   const time = app.time;
@@ -156,7 +157,7 @@ function lipSync(app, c) {
     write(app, blendPoses(app.doc, app.pose(), from, to, levels[f]));
   }
   app.time = time;
-  app.setStatus(`Lip-sync: keyed '${c.name}' on ${frames} frames from ${track.sound}`);
+  app.setStatus(t("Lip-sync: keyed '{name}' on {frames} frames from {sound}", { name: c.name, frames, sound: track.sound }));
 }
 
 /** The inspector section. */
@@ -167,26 +168,26 @@ export function posesUi(app) {
   const details = h(
     'details',
     { class: 'poses', open: ui.open, ontoggle: (e) => (ui.open = e.target.open) },
-    h('summary', null, h('strong', null, faces ? 'Poses & face controls' : 'Poses'), h('span', { class: 'small weak' }, ` ${doc.poses.length} pose${doc.poses.length === 1 ? '' : 's'}${faces ? `, ${doc.controllers.length} control${doc.controllers.length === 1 ? '' : 's'}` : ''}`)),
+    h('summary', null, h('strong', null, faces ? t('Poses & face controls') : t('Poses')), h('span', { class: 'small weak' }, ' ' + t('{count} pose(s)', { count: doc.poses.length }) + (faces ? ', ' + t('{count} control(s)', { count: doc.controllers.length }) : ''))),
     h(
       'div',
       { class: 'pose-save' },
       textField(ui.name, (v) => (ui.name = v), { width: '100%' }),
-      h('button', { title: selected ? `Save the pose of the ${selected} selected bone(s) and the images of their slots` : 'Save the pose of every bone', onclick: () => savePose(app, ui.name || (selected ? 'pose' : 'full pose')) }, selected ? `Save pose (${selected})` : 'Save pose (all)'),
+      h('button', { title: selected ? t('Save the pose of the {count} selected bone(s) and the images of their slots', { count: selected }) : t('Save the pose of every bone'), onclick: () => savePose(app, ui.name || (selected ? 'pose' : 'full pose')) }, selected ? t('Save pose ({count})', { count: selected }) : t('Save pose (all)')),
     ),
     doc.poses.length
       ? [
           h(
             'div',
             { class: 'pose-amount small' },
-            'Apply at ',
+            t('Apply at '),
             h('input', { type: 'range', min: 0.05, max: 1, step: 0.05, value: ui.amount, oninput: (e) => (ui.amount = Number(e.target.value)) }),
             ` ${Math.round(ui.amount * 100)}%`,
           ),
           doc.poses.map((p, i) => poseRow(app, p, i)),
         ]
-      : h('div', { class: 'small weak' }, 'Pose bones (select some to save only those), name the pose and save it. Mouth shapes and other image swaps are saved with it.'),
-    faces && h('div', { class: 'section-title' }, 'Face controls'),
+      : h('div', { class: 'small weak' }, t('Pose bones (select some to save only those), name the pose and save it. Mouth shapes and other image swaps are saved with it.')),
+    faces && h('div', { class: 'section-title' }, t('Face controls')),
     faces && doc.controllers.map((c, i) => controllerRow(app, c, i)),
     !faces
       ? null
@@ -211,10 +212,10 @@ export function posesUi(app) {
                 app.changed();
               },
             },
-            'Add control',
+            t('Add control'),
           ),
         )
-      : h('div', { class: 'small weak' }, 'Save poses first, then add sliders that blend to them (for example brows up, eyes closed, mouth open).'),
+      : h('div', { class: 'small weak' }, t('Save poses first, then add sliders that blend to them (for example brows up, eyes closed, mouth open).')),
   );
   return [h('hr'), details];
 }

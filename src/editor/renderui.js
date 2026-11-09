@@ -11,11 +11,12 @@ import { h, select } from './widgets.js';
 import { pausePlayback, showResult } from './resultui.js';
 import { mixWav } from './audio.js';
 import { clipTracks } from './actors.js';
+import { t, tn } from './i18n.js';
 
 const QUALITIES = [
-  ['high', 'High'],
-  ['medium', 'Medium'],
-  ['low', 'Low'],
+  ['high', tn('High')],
+  ['medium', tn('Medium')],
+  ['low', tn('Low')],
 ];
 
 /** File-name-safe text. */
@@ -28,7 +29,7 @@ let last = { format: 'png', quality: 'high', merge: false };
 export function openRenderDialog(app) {
   const doc = app.doc;
   if (!doc.animations.length) {
-    app.setStatus('Nothing to render: create an animation first');
+    app.setStatus(t('Nothing to render: create an animation first'));
     return;
   }
   const s = doc.settings;
@@ -83,9 +84,9 @@ export function openRenderDialog(app) {
         ? h(
             'div',
             { class: 'small' },
-            h('a', { href: '#', onclick: (e) => (e.preventDefault(), items.forEach(([v]) => set.add(v)), draw()) }, `All ${label}`),
+            h('a', { href: '#', onclick: (e) => (e.preventDefault(), items.forEach(([v]) => set.add(v)), draw()) }, t('All {items}', { items: label })),
             ' · ',
-            h('a', { href: '#', onclick: (e) => (e.preventDefault(), set.clear(), draw()) }, 'None'),
+            h('a', { href: '#', onclick: (e) => (e.preventDefault(), set.clear(), draw()) }, t('None')),
           )
         : null,
     );
@@ -112,18 +113,18 @@ export function openRenderDialog(app) {
     const range = single ? frameRange(doc, single.animation, s.fps, single.start, single.end) : null;
     const video = choice.format !== 'png';
     const parts = [
-      h('h3', null, 'Render animation'),
-      h('div', { class: 'small weak' }, `${describeOutput(s)} · ${s.background ? 'background color' : 'transparent background'} · ${s.frame ? 'fixed framing' : 'framing fits each animation'}. Change these in the project's Output settings.`),
-      h('div', { class: 'modal-columns' }, h('div', null, h('strong', null, 'Animations'), checkList(doc.animations.map((a, i) => [i, a.name]), choice.animations, 'animations')), doc.skins.length ? h('div', null, h('strong', null, 'Skins'), checkList([['', 'default'], ...doc.skins.map((k) => [k.name, k.name])], choice.skins, 'skins')) : null),
+      h('h3', null, t('Render animation')),
+      h('div', { class: 'small weak' }, `${describeOutput(s)} · ${s.background ? t('background color') : t('transparent background')} · ${s.frame ? t('fixed framing') : t('framing fits each animation')}. ${t("Change these in the project's Output settings.")}`),
+      h('div', { class: 'modal-columns' }, h('div', null, h('strong', null, t('Animations')), checkList(doc.animations.map((a, i) => [i, a.name]), choice.animations, 'animations')), doc.skins.length ? h('div', null, h('strong', null, t('Skins')), checkList([['', 'default'], ...doc.skins.map((k) => [k.name, k.name])], choice.skins, 'skins')) : null),
       h(
         'div',
         { class: 'grid' },
-        h('label', null, 'Format'),
+        h('label', null, t('Format')),
         h(
           'div',
           { class: 'cell' },
           select(
-            FORMATS.map(([v, label]) => [v, v !== 'png' && !canEncodeVideo() ? `${label} (not available here)` : label]),
+            FORMATS.map(([v, label]) => [v, v !== 'png' && !canEncodeVideo() ? t('{format} (not available here)', { format: t(label) }) : t(label)]),
             choice.format,
             (v) => {
               choice.format = v;
@@ -131,18 +132,18 @@ export function openRenderDialog(app) {
             },
           ),
         ),
-        video ? h('label', null, 'Quality') : null,
+        video ? h('label', null, t('Quality')) : null,
         video
           ? h(
               'div',
               { class: 'cell' },
-              select(QUALITIES, choice.quality, (v) => {
+              select(QUALITIES.map(([id, label]) => [id, t(label)]), choice.quality, (v) => {
                 choice.quality = v;
                 draw();
               }),
             )
           : null,
-        single ? h('label', null, 'Frames') : null,
+        single ? h('label', null, t('Frames')) : null,
         single
           ? h(
               'div',
@@ -166,14 +167,14 @@ export function openRenderDialog(app) {
                 draw();
               },
             }),
-            ` Merge into one video (the ${list.length} renders back to back)`,
+            ' ' + t('Merge into one video (the {count} renders back to back)', { count: list.length }),
           )
         : null,
-      choice.format === 'mp4' && !s.background ? h('div', { class: 'small weak' }, 'MP4 has no transparency: the background is black. Pick a background color in Output, or render WebM or PNG for transparency.') : null,
-      h('div', { class: 'small' }, list.length ? `${merged(list) ? '1 video' : `${list.length} render${list.length === 1 ? '' : 's'}`}, ${frames} frame${frames === 1 ? '' : 's'} in all.` : 'Pick at least one animation and skin.'),
+      choice.format === 'mp4' && !s.background ? h('div', { class: 'small weak' }, t('MP4 has no transparency: the background is black. Pick a background color in Output, or render WebM or PNG for transparency.')) : null,
+      h('div', { class: 'small' }, list.length ? (merged(list) ? t('1 video') : t('{count} render(s)', { count: list.length })) + ', ' + t('{count} frame(s) in all.', { count: frames }) : t('Pick at least one animation and skin.')),
       running ? h('div', { class: 'progress' }, h('div', { class: 'bar', style: { width: `${Math.round(running.fraction * 100)}%` } })) : null,
       running ? h('div', { class: 'small' }, running.text) : null,
-      h('div', { class: 'modal-buttons' }, h('button', { onclick: close }, running ? 'Cancel' : 'Close'), h('button', { class: 'primary', disabled: !list.length || !!running, onclick: () => start(list) }, 'Render…')),
+      h('div', { class: 'modal-buttons' }, h('button', { onclick: close }, running ? t('Cancel') : t('Close')), h('button', { class: 'primary', disabled: !list.length || !!running, onclick: () => start(list) }, t('Render…'))),
     ];
     body.replaceChildren(...parts.filter(Boolean));
   }
@@ -185,12 +186,12 @@ export function openRenderDialog(app) {
     if (merged(list)) return startMerged(list);
     const first = list[0];
     const ext = first.format === 'png' ? 'png' : first.format;
-    const label = { png: 'PNG image', webm: 'WebM video', mp4: 'MP4 video' }[first.format];
+    const label = { png: 'PNG image', webm: t('WebM video'), mp4: 'MP4 video' }[first.format];
     let target;
     try {
       target = await platform.pickSaveTarget(`${first.name}${first.format === 'png' ? '_0000' : ''}.${ext}`, label, ext, { single: list.length === 1 && first.format !== 'png' });
     } catch (e) {
-      showResult(app, { ok: false, title: 'Render failed', detail: String(e?.message ?? e) });
+      showResult(app, { ok: false, title: t('Render failed'), detail: String(e?.message ?? e) });
       return;
     }
     if (!target) return;
@@ -199,7 +200,7 @@ export function openRenderDialog(app) {
     const dir = dirname(target.path);
     const pathFor = (name) => (dir === '.' ? name : joinPath(dir, name));
     const total = list.reduce((n, j) => n + frameRange(doc, j.animation, s.fps, j.start, j.end).count, 0);
-    running = { cancelled: false, fraction: 0, text: 'Starting…' };
+    running = { cancelled: false, fraction: 0, text: t('Starting…') };
     draw();
     let done = 0;
     let written = 0;
@@ -233,7 +234,7 @@ export function openRenderDialog(app) {
       running = null;
       if (!cancelled) track('editor-render');
       if (cancelled) {
-        app.setStatus(`Render cancelled after ${written} file(s)`);
+        app.setStatus(t('Render cancelled after {count} file(s)', { count: written }));
         draw();
       } else {
         close();
@@ -243,7 +244,7 @@ export function openRenderDialog(app) {
     } catch (e) {
       running = null;
       draw();
-      showResult(app, { ok: false, title: 'Render failed', detail: String(e?.message ?? e) });
+      showResult(app, { ok: false, title: t('Render failed'), detail: String(e?.message ?? e) });
     }
   }
 
@@ -254,16 +255,16 @@ export function openRenderDialog(app) {
     const name = `${safe(doc.name || 'render')}_${list.length === doc.animations.length * Math.max(1, choice.skins.size) ? 'all' : `${list.length}_animations`}`;
     let target;
     try {
-      target = await platform.pickSaveTarget(`${name}.${ext}`, { webm: 'WebM video', mp4: 'MP4 video' }[ext], ext, { single: true });
+      target = await platform.pickSaveTarget(`${name}.${ext}`, { webm: t('WebM video'), mp4: 'MP4 video' }[ext], ext, { single: true });
     } catch (e) {
-      showResult(app, { ok: false, title: 'Render failed', detail: String(e?.message ?? e) });
+      showResult(app, { ok: false, title: t('Render failed'), detail: String(e?.message ?? e) });
       return;
     }
     if (!target) return;
     pausePlayback(app);
     last = { format: first.format, quality: first.quality, merge: true };
     const dir = dirname(target.path);
-    running = { cancelled: false, fraction: 0, text: 'Starting…' };
+    running = { cancelled: false, fraction: 0, text: t('Starting…') };
     draw();
     try {
       const files = await renderMerged(doc, app.images, list, name, (n, count, k) => {
@@ -280,15 +281,15 @@ export function openRenderDialog(app) {
       if (files) track('editor-render-batch');
       if (files) {
         close();
-        showResult(app, { ok: true, title: 'Render complete', detail: `${list.length} animations in one video.`, path: target.path });
+        showResult(app, { ok: true, title: t('Render complete'), detail: `${list.length} animations in one video.`, path: target.path });
       } else {
-        app.setStatus('Render cancelled');
+        app.setStatus(t('Render cancelled'));
         draw();
       }
     } catch (e) {
       running = null;
       draw();
-      showResult(app, { ok: false, title: 'Render failed', detail: String(e?.message ?? e) });
+      showResult(app, { ok: false, title: t('Render failed'), detail: String(e?.message ?? e) });
     }
   }
 

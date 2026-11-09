@@ -15,6 +15,7 @@ import { MeshTool } from './meshtool.js';
 import { ShapeTool } from './shapetool.js';
 import { GLOW_COLORS } from './draworderdnd.js';
 import { h, popupMenu } from './widgets.js';
+import { t, tn } from './i18n.js';
 
 const SELECTED = 'rgb(255,170,40)';
 const BONE = 'rgb(110,200,230)';
@@ -867,20 +868,20 @@ export class Viewport {
       },
     });
     const items = [
-      { label: 'Add main diagonal', action: add('d') },
-      { label: 'Add antidiagonal', action: add('a') },
+      { label: t('Add main diagonal'), action: add('d') },
+      { label: t('Add antidiagonal'), action: add('a') },
       'separator',
-      { label: 'Add vertical guide', action: add('x') },
-      { label: 'Add horizontal guide', action: add('y') },
+      { label: t('Add vertical guide'), action: add('x') },
+      { label: t('Add horizontal guide'), action: add('y') },
     ];
     const dels = [];
-    if (count('x')) dels.push(remove(`Delete all vertical (${count('x')})`, 'x'));
-    if (count('y')) dels.push(remove(`Delete all horizontal (${count('y')})`, 'y'));
-    if (count('d')) dels.push(remove(`Delete all diagonal (${count('d')})`, 'd'));
-    if (count('a')) dels.push(remove(`Delete all antidiagonal (${count('a')})`, 'a'));
+    if (count('x')) dels.push(remove(t('Delete all vertical ({count})', { count: count('x') }), 'x'));
+    if (count('y')) dels.push(remove(t('Delete all horizontal ({count})', { count: count('y') }), 'y'));
+    if (count('d')) dels.push(remove(t('Delete all diagonal ({count})', { count: count('d') }), 'd'));
+    if (count('a')) dels.push(remove(t('Delete all antidiagonal ({count})', { count: count('a') }), 'a'));
     if (g.lines.length) {
       dels.push({
-        label: `Delete all (${g.lines.length})`,
+        label: t('Delete all ({count})', { count: g.lines.length }),
         action: () => {
           g.lines.length = 0;
           app.changed();
@@ -893,12 +894,12 @@ export class Viewport {
 
   drawOverlay() {
     const app = this.app;
-    let text = 'SETUP';
+    let text = t('SETUP');
     if (app.mode === Mode.Animate) {
-      const at = has(app, 'timecode') ? timecode(app.time, FPS) : `frame ${Math.round(app.time * FPS)}`;
-      text = `ANIMATE · ${app.currentAnimation()?.name ?? ''} · ${at}`;
+      const at = has(app, 'timecode') ? timecode(app.time, FPS) : t('frame {frame}', { frame: Math.round(app.time * FPS) });
+      text = `${t('ANIMATE')} · ${app.currentAnimation()?.name ?? ''} · ${at}`;
     }
-    text += `   ${TOOLS.find((t) => t.id === app.tool)?.label ?? ''}`;
+    text += `   ${t(TOOLS.find((tool) => tool.id === app.tool)?.label ?? '')}`;
     const ctx = this.ctx;
     // Shift clear of the rulers when guides are on, so the status text isn't hidden under them.
     const ox = app.guides.enabled ? RULER_W + 6 : 10;
@@ -1121,7 +1122,7 @@ export class Viewport {
     const add = this.press?.add;
     let drag = null;
     if (app.tool === 'create') {
-      if (app.mode === Mode.Animate) app.setStatus('Bones can only be created in Setup mode (Tab)');
+      if (app.mode === Mode.Animate) app.setStatus(t('Bones can only be created in Setup mode (Tab)'));
       else drag = { kind: 'create', index: selBone(app.sel) ?? 0 };
     } else if (add) {
       drag = { kind: 'box', from: press, to: press };
@@ -1155,7 +1156,7 @@ export class Viewport {
       if (drag?.kind === 'bones' && app.tool === 'shear') {
         const b = hit && selBone(hit) !== null ? selBone(hit) : selBone(app.sel);
         drag.shearMode = this.pickShearMode(pose, b, press);
-        app.setStatus(`Shear: ${{ x: 'X axis', y: 'Y axis', free: 'free' }[drag.shearMode]}`);
+        app.setStatus(t('Shear: {mode}', { mode: t({ x: tn('X axis'), y: tn('Y axis'), free: tn('free') }[drag.shearMode]) }));
       }
     }
     this.drag = drag ? { ...drag, start, last: start } : null;
@@ -1444,7 +1445,7 @@ export class Viewport {
     for (const h of hits) bones.add(h);
     app.multi = bones;
     app.sel = bones.size ? { bone: hits[0] ?? [...bones][0] } : null;
-    app.setStatus(bones.size ? `${bones.size} bone${bones.size === 1 ? '' : 's'} selected` : 'Nothing selected');
+    app.setStatus(bones.size ? (bones.size === 1 ? t('1 bone selected') : t('{count} bones selected', { count: bones.size })) : t('Nothing selected'));
   }
 
   /** Bones without a selected ancestor (their descendants move with them). */
@@ -1525,7 +1526,7 @@ export class Viewport {
     const att = pose.slotAttachment(app.doc, s);
     if (!att) return;
     if (!att.offset) {
-      app.status = 'Only region images can be moved with the transform tools; meshes follow their bones';
+      app.status = t('Only region images can be moved with the transform tools; meshes follow their bones');
       return;
     }
     const boneWorld = pose.world[app.doc.slots[s].bone];
@@ -1550,7 +1551,7 @@ export class Viewport {
         break;
     }
     if (app.mode === Mode.Animate) {
-      app.status = 'Image placement is part of the setup pose; animate bones to move images over time';
+      app.status = t('Image placement is part of the setup pose; animate bones to move images over time');
     }
   }
 
@@ -1564,7 +1565,7 @@ export class Viewport {
     const setup = transform(p[0], p[1], (Math.atan2(d[1], d[0]) * 180) / Math.PI);
     const i = app.doc.addBone(makeBone(name, parent, setup, Math.hypot(d[0], d[1])));
     app.sel = { bone: i };
-    app.setStatus(`Created ${name}: drag again to chain a child bone`);
+    app.setStatus(t('Created {name}: drag again to chain a child bone', { name }));
   }
 }
 

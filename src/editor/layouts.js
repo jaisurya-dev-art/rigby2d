@@ -7,6 +7,7 @@
 // A layout is { id, name, hotkey, panels }, where hotkey is a digit 0–9 (an optional
 // Ctrl+Alt+<digit> shortcut) or null, and panels is { [panelId]: { x, y, w, h } } — a panel listed
 // here is detached at that spot; one left out is docked.
+import { t } from './i18n.js';
 
 const STORE = 'rigby.layouts';
 

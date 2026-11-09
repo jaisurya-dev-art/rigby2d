@@ -59,9 +59,17 @@ log.installCapture(app);
 // The interface language: the preference, or the system's.
 const applyLanguage = () => setLanguage(app.prefs.get('interface.language') || languageFor(navigator.languages ?? [navigator.language]));
 applyLanguage();
+app.status = t(app.status); // set before the language was known
+/** Static text in index.html, marked data-i18n (text) and data-i18n-title. */
+const translateStatic = () => {
+  for (const el of document.querySelectorAll('[data-i18n]')) el.textContent = t((el.dataset.i18n ||= el.textContent));
+  for (const el of document.querySelectorAll('[data-i18n-title]')) el.title = t((el.dataset.i18nTitle ||= el.title));
+};
+translateStatic();
 app.prefs.onChange((key) => {
   if (key === 'interface.language' || key === null) {
     applyLanguage();
+    translateStatic();
     app.changed();
   }
 });
@@ -105,8 +113,8 @@ function menus() {
       submenuItem(t('Recover'), () => recovery.menu(), { title: t('Unsaved work kept by auto-save, or discarded at the last quit') }),
       { label: t('Open demo…'), action: () => openDemoPicker(app) },
       'separator',
-      { label: t('Save'), shortcut: 'Ctrl+S', action: () => app.save(false) },
-      { label: t('Save as…'), shortcut: 'Ctrl+Shift+S', action: () => app.save(true) },
+      { label: t('Save'), shortcut: t('Ctrl+S'), action: () => app.save(false) },
+      { label: t('Save as…'), shortcut: t('Ctrl+Shift+S'), action: () => app.save(true) },
       'separator',
       submenuItem(t('Import'), [
         { label: t('PSD…'), action: () => app.importPsd() },
@@ -123,7 +131,7 @@ function menus() {
       ...(has(app, 'render') ? [{ label: t('Render animation…'), title: t('PNG sequence, WebM or MP4'), action: () => openRenderDialog(app) }] : []),
       { label: t('Share to Discord…'), title: t('Render a GIF or MP4 and post it to the community'), action: () => openShareDialog(app) },
       submenuItem(t('Export'), [
-        { label: t('JSON + atlas…'), shortcut: 'Ctrl+E', action: () => app.exportSkeletonJson(app.saveVersion()) },
+        { label: t('JSON + atlas…'), shortcut: t('Ctrl+E'), action: () => app.exportSkeletonJson(app.saveVersion()) },
         { label: t('Binary .skel + atlas (4.3)…'), action: () => app.exportSkeletonBinary() },
         ...(app.doc.scene ? [] : [{ label: t('Sprite sheet…'), title: t('Animations as frames: a packed sheet with JSON, a Defold atlas, or PNG frames'), action: () => openSpriteSheetDialog(app) }]),
         'separator',
@@ -189,23 +197,23 @@ function menus() {
       { label: t('Zoom to 100%'), shortcut: sc('view.actual'), action: () => zoomActual() },
       'separator',
       ...[
-        ['webgl', 'WebGL'],
-        ['canvas', 'Canvas 2D'],
+        ['webgl', t('WebGL')],
+        ['canvas', t('Canvas 2D')],
       ].map(([id, label]) => ({
         label: `${app.renderer === id ? '● ' : '○ '}${t('Draw with {renderer}', { renderer: label })}`,
         action: () => {
           app.renderer = id;
           saveSetting('rigby.renderer', id);
-          app.setStatus(id === 'webgl' && !viewport.glView ? 'WebGL is not available here; drawing with Canvas 2D' : `Viewport drawing: ${label}`);
+          app.setStatus(id === 'webgl' && !viewport.glView ? t('WebGL is not available here; drawing with Canvas 2D') : t('Viewport drawing: {renderer}', { renderer: label }));
           app.changed();
         },
       })),
       'separator',
       ...Object.entries(PRESETS).map(([id, p]) => ({
-        label: `${app.keymap === id ? '● ' : '○ '}${t('Shortcuts: {name}', { name: p.label })}`,
+        label: `${app.keymap === id ? '● ' : '○ '}${t('Shortcuts: {name}', { name: t(p.label) })}`,
         action: () => {
           app.setKeymap(id);
-          app.setStatus(`Keyboard shortcuts: ${p.label}`);
+          app.setStatus(t('Keyboard shortcuts: {name}', { name: t(p.label) }));
         },
       })),
     ],
@@ -221,7 +229,7 @@ function menus() {
       { label: t('Connect an AI assistant…'), action: () => openAiConnect() },
       'separator',
       submenuItem(t('Community'), [
-        { label: 'Discord', shortcut: '↗', title: t('Show your work, get help, and hear about every release first.'), action: () => openExternal(COMMUNITY_URL) },
+        { label: t('Discord'), shortcut: '↗', title: t('Show your work, get help, and hear about every release first.'), action: () => openExternal(COMMUNITY_URL) },
         { label: t('Devlog'), shortcut: '↗', title: t('Releases and news on rigby2d.com'), action: () => openExternal(DEVLOG_URL) },
         { label: t('Release notes'), shortcut: '↗', action: () => openExternal(LINKS.releaseNotes) },
       ]),
@@ -243,9 +251,9 @@ function menus() {
  */
 function recentItems() {
   const list = recentProjects().filter((e) => e.kind === 'demo' || isDesktop);
-  if (!list.length) return [{ label: isDesktop ? 'No recent projects' : 'No recent demos', disabled: true, action: () => {} }];
+  if (!list.length) return [{ label: isDesktop ? t('No recent projects') : t('No recent demos'), disabled: true, action: () => {} }];
   const entry = (e) => {
-    const { name, folder } = e.kind === 'file' ? splitPath(e.path) : { name: `${e.name ?? e.id} demo`, folder: 'Demo project' };
+    const { name, folder } = e.kind === 'file' ? splitPath(e.path) : { name: t('{name} demo', { name: e.name ?? e.id }), folder: t('Demo project') };
     return h(
       'button',
       {
@@ -260,7 +268,7 @@ function recentItems() {
       h('span', { class: 'shortcut' }, ago(e.time)),
     );
   };
-  return [...list.map(entry), 'separator', { label: 'Clear recent projects', action: () => clearRecentProjects() }];
+  return [...list.map(entry), 'separator', { label: t('Clear recent projects'), action: () => clearRecentProjects() }];
 }
 
 let openTitle = null;
@@ -302,25 +310,25 @@ function buildMenuBar() {
     {
       class: 'onion-notice',
       hidden: true,
-      title: 'Onion-skin predictions are visible in the viewport — click for options',
+      title: t('Onion-skin predictions are visible in the viewport — click for options'),
       onclick: (e) => {
         const r = e.target.getBoundingClientRect();
         popupMenu(r.left, r.bottom, [
-          { label: 'Turn off all predictions', action: () => { app.onion.enabled = false; app.changed(); } },
-          app.onionOverrideCount() ? { label: `Clear per-bone settings (${app.onionOverrideCount()})`, action: () => { app.onion.perBone.clear(); app.changed(); } } : null,
+          { label: t('Turn off all predictions'), action: () => { app.onion.enabled = false; app.changed(); } },
+          app.onionOverrideCount() ? { label: t('Clear per-bone settings ({count})', { count: app.onionOverrideCount() }), action: () => { app.onion.perBone.clear(); app.changed(); } } : null,
         ].filter(Boolean));
       },
     },
-    '◉ Onion skin on',
+    t('◉ Onion skin on'),
   );
   // Workspace switcher: which tools the editor shows for this project.
-  const tabs = Object.values(WORKSPACES).map((ws) => h('button', { class: 'workspace-tab', 'data-tut': `workspace:${ws.id}`, title: ws.description, onclick: () => app.workspace !== ws.id && app.setWorkspace(ws.id) }, ws.label));
-  const switcher = h('div', { class: 'workspaces', 'data-tut': 'workspaces', role: 'tablist', title: 'Workspace' }, tabs);
+  const tabs = Object.values(WORKSPACES).map((ws) => h('button', { class: 'workspace-tab', 'data-tut': `workspace:${ws.id}`, title: t(ws.description), onclick: () => app.workspace !== ws.id && app.setWorkspace(ws.id) }, t(ws.label)));
+  const switcher = h('div', { class: 'workspaces', 'data-tut': 'workspaces', role: 'tablist', title: t('Workspace') }, tabs);
   // In the browser: a way back to the website, and the open file's name (the desktop app shows it
   // in its own title bar).
   const home = inTauri
     ? null
-    : h('a', { class: 'home-link', href: '../', title: 'Rigby2D website: home, documentation and downloads', 'data-goatcounter-click': 'editor-home' }, h('img', { src: markUrl, alt: '', width: 18, height: 18 }), h('span', null, 'Rigby2D'));
+    : h('a', { class: 'home-link', href: '../', title: t('Rigby2D website: home, documentation and downloads'), 'data-goatcounter-click': 'editor-home' }, h('img', { src: markUrl, alt: '', width: 18, height: 18 }), h('span', null, t('Rigby2D')));
   const docTitle = inTauri ? null : h('span', { class: 'doc-title' });
   bar.replaceChildren(
     ...[home, home && h('span', { class: 'vsep' }), ...titles, h('span', { class: 'vsep' }), mode, onionNotice, h('span', { class: 'spacer' }), docTitle, docTitle && h('span', { class: 'spacer' }), updateBadge(app), switcher].filter(Boolean),
@@ -338,22 +346,22 @@ function buildMenuBar() {
     // The notice follows the live onion state, independent of the cached menubar state below.
     onionNotice.hidden = !app.onionActive();
     if (docTitle) {
-      const name = app.path ? app.path.split(/[\\/]/).pop() : `${app.doc.name && app.doc.name !== 'untitled' ? app.doc.name : 'untitled'} (not saved yet)`;
+      const name = app.path ? app.path.split(/[\\/]/).pop() : `${app.doc.name && app.doc.name !== 'untitled' ? app.doc.name : t('untitled')} ${t('(not saved yet)')}`;
       const dirty = app.dirty();
       const text = `${name}${dirty ? ' ●' : ''}`;
       if (text !== shownTitle) {
         shownTitle = text;
         docTitle.textContent = text;
-        docTitle.title = dirty ? `${name}: unsaved changes (File ▸ Save, Ctrl+S)` : name;
+        docTitle.title = dirty ? t('{name}: unsaved changes (File ▸ Save, Ctrl+S)', { name }) : name;
         docTitle.classList.toggle('dirty', dirty);
       }
     }
     const state = `${app.mode}|${app.workspace}|${app.keymap}|${document.documentElement.lang}`;
     if (state === shown) return;
     shown = state;
-    mode.textContent = app.mode === Mode.Setup ? 'SETUP' : 'ANIMATE';
+    mode.textContent = app.mode === Mode.Setup ? t('SETUP') : t('ANIMATE');
     mode.className = `mode ${app.mode}`;
-    mode.title = `Switch Setup / Animate${sc('mode.toggle') ? ` (${sc('mode.toggle')})` : ''}`;
+    mode.title = `${t('Switch Setup / Animate')}${sc('mode.toggle') ? ` (${sc('mode.toggle')})` : ''}`;
     Object.keys(WORKSPACES).forEach((id, i) => {
       tabs[i].className = `workspace-tab${app.workspace === id ? ' active' : ''}`;
       tabs[i].setAttribute('aria-selected', String(app.workspace === id));
@@ -407,7 +415,7 @@ function splitter(el, cssVar, axis, sign, min, max) {
       // Nothing stored.
     }
   });
-  el.title = 'Drag to resize · double-click to reset';
+  el.title = t('Drag to resize · double-click to reset');
 }
 
 splitter($('#split-right'), '--right', 'x', -1, 220, () => window.innerWidth - 360);
@@ -552,9 +560,9 @@ function frame(now) {
   setText($('#status-text'), app.status);
   const errors = log.unreadErrors;
   const badge = $('#status-log');
-  setText(badge, errors ? `⚠ ${errors} error${errors === 1 ? '' : 's'}` : 'Log');
+  setText(badge, errors ? `⚠ ${t('{count} error(s)', { count: errors })}` : t('Log'));
   badge.classList.toggle('has-errors', errors > 0);
-  setText($('#status-info'), `${app.doc.bones.length} bones · ${app.doc.slots.length} slots · ${Math.round(app.view.zoom * 100)}%`);
+  setText($('#status-info'), `${t('{bones} bones · {slots} slots', { bones: app.doc.bones.length, slots: app.doc.slots.length })} · ${Math.round(app.view.zoom * 100)}%`);
 
   app.commitHistory(pointersDown > 0 || isTyping(document.activeElement));
   const title = app.title();

@@ -14,11 +14,12 @@ import { writeWebm } from './webm.js';
 import { encodeAac, encodeOpus, joinBuffers, mixBuffer, wavOf } from '../audio.js';
 import { actors, clipTracks, imageKey } from '../actors.js';
 import { actorSlots, applyParallax, poseActor, setupCameraPosition } from '../../core/scene.js';
+import { tn } from '../i18n.js';
 
 export const FORMATS = [
-  ['png', 'PNG sequence (transparent)'],
-  ['webm', 'WebM video, VP9 (transparent)'],
-  ['mp4', 'MP4 video, H.264'],
+  ['png', tn('PNG sequence (transparent)')],
+  ['webm', tn('WebM video, VP9 (transparent)')],
+  ['mp4', tn('MP4 video, H.264')],
 ];
 
 /** Bits per pixel and frame for each quality. */

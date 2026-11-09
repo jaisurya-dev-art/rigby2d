@@ -9,6 +9,7 @@ import { generateMesh } from '../core/meshgen.js';
 import { Pose } from '../core/pose.js';
 import { setKey } from '../core/animation.js';
 import { FPS, Mode } from './app.js';
+import { t } from './i18n.js';
 
 const VERTEX_HIT = 7;
 const EDGE_HIT = 8;
@@ -268,16 +269,16 @@ export class MeshTool {
     return best;
   }
 
-  commit(t, state, opts) {
-    const removed = writeMesh(this.app.doc, t.slot, t.att, state, opts);
-    if (removed) this.app.setStatus(`Mesh changed: removed ${removed} deform timeline${removed === 1 ? '' : 's'} that no longer match it`);
+  commit(tgt, state, opts) {
+    const removed = writeMesh(this.app.doc, tgt.slot, tgt.att, state, opts);
+    if (removed) this.app.setStatus(t('Mesh changed: removed {count} deform timeline(s) that no longer match it', { count: removed }));
     this.app.changed();
   }
 
   /** Selected vertex indices (the last clicked one is `edit.selected`). */
-  selection(t) {
-    t.edit.selection ??= new Set(t.edit.selected !== null && t.edit.selected !== undefined ? [t.edit.selected] : []);
-    return t.edit.selection;
+  selection(tgt) {
+    tgt.edit.selection ??= new Set(tgt.edit.selected !== null && tgt.edit.selected !== undefined ? [tgt.edit.selected] : []);
+    return tgt.edit.selection;
   }
 
   /** Click on a vertex: select it (Ctrl adds or removes it). */
@@ -294,32 +295,32 @@ export class MeshTool {
   }
 
   down(pos, e) {
-    const t = this.target();
-    if (!t) return;
+    const tgt = this.target();
+    if (!tgt) return;
     const add = e.ctrlKey || e.metaKey;
-    const state = meshState(this.app.doc, t.slot, t.att);
+    const state = meshState(this.app.doc, tgt.slot, tgt.att);
     const world = this.viewport.toWorld(pos);
-    if (t.mode === 'weights') {
+    if (tgt.mode === 'weights') {
       if (!state.weights) {
-        this.app.setStatus('Bind the mesh to bones first (properties panel)');
+        this.app.setStatus(t('Bind the mesh to bones first (properties panel)'));
         return;
       }
-      this.drag = { kind: 'paint', subtract: e.shiftKey || t.edit.subtract };
-      this.paint(t, pos);
+      this.drag = { kind: 'paint', subtract: e.shiftKey || tgt.edit.subtract };
+      this.paint(tgt, pos);
       return;
     }
-    const shown = this.shownPoints(t);
+    const shown = this.shownPoints(tgt);
     const hit = this.vertexAt({ points: shown }, pos);
     if (hit >= 0) {
-      this.pick(t, hit, add);
-      const indices = [...this.selection(t)];
-      this.drag = { kind: t.mode === 'deform' ? 'deform' : 'vertex', indices, start: state, shown, from: world, moved: false };
+      this.pick(tgt, hit, add);
+      const indices = [...this.selection(tgt)];
+      this.drag = { kind: tgt.mode === 'deform' ? 'deform' : 'vertex', indices, start: state, shown, from: world, moved: false };
       this.app.changed();
       return;
     }
     // Empty space: Ctrl (or any drag while deforming) draws a selection box.
-    if (add || t.mode === 'deform') {
-      if (!add) this.selection(t).clear();
+    if (add || tgt.mode === 'deform') {
+      if (!add) this.selection(tgt).clear();
       this.drag = { kind: 'box', from: pos, to: pos, add };
       this.app.changed();
       return;
@@ -342,10 +343,10 @@ export class MeshTool {
       state.uvs.push(uv);
       if (weights) state.weights.push(weights.length ? weights : state.weights[0].map((w) => ({ ...w })));
     }
-    t.edit.selection = new Set([index]);
-    t.edit.selected = index;
-    this.commit(t, state);
-    const next = meshState(this.app.doc, t.slot, t.att);
+    tgt.edit.selection = new Set([index]);
+    tgt.edit.selected = index;
+    this.commit(tgt, state);
+    const next = meshState(this.app.doc, tgt.slot, tgt.att);
     this.drag = { kind: 'vertex', indices: [index], start: next, shown: next.points, from: world };
   }
 
@@ -381,19 +382,19 @@ export class MeshTool {
   }
 
   up() {
-    const t = this.target();
+    const tgt = this.target();
     const d = this.drag;
     this.drag = null;
-    if (!t || d?.kind !== 'box') return;
+    if (!tgt || d?.kind !== 'box') return;
     const [x0, x1] = [Math.min(d.from[0], d.to[0]), Math.max(d.from[0], d.to[0])];
     const [y0, y1] = [Math.min(d.from[1], d.to[1]), Math.max(d.from[1], d.to[1])];
-    const sel = this.selection(t);
-    this.shownPoints(t).forEach((p, i) => {
+    const sel = this.selection(tgt);
+    this.shownPoints(tgt).forEach((p, i) => {
       const [sx, sy] = this.screen(p);
       if (sx >= x0 && sx <= x1 && sy >= y0 && sy <= y1) sel.add(i);
     });
-    t.edit.selected = [...sel].at(-1) ?? null;
-    this.app.setStatus(`${sel.size} vertex${sel.size === 1 ? '' : 'es'} selected`);
+    tgt.edit.selected = [...sel].at(-1) ?? null;
+    this.app.setStatus(t('{count} vertex(es) selected', { count: sel.size }));
     this.app.changed();
   }
 

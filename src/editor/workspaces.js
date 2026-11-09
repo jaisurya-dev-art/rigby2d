@@ -7,19 +7,20 @@
 //   atlas and played by the runtimes. The editor as it has always been.
 // - Film: animation for film, video and motion graphics, rendered to image sequences and video:
 //   output settings, rendering, face controls, timecode.
+import { tn } from './i18n.js';
 
 export const WORKSPACES = {
   game: {
     id: 'game',
-    label: 'Game',
-    description: 'Rig and animate for game engines and apps; export skeleton JSON or .skel with a texture atlas.',
+    label: tn('Game'),
+    description: tn('Rig and animate for game engines and apps; export skeleton JSON or .skel with a texture atlas.'),
     fps: 30,
     features: new Set(['poses']),
   },
   film: {
     id: 'film',
-    label: 'Film',
-    description: 'Animate for film, video and motion graphics; render image sequences and video.',
+    label: tn('Film'),
+    description: tn('Animate for film, video and motion graphics; render image sequences and video.'),
     fps: 24,
     features: new Set(['poses', 'output', 'render', 'faceControls', 'timecode', 'outputFrame', 'audio', 'scene']),
   },

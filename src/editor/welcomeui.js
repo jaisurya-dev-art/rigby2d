@@ -124,7 +124,7 @@ export function openWelcome(app, { tutorials, whatsNew, onClose } = {}) {
       h(
         'aside',
         { class: 'welcome-side' },
-        h('div', { class: 'welcome-brand' }, h('img', { src: markUrl, alt: '', width: 34, height: 34 }), h('div', null, h('b', null, 'Rigby2D'), h('small', null, VERSION ? `${t('Version')} ${VERSION}` : t('Development build')))),
+        h('div', { class: 'welcome-brand' }, h('img', { src: markUrl, alt: '', width: 34, height: 34 }), h('div', null, h('b', null, t('Rigby2D')), h('small', null, VERSION ? `${t('Version')} ${VERSION}` : t('Development build')))),
         h('h4', null, t('Start')),
         action('plus', t('New game project'), t('Characters for games'), () => app.newDocument('game')),
         action('plus', t('New film project'), t('Animation rendered to video'), () => app.newDocument('film')),
@@ -134,7 +134,7 @@ export function openWelcome(app, { tutorials, whatsNew, onClose } = {}) {
         tutorials ? action('graduation-cap', t('Tutorials'), t('Lessons from drawing to moving character'), () => tutorials.open()) : null,
         action('book-open', t('Documentation'), 'rigby2d.com/docs', () => openExternal(LINKS.docs)),
         action('sparkles', t("What's new"), VERSION ? `${t('Version')} ${VERSION}` : '', () => (whatsNew ? whatsNew() : openExternal(LINKS.releaseNotes))),
-        action('users', t('Community'), 'Discord', () => openExternal(COMMUNITY_URL)),
+        action('users', t('Community'), t('Discord'), () => openExternal(COMMUNITY_URL)),
         action('star', t('Star on GitHub'), t('Help other animators find Rigby2D'), () => openExternal(LINKS.repo)),
       ),
       h(

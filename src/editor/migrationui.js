@@ -33,7 +33,7 @@ export async function openMigrationCheck(app) {
     h(
       'table',
       { class: 'migration-table' },
-      h('tbody', null, ...report.items.map((i) => h('tr', { class: `status-${i.status}` }, h('td', { title: t(LABEL[i.status]) }, MARK[i.status]), h('td', null, i.feature === 'Note' ? '' : t(i.feature)), h('td', null, i.count ? String(i.count) : ''), h('td', { class: 'weak' }, i.note || t(LABEL[i.status]))))),
+      h('tbody', null, ...report.items.map((i) => h('tr', { class: `status-${i.status}` }, h('td', { title: t(LABEL[i.status]) }, MARK[i.status]), h('td', null, i.feature === 'Note' ? '' : t(i.feature)), h('td', null, i.count ? String(i.count) : ''), h('td', { class: 'weak' }, (i.note ? t(i.note) : t(LABEL[i.status])))))),
     ),
     h(
       'div',

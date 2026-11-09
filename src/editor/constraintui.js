@@ -17,13 +17,14 @@ import { makeBone, makeSlot, uniqueName } from '../core/model.js';
 import { Pose } from '../core/pose.js';
 import { FPS, Mode } from './app.js';
 import { dragValue, h, select, textField } from './widgets.js';
+import { t, tn } from './i18n.js';
 
-export const CONSTRAINT_LABELS = { ik: 'IK', transform: 'Transform', path: 'Path', physics: 'Physics', slider: 'Slider' };
+export const CONSTRAINT_LABELS = { ik: 'IK', transform: tn('Transform'), path: tn('Path'), physics: tn('Physics'), slider: tn('Slider') };
 
 /** Physics only simulates during playback: said where it's set up and when it's created. */
-export const PHYSICS_HINT = 'Physics only moves while an animation plays: key the parent bone, then press play to see it.';
+export const PHYSICS_HINT = tn('Physics only moves while an animation plays: key the parent bone, then press play to see it.');
 const PROPERTIES = ['rotate', 'x', 'y', 'scaleX', 'scaleY', 'shearY'];
-const PROPERTY_LABELS = { rotate: 'Rotate', x: 'X', y: 'Y', scaleX: 'Scale X', scaleY: 'Scale Y', shearY: 'Shear Y' };
+const PROPERTY_LABELS = { rotate: tn('Rotate'), x: 'X', y: 'Y', scaleX: tn('Scale X'), scaleY: tn('Scale Y'), shearY: tn('Shear Y') };
 const OFFSET_KEYS = { rotate: 'rotation', x: 'x', y: 'y', scaleX: 'scaleX', scaleY: 'scaleY', shearY: 'shearY' };
 const MIX_KEYS = { rotate: 'mixRotate', x: 'mixX', y: 'mixY', scaleX: 'mixScaleX', scaleY: 'mixScaleY', shearY: 'mixShearY' };
 
@@ -51,7 +52,7 @@ export function createConstraint(app, type) {
   const bones = app.selectedBones();
   const pose = new Pose(doc);
   if (type === 'ik') {
-    if (!bones.length) return '!Select 1 or 2 chain bones (then optionally the target bone) first';
+    if (!bones.length) return t('!Select 1 or 2 chain bones (then optionally the target bone) first');
     let chain = [bones[0]];
     let rest = bones.slice(1);
     if (rest.length && isChild(doc, rest[0], bones[0])) {
@@ -70,7 +71,7 @@ export function createConstraint(app, type) {
     return name;
   }
   if (type === 'transform') {
-    if (bones.length < 2) return '!Select the bones to constrain, then the source bone last';
+    if (bones.length < 2) return t('!Select the bones to constrain, then the source bone last');
     const source = bones.at(-1);
     const name = uniqueConstraintName(doc, `${boneName(doc, bones[0])}-transform`);
     addConstraint(doc, {
@@ -83,7 +84,7 @@ export function createConstraint(app, type) {
     return name;
   }
   if (type === 'path') {
-    if (!bones.length) return '!Select the bones to place along the path first';
+    if (!bones.length) return t('!Select the bones to place along the path first');
     const name = uniqueConstraintName(doc, `${boneName(doc, bones[0])}-path`);
     // A new path through the selected bones' origins and the last bone's tip.
     const points = [...bones.map((b) => pose.world[b].apply([0, 0])), tipOf(doc, pose, bones.at(-1))];
@@ -93,7 +94,7 @@ export function createConstraint(app, type) {
     return name;
   }
   if (type === 'physics') {
-    if (!bones.length) return '!Select the bones that should move with physics first';
+    if (!bones.length) return t('!Select the bones that should move with physics first');
     let last = null;
     for (const b of bones) {
       last = uniqueConstraintName(doc, `${boneName(doc, b)}-physics`);
@@ -102,7 +103,7 @@ export function createConstraint(app, type) {
     return last;
   }
   if (type === 'slider') {
-    if (!doc.animations.length) return '!A slider plays an animation; create one first';
+    if (!doc.animations.length) return t('!A slider plays an animation; create one first');
     const anim = doc.animations[0];
     const name = uniqueConstraintName(doc, `${anim.name}-slider`);
     const data = { type: 'slider', name, animation: anim.name, loop: true };
@@ -110,7 +111,7 @@ export function createConstraint(app, type) {
     addConstraint(doc, data);
     return name;
   }
-  return '!Unknown constraint type';
+  return t('!Unknown constraint type');
 }
 
 /** An open path attachment through world points, with handles a third of the way to neighbors. */
@@ -155,18 +156,18 @@ const mixField = (value, onChange) => num(value, onChange, { min: -1, max: 1, sp
 export function constraintUi(app, name) {
   const doc = app.doc;
   const c = listConstraints(doc).find((x) => x.name === name);
-  if (!c) return [h('p', { class: 'weak' }, 'Constraint not found.')];
+  if (!c) return [h('p', { class: 'weak' }, t('Constraint not found.'))];
   const setupMode = app.mode === Mode.Setup;
   const changed = () => app.changed();
   const boneChoices = doc.bones.map((b, i) => [i, b.name]);
   const boneNameChoices = doc.bones.map((b) => [b.name, b.name]);
   const header = [
-    h('h2', null, `${CONSTRAINT_LABELS[c.type] ?? c.type} constraint`),
+    h('h2', null, t('{type} constraint', { type: c.type in CONSTRAINT_LABELS ? t(CONSTRAINT_LABELS[c.type]) : c.type })),
     h(
       'div',
       { class: 'grid' },
       row(
-        'Name',
+        t('Name'),
         textField(c.name, (v) => {
           const next = v.trim();
           if (next && renameConstraint(doc, c.name, next)) {
@@ -176,19 +177,19 @@ export function constraintUi(app, name) {
         }),
       ),
       row(
-        'Order',
-        h('span', null, `${listConstraints(doc).findIndex((x) => x.name === c.name) + 1} of ${listConstraints(doc).length}`),
-        h('button', { class: 'small', title: 'Apply earlier', onclick: () => moveConstraint(doc, c.name, -1) && changed() }, '▲'),
-        h('button', { class: 'small', title: 'Apply later', onclick: () => moveConstraint(doc, c.name, 1) && changed() }, '▼'),
+        t('Order'),
+        h('span', null, t('{index} of {count}', { index: listConstraints(doc).findIndex((x) => x.name === c.name) + 1, count: listConstraints(doc).length })),
+        h('button', { class: 'small', title: t('Apply earlier'), onclick: () => moveConstraint(doc, c.name, -1) && changed() }, '▲'),
+        h('button', { class: 'small', title: t('Apply later'), onclick: () => moveConstraint(doc, c.name, 1) && changed() }, '▼'),
       ),
       row(
-        'Skin',
+        t('Skin'),
         checkbox(c.type === 'ik' ? doc.ik[c.ik].skinRequired : c.data.skin, (v) => {
           if (c.type === 'ik') doc.ik[c.ik].skinRequired = v;
           else if (v) c.data.skin = true;
           else delete c.data.skin;
           changed();
-        }, 'Skin required', 'Only active when the current skin includes this constraint'),
+        }, t('Skin required'), t('Only active when the current skin includes this constraint')),
       ),
     ),
   ];
@@ -206,30 +207,30 @@ export function constraintUi(app, name) {
           changed();
         },
       },
-      '🗑 Delete constraint',
+      t('🗑 Delete constraint'),
     ),
   );
   return [header, body, footer];
 }
 
 const CHANNEL_LABELS = {
-  mixRotate: 'Mix rotate',
-  mixX: 'Mix X',
-  mixY: 'Mix Y',
-  mixScaleX: 'Mix scale X',
-  mixScaleY: 'Mix scale Y',
-  mixShearY: 'Mix shear Y',
+  mixRotate: tn('Mix rotate'),
+  mixX: tn('Mix X'),
+  mixY: tn('Mix Y'),
+  mixScaleX: tn('Mix scale X'),
+  mixScaleY: tn('Mix scale Y'),
+  mixShearY: tn('Mix shear Y'),
 };
 
 /** Animate mode: the constraint's animated values at the current frame; edits set keys. */
 function animUi(app, c) {
   const anim = app.currentAnimation();
-  if (!anim) return [h('div', { class: 'small weak' }, 'Choose an animation to key this constraint.')];
+  if (!anim) return [h('div', { class: 'small weak' }, t('Choose an animation to key this constraint.'))];
   const doc = app.doc;
   const pose = app.pose();
   const time = Math.round(app.time * FPS) / FPS;
-  const keyButton = (keyed, onclick) => h('button', { class: `keybtn ${keyed ? 'keyed' : 'none'}`, title: keyed ? 'Keyed at this frame' : 'Key at this frame', onclick }, '◆');
-  const note = h('div', { class: 'small weak' }, `Changes set keys at frame ${Math.round(time * FPS)}.`);
+  const keyButton = (keyed, onclick) => h('button', { class: `keybtn ${keyed ? 'keyed' : 'none'}`, title: keyed ? t('Keyed at this frame') : t('Key at this frame'), onclick }, '◆');
+  const note = h('div', { class: 'small weak' }, t('Changes set keys at frame {frame}.', { frame: Math.round(time * FPS) }));
   if (c.type === 'ik') {
     const st = pose.ik[c.ik];
     const value = { mix: st.mix, softness: st.softness, bendPositive: st.bendPositive, compress: st.compress, stretch: st.stretch };
@@ -243,23 +244,23 @@ function animUi(app, c) {
       h(
         'div',
         { class: 'grid' },
-        row('Mix', num(value.mix, (v) => key({ mix: v }), { min: 0, max: 1 }), keyButton(keyed, () => key({}))),
-        row('Softness', num(value.softness, (v) => key({ softness: v }), { min: 0, speed: 0.5, decimals: 2 })),
+        row(t('Mix'), num(value.mix, (v) => key({ mix: v }), { min: 0, max: 1 }), keyButton(keyed, () => key({}))),
+        row(t('Softness'), num(value.softness, (v) => key({ softness: v }), { min: 0, speed: 0.5, decimals: 2 })),
         row(
-          'Bend',
+          t('Bend'),
           h('span', { class: 'segmented' },
             h('button', { class: value.bendPositive ? 'active' : '', onclick: () => key({ bendPositive: true }) }, '+'),
             h('button', { class: value.bendPositive ? '' : 'active', onclick: () => key({ bendPositive: false }) }, '−'),
           ),
         ),
-        row('', checkbox(value.compress, (v) => key({ compress: v }), 'Compress')),
-        row('', checkbox(value.stretch, (v) => key({ stretch: v }), 'Stretch')),
+        row('', checkbox(value.compress, (v) => key({ compress: v }), t('Compress'))),
+        row('', checkbox(value.stretch, (v) => key({ stretch: v }), t('Stretch'))),
       ),
     ];
   }
   const i = pose.constraintList?.findIndex((x) => x.name === c.name) ?? -1;
   const st = pose.constraintState?.[i];
-  if (!st) return [h('div', { class: 'small weak' }, 'This constraint is not active.')];
+  if (!st) return [h('div', { class: 'small weak' }, t('This constraint is not active.'))];
   const current = (channel) => {
     if (c.type === 'transform') {
       const m = st.mix;
@@ -278,7 +279,7 @@ function animUi(app, c) {
       app.changed();
     };
     fields.forEach((field, n) => {
-      const label = field === 'value' ? channel[0].toUpperCase() + channel.slice(1) : CHANNEL_LABELS[field];
+      const label = field === 'value' ? channel[0].toUpperCase() + channel.slice(1) : t(CHANNEL_LABELS[field]);
       const opts = field === 'value' && ['position', 'spacing', 'strength', 'wind', 'gravity', 'time'].includes(channel) ? { speed: channel === 'time' ? 0.01 : 0.5, decimals: 3 } : { min: -1, max: 1, speed: 0.005 };
       rows.push(row(label, num(values[field], (v) => key({ [field]: v }), opts), n === 0 ? keyButton(keyed, () => key({})) : null));
     });
@@ -296,29 +297,29 @@ function ikUi(app, ik, boneChoices) {
     h(
       'div',
       { class: 'grid' },
-      row('Bones', h('span', null, ik.bones.map((b) => doc.bones[b].name).join(' → '))),
-      row('Target', select(boneChoices, ik.target, (v) => set('target', Number(v)))),
-      row('Mix', num(ik.mix, (v) => set('mix', v), { min: 0, max: 1 })),
-      row('Softness', num(ik.softness, (v) => set('softness', v), { min: 0, speed: 0.5, decimals: 2 })),
+      row(t('Bones'), h('span', null, ik.bones.map((b) => doc.bones[b].name).join(' → '))),
+      row(t('Target'), select(boneChoices, ik.target, (v) => set('target', Number(v)))),
+      row(t('Mix'), num(ik.mix, (v) => set('mix', v), { min: 0, max: 1 })),
+      row(t('Softness'), num(ik.softness, (v) => set('softness', v), { min: 0, speed: 0.5, decimals: 2 })),
       row(
-        'Bend',
+        t('Bend'),
         h('span', { class: 'segmented' },
           h('button', { class: ik.bendPositive ? 'active' : '', onclick: () => set('bendPositive', true) }, '+'),
           h('button', { class: ik.bendPositive ? '' : 'active', onclick: () => set('bendPositive', false) }, '−'),
         ),
       ),
-      row('', checkbox(ik.compress, (v) => set('compress', v), 'Compress', 'Scale the bones down when the target is closer than their length')),
-      row('', checkbox(ik.stretch, (v) => set('stretch', v), 'Stretch', 'Scale the bones up when the target is farther than their length')),
-      row('', checkbox(ik.uniform, (v) => set('uniform', v), 'Uniform', 'Compress and stretch scale both axes')),
+      row('', checkbox(ik.compress, (v) => set('compress', v), t('Compress'), t('Scale the bones down when the target is closer than their length'))),
+      row('', checkbox(ik.stretch, (v) => set('stretch', v), t('Stretch'), t('Scale the bones up when the target is farther than their length'))),
+      row('', checkbox(ik.uniform, (v) => set('uniform', v), t('Uniform'), t('Compress and stretch scale both axes'))),
     ),
-    h('div', { class: 'buttons' }, h('button', { onclick: () => setIkBones(app, ik) }, 'Use selected bones as chain')),
+    h('div', { class: 'buttons' }, h('button', { onclick: () => setIkBones(app, ik) }, t('Use selected bones as chain'))),
   ];
 }
 
 function setIkBones(app, ik) {
   const doc = app.doc;
   const bones = app.selectedBones().filter((b) => b !== ik.target);
-  if (!bones.length) return app.setStatus('Select 1 or 2 bones for the chain');
+  if (!bones.length) return app.setStatus(t('Select 1 or 2 bones for the chain'));
   ik.bones = bones.length > 1 && isChild(doc, bones[1], bones[0]) ? [bones[0], bones[1]] : [bones[0]];
   app.changed();
 }
@@ -326,21 +327,21 @@ function setIkBones(app, ik) {
 /** Bone list editor: names and a button to take the selected bones. */
 function boneListUi(app, data) {
   return row(
-    'Bones',
+    t('Bones'),
     h('span', null, (data.bones ?? []).join(', ') || '(none)'),
     h(
       'button',
       {
         class: 'small',
-        title: 'Constrain the selected bones',
+        title: t('Constrain the selected bones'),
         onclick: () => {
           const names = app.selectedBones().map((b) => app.doc.bones[b].name);
-          if (!names.length) return app.setStatus('Select bones first');
+          if (!names.length) return app.setStatus(t('Select bones first'));
           data.bones = names;
           app.changed();
         },
       },
-      'Use selected',
+      t('Use selected'),
     ),
   );
 }
@@ -366,22 +367,22 @@ const TYPE_UI = {
         'div',
         { class: 'grid' },
         boneListUi(app, d),
-        row('Source', select(boneNames, d.source ?? d.target, (v) => set(d.source !== undefined || d.target === undefined ? 'source' : 'target', v))),
-        row('', checkbox(d.localSource ?? d.local, (v) => set('localSource', v, false), 'Local source', 'Read the source bone in its parent space')),
-        row('', checkbox(d.localTarget ?? d.local, (v) => set('localTarget', v, false), 'Local target', 'Change the constrained bones in their parent space')),
-        row('', checkbox(d.additive ?? d.relative, (v) => set('additive', v, false), 'Additive', 'Add the source values instead of matching them')),
-        row('', checkbox(d.clamp, (v) => set('clamp', v, false), 'Clamp', 'Limit mapped values to each mapping range')),
+        row(t('Source'), select(boneNames, d.source ?? d.target, (v) => set(d.source !== undefined || d.target === undefined ? 'source' : 'target', v))),
+        row('', checkbox(d.localSource ?? d.local, (v) => set('localSource', v, false), t('Local source'), t('Read the source bone in its parent space'))),
+        row('', checkbox(d.localTarget ?? d.local, (v) => set('localTarget', v, false), t('Local target'), t('Change the constrained bones in their parent space'))),
+        row('', checkbox(d.additive ?? d.relative, (v) => set('additive', v, false), t('Additive'), t('Add the source values instead of matching them'))),
+        row('', checkbox(d.clamp, (v) => set('clamp', v, false), t('Clamp'), t('Limit mapped values to each mapping range'))),
       ),
-      h('strong', null, 'Properties'),
+      h('strong', null, t('Properties')),
       h(
         'table',
         { class: 'props' },
-        h('tr', null, h('th', null, ''), h('th', null, 'Offset'), h('th', null, 'Mix')),
+        h('tr', null, h('th', null, ''), h('th', null, t('Offset')), h('th', null, t('Mix'))),
         PROPERTIES.map((p) =>
           h(
             'tr',
             { class: mapped.has(p) ? '' : 'weak' },
-            h('td', null, checkbox(mapped.has(p), (on) => toggleProperty(app, d, p, on), PROPERTY_LABELS[p])),
+            h('td', null, checkbox(mapped.has(p), (on) => toggleProperty(app, d, p, on), t(PROPERTY_LABELS[p]))),
             h('td', null, num(d[OFFSET_KEYS[p]] ?? 0, (v) => set(OFFSET_KEYS[p], v, 0), { speed: p.startsWith('scale') ? 0.01 : 0.5, decimals: 2 })),
             h('td', null, mixField(d[MIX_KEYS[p]] ?? mixDefault[MIX_KEYS[p]], (v) => set(MIX_KEYS[p], v, 1))),
           ),
@@ -393,8 +394,8 @@ const TYPE_UI = {
         { class: 'buttons' },
         h(
           'button',
-          { title: 'Set offsets so the constrained bone keeps its current setup pose', onclick: () => matchOffsets(app, d) },
-          'Offsets from current pose',
+          { title: t('Set offsets so the constrained bone keeps its current setup pose'), onclick: () => matchOffsets(app, d) },
+          t('Offsets from current pose'),
         ),
       ),
     ];
@@ -411,44 +412,44 @@ const TYPE_UI = {
         'div',
         { class: 'grid' },
         boneListUi(app, d),
-        row('Path slot', select(pathSlots.map((s) => [s.name, s.name]), d[slotKey], (v) => set(slotKey, v))),
-        row('Position', select([['fixed', 'Fixed'], ['percent', 'Percent']], d.positionMode ?? 'percent', (v) => set('positionMode', v, 'percent'))),
-        row('Spacing', select([['length', 'Length'], ['fixed', 'Fixed'], ['percent', 'Percent'], ['proportional', 'Proportional']], d.spacingMode ?? 'length', (v) => set('spacingMode', v, 'length'))),
-        row('Rotate', select([['tangent', 'Tangent'], ['chain', 'Chain'], ['chainScale', 'Chain scale']], d.rotateMode ?? 'tangent', (v) => set('rotateMode', v, 'tangent'))),
-        row('Rotation offset', num(d.rotation ?? 0, (v) => set('rotation', v, 0), { speed: 0.5, decimals: 2, suffix: '°' })),
-        row('Position value', num(d.position ?? 0, (v) => set('position', v, 0), { speed: (d.positionMode ?? 'percent') === 'percent' ? 0.002 : 0.5 })),
-        row('Spacing value', num(d.spacing ?? 0, (v) => set('spacing', v, 0), { speed: (d.spacingMode ?? 'length') === 'percent' ? 0.002 : 0.5 })),
-        row('Mix rotate', mixField(d.mixRotate ?? d.rotateMix ?? 1, (v) => set('mixRotate', v, 1))),
-        row('Mix X', mixField(x, (v) => set('mixX', v, 1))),
-        row('Mix Y', mixField(d.mixY ?? x, (v) => set('mixY', v, x))),
+        row(t('Path slot'), select(pathSlots.map((s) => [s.name, s.name]), d[slotKey], (v) => set(slotKey, v))),
+        row(t('Position'), select([['fixed', t('Fixed')], ['percent', t('Percent')]], d.positionMode ?? 'percent', (v) => set('positionMode', v, 'percent'))),
+        row(t('Spacing'), select([['length', t('Length')], ['fixed', t('Fixed')], ['percent', t('Percent')], ['proportional', t('Proportional')]], d.spacingMode ?? 'length', (v) => set('spacingMode', v, 'length'))),
+        row(t('Rotate'), select([['tangent', t('Tangent')], ['chain', t('Chain')], ['chainScale', t('Chain scale')]], d.rotateMode ?? 'tangent', (v) => set('rotateMode', v, 'tangent'))),
+        row(t('Rotation offset'), num(d.rotation ?? 0, (v) => set('rotation', v, 0), { speed: 0.5, decimals: 2, suffix: '°' })),
+        row(t('Position value'), num(d.position ?? 0, (v) => set('position', v, 0), { speed: (d.positionMode ?? 'percent') === 'percent' ? 0.002 : 0.5 })),
+        row(t('Spacing value'), num(d.spacing ?? 0, (v) => set('spacing', v, 0), { speed: (d.spacingMode ?? 'length') === 'percent' ? 0.002 : 0.5 })),
+        row(t('Mix rotate'), mixField(d.mixRotate ?? d.rotateMix ?? 1, (v) => set('mixRotate', v, 1))),
+        row(t('Mix X'), mixField(x, (v) => set('mixX', v, 1))),
+        row(t('Mix Y'), mixField(d.mixY ?? x, (v) => set('mixY', v, x))),
       ),
     ];
   },
 
   physics(app, d, boneNames) {
     const set = setter(app, d);
-    const globalBox = (key) => checkbox(d[`${key}Global`], (v) => set(`${key}Global`, v, false), 'Global', 'Also follows skeleton-wide physics keys');
+    const globalBox = (key) => checkbox(d[`${key}Global`], (v) => set(`${key}Global`, v, false), t('Global'), t('Also follows skeleton-wide physics keys'));
     return [
       // First, where it can't be missed: in Setup, or paused, nothing visibly happens (#27).
-      h('div', { class: 'small physics-hint' }, PHYSICS_HINT),
+      h('div', { class: 'small physics-hint' }, t(PHYSICS_HINT)),
       h(
         'div',
         { class: 'grid' },
-        row('Bone', select(boneNames, d.bone, (v) => set('bone', v))),
-        row('Translate X', mixField(d.x ?? 0, (v) => set('x', v, 0))),
-        row('Translate Y', mixField(d.y ?? 0, (v) => set('y', v, 0))),
-        row('Rotate', mixField(d.rotate ?? 0, (v) => set('rotate', v, 0))),
-        row('Scale X', mixField(d.scaleX ?? 0, (v) => set('scaleX', v, 0))),
-        row('Shear X', mixField(d.shearX ?? 0, (v) => set('shearX', v, 0))),
-        row('Limit', num(d.limit ?? 5000, (v) => set('limit', v, 5000), { min: 0, speed: 10, decimals: 0 })),
-        row('Step', num(d.fps ?? 60, (v) => set('fps', Math.round(v), 60), { min: 1, max: 240, speed: 0.5, decimals: 0, suffix: ' fps' })),
-        row('Inertia', num(d.inertia ?? 0.5, (v) => set('inertia', v, 0.5), { min: 0, max: 1 }), globalBox('inertia')),
-        row('Strength', num(d.strength ?? 100, (v) => set('strength', v, 100), { min: 0, speed: 0.5, decimals: 1 }), globalBox('strength')),
-        row('Damping', num(d.damping ?? 0.85, (v) => set('damping', v, 0.85), { min: 0, max: 1 }), globalBox('damping')),
-        row('Mass', num(d.mass ?? 1, (v) => set('mass', v, 1), { min: 0.01, speed: 0.01 }), globalBox('mass')),
-        row('Wind', num(d.wind ?? 0, (v) => set('wind', v, 0), { speed: 0.1, decimals: 2 }), globalBox('wind')),
-        row('Gravity', num(d.gravity ?? 0, (v) => set('gravity', v, 0), { speed: 0.1, decimals: 2 }), globalBox('gravity')),
-        row('Mix', num(d.mix ?? 1, (v) => set('mix', v, 1), { min: 0, max: 1 }), globalBox('mix')),
+        row(t('Bone'), select(boneNames, d.bone, (v) => set('bone', v))),
+        row(t('Translate X'), mixField(d.x ?? 0, (v) => set('x', v, 0))),
+        row(t('Translate Y'), mixField(d.y ?? 0, (v) => set('y', v, 0))),
+        row(t('Rotate'), mixField(d.rotate ?? 0, (v) => set('rotate', v, 0))),
+        row(t('Scale X'), mixField(d.scaleX ?? 0, (v) => set('scaleX', v, 0))),
+        row(t('Shear X'), mixField(d.shearX ?? 0, (v) => set('shearX', v, 0))),
+        row(t('Limit'), num(d.limit ?? 5000, (v) => set('limit', v, 5000), { min: 0, speed: 10, decimals: 0 })),
+        row(t('Step'), num(d.fps ?? 60, (v) => set('fps', Math.round(v), 60), { min: 1, max: 240, speed: 0.5, decimals: 0, suffix: ' fps' })),
+        row(t('Inertia'), num(d.inertia ?? 0.5, (v) => set('inertia', v, 0.5), { min: 0, max: 1 }), globalBox('inertia')),
+        row(t('Strength'), num(d.strength ?? 100, (v) => set('strength', v, 100), { min: 0, speed: 0.5, decimals: 1 }), globalBox('strength')),
+        row(t('Damping'), num(d.damping ?? 0.85, (v) => set('damping', v, 0.85), { min: 0, max: 1 }), globalBox('damping')),
+        row(t('Mass'), num(d.mass ?? 1, (v) => set('mass', v, 1), { min: 0.01, speed: 0.01 }), globalBox('mass')),
+        row(t('Wind'), num(d.wind ?? 0, (v) => set('wind', v, 0), { speed: 0.1, decimals: 2 }), globalBox('wind')),
+        row(t('Gravity'), num(d.gravity ?? 0, (v) => set('gravity', v, 0), { speed: 0.1, decimals: 2 }), globalBox('gravity')),
+        row(t('Mix'), num(d.mix ?? 1, (v) => set('mix', v, 1), { min: 0, max: 1 }), globalBox('mix')),
       ),
     ];
   },
@@ -460,13 +461,13 @@ const TYPE_UI = {
       h(
         'div',
         { class: 'grid' },
-        row('Animation', select(doc.animations.map((a) => [a.name, a.name]), d.animation, (v) => set('animation', v))),
-        row('Time', num(d.time ?? 0, (v) => set('time', v, 0), { min: 0, speed: 0.01, decimals: 3, suffix: ' s' })),
-        row('Mix', num(d.mix ?? 1, (v) => set('mix', v, 1), { min: 0, max: 1 })),
-        row('', checkbox(d.loop, (v) => set('loop', v, false), 'Loop', 'Wrap the time around the animation length')),
-        row('', checkbox(d.additive, (v) => set('additive', v, false), 'Additive', 'Add the animation on top instead of replacing')),
+        row(t('Animation'), select(doc.animations.map((a) => [a.name, a.name]), d.animation, (v) => set('animation', v))),
+        row(t('Time'), num(d.time ?? 0, (v) => set('time', v, 0), { min: 0, speed: 0.01, decimals: 3, suffix: ' s' })),
+        row(t('Mix'), num(d.mix ?? 1, (v) => set('mix', v, 1), { min: 0, max: 1 })),
+        row('', checkbox(d.loop, (v) => set('loop', v, false), t('Loop'), t('Wrap the time around the animation length'))),
+        row('', checkbox(d.additive, (v) => set('additive', v, false), t('Additive'), t('Add the animation on top instead of replacing'))),
         row(
-          'Bone',
+          t('Bone'),
           select([['', '(time only)'], ...boneNames], d.bone ?? '', (v) => {
             if (v) set('bone', v);
             else for (const key of ['bone', 'property', 'scale', 'local']) delete d[key];
@@ -475,13 +476,13 @@ const TYPE_UI = {
         ),
         d.bone !== undefined
           ? [
-              row('Property', select(PROPERTIES.map((p) => [p, PROPERTY_LABELS[p]]), d.property ?? 'rotate', (v) => set('property', v))),
-              row('Scale', num(d.scale ?? 1, (v) => set('scale', v, 1), { speed: 0.0005, decimals: 5 })),
-              row('', checkbox(d.local, (v) => set('local', v, false), 'Local', 'Read the property in the parent bone space')),
+              row(t('Property'), select(PROPERTIES.map((p) => [p, t(PROPERTY_LABELS[p])]), d.property ?? 'rotate', (v) => set('property', v))),
+              row(t('Scale'), num(d.scale ?? 1, (v) => set('scale', v, 1), { speed: 0.0005, decimals: 5 })),
+              row('', checkbox(d.local, (v) => set('local', v, false), t('Local'), t('Read the property in the parent bone space'))),
             ]
           : null,
       ),
-      h('div', { class: 'small weak' }, d.bone !== undefined ? 'Time = bone property × scale.' : 'Key the time to scrub the animation.'),
+      h('div', { class: 'small weak' }, d.bone !== undefined ? t('Time = bone property × scale.') : t('Key the time to scrub the animation.')),
     ];
   },
 };
@@ -499,24 +500,24 @@ function toggleProperty(app, d, p, on) {
 function mappingUi(app, d) {
   const rows = [];
   for (const [from, entry] of Object.entries(d.properties)) {
-    for (const [to, t] of Object.entries(entry.to ?? {})) {
+    for (const [to, target] of Object.entries(entry.to ?? {})) {
       const setT = (key, v, def) => {
-        if (v === def) delete t[key];
-        else t[key] = v;
+        if (v === def) delete target[key];
+        else target[key] = v;
         app.changed();
       };
       rows.push(
         h(
           'tr',
           null,
-          h('td', null, `${PROPERTY_LABELS[from]} → `, select(PROPERTIES.map((p) => [p, PROPERTY_LABELS[p]]), to, (v) => {
+          h('td', null, `${t(PROPERTY_LABELS[from])} → `, select(PROPERTIES.map((p) => [p, t(PROPERTY_LABELS[p])]), to, (v) => {
             delete entry.to[to];
-            entry.to[v] = t;
+            entry.to[v] = target;
             app.changed();
           })),
-          h('td', null, num(t.offset ?? 0, (v) => setT('offset', v, 0), { speed: 0.5, decimals: 2 })),
-          h('td', null, num(t.scale ?? 1, (v) => setT('scale', v, 1), { speed: 0.01 })),
-          h('td', null, num(t.max ?? 1, (v) => setT('max', v, 1), { speed: 0.5, decimals: 2 })),
+          h('td', null, num(target.offset ?? 0, (v) => setT('offset', v, 0), { speed: 0.5, decimals: 2 })),
+          h('td', null, num(target.scale ?? 1, (v) => setT('scale', v, 1), { speed: 0.01 })),
+          h('td', null, num(target.max ?? 1, (v) => setT('max', v, 1), { speed: 0.5, decimals: 2 })),
         ),
       );
     }
@@ -524,9 +525,9 @@ function mappingUi(app, d) {
   return h(
     'details',
     null,
-    h('summary', null, 'Property mapping'),
-    h('table', { class: 'props' }, h('tr', null, h('th', null, 'Source → target'), h('th', null, 'Offset'), h('th', null, 'Scale'), h('th', null, 'Max')), rows),
-    h('div', { class: 'small weak' }, 'Max applies when Clamp is on.'),
+    h('summary', null, t('Property mapping')),
+    h('table', { class: 'props' }, h('tr', null, h('th', null, t('Source → target')), h('th', null, t('Offset')), h('th', null, t('Scale')), h('th', null, t('Max'))), rows),
+    h('div', { class: 'small weak' }, t('Max applies when Clamp is on.')),
   );
 }
 
@@ -545,6 +546,6 @@ function matchOffsets(app, d) {
   d.x = ox;
   d.y = oy;
   for (const key of ['rotation', 'x', 'y']) if (Math.abs(d[key]) < 1e-6) delete d[key];
-  app.setStatus('Offsets set from the current setup pose');
+  app.setStatus(t('Offsets set from the current setup pose'));
   app.changed();
 }

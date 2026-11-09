@@ -5,7 +5,7 @@
 
 import { ACTIONS, PRESETS, bindCombo, comboLabel, comboOf, importKeymapFile, keymapFile, newCustom, reservedCombo, resetCustom, unbindCombo } from './keymap.js';
 import { confirmDialog, fetchBytes, openExternal, pickImportFiles as importFiles, pickSaveTarget as saveTarget } from './platform.js';
-import { t } from './i18n.js';
+import { t, tn } from './i18n.js';
 import { h } from './widgets.js';
 import markUrl from '../../branding/rigby2d-mark.svg?url';
 
@@ -55,7 +55,7 @@ export function dialog(className, title, subtitle, { onClose } = {}) {
         'header',
         { class: 'dialog-head' },
         h('div', null, h('h3', null, title), subtitle ? h('p', { class: 'dialog-sub' }, subtitle) : null),
-        h('button', { class: 'dialog-close', title: 'Close (Esc)', 'aria-label': 'Close', onclick: close }, '✕'),
+        h('button', { class: 'dialog-close', title: t('Close (Esc)'), 'aria-label': t('Close'), onclick: close }, '✕'),
       ),
       body,
     ),
@@ -93,20 +93,20 @@ export function keyChips(label) {
 }
 
 const GROUPS = [
-  ['Tools', (id) => id.startsWith('tool.')],
-  ['Playback and time', (id) => /^(mode|play|time|frame|loop)\./.test(id) || id === 'key.next' || id === 'key.previous'],
-  ['Keys', (id) => /^key\.(changed|tool|transforms|shown)$/.test(id) || id === 'autokey.toggle'],
-  ['Selection and editing', (id) => /^(select|edit)\./.test(id) || id === 'delete'],
-  ['View', (id) => id.startsWith('view.')],
-  ['File', (id) => id.startsWith('file.')],
+  [tn('Tools'), (id) => id.startsWith('tool.')],
+  [tn('Playback and time'), (id) => /^(mode|play|time|frame|loop)\./.test(id) || id === 'key.next' || id === 'key.previous'],
+  [tn('Keys'), (id) => /^key\.(changed|tool|transforms|shown)$/.test(id) || id === 'autokey.toggle'],
+  [tn('Selection and editing'), (id) => /^(select|edit)\./.test(id) || id === 'delete'],
+  [tn('View'), (id) => id.startsWith('view.')],
+  [tn('File'), (id) => id.startsWith('file.')],
 ];
 
 const MOUSE = [
-  ['Click', 'Select'],
-  ['Ctrl+Click', 'Add to or remove from the selection'],
-  ['Drag on empty space', 'Box select'],
-  ['Right or middle drag', 'Pan the view'],
-  ['Wheel', 'Zoom'],
+  [tn('Click'), tn('Select')],
+  [tn('Ctrl+Click'), tn('Add to or remove from the selection')],
+  [tn('Drag on empty space'), tn('Box select')],
+  [tn('Right or middle drag'), tn('Pan the view')],
+  [tn('Wheel'), tn('Zoom')],
 ];
 
 /**
@@ -128,56 +128,56 @@ export function openShortcuts(app, { onClose } = {}) {
     const combo = comboOf(e);
     if (!combo) return; // a modifier alone: wait for the key
     if (reservedCombo(combo)) {
-      flash = { action: recording.action, text: `${comboLabel(combo)} is kept for window layouts (Ctrl+Alt+1 to 9). Pick another key.` };
+      flash = { action: recording.action, text: t('{key} is kept for window layouts (Ctrl+Alt+1 to 9). Pick another key.', { key: comboLabel(combo) }) };
       return render();
     }
     const { custom, moved } = bindCombo(app.customKeymap, recording.action, combo, recording.replace);
-    const label = (id) => ACTIONS.find(([a]) => a === id)?.[1] ?? id;
-    flash = { action: recording.action, text: moved.length ? `${comboLabel(combo)} was ${moved.map(label).join(', ')}; it now does ${label(recording.action)}.` : null };
+    const label = (id) => ACTIONS.find(([a]) => a === id)?.[1] ? t(ACTIONS.find(([a]) => a === id)[1]) : id;
+    flash = { action: recording.action, text: moved.length ? t('{key} was {old}; it now does {action}.', { key: comboLabel(combo), old: moved.map(label).join(', '), action: label(recording.action) }) : null };
     recording = null;
     app.setCustomKeymap(custom);
     render();
   };
   window.addEventListener('keydown', onRecordKey, true);
-  const { body } = dialog('shortcuts-dialog', 'Keyboard shortcuts', null, {
+  const { body } = dialog('shortcuts-dialog', t('Keyboard shortcuts'), null, {
     onClose: () => {
       window.removeEventListener('keydown', onRecordKey, true);
       onClose?.();
     },
   });
-  const search = h('input', { type: 'search', class: 'dialog-search', placeholder: 'Search shortcuts', 'aria-label': 'Search shortcuts' });
-  const presets = h('div', { class: 'segmented', role: 'tablist', 'aria-label': 'Shortcut set' });
+  const search = h('input', { type: 'search', class: 'dialog-search', placeholder: t('Search shortcuts'), 'aria-label': t('Search shortcuts') });
+  const presets = h('div', { class: 'segmented', role: 'tablist', 'aria-label': t('Shortcut set') });
   const tools = h('div', { class: 'shortcut-tools' });
   const list = h('div', { class: 'shortcut-groups' });
 
   const customize = () => {
     if (!app.customKeymap) app.setCustomKeymap(newCustom(app.keymap));
     else app.setKeymap('custom');
-    app.setStatus('Keyboard shortcuts: Custom. Click a key to change it.');
+    app.setStatus(t('Keyboard shortcuts: Custom. Click a key to change it.'));
     render();
   };
 
   const exportKeymap = async () => {
     try {
-      const target = await saveTarget('rigby2d-keymap.json', 'Rigby2D keymap', 'json', { single: true });
+      const target = await saveTarget('rigby2d-keymap.json', t('Rigby2D keymap'), 'json', { single: true });
       if (!target) return;
       await target.fs.writeFile(target.path, new TextEncoder().encode(keymapFile(app.customKeymap)));
       await target.fs.finish();
-      app.setStatus(`Saved the keymap: ${target.path}`);
+      app.setStatus(t('Saved the keymap: {path}', { path: target.path }));
     } catch (e) {
-      app.setStatus(`Could not save the keymap: ${e.message ?? e}`);
+      app.setStatus(t('Could not save the keymap: {error}', { error: e.message ?? e }));
     }
   };
 
   const importKeymap = async () => {
     try {
-      const [file] = await importFiles('Rigby2D keymap', ['json'], false);
+      const [file] = await importFiles(t('Rigby2D keymap'), ['json'], false);
       if (!file) return;
       app.setCustomKeymap(importKeymapFile(new TextDecoder().decode(file.bytes)));
-      app.setStatus(`Keyboard shortcuts loaded from ${file.name}`);
+      app.setStatus(t('Keyboard shortcuts loaded from {file}', { file: file.name }));
       render();
     } catch (e) {
-      app.setStatus(`Could not load the keymap: ${e.message ?? e}`);
+      app.setStatus(t('Could not load the keymap: {error}', { error: e.message ?? e }));
     }
   };
 
@@ -192,17 +192,17 @@ export function openShortcuts(app, { onClose } = {}) {
     };
     const chips = combos.map((combo) =>
       isRecording(combo)
-        ? h('span', { class: 'key-record' }, 'Press a key…')
+        ? h('span', { class: 'key-record' }, t('Press a key…'))
         : h(
             'span',
             { class: 'key-edit' },
-            h('button', { class: 'key-edit-combo', title: 'Press to change this key', onclick: record(combo) }, keyChips(comboLabel(combo))),
+            h('button', { class: 'key-edit-combo', title: t('Press to change this key'), onclick: record(combo) }, keyChips(comboLabel(combo))),
             h(
               'button',
               {
                 class: 'key-edit-remove',
-                title: 'Remove this key',
-                'aria-label': `Remove ${comboLabel(combo)}`,
+                title: t('Remove this key'),
+                'aria-label': t('Remove {key}', { key: comboLabel(combo) }),
                 onclick: () => {
                   app.setCustomKeymap(unbindCombo(app.customKeymap, id, combo));
                   render();
@@ -217,13 +217,13 @@ export function openShortcuts(app, { onClose } = {}) {
       'span',
       { class: 'key-edits' },
       ...chips,
-      isRecording(null) ? h('span', { class: 'key-record' }, 'Press a key…') : h('button', { class: 'key-add', title: 'Add a key for this', onclick: record(null) }, '+'),
+      isRecording(null) ? h('span', { class: 'key-record' }, t('Press a key…')) : h('button', { class: 'key-add', title: t('Add a key for this'), onclick: record(null) }, '+'),
       changed
         ? h(
             'button',
             {
               class: 'key-reset',
-              title: `Back to ${PRESETS[app.customKeymap.base].label}`,
+              title: t('Back to {name}', { name: t(PRESETS[app.customKeymap.base].label) }),
               onclick: () => {
                 app.setCustomKeymap(resetCustom(app.customKeymap, id));
                 render();
@@ -248,23 +248,23 @@ export function openShortcuts(app, { onClose } = {}) {
             onclick: () => {
               recording = null;
               app.setKeymap(id);
-              app.setStatus(`Keyboard shortcuts: ${p.label}`);
+              app.setStatus(t('Keyboard shortcuts: {name}', { name: t(p.label) }));
               render();
             },
           },
-          p.label,
+          t(p.label),
         ),
       ),
-      ...(app.customKeymap ? [] : [h('button', { onclick: customize, title: 'Make your own keymap, starting from this one' }, 'Customize…')]),
+      ...(app.customKeymap ? [] : [h('button', { onclick: customize, title: t('Make your own keymap, starting from this one') }, t('Customize…'))]),
     );
     tools.replaceChildren(
       ...(editing
         ? [
-            h('span', { class: 'shortcut-hint' }, recording ? 'Press the new key, or Esc to cancel.' : 'Click a key to change it, + to add one. Changes save as you go.'),
+            h('span', { class: 'shortcut-hint' }, recording ? t('Press the new key, or Esc to cancel.') : t('Click a key to change it, + to add one. Changes save as you go.')),
             h('span', { class: 'shortcut-tools-spacer' }),
-            h('label', { class: 'shortcut-base' }, 'Start again from ', baseSelect()),
-            h('button', { onclick: importKeymap }, 'Import…'),
-            h('button', { onclick: exportKeymap }, 'Export…'),
+            h('label', { class: 'shortcut-base' }, t('Start again from '), baseSelect()),
+            h('button', { onclick: importKeymap }, t('Import…')),
+            h('button', { onclick: exportKeymap }, t('Export…')),
           ]
         : []),
       ...(flash?.text ? [h('p', { class: 'shortcut-flash' }, flash.text)] : []),
@@ -274,28 +274,28 @@ export function openShortcuts(app, { onClose } = {}) {
     const q = search.value.trim().toLowerCase();
     const match = (label, keys) => !q || label.toLowerCase().includes(q) || keys.toLowerCase().includes(q);
     const grouped = new Set();
-    const groups = [...GROUPS, ['Other', (id) => !grouped.has(id)]].map(([title, test]) => [
-      title,
+    const groups = [...GROUPS, [tn('Other'), (id) => !grouped.has(id)]].map(([title, test]) => [
+      t(title),
       ACTIONS.filter(([id]) => {
         if (grouped.has(id) || !test(id)) return false;
         grouped.add(id);
         return true;
       })
-        .map(([id, label]) => [id, label, bindings[id] ?? []])
+        .map(([id, label]) => [id, t(label), bindings[id] ?? []])
         .filter(([, label, combos]) => (editing || combos.length) && match(label, combos.map(comboLabel).join(' '))),
     ]);
     const rows = groups.map(([title, items]) => [
       title,
       items.map(([id, label, combos]) => h('div', { class: `shortcut-row${flash?.action === id ? ' flash' : ''}` }, h('span', null, label), keysFor(id, combos, editing))),
     ]);
-    rows.push(['Mouse', MOUSE.filter(([keys, label]) => match(label, keys)).map(([keys, label]) => h('div', { class: 'shortcut-row' }, h('span', null, label), keyChips(keys)))]);
+    rows.push([t('Mouse'), MOUSE.filter(([keys, label]) => match(t(label), t(keys))).map(([keys, label]) => h('div', { class: 'shortcut-row' }, h('span', null, t(label)), keyChips(t(keys))))]);
     const shown = rows.filter(([, r]) => r.length);
     list.classList.toggle('filtered', !!q);
     list.classList.toggle('editing', editing);
     list.replaceChildren(
       ...(shown.length
         ? shown.map(([title, r]) => h('section', { class: 'shortcut-group' }, h('h4', null, title), r))
-        : [h('p', { class: 'dialog-empty' }, `No shortcut matches “${search.value.trim()}”.`)]),
+        : [h('p', { class: 'dialog-empty' }, t('No shortcut matches “{text}”.', { text: search.value.trim() }))]),
     );
   };
 
@@ -309,7 +309,7 @@ export function openShortcuts(app, { onClose } = {}) {
           el.value = '';
           if (!base) return;
           const changes = Object.keys(app.customKeymap.changes).length;
-          if (changes && !(await confirmDialog(`Start the custom keymap again from ${PRESETS[base].label}? Your ${changes} change${changes === 1 ? '' : 's'} will be lost.`, 'Keyboard shortcuts'))) return;
+          if (changes && !(await confirmDialog((changes === 1 ? t('Start the custom keymap again from {name}? Your 1 change will be lost.', { name: t(PRESETS[base].label) }) : t('Start the custom keymap again from {name}? Your {count} changes will be lost.', { name: t(PRESETS[base].label), count: changes })), 'Keyboard shortcuts'))) return;
           app.setCustomKeymap(newCustom(base));
           flash = null;
           render();
@@ -318,7 +318,7 @@ export function openShortcuts(app, { onClose } = {}) {
       h('option', { value: '' }, '…'),
       ...Object.entries(PRESETS)
         .filter(([id]) => id !== 'custom')
-        .map(([id, p]) => h('option', { value: id }, p.label)),
+        .map(([id, p]) => h('option', { value: id }, t(p.label))),
     );
     return el;
   };
@@ -331,7 +331,7 @@ export function openShortcuts(app, { onClose } = {}) {
 
 /** Help ▸ About Rigby2D. */
 export function openAbout() {
-  const { body } = dialog('about-dialog', 'About Rigby2D', null);
+  const { body } = dialog('about-dialog', t('About Rigby2D'), null);
   const link = (label, url) => h('button', { class: 'link-button', onclick: () => openExternal(url) }, label, h('span', { class: 'ext', 'aria-hidden': 'true' }, '↗'));
   body.append(
     h(
@@ -341,17 +341,17 @@ export function openAbout() {
       h(
         'div',
         null,
-        h('div', { class: 'about-name' }, 'Rigby2D'),
-        h('div', { class: 'about-version' }, VERSION ? `Version ${VERSION}` : 'Development build', h('span', { class: 'badge' }, 'Public beta')),
-        h('p', { class: 'about-tagline' }, 'Open-source 2D skeletal animation for games, films and interactive experiences.'),
+        h('div', { class: 'about-name' }, t('Rigby2D')),
+        h('div', { class: 'about-version' }, VERSION ? t('Version {version}', { version: VERSION }) : t('Development build'), h('span', { class: 'badge' }, t('Public beta'))),
+        h('p', { class: 'about-tagline' }, t('Open-source 2D skeletal animation for games, films and interactive experiences.')),
       ),
     ),
-    h('div', { class: 'about-links' }, link('Website', LINKS.website), link('Documentation', LINKS.docs), link('Source code', LINKS.repo), link('Release notes', LINKS.releaseNotes), link('Support Rigby2D', LINKS.fund)),
-    h('p', { class: 'about-fine' }, 'Rigby2D is free and stays free. Supporters pay for code signing and keep it moving.'),
+    h('div', { class: 'about-links' }, link(t('Website'), LINKS.website), link(t('Documentation'), LINKS.docs), link(t('Source code'), LINKS.repo), link(t('Release notes'), LINKS.releaseNotes), link(t('Support Rigby2D'), LINKS.fund)),
+    h('p', { class: 'about-fine' }, t('Rigby2D is free and stays free. Supporters pay for code signing and keep it moving.')),
     h(
       'p',
       { class: 'about-fine' },
-      'Code: MIT OR Apache-2.0, by the Rigby2D contributors. Includes open-source components listed in THIRD_PARTY_NOTICES.md. The Rigby2D, NILA and Rigbytron names, logos and artwork are trademarks of the Rigby2D project.',
+      t('Code: MIT OR Apache-2.0, by the Rigby2D contributors. Includes open-source components listed in THIRD_PARTY_NOTICES.md. The Rigby2D, NILA and Rigbytron names, logos and artwork are trademarks of the Rigby2D project.'),
     ),
   );
 }
@@ -407,7 +407,7 @@ export async function openSupporters() {
   const goalCard = h(
     'section',
     { class: 'sp-goal' },
-    h('div', { class: 'sp-goal-top' }, h('span', { class: 'sp-goal-title' }, goal.title ?? 'Signed by Rigby2D'), h('span', { class: 'sp-goal-amount' }, t('{percent}% of ${monthly} a month', { percent, monthly: goal.monthly ?? 25 }))),
+    h('div', { class: 'sp-goal-top' }, h('span', { class: 'sp-goal-title' }, goal.title ?? t('Signed by Rigby2D')), h('span', { class: 'sp-goal-amount' }, t('{percent}% of ${monthly} a month', { percent, monthly: goal.monthly ?? 25 }))),
     h('div', { class: 'sp-bar', role: 'progressbar', 'aria-valuemin': '0', 'aria-valuemax': '100', 'aria-valuenow': String(percent) }, fill),
     h(
       'div',
@@ -422,7 +422,7 @@ export async function openSupporters() {
   if (left > 0) seats.push(h('li', { class: 'sp-person open' }, h('span', { class: 'sp-avatar empty', 'aria-hidden': 'true' }, `#${foundingIds.length + 1}`), h('span', { class: 'sp-text' }, h('span', { class: 'sp-name' }, t('Your name here')), h('span', { class: 'sp-note' }, t('From $3 a month')))));
 
   const section = (title, count, list) => h('section', { class: 'sp-section' }, h('h3', null, title, count ? h('span', { class: 'sp-count' }, count) : null), list);
-  const tierName = (n = 0) => (n >= 1000 ? 'Studio Partner' : n >= 250 ? 'Studio' : n >= 50 ? 'Indie Team' : n >= 10 ? 'Sponsor' : 'Backer');
+  const tierName = (n = 0) => (n >= 1000 ? t('Studio Partner') : n >= 250 ? t('Studio') : n >= 50 ? t('Indie Team') : n >= 10 ? t('Sponsor') : t('Backer'));
 
   const parts = [
     goalCard,

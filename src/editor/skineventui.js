@@ -5,6 +5,7 @@
 import { listConstraints } from '../core/constraintdata.js';
 import { FPS, Mode } from './app.js';
 import { dragValue, h, textField } from './widgets.js';
+import { t } from './i18n.js';
 
 const row = (label, ...content) => [h('label', null, label), h('div', { class: 'cell' }, ...content)];
 
@@ -24,7 +25,7 @@ export function createSkin(app, from = null) {
   doc.skins.push(skin);
   doc.skin = name;
   app.sel = { skin: name };
-  app.setStatus(`Skin '${name}' created and active: images added to slots now go into it`);
+  app.setStatus(t("Skin '{name}' created and active: images added to slots now go into it", { name }));
   app.changed();
 }
 
@@ -72,13 +73,13 @@ export function skinUi(app, name) {
   const doc = app.doc;
   if (name === 'default') {
     return [
-      h('h2', null, 'Skin: default'),
-      h('div', { class: 'small weak' }, 'Attachments added while the default skin is active belong to every skin.'),
-      h('div', { class: 'buttons' }, h('button', { onclick: () => createSkin(app) }, '＋ New skin')),
+      h('h2', null, t('Skin: default')),
+      h('div', { class: 'small weak' }, t('Attachments added while the default skin is active belong to every skin.')),
+      h('div', { class: 'buttons' }, h('button', { onclick: () => createSkin(app) }, t('＋ New skin'))),
     ];
   }
   const skin = doc.skins.find((s) => s.name === name);
-  if (!skin) return [h('p', { class: 'weak' }, 'Skin not found.')];
+  if (!skin) return [h('p', { class: 'weak' }, t('Skin not found.'))];
   const setupMode = app.mode === Mode.Setup;
   const attachments = skin.slots.reduce((n, e) => n + e.attachments.length, 0);
   const names = skinConstraintNames(skin);
@@ -97,35 +98,35 @@ export function skinUi(app, name) {
     app.changed();
   };
   return [
-    h('h2', null, `Skin: ${skin.name}`),
+    h('h2', null, t('Skin: {name}', { name: skin.name })),
     h(
       'div',
       { class: 'grid' },
-      row('Name', textField(skin.name, (v) => renameSkin(app, skin, v.trim()), { disabled: !setupMode })),
+      row(t('Name'), textField(skin.name, (v) => renameSkin(app, skin, v.trim()), { disabled: !setupMode })),
       row(
-        'Active',
-        h('button', { class: doc.skin === skin.name ? 'active' : '', onclick: () => ((doc.skin = skin.name), app.changed()) }, doc.skin === skin.name ? 'Active' : 'Make active'),
+        t('Active'),
+        h('button', { class: doc.skin === skin.name ? 'active' : '', onclick: () => ((doc.skin = skin.name), app.changed()) }, doc.skin === skin.name ? t('Active') : t('Make active')),
       ),
-      row('Attachments', String(attachments)),
+      row(t('Attachments'), String(attachments)),
       row(
-        'Bones',
+        t('Bones'),
         h('span', null, skin.bones.map((b) => doc.bones[b]?.name).join(', ') || '(none)'),
         h(
           'button',
           {
             class: 'small',
             disabled: !setupMode,
-            title: 'Bones marked "skin required" that this skin turns on',
+            title: t('Bones marked "skin required" that this skin turns on'),
             onclick: () => {
               skin.bones = app.selectedBones();
               app.changed();
             },
           },
-          'Use selected',
+          t('Use selected'),
         ),
       ),
     ),
-    h('strong', null, 'Attachments by slot'),
+    h('strong', null, t('Attachments by slot')),
     skin.slots.length
       ? h(
           'table',
@@ -145,7 +146,7 @@ export function skinUi(app, name) {
                       'a',
                       {
                         href: '#',
-                        title: 'Select the slot',
+                        title: t('Select the slot'),
                         onclick: (e) => {
                           e.preventDefault();
                           doc.skin = skin.name;
@@ -165,7 +166,7 @@ export function skinUi(app, name) {
                           'button',
                           {
                             class: 'small',
-                            title: 'Remove from this skin',
+                            title: t('Remove from this skin'),
                             onclick: () => {
                               entry.attachments.splice(i, 1);
                               skin.slots = skin.slots.filter((e) => e.attachments.length);
@@ -180,18 +181,18 @@ export function skinUi(app, name) {
               ),
             ),
         )
-      : h('div', { class: 'small weak' }, 'Make this skin active, select a slot and add images or shapes: they go into this skin.'),
-    h('strong', null, 'Constraints'),
+      : h('div', { class: 'small weak' }, t('Make this skin active, select a slot and add images or shapes: they go into this skin.')),
+    h('strong', null, t('Constraints')),
     constraints.length
       ? constraints.map((c) =>
           h('label', { class: 'check' }, h('input', { type: 'checkbox', disabled: !setupMode, checked: member(c), onchange: (e) => toggle(c, e.target.checked) }), ` ${c.name}`),
         )
-      : h('div', { class: 'small weak' }, 'Constraints marked "skin required" can be added to this skin.'),
+      : h('div', { class: 'small weak' }, t('Constraints marked "skin required" can be added to this skin.')),
     h(
       'div',
       { class: 'buttons' },
-      h('button', { disabled: !setupMode, onclick: () => createSkin(app, skin) }, 'Duplicate'),
-      h('button', { disabled: !setupMode, onclick: () => deleteSkin(app, skin) }, '🗑 Delete skin'),
+      h('button', { disabled: !setupMode, onclick: () => createSkin(app, skin) }, t('Duplicate')),
+      h('button', { disabled: !setupMode, onclick: () => deleteSkin(app, skin) }, t('🗑 Delete skin')),
     ),
   ];
 }
@@ -226,20 +227,20 @@ function deleteEvent(app, ev) {
 /** Adds (or replaces) a key of the event at the current time of the current animation. */
 function keyEvent(app, ev) {
   const anim = app.currentAnimation();
-  if (!anim) return app.setStatus('Choose an animation first');
+  if (!anim) return app.setStatus(t('Choose an animation first'));
   const time = Math.round(app.time * FPS) / FPS;
   anim.events = anim.events.filter((k) => !(k.name === ev.name && Math.abs(k.time - time) < 1e-4));
   anim.events.push({ time, name: ev.name });
   anim.events.sort((x, y) => x.time - y.time);
   if (anim.duration < time) anim.duration = time;
-  app.setStatus(`Keyed event '${ev.name}' at frame ${Math.round(time * FPS)}`);
+  app.setStatus(t("Keyed event '{name}' at frame {frame}", { name: ev.name, frame: Math.round(time * FPS) }));
   app.changed();
 }
 
 export function eventUi(app, name) {
   const doc = app.doc;
   const ev = doc.events.find((e) => e.name === name);
-  if (!ev) return [h('p', { class: 'weak' }, 'Event not found.')];
+  if (!ev) return [h('p', { class: 'weak' }, t('Event not found.'))];
   const setupMode = app.mode === Mode.Setup;
   const set = (key, v) => {
     ev[key] = v;
@@ -267,7 +268,7 @@ export function eventUi(app, name) {
           'button',
           {
             class: 'small',
-            title: 'Delete this key',
+            title: t('Delete this key'),
             onclick: () => {
               anim.events.splice(anim.events.indexOf(k), 1);
               app.changed();
@@ -279,36 +280,36 @@ export function eventUi(app, name) {
     );
   };
   return [
-    h('h2', null, `Event: ${ev.name}`),
+    h('h2', null, t('Event: {name}', { name: ev.name })),
     h(
       'div',
       { class: 'grid' },
-      row('Name', textField(ev.name, (v) => renameEvent(app, ev, v.trim()), { disabled: !setupMode })),
-      row('Int', dragValue(ev.int ?? 0, (v) => set('int', Math.round(v)), { speed: 0.2, decimals: 0, disabled: !setupMode })),
-      row('Float', dragValue(ev.float ?? 0, (v) => set('float', v), { speed: 0.01, decimals: 3, disabled: !setupMode })),
-      row('String', textField(ev.string ?? '', (v) => set('string', v || null), { disabled: !setupMode })),
-      row('Audio', textField(ev.audio ?? '', (v) => set('audio', v || null), { disabled: !setupMode })),
+      row(t('Name'), textField(ev.name, (v) => renameEvent(app, ev, v.trim()), { disabled: !setupMode })),
+      row(t('Int'), dragValue(ev.int ?? 0, (v) => set('int', Math.round(v)), { speed: 0.2, decimals: 0, disabled: !setupMode })),
+      row(t('Float'), dragValue(ev.float ?? 0, (v) => set('float', v), { speed: 0.01, decimals: 3, disabled: !setupMode })),
+      row(t('String'), textField(ev.string ?? '', (v) => set('string', v || null), { disabled: !setupMode })),
+      row(t('Audio'), textField(ev.audio ?? '', (v) => set('audio', v || null), { disabled: !setupMode })),
       ev.audio
         ? [
-            row('Volume', dragValue(ev.volume ?? 1, (v) => set('volume', v), { speed: 0.01, min: 0, max: 1, decimals: 2, disabled: !setupMode })),
-            row('Balance', dragValue(ev.balance ?? 0, (v) => set('balance', v), { speed: 0.01, min: -1, max: 1, decimals: 2, disabled: !setupMode })),
+            row(t('Volume'), dragValue(ev.volume ?? 1, (v) => set('volume', v), { speed: 0.01, min: 0, max: 1, decimals: 2, disabled: !setupMode })),
+            row(t('Balance'), dragValue(ev.balance ?? 0, (v) => set('balance', v), { speed: 0.01, min: -1, max: 1, decimals: 2, disabled: !setupMode })),
           ]
         : null,
     ),
     h('hr'),
-    h('strong', null, anim ? `Keys in '${anim.name}'` : 'Keys'),
+    h('strong', null, anim ? t("Keys in '{name}'", { name: anim.name }) : t('Keys')),
     anim
       ? [
           h(
             'div',
             { class: 'buttons' },
-            h('button', { disabled: app.mode !== Mode.Animate, title: 'Switch to Animate mode to key events', onclick: () => keyEvent(app, ev) }, `⚑ Key at frame ${Math.round(app.time * FPS)}`),
+            h('button', { disabled: app.mode !== Mode.Animate, title: t('Switch to Animate mode to key events'), onclick: () => keyEvent(app, ev) }, '⚑ ' + t('Key at frame {frame}', { frame: Math.round(app.time * FPS) })),
           ),
           keys.length
-            ? h('table', { class: 'props' }, h('tr', null, h('th', null, 'Frame'), h('th', null, 'Int'), h('th', null, 'Float'), h('th', null, 'String'), h('th', null, '')), keys.map(keyRow))
-            : h('div', { class: 'small weak' }, 'No keys yet. Each key can override the values above.'),
+            ? h('table', { class: 'props' }, h('tr', null, h('th', null, t('Frame')), h('th', null, t('Int')), h('th', null, t('Float')), h('th', null, t('String')), h('th', null, '')), keys.map(keyRow))
+            : h('div', { class: 'small weak' }, t('No keys yet. Each key can override the values above.')),
         ]
-      : h('div', { class: 'small weak' }, 'Choose an animation to key this event.'),
-    h('div', { class: 'buttons' }, h('button', { disabled: !setupMode, onclick: () => deleteEvent(app, ev) }, '🗑 Delete event')),
+      : h('div', { class: 'small weak' }, t('Choose an animation to key this event.')),
+    h('div', { class: 'buttons' }, h('button', { disabled: !setupMode, onclick: () => deleteEvent(app, ev) }, t('🗑 Delete event'))),
   ];
 }

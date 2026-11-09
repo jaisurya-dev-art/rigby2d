@@ -5,6 +5,7 @@
 
 import { REPEATING, actionFor, actionsFor, comboOf } from './keymap.js';
 import * as edit from './edit.js';
+import { t } from './i18n.js';
 
 // Actions that act on the focused window's own view state (the copy/paste clipboard and its
 // on-canvas preview), not on the shared document. A detached window runs these locally — so its
@@ -49,7 +50,7 @@ export function runAction(app, action, ctx) {
     'frame.previous10': () => app.stepFrame(-10),
     'loop.toggle': () => {
       app.looping = !app.looping;
-      app.setStatus(`Looping ${app.looping ? 'on' : 'off'}`);
+      app.setStatus(app.looping ? t('Looping on') : t('Looping off'));
     },
     'key.changed': () => edit.keyChanged(app),
     'key.tool': () => edit.keyTool(app),

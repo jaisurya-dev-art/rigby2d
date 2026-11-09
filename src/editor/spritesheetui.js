@@ -9,10 +9,11 @@ import * as platform from './platform.js';
 import { FORMATS, estimateSheet, frameCount } from './spritesheet.js';
 import { h, select } from './widgets.js';
 import { pausePlayback, showResult } from './resultui.js';
+import { t, tn } from './i18n.js';
 
 const LAYOUTS = [
-  ['packed', 'Packed (smallest sheet)'],
-  ['grid', 'Grid (equal cells)'],
+  ['packed', tn('Packed (smallest sheet)')],
+  ['grid', tn('Grid (equal cells)')],
 ];
 const SCALES = [
   [0.25, '25%'],
@@ -39,8 +40,8 @@ let last = { format: 'json', layout: 'packed', scale: 0.5, fps: 30, padding: 2, 
 /** Opens the sprite sheet dialog. */
 export function openSpriteSheetDialog(app) {
   const doc = app.doc;
-  if (doc.scene) return app.setStatus('Sprite sheets are made from a character: open the character, not the scene');
-  if (!doc.animations.length) return app.setStatus('Nothing to export: create an animation first');
+  if (doc.scene) return app.setStatus(t('Sprite sheets are made from a character: open the character, not the scene'));
+  if (!doc.animations.length) return app.setStatus(t('Nothing to export: create an animation first'));
   const choice = { ...last, animations: new Set(doc.animations.map((a) => a.name)), skin: doc.skin ?? '', name: safe(doc.name || 'sprites') };
   let running = null;
 
@@ -83,15 +84,15 @@ export function openSpriteSheetDialog(app) {
     const sheet = choice.format === 'json';
     const pixelArt = doc.textureFilter === 'nearest';
     const parts = [
-      h('h3', null, 'Export sprite sheet'),
-      h('div', { class: 'small weak' }, 'Each animation rendered frame by frame, for engines and tools that play frames instead of bones. Physics settles into loops first, so a loop joins up.'),
+      h('h3', null, t('Export sprite sheet')),
+      h('div', { class: 'small weak' }, t('Each animation rendered frame by frame, for engines and tools that play frames instead of bones. Physics settles into loops first, so a loop joins up.')),
       h(
         'div',
         { class: 'modal-columns' },
         h(
           'div',
           null,
-          h('strong', null, 'Animations'),
+          h('strong', null, t('Animations')),
           h(
             'div',
             { class: 'checklist' },
@@ -115,9 +116,9 @@ export function openSpriteSheetDialog(app) {
               ? h(
                   'div',
                   { class: 'small' },
-                  h('a', { href: '#', onclick: (e) => (e.preventDefault(), doc.animations.forEach((a) => choice.animations.add(a.name)), draw()) }, 'All animations'),
+                  h('a', { href: '#', onclick: (e) => (e.preventDefault(), doc.animations.forEach((a) => choice.animations.add(a.name)), draw()) }, t('All animations')),
                   ' · ',
-                  h('a', { href: '#', onclick: (e) => (e.preventDefault(), choice.animations.clear(), draw()) }, 'None'),
+                  h('a', { href: '#', onclick: (e) => (e.preventDefault(), choice.animations.clear(), draw()) }, t('None')),
                 )
               : null,
           ),
@@ -125,19 +126,19 @@ export function openSpriteSheetDialog(app) {
         h(
           'div',
           { class: 'grid' },
-          h('label', null, 'Format'),
-          h('div', { class: 'cell' }, select(FORMATS, choice.format, set('format'))),
-          h('label', null, 'Frame rate'),
+          h('label', null, t('Format')),
+          h('div', { class: 'cell' }, select(FORMATS.map(([id, label]) => [id, t(label)]), choice.format, set('format'))),
+          h('label', null, t('Frame rate')),
           h('div', { class: 'cell' }, select(FPS.map((f) => [f, `${f} fps`]), choice.fps, (v) => set('fps')(Number(v)))),
-          h('label', null, 'Size'),
+          h('label', null, t('Size')),
           h('div', { class: 'cell' }, select(SCALES, choice.scale, (v) => set('scale')(Number(v)))),
-          doc.skins.length ? h('label', null, 'Skin') : null,
+          doc.skins.length ? h('label', null, t('Skin')) : null,
           doc.skins.length ? h('div', { class: 'cell' }, select([['', 'default'], ...doc.skins.map((k) => [k.name, k.name])], choice.skin, set('skin'))) : null,
-          sheet ? h('label', null, 'Layout') : null,
-          sheet ? h('div', { class: 'cell' }, select(LAYOUTS, choice.layout, set('layout'))) : null,
-          sheet ? h('label', { title: 'The largest side of each sheet. Frames that do not fit go on more sheets.' }, 'Max sheet size') : null,
+          sheet ? h('label', null, t('Layout')) : null,
+          sheet ? h('div', { class: 'cell' }, select(LAYOUTS.map(([id, label]) => [id, t(label)]), choice.layout, set('layout'))) : null,
+          sheet ? h('label', { title: t('The largest side of each sheet. Frames that do not fit go on more sheets.') }, t('Max sheet size')) : null,
           sheet ? h('div', { class: 'cell' }, select(SIZES, choice.maxWidth, (v) => set('maxWidth')(Number(v)))) : null,
-          sheet ? h('label', null, 'Padding') : null,
+          sheet ? h('label', null, t('Padding')) : null,
           sheet
             ? h(
                 'div',
@@ -156,14 +157,14 @@ export function openSpriteSheetDialog(app) {
             : null,
         ),
       ),
-      h('div', { class: 'checks' }, check('loop', 'Loops (leave out the last frame, which repeats the first)'), sheet ? check('trim', 'Trim empty space around each frame') : null, sheet ? check('dedupe', 'Store identical frames once') : null, sheet ? check('pot', 'Power-of-two sheet sizes (for engines and GPUs that need them)') : null),
-      pixelArt ? h('div', { class: 'small weak' }, 'Pixel art: textures are set to Nearest, so frames are sampled crisp, without smoothing.') : null,
-      choice.format === 'defold' ? h('div', { class: 'small weak' }, `Put the ${choice.name} folder and ${choice.name}.atlas at the root of your Defold project (the atlas lists the frames as /${choice.name}/…), or edit the paths in the atlas.`) : null,
-      h('div', { class: 'small' }, names.length ? `${names.length} animation${names.length === 1 ? '' : 's'}, ${frames} frame${frames === 1 ? '' : 's'}.` : 'Pick at least one animation.'),
+      h('div', { class: 'checks' }, check('loop', t('Loops (leave out the last frame, which repeats the first)')), sheet ? check('trim', t('Trim empty space around each frame')) : null, sheet ? check('dedupe', t('Store identical frames once')) : null, sheet ? check('pot', t('Power-of-two sheet sizes (for engines and GPUs that need them)')) : null),
+      pixelArt ? h('div', { class: 'small weak' }, t('Pixel art: textures are set to Nearest, so frames are sampled crisp, without smoothing.')) : null,
+      choice.format === 'defold' ? h('div', { class: 'small weak' }, t('Put the {name} folder and {name}.atlas at the root of your Defold project (the atlas lists the frames as /{name}/…), or edit the paths in the atlas.', { name: choice.name })) : null,
+      h('div', { class: 'small' }, names.length ? t('{animations} animation(s), {frames} frame(s).', { animations: names.length, frames }) : t('Pick at least one animation.')),
       names.length ? estimateLine(names) : null,
       running ? h('div', { class: 'progress' }, h('div', { class: 'bar', style: { width: `${Math.round(running.fraction * 100)}%` } })) : null,
       running ? h('div', { class: 'small' }, running.text) : null,
-      h('div', { class: 'modal-buttons' }, h('button', { onclick: close }, running ? 'Cancel' : 'Close'), h('button', { class: 'primary', disabled: !names.length || !!running, onclick: () => start().catch(fail) }, 'Export…')),
+      h('div', { class: 'modal-buttons' }, h('button', { onclick: close }, running ? t('Cancel') : t('Close')), h('button', { class: 'primary', disabled: !names.length || !!running, onclick: () => start().catch(fail) }, t('Export…'))),
     ];
     body.replaceChildren(...parts.filter(Boolean));
   }
@@ -188,20 +189,20 @@ export function openSpriteSheetDialog(app) {
       }
     }
     const e = estimated.value;
-    if (!e) return h('div', { class: 'small weak' }, 'Nothing is drawn in these animations.');
+    if (!e) return h('div', { class: 'small weak' }, t('Nothing is drawn in these animations.'));
     const px = (w, hh) => `${w}×${hh} px`;
-    if (e.tooBig) return h('div', { class: 'small warn' }, `Each frame would be ${px(e.frameWidth, e.frameHeight)}, larger than one image can be. Lower the size.`);
-    if (choice.format !== 'json') return h('div', { class: 'small weak' }, `${e.frames} PNG files of ${px(e.frameWidth, e.frameHeight)}.`);
+    if (e.tooBig) return h('div', { class: 'small warn' }, t('Each frame would be {size}, larger than one image can be. Lower the size.', { size: px(e.frameWidth, e.frameHeight) }));
+    if (choice.format !== 'json') return h('div', { class: 'small weak' }, t('{count} PNG files of {size}.', { count: e.frames, size: px(e.frameWidth, e.frameHeight) }));
     const text =
       e.sheets === 1
-        ? `Frames of ${px(e.frameWidth, e.frameHeight)}: one sheet of at most ${px(e.width, e.height)}.`
-        : `Frames of ${px(e.frameWidth, e.frameHeight)}: up to ${e.sheets} sheets of at most ${px(e.width, e.height)}, fewer after trimming. Phaser loads them with load.multiatlas, PixiJS through the first sheet's JSON.`;
+        ? t('Frames of {size}: one sheet of at most {max}.', { size: px(e.frameWidth, e.frameHeight), max: px(e.width, e.height) })
+        : t("Frames of {size}: up to {count} sheets of at most {max}, fewer after trimming. Phaser loads them with load.multiatlas, PixiJS through the first sheet's JSON.", { size: px(e.frameWidth, e.frameHeight), count: e.sheets, max: px(e.width, e.height) });
     const fit = e.sheets > 1 && e.fitsOne && e.fitsOne !== choice.scale ? e.fitsOne : null;
     return h(
       'div',
       { class: e.sheets > 1 ? 'small warn' : 'small weak' },
       text,
-      fit ? h('span', null, ' ', h('a', { href: '#', onclick: (ev) => (ev.preventDefault(), set('scale')(fit)) }, `Use ${SCALES.find(([v]) => v === fit)[1]} for one sheet`)) : null,
+      fit ? h('span', null, ' ', h('a', { href: '#', onclick: (ev) => (ev.preventDefault(), set('scale')(fit)) }, t('Use {scale} for one sheet', { scale: SCALES.find(([v]) => v === fit)[1] }))) : null,
     );
   }
 
@@ -221,7 +222,7 @@ export function openSpriteSheetDialog(app) {
     running?.worker?.terminate();
     running = null;
     if (overlay.isConnected) draw();
-    showResult(app, { ok: false, title: 'Sprite sheet export failed', detail: String(e?.message ?? e) });
+    showResult(app, { ok: false, title: t('Sprite sheet export failed'), detail: String(e?.message ?? e) });
   }
 
   async function start() {
@@ -230,9 +231,9 @@ export function openSpriteSheetDialog(app) {
     let target;
     try {
       // In the browser a sheet (often hundreds of frames) downloads as one zip.
-      target = await platform.pickSaveTarget(first, ext === 'atlas' ? 'Defold atlas' : 'PNG image', ext, { download: true });
+      target = await platform.pickSaveTarget(first, ext === 'atlas' ? t('Defold atlas') : t('PNG image'), ext, { download: true });
     } catch (e) {
-      showResult(app, { ok: false, title: 'Sprite sheet export failed', detail: String(e?.message ?? e) });
+      showResult(app, { ok: false, title: t('Sprite sheet export failed'), detail: String(e?.message ?? e) });
       return;
     }
     if (!target) return;
@@ -251,7 +252,7 @@ export function openSpriteSheetDialog(app) {
       e.preventDefault?.();
       fail(e.message || 'the sprite sheet worker could not start');
     };
-    running = { worker, fraction: 0, text: 'Starting…' };
+    running = { worker, fraction: 0, text: t('Starting…') };
     draw();
     const options = {
       name: base,
@@ -276,12 +277,12 @@ export function openSpriteSheetDialog(app) {
         worker.terminate();
         running = null;
         draw();
-        showResult(app, { ok: false, title: 'Sprite sheet export failed', detail: m.error });
+        showResult(app, { ok: false, title: t('Sprite sheet export failed'), detail: m.error });
         return;
       }
       if (!m.done) {
         running.fraction = m.progress;
-        running.text = m.text;
+        running.text = t(m.text, m.vars); // worker texts: tn('Frame {done} of {total}'), tn('Encoding PNG {done} of {total}')
         draw();
         return;
       }
@@ -295,15 +296,15 @@ export function openSpriteSheetDialog(app) {
         running = null;
         track('editor-export-spritesheet');
         const s = m.summary;
-        const what = choice.format !== 'json' ? `${s.frames} frames of ${s.width}×${s.height}` : s.sheets > 1 ? `${s.sheets} sheets of up to ${s.width}×${s.height} with ${s.frames} frames (${s.unique} unique)` : `a ${s.width}×${s.height} sheet of ${s.frames} frames (${s.unique} unique)`;
-        const where = platform.isDesktop ? (dir === '.' ? target.path : dir) : `${base}${choice.format === 'frames' ? '_frames' : ''}.zip (downloaded)`;
+        const what = choice.format !== 'json' ? t('{count} frames of {size}', { count: s.frames, size: `${s.width}×${s.height}` }) : s.sheets > 1 ? t('{sheets} sheets of up to {size} with {count} frames ({unique} unique)', { sheets: s.sheets, size: `${s.width}×${s.height}`, count: s.frames, unique: s.unique }) : t('a {size} sheet of {count} frames ({unique} unique)', { size: `${s.width}×${s.height}`, count: s.frames, unique: s.unique });
+        const where = platform.isDesktop ? (dir === '.' ? target.path : dir) : t('{file} (downloaded)', { file: `${base}${choice.format === 'frames' ? '_frames' : ''}.zip` });
         close();
-        const how = m.gpu ? ' Drawn on the GPU.' : m.gpuIssue ? ` Drawn on the CPU (${m.gpuIssue}).` : '';
-        showResult(app, { ok: true, title: 'Sprite sheet exported', detail: `${what[0].toUpperCase()}${what.slice(1)}.${how}`, path: where });
+        const how = m.gpu ? t(' Drawn on the GPU.') : m.gpuIssue ? t(' Drawn on the CPU ({reason}).', { reason: m.gpuIssue }) : '';
+        showResult(app, { ok: true, title: t('Sprite sheet exported'), detail: `${what[0].toUpperCase()}${what.slice(1)}.${how}`, path: where });
       } catch (err) {
         running = null;
         draw();
-        showResult(app, { ok: false, title: 'Sprite sheet export failed', detail: String(err?.message ?? err) });
+        showResult(app, { ok: false, title: t('Sprite sheet export failed'), detail: String(err?.message ?? err) });
       }
     };
     worker.postMessage({ snapshot, images, options }, images.map((i) => i.data));

@@ -3,6 +3,7 @@
 // moment it is done) or an explanation (Next). Targets are fixed anchors (see targets.js), and each
 // action has a `student`: how the arena does that step with real input, to prove it works.
 
+import { tn } from '../i18n.js';
 import { isPractice, openPractice } from './practice.js';
 import { choose, click, drag, dragEmpty, layerBox, menu, screenOf, wheel } from './student.js';
 
@@ -22,26 +23,26 @@ const drawn = (app) => app.doc.bones.slice(1).map((b) => b.name);
 export const LESSONS = [
   {
     id: 'basics',
-    title: '1 · Getting started',
+    title: tn('1 · Getting started'),
     minutes: 4,
-    summary: 'Find your way around: the viewport, the timeline, the tree, the inspector and the two modes.',
+    summary: tn('Find your way around: the viewport, the timeline, the tree, the inspector and the two modes.'),
     steps: [
       {
-        text: '<b>Welcome to Rigby2D!</b> In a few minutes you will know your way around. This lesson uses <b>Rigbytron</b>, the demo character. Nothing you do here can break anything. Click <b>Open Rigbytron</b> to begin.',
-        action: { label: 'Open Rigbytron', run: ({ app }) => app.openDemo('rigbytron', true) },
+        text: tn('<b>Welcome to Rigby2D!</b> In a few minutes you will know your way around. This lesson uses <b>Rigbytron</b>, the demo character. Nothing you do here can break anything. Click <b>Open Rigbytron</b> to begin.'),
+        action: { label: tn('Open Rigbytron'), run: ({ app }) => app.openDemo('rigbytron', true) },
         target: 'coach:action',
         done: ({ app }) => app.path === 'rigbytron.rigby',
         student: (ctx) => click(ctx, 'coach:action'),
       },
       {
-        text: 'This big area is the <b>viewport</b>, where your character lives. Put the mouse over it and <b>turn the mouse wheel</b> to zoom in or out.',
+        text: tn('This big area is the <b>viewport</b>, where your character lives. Put the mouse over it and <b>turn the mouse wheel</b> to zoom in or out.'),
         target: { area: 'viewport' },
         enter: ({ app, mark }) => (mark.zoom = app.view.zoom),
         done: ({ app, mark }) => Math.abs(app.view.zoom - mark.zoom) > 0.02,
         student: (ctx) => wheel(ctx, -240),
       },
       {
-        text: 'Now <b>drag with the right mouse button</b> (or the middle one) to move the view around. Lost? <i>View ▸ Fit the skeleton in view</i> brings the character back.',
+        text: tn('Now <b>drag with the right mouse button</b> (or the middle one) to move the view around. Lost? <i>View ▸ Fit the skeleton in view</i> brings the character back.'),
         target: { area: 'viewport' },
         enter: ({ app, mark }) => (mark.pan = [app.view.panX, app.view.panY]),
         done: ({ app, mark }) => Math.hypot(app.view.panX - mark.pan[0], app.view.panY - mark.pan[1]) > 20,
@@ -51,43 +52,43 @@ export const LESSONS = [
         },
       },
       {
-        text: 'At the bottom is the <b>timeline</b>. Press <b>▶</b> to play or pause the animation. The <kbd>Space</kbd> key does the same.',
+        text: tn('At the bottom is the <b>timeline</b>. Press <b>▶</b> to play or pause the animation. The <kbd>Space</kbd> key does the same.'),
         target: 'timeline:play',
         enter: ({ app, mark }) => (mark.playing = app.playing),
         done: ({ app, mark }) => app.playing !== mark.playing,
         student: (ctx) => click(ctx, 'timeline:play'),
       },
       {
-        text: 'A character can have many animations, and Rigbytron has two. Pick <b>hold</b> in this list.',
+        text: tn('A character can have many animations, and Rigbytron has two. Pick <b>hold</b> in this list.'),
         target: 'timeline:animations',
         done: ({ app }) => app.currentAnimation()?.name === 'hold',
         student: (ctx) => choose(ctx, 'timeline:animations', 'hold'),
       },
       {
-        text: 'On the right is the <b>tree</b>: the parts of the character. <b>Bones</b> 🦴 are the skeleton, <b>slots</b> ▣ hold the images 📎. Click the <b>head</b> bone 🦴.',
+        text: tn('On the right is the <b>tree</b>: the parts of the character. <b>Bones</b> 🦴 are the skeleton, <b>slots</b> ▣ hold the images 📎. Click the <b>head</b> bone 🦴.'),
         target: 'bone:head',
         done: ({ app }) => selectedBone(app) === 'head',
         student: (ctx) => click(ctx, 'bone:head'),
       },
       {
-        text: 'Below the tree, the <b>inspector</b> shows the details of what you selected: here, the head bone\'s name, parent, rotation, position and scale.',
+        text: tn('Below the tree, the <b>inspector</b> shows the details of what you selected: here, the head bone\'s name, parent, rotation, position and scale.'),
         target: { area: 'inspector' },
         next: true,
       },
       {
-        text: 'Rigby2D has two <b>modes</b>: <b>Setup</b> to build the character, <b>Animate</b> to make it move. Click this button to switch (or press <kbd>Tab</kbd>).',
+        text: tn('Rigby2D has two <b>modes</b>: <b>Setup</b> to build the character, <b>Animate</b> to make it move. Click this button to switch (or press <kbd>Tab</kbd>).'),
         target: 'mode',
         enter: ({ app, mark }) => (mark.mode = app.mode),
         done: ({ app, mark }) => app.mode !== mark.mode,
         student: (ctx) => click(ctx, 'mode'),
       },
       {
-        text: 'Two <b>workspaces</b> tailor the editor: <b>Game</b> for exporting to game engines, <b>Film</b> for rendering video. Switch whenever you like; it never changes your work.',
+        text: tn('Two <b>workspaces</b> tailor the editor: <b>Game</b> for exporting to game engines, <b>Film</b> for rendering video. Switch whenever you like; it never changes your work.'),
         target: 'workspaces',
         next: true,
       },
       {
-        text: '<b>That\'s the tour!</b> Next you will rig your first character in five minutes. The lessons are always in <i>Help ▸ Tutorials</i>.',
+        text: tn('<b>That\'s the tour!</b> Next you will rig your first character in five minutes. The lessons are always in <i>Help ▸ Tutorials</i>.'),
         target: ['item:Tutorials…', 'menu:Help'],
         next: true,
       },
@@ -96,48 +97,48 @@ export const LESSONS = [
 
   {
     id: 'autorig',
-    title: '2 · Your first character',
+    title: tn('2 · Your first character'),
     minutes: 5,
-    summary: 'Turn a layered drawing into a moving character with AutoRig, then move it.',
+    summary: tn('Turn a layered drawing into a moving character with AutoRig, then move it.'),
     steps: [
       {
-        text: 'A character starts as a <b>layered drawing</b>: one layer per body part. Normally you import your own PSD or SVG with <i>File ▸ Import</i>. For practice, click <b>Load the practice character</b>.',
-        action: { label: 'Load the practice character', run: ({ app }) => openPractice(app) },
+        text: tn('A character starts as a <b>layered drawing</b>: one layer per body part. Normally you import your own PSD or SVG with <i>File ▸ Import</i>. For practice, click <b>Load the practice character</b>.'),
+        action: { label: tn('Load the practice character'), run: ({ app }) => openPractice(app) },
         target: 'coach:action',
         done: ({ app }) => isPractice(app, false),
         student: (ctx) => click(ctx, 'coach:action'),
       },
       {
-        text: 'Here are the layers in the tree: each one is a separate image, and nothing is connected yet. <b>Rigging</b> connects them with bones.',
+        text: tn('Here are the layers in the tree: each one is a separate image, and nothing is connected yet. <b>Rigging</b> connects them with bones.'),
         target: { area: 'tree' },
         next: true,
       },
       {
-        text: 'Rigby2D can rig it for you. Open the <b>File</b> menu and choose <b>AutoRig artwork…</b>',
+        text: tn('Rigby2D can rig it for you. Open the <b>File</b> menu and choose <b>AutoRig artwork…</b>'),
         target: ['item:AutoRig artwork…', 'menu:File'],
         done: () => !!document.querySelector('[data-tut="autorig:parts"]'),
         student: (ctx) => menu(ctx, 'File', 'AutoRig artwork…'),
       },
       {
-        text: 'AutoRig read each layer\'s <b>name</b> to find the body part and its side; you could correct any of them in the list. These are right, so click <b>Generate rig</b>.',
+        text: tn('AutoRig read each layer\'s <b>name</b> to find the body part and its side; you could correct any of them in the list. These are right, so click <b>Generate rig</b>.'),
         target: 'autorig:generate',
         done: ({ app }) => app.doc.bones.length > 1,
         student: (ctx) => click(ctx, 'autorig:generate'),
       },
       {
-        text: '<b>Rigged!</b> The tree now has bones: hip, chest, head, arms and legs. Bones named <b>ik_…</b> are <b>handles</b>: move one and the whole arm or leg follows. Click <b>ik_hand_r</b> in the tree.',
+        text: tn('<b>Rigged!</b> The tree now has bones: hip, chest, head, arms and legs. Bones named <b>ik_…</b> are <b>handles</b>: move one and the whole arm or leg follows. Click <b>ik_hand_r</b> in the tree.'),
         target: 'bone:ik_hand_r',
         done: ({ app }) => selectedBone(app) === 'ik_hand_r',
         student: (ctx) => click(ctx, 'bone:ik_hand_r'),
       },
       {
-        text: 'Choose the <b>Translate</b> tool (or press <kbd>G</kbd>). It moves things.',
+        text: tn('Choose the <b>Translate</b> tool (or press <kbd>G</kbd>). It moves things.'),
         target: 'tool:translate',
         done: ({ app }) => app.tool === 'translate',
         student: (ctx) => click(ctx, 'tool:translate'),
       },
       {
-        text: 'Now <b>drag in an empty part of the viewport</b>. The hand (circled) follows the mouse and the elbow bends by itself. That is <b>IK</b>, inverse kinematics.',
+        text: tn('Now <b>drag in an empty part of the viewport</b>. The hand (circled) follows the mouse and the elbow bends by itself. That is <b>IK</b>, inverse kinematics.'),
         target: { bone: 'ik_hand_r' },
         enter: ({ app, mark }) => {
           const b = app.doc.bones[boneIndex(app, 'ik_hand_r')];
@@ -150,12 +151,12 @@ export const LESSONS = [
         student: (ctx) => dragEmpty(ctx, -40, -60),
       },
       {
-        text: 'Made a mess? <b>Ctrl+Z</b> undoes it, as often as you like. Try the foot handle <b>ik_foot_l</b> (circled) too: it bends the knee.',
+        text: tn('Made a mess? <b>Ctrl+Z</b> undoes it, as often as you like. Try the foot handle <b>ik_foot_l</b> (circled) too: it bends the knee.'),
         target: { bone: 'ik_foot_l' },
         next: true,
       },
       {
-        text: '<b>Your character is rigged.</b> Everything AutoRig made is ordinary rig data that you can edit. Next: building bones by hand, then animating.',
+        text: tn('<b>Your character is rigged.</b> Everything AutoRig made is ordinary rig data that you can edit. Next: building bones by hand, then animating.'),
         next: true,
       },
     ],
@@ -163,19 +164,19 @@ export const LESSONS = [
 
   {
     id: 'bones',
-    title: '3 · Bones and images by hand',
+    title: tn('3 · Bones and images by hand'),
     minutes: 6,
-    summary: 'Draw bones yourself and attach images to them. This is what AutoRig does for you.',
+    summary: tn('Draw bones yourself and attach images to them. This is what AutoRig does for you.'),
     steps: [
       {
-        text: 'AutoRig is quick, but it helps to know what it does, so let\'s rig by hand. Click <b>Load the practice character</b> (loose layers, no bones).',
-        action: { label: 'Load the practice character', run: ({ app }) => openPractice(app) },
+        text: tn('AutoRig is quick, but it helps to know what it does, so let\'s rig by hand. Click <b>Load the practice character</b> (loose layers, no bones).'),
+        action: { label: tn('Load the practice character'), run: ({ app }) => openPractice(app) },
         target: 'coach:action',
         done: ({ app }) => isPractice(app, false),
         student: (ctx) => click(ctx, 'coach:action'),
       },
       {
-        text: 'Bones are drawn in <b>Setup</b> mode. If the button at the top says ANIMATE, click it to switch to SETUP.',
+        text: tn('Bones are drawn in <b>Setup</b> mode. If the button at the top says ANIMATE, click it to switch to SETUP.'),
         target: 'mode',
         done: ({ app }) => app.mode === 'setup',
         student: async (ctx) => {
@@ -183,13 +184,13 @@ export const LESSONS = [
         },
       },
       {
-        text: 'Choose the <b>Create</b> tool (or press <kbd>B</kbd>).',
+        text: tn('Choose the <b>Create</b> tool (or press <kbd>B</kbd>).'),
         target: 'tool:create',
         done: ({ app }) => app.tool === 'create',
         student: (ctx) => click(ctx, 'tool:create'),
       },
       {
-        text: '<b>Drag in the viewport</b> from the character\'s hips up to the bottom of the neck. That draws the first bone, the <b>spine</b>.',
+        text: tn('<b>Drag in the viewport</b> from the character\'s hips up to the bottom of the neck. That draws the first bone, the <b>spine</b>.'),
         target: { area: 'viewport' },
         enter: ({ app, mark }) => (mark.count = app.doc.bones.length),
         done: ({ app, mark }) => app.doc.bones.length > mark.count,
@@ -199,7 +200,7 @@ export const LESSONS = [
         },
       },
       {
-        text: 'The new bone is selected, so the next one becomes its <b>child</b>. Drag again, from the neck up to the top of the head.',
+        text: tn('The new bone is selected, so the next one becomes its <b>child</b>. Drag again, from the neck up to the top of the head.'),
         target: { area: 'viewport' },
         enter: ({ app, mark }) => (mark.count = app.doc.bones.length),
         done: ({ app, mark }) => app.doc.bones.length > mark.count,
@@ -210,19 +211,19 @@ export const LESSONS = [
         },
       },
       {
-        text: 'Now attach the images. Click the <b>torso</b> slot ▣ in the tree.',
+        text: tn('Now attach the images. Click the <b>torso</b> slot ▣ in the tree.'),
         target: 'slot:torso',
         done: ({ app }) => selectedSlot(app) === 'torso',
         student: (ctx) => click(ctx, 'slot:torso'),
       },
       {
-        text: 'In the inspector, open the <b>Bone</b> list and pick your first bone (the spine; it is called <b>bone</b> unless you renamed it). The torso is now attached to it.',
+        text: tn('In the inspector, open the <b>Bone</b> list and pick your first bone (the spine; it is called <b>bone</b> unless you renamed it). The torso is now attached to it.'),
         target: 'slot-bone',
         done: ({ app }) => slotOn(app, 'torso') !== 0,
         student: (ctx) => choose(ctx, 'slot-bone', drawn(ctx.app)[0]),
       },
       {
-        text: 'Same for the head: click the <b>head</b> slot ▣, then set its <b>Bone</b> to your second bone.',
+        text: tn('Same for the head: click the <b>head</b> slot ▣, then set its <b>Bone</b> to your second bone.'),
         target: ({ app }) => (selectedSlot(app) === 'head' ? 'slot-bone' : 'slot:head'),
         done: ({ app }) => slotOn(app, 'head') !== 0,
         student: async (ctx) => {
@@ -231,7 +232,7 @@ export const LESSONS = [
         },
       },
       {
-        text: 'Test it. Choose <b>Rotate</b> (<kbd>R</kbd>), click your spine bone in the tree, then drag in an empty part of the viewport. Torso and head turn together: the head bone is a child of the spine.',
+        text: tn('Test it. Choose <b>Rotate</b> (<kbd>R</kbd>), click your spine bone in the tree, then drag in an empty part of the viewport. Torso and head turn together: the head bone is a child of the spine.'),
         target: ({ app }) => (app.tool !== 'rotate' ? 'tool:rotate' : `bone:${drawn(app)[0]}`),
         enter: ({ app, mark }) => (mark.rot = app.doc.bones.map((b) => b.setup.rotation)),
         done: ({ app, mark }) => app.doc.bones.some((b, i) => i > 0 && i < mark.rot.length && Math.abs(b.setup.rotation - mark.rot[i]) > 3),
@@ -242,7 +243,7 @@ export const LESSONS = [
         },
       },
       {
-        text: '<b>That is rigging:</b> bones in a hierarchy, with images attached to them. AutoRig does the same for every part and adds meshes and IK. Next: making it move.',
+        text: tn('<b>That is rigging:</b> bones in a hierarchy, with images attached to them. AutoRig does the same for every part and adds meshes and IK. Next: making it move.'),
         next: true,
       },
     ],
@@ -250,32 +251,32 @@ export const LESSONS = [
 
   {
     id: 'animate',
-    title: '4 · Your first animation',
+    title: tn('4 · Your first animation'),
     minutes: 6,
-    summary: 'Make the character nod: keys, frames, Auto key and playback.',
+    summary: tn('Make the character nod: keys, frames, Auto key and playback.'),
     steps: [
       {
-        text: 'Animation is <b>poses at moments in time</b>; Rigby2D fills in the movement between them. Click <b>Load the rigged practice character</b>.',
-        action: { label: 'Load the rigged practice character', run: ({ app }) => openPractice(app, { rigged: true }) },
+        text: tn('Animation is <b>poses at moments in time</b>; Rigby2D fills in the movement between them. Click <b>Load the rigged practice character</b>.'),
+        action: { label: tn('Load the rigged practice character'), run: ({ app }) => openPractice(app, { rigged: true }) },
         target: 'coach:action',
         // The AutoRig-made practice rig (the lesson animates its head), not lesson 3's hand-drawn one.
         done: ({ app }) => isPractice(app, true) && boneIndex(app, 'head') > 0 && boneIndex(app, 'ik_hand_r') > 0 && app.doc.animations.length === 0,
         student: (ctx) => click(ctx, 'coach:action'),
       },
       {
-        text: 'Click <b>＋ New</b> in the timeline to start an animation. Rigby2D switches to <b>Animate</b> mode for you.',
+        text: tn('Click <b>＋ New</b> in the timeline to start an animation. Rigby2D switches to <b>Animate</b> mode for you.'),
         target: 'timeline:new',
         done: ({ app }) => app.doc.animations.length > 0 && app.mode === 'animate',
         student: (ctx) => click(ctx, 'timeline:new'),
       },
       {
-        text: 'Turn on <b>Auto key</b>: from now on every change you make is saved as a <b>key</b>, a pose at the current frame.',
+        text: tn('Turn on <b>Auto key</b>: from now on every change you make is saved as a <b>key</b>, a pose at the current frame.'),
         target: 'autokey',
         done: ({ app }) => app.autoKey,
         student: (ctx) => click(ctx, 'autokey'),
       },
       {
-        text: 'Click the <b>head</b> bone 🦴 in the tree, then press <b>◆ Key</b> (or <kbd>K</kbd>) to store the head\'s starting pose at <b>frame 0</b>.',
+        text: tn('Click the <b>head</b> bone 🦴 in the tree, then press <b>◆ Key</b> (or <kbd>K</kbd>) to store the head\'s starting pose at <b>frame 0</b>.'),
         target: ({ app }) => (selectedBone(app) === 'head' ? 'timeline:key' : 'bone:head'),
         done: ({ app }) => keyAt(app, 'head', 0),
         student: async (ctx) => {
@@ -284,7 +285,7 @@ export const LESSONS = [
         },
       },
       {
-        text: 'Move to around <b>frame 15</b>: click <b>▶|</b> (or press <kbd>→</kbd>) until the timeline says frame 15. Anything from 10 to 20 is fine.',
+        text: tn('Move to around <b>frame 15</b>: click <b>▶|</b> (or press <kbd>→</kbd>) until the timeline says frame 15. Anything from 10 to 20 is fine.'),
         target: 'timeline:next',
         done: ({ app }) => frame(app) >= 10 && frame(app) <= 20,
         student: async (ctx) => {
@@ -292,7 +293,7 @@ export const LESSONS = [
         },
       },
       {
-        text: 'Choose <b>Rotate</b> (<kbd>R</kbd>) and <b>drag in an empty part of the viewport</b> to tilt the head. With Auto key on, that sets a key at this frame.',
+        text: tn('Choose <b>Rotate</b> (<kbd>R</kbd>) and <b>drag in an empty part of the viewport</b> to tilt the head. With Auto key on, that sets a key at this frame.'),
         target: 'tool:rotate',
         done: ({ app }) => frame(app) > 0 && keyAt(app, 'head', frame(app)),
         student: async (ctx) => {
@@ -301,7 +302,7 @@ export const LESSONS = [
         },
       },
       {
-        text: 'Go on to around <b>frame 30</b> with <b>▶|</b> and tilt the head back. Every key shows as a diamond ◆ in the timeline.',
+        text: tn('Go on to around <b>frame 30</b> with <b>▶|</b> and tilt the head back. Every key shows as a diamond ◆ in the timeline.'),
         target: 'timeline:next',
         enter: ({ app, mark }) => (mark.from = frame(app)),
         done: ({ app, mark }) => frame(app) >= mark.from + 10 && keyAt(app, 'head', frame(app)),
@@ -311,13 +312,13 @@ export const LESSONS = [
         },
       },
       {
-        text: 'Press <b>▶</b> (or <kbd>Space</kbd>). The character nods: Rigby2D drew every frame between your keys.',
+        text: tn('Press <b>▶</b> (or <kbd>Space</kbd>). The character nods: Rigby2D drew every frame between your keys.'),
         target: 'timeline:play',
         done: ({ app }) => app.playing,
         student: (ctx) => click(ctx, 'timeline:play'),
       },
       {
-        text: '<b>You made an animation.</b> Save it with <i>File ▸ Save</i>. Next you can animate the arms with the <b>ik_…</b> handles, smooth the motion in the <b>Graph</b> view, or render a video in the <b>Film</b> workspace.',
+        text: tn('<b>You made an animation.</b> Save it with <i>File ▸ Save</i>. Next you can animate the arms with the <b>ik_…</b> handles, smooth the motion in the <b>Graph</b> view, or render a video in the <b>Film</b> workspace.'),
         next: true,
       },
     ],

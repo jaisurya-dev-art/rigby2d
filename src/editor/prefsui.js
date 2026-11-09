@@ -36,7 +36,7 @@ function shortcutControl(app) {
   const wrap = h('span', { class: 'pref-shortcuts' });
   const draw = () =>
     wrap.replaceChildren(
-      choice(Object.entries(PRESETS).map(([id, p]) => [id, p.label]), app.keymap, (v) => app.setKeymap(v)),
+      choice(Object.entries(PRESETS).map(([id, p]) => [id, t(p.label)]), app.keymap, (v) => app.setKeymap(v)),
       h(
         'button',
         {
@@ -83,8 +83,8 @@ const PAGES = [
     label: 'General',
     render: (app) => [
       row(
-        'Language',
-        'The language of menus and dialogs. Some panels are still in English.',
+        t('Language'),
+        t('The language of menus and dialogs. Some panels are still in English.'),
         choice([['', t('System ({language})', { language: navigator.language })], ...LANGUAGES], app.prefs.get('interface.language'), (v) => app.prefs.set('interface.language', v)),
       ),
       row('Welcome screen', 'Show the welcome screen when the editor starts.', checkbox(app.prefs.get('general.welcome'), (v) => app.prefs.set('general.welcome', v))),
@@ -99,15 +99,15 @@ const PAGES = [
       return [
         isDesktop
           ? row('Interface scale', 'Size of all text and controls.', choice(scales, app.prefs.get('interface.scale'), (v) => (app.prefs.set('interface.scale', Number(v)), applyInterfaceScale(app))))
-          : row('Interface scale', "In the browser, use the browser's zoom (Ctrl + and Ctrl −).", h('span')),
-        row('Keyboard shortcuts', 'Keys as in Spine, keys that follow Blender, or your own.', shortcutControl(app)),
+          : row(t('Interface scale'), "In the browser, use the browser's zoom (Ctrl + and Ctrl −).", h('span')),
+        row(t('Keyboard shortcuts'), t('Keys as in Spine, keys that follow Blender, or your own.'), shortcutControl(app)),
         row(
-          'Viewport drawing',
-          'Canvas 2D is slower, for graphics drivers that have trouble with WebGL.',
+          t('Viewport drawing'),
+          t('Canvas 2D is slower, for graphics drivers that have trouble with WebGL.'),
           choice(
             [
-              ['webgl', 'WebGL'],
-              ['canvas', 'Canvas 2D'],
+              ['webgl', t('WebGL')],
+              ['canvas', t('Canvas 2D')],
             ],
             app.renderer,
             (v) => {
@@ -118,10 +118,10 @@ const PAGES = [
           ),
         ),
         row(
-          'New projects',
-          'The workspace File ▸ New starts in by default.',
+          t('New projects'),
+          t('The workspace File ▸ New starts in by default.'),
           choice(
-            Object.values(WORKSPACES).map((w) => [w.id, w.label]),
+            Object.values(WORKSPACES).map((w) => [w.id, t(w.label)]),
             localStorage.getItem('rigby.workspace') ?? 'game',
             (v) => saveSetting('rigby.workspace', v),
           ),
@@ -139,12 +139,12 @@ const PAGES = [
     label: 'Files and recovery',
     render: (app) => [
       row(
-        'Backup versions',
-        'Saving keeps the previous versions next to the file: walk.rigby1 is the last one, walk.rigby2 the one before. Open them with File ▸ Open. 0 keeps none.',
+        t('Backup versions'),
+        t('Saving keeps the previous versions next to the file: walk.rigby1 is the last one, walk.rigby2 the one before. Open them with File ▸ Open. 0 keeps none.'),
         number(app, 'files.backups'),
       ),
       row('Auto-save', 'Keeps a copy of unsaved work in the recovery folder, offered back after a crash (File ▸ Recover).', checkbox(app.prefs.get('files.autosave'), (v) => app.prefs.set('files.autosave', v))),
-      row('Auto-save every', null, number(app, 'files.autosaveMinutes', t('minutes'))),
+      row(t('Auto-save every'), null, number(app, 'files.autosaveMinutes', t('minutes'))),
       isDesktop ? row('Reopen the last project', 'Opens the most recent project when the editor starts.', checkbox(app.prefs.get('files.reopenLast'), (v) => app.prefs.set('files.reopenLast', v))) : null,
     ],
   },

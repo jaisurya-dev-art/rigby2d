@@ -121,7 +121,7 @@ export function openRuntimes(app) {
       card({
         id: 'unity',
         name: 'Unity',
-        badge: '2021.3+ · Unity 6',
+        badge: t('2021.3+ · Unity 6'),
         text: t('Add it from its git URL in the Package Manager, or install the package file.'),
         primary: action('copy', t('Copy git URL'), (b) => copy(UNITY_GIT, b), 'primary'),
         secondary: [action('download', '.tgz', () => download(`rigby2d-unity-${V}.tgz`))],

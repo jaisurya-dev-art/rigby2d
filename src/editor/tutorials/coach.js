@@ -11,6 +11,7 @@ import { makeDraggable } from '../logwindow.js';
 import { h } from '../widgets.js';
 import { lintLesson } from './lint.js';
 import { overlaps, resolve } from './targets.js';
+import { t } from '../i18n.js';
 
 // Versioned: when lessons are rebuilt, progress from their old versions no longer counts.
 const PROGRESS = 'rigby.tutorials.v2';
@@ -151,7 +152,7 @@ export class Coach {
     } catch {
       ok = false;
     }
-    if (ok) this.go(1, '✓ Done');
+    if (ok) this.go(1, t('✓ Done'));
   }
 
   finish() {
@@ -229,7 +230,7 @@ export class Coach {
   }
 
   build() {
-    const close = h('button', { title: 'Close the lesson (your work stays)', onclick: () => this.stop() }, '✕');
+    const close = h('button', { title: t('Close the lesson (your work stays)'), onclick: () => this.stop() }, '✕');
     this.header = h('div', { class: 'float-header' }, h('b', { class: 'coach-title' }), h('span', { class: 'float-spacer' }), close);
     this.body = h('div', { class: 'coach-body' });
     this.panel = h('div', { class: 'float-window coach' }, this.header, this.body);
@@ -245,12 +246,12 @@ export class Coach {
     const { lesson, index } = this;
     const step = this.step;
     const total = lesson.steps.length;
-    this.header.querySelector('.coach-title').textContent = lesson.title;
+    this.header.querySelector('.coach-title').textContent = t(lesson.title);
     const text = h('div', { class: 'coach-text' });
-    text.innerHTML = step.text;
+    text.innerHTML = t(step.text);
     const parts = [
       h('div', { class: 'coach-progress' }, h('div', { class: 'bar', style: { width: `${(index / total) * 100}%` } })),
-      h('div', { class: 'coach-count small' }, h('span', { class: 'weak' }, `Step ${index + 1} of ${total}`), praise ? h('span', { class: 'coach-praise' }, praise) : null),
+      h('div', { class: 'coach-count small' }, h('span', { class: 'weak' }, t('Step {index} of {total}', { index: index + 1, total })), praise ? h('span', { class: 'coach-praise' }, praise) : null),
       text,
       step.action
         ? h(
@@ -265,24 +266,24 @@ export class Coach {
                   await step.action.run(this.ctx);
                 } catch (err) {
                   // The desktop app downloads the demo and practice characters; say so when that fails.
-                  this.ctx.app.setStatus(`Could not load the lesson's character: ${err?.message ?? err}. The desktop app downloads it from the Rigby2D website: check the internet connection.`);
+                  this.ctx.app.setStatus(t("Could not load the lesson's character: {error}. The desktop app downloads it from the Rigby2D website: check the internet connection.", { error: err?.message ?? err }));
                 } finally {
                   button.disabled = false;
                   this.check();
                 }
               },
             },
-            step.action.label,
+            t(step.action.label),
           )
         : null,
-      step.done ? h('div', { class: 'coach-wait weak small' }, 'Do this in the editor; the lesson goes on by itself.') : null,
+      step.done ? h('div', { class: 'coach-wait weak small' }, t('Do this in the editor; the lesson goes on by itself.')) : null,
       h(
         'div',
         { class: 'coach-buttons' },
-        h('button', { disabled: index === 0, onclick: () => this.go(-1) }, 'Back'),
+        h('button', { disabled: index === 0, onclick: () => this.go(-1) }, t('Back')),
         h('span', { class: 'float-spacer' }),
-        step.done ? h('button', { class: 'coach-skip', 'data-tut': 'coach:skip', title: 'Go on without doing this step', onclick: () => this.go(1) }, 'Skip') : null,
-        step.next ? h('button', { class: 'primary', 'data-tut': 'coach:next', onclick: () => this.go(1) }, index === total - 1 ? 'Finish' : 'Next') : null,
+        step.done ? h('button', { class: 'coach-skip', 'data-tut': 'coach:skip', title: t('Go on without doing this step'), onclick: () => this.go(1) }, t('Skip')) : null,
+        step.next ? h('button', { class: 'primary', 'data-tut': 'coach:next', onclick: () => this.go(1) }, index === total - 1 ? t('Finish') : t('Next')) : null,
       ),
     ];
     this.body.replaceChildren(...parts.filter(Boolean));

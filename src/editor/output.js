@@ -3,18 +3,19 @@
 // (fitted to an animation automatically, or fixed by the project settings).
 
 import { Pose } from '../core/pose.js';
+import { tn } from './i18n.js';
 
 export const FPS_PRESETS = [12, 15, 23.976, 24, 25, 29.97, 30, 48, 50, 60];
 
 export const SIZE_PRESETS = [
   [3840, 2160, '4K UHD'],
   [2560, 1440, 'QHD'],
-  [1920, 1080, 'Full HD'],
+  [1920, 1080, tn('Full HD')],
   [1280, 720, 'HD'],
   [2048, 858, '2K Scope'],
   [1998, 1080, '2K Flat'],
-  [1080, 1920, 'Vertical'],
-  [1080, 1080, 'Square'],
+  [1080, 1920, tn('Vertical')],
+  [1080, 1080, tn('Square')],
 ];
 
 /** Margin left around an automatically framed animation, as a fraction of the frame. */

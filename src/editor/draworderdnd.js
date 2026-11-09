@@ -4,6 +4,7 @@
 // resulting stacking (front at the top, back at the bottom) is visible before releasing.
 
 import { h, widgetState } from './widgets.js';
+import { t } from './i18n.js';
 
 const THUMB = 52; // preview thumbnail size, px
 const START = 4; // pointer travel before a click turns into a drag, px
@@ -135,13 +136,13 @@ function update(d, y) {
   // Side viewer: in front (top), the moving slot (middle), behind (bottom).
   const pose = d.app.pose();
   d.viewer.replaceChildren(
-    h('div', { class: 'ov-cap' }, '▲ In front'),
+    h('div', { class: 'ov-cap' }, t('▲ In front')),
     cell(d.app, pose, above, 'above'),
     h('div', { class: 'ov-seam' }),
     cell(d.app, pose, d.from, 'dragged'),
     h('div', { class: 'ov-seam' }),
     cell(d.app, pose, below, 'below'),
-    h('div', { class: 'ov-cap' }, '▼ Behind'),
+    h('div', { class: 'ov-cap' }, t('▼ Behind')),
   );
 
   placeViewer(d, y, lr, win);
@@ -192,7 +193,7 @@ function cell(app, pose, slot, role) {
       'div',
       { class: `ov-cell ov-empty ov-${role}` },
       h('span', { class: 'ov-empty-icon' }, '∅'),
-      h('span', { class: 'ov-empty-text' }, role === 'above' ? 'Nothing in front' : 'Nothing behind'),
+      h('span', { class: 'ov-empty-text' }, role === 'above' ? t('Nothing in front') : t('Nothing behind')),
     );
   }
   const name = app.doc.slots[slot].name;

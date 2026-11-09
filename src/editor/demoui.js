@@ -4,6 +4,7 @@
 import { DEMOS, DEMOS_REMOTE, DEMO_LICENSE_URL } from './demos.js';
 import { openExternal } from './platform.js';
 import { h } from './widgets.js';
+import { t } from './i18n.js';
 
 export function openDemoPicker(app) {
   const overlay = h('div', { class: 'modal-backdrop' });
@@ -26,8 +27,8 @@ export function openDemoPicker(app) {
     h(
       'div',
       { class: 'modal modal-wide demo-picker' },
-      h('h3', null, 'Open demo'),
-      h('p', { class: 'small weak' }, `Demo projects to explore and learn from. Opening one keeps your project file untouched; Save keeps a copy of the demo.${DEMOS_REMOTE ? ' Demos download from the Rigby2D website when you open them.' : ''}`),
+      h('h3', null, t('Open demo')),
+      h('p', { class: 'small weak' }, t('Demo projects to explore and learn from. Opening one keeps your project file untouched; Save keeps a copy of the demo.') + (DEMOS_REMOTE ? ' ' + t('Demos download from the Rigby2D website when you open them.') : '')),
       // The demos are Rigby2D demo content, not open source like the editor: say so where they are picked.
       h(
         'div',
@@ -36,10 +37,10 @@ export function openDemoPicker(app) {
         h(
           'p',
           null,
-          h('b', null, 'Demo content © Rigby2D. '),
-          'Free to open, study and modify to learn Rigby2D, and to show in tutorials with credit. Not for use in your own games, apps or films, or for AI training.',
+          h('b', null, t('Demo content © Rigby2D. ')),
+          t('Free to open, study and modify to learn Rigby2D, and to show in tutorials with credit. Not for use in your own games, apps or films, or for AI training.'),
         ),
-        h('button', { class: 'link', onclick: () => openExternal(DEMO_LICENSE_URL) }, 'Demo license ↗'),
+        h('button', { class: 'link', onclick: () => openExternal(DEMO_LICENSE_URL) }, t('Demo license ↗')),
       ),
       h(
         'div',
@@ -50,11 +51,11 @@ export function openDemoPicker(app) {
             { class: 'demo-card', 'data-demo': d.id, onclick: () => choose(d) },
             h('img', { src: d.thumbnail, alt: '', width: 480, height: 360, onerror: (e) => (e.target.style.visibility = 'hidden') }),
             h('strong', null, d.name),
-            h('span', { class: 'small weak' }, d.description),
+            h('span', { class: 'small weak' }, t(d.description)),
           ),
         ),
       ),
-      h('div', { class: 'modal-buttons' }, h('button', { onclick: close }, 'Cancel')),
+      h('div', { class: 'modal-buttons' }, h('button', { onclick: close }, t('Cancel'))),
     ),
   );
   document.addEventListener('keydown', onKey, true);

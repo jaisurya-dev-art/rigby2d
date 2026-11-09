@@ -14,10 +14,11 @@
 import { Pose } from '../core/pose.js';
 import { AnimationState } from '../core/state.js';
 import { SoftRenderer } from './raster.js';
+import { tn } from './i18n.js';
 
 export const FORMATS = [
-  ['json', 'JSON hash + PNG (Phaser, PixiJS, TexturePacker, Aseprite tags)'],
-  ['defold', 'Defold atlas + frames'],
+  ['json', tn('JSON hash + PNG (Phaser, PixiJS, TexturePacker, Aseprite tags)')],
+  ['defold', tn('Defold atlas + frames')],
   ['frames', 'PNG frames'],
 ];
 

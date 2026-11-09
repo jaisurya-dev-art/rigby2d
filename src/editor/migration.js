@@ -4,6 +4,7 @@
 // file, and docs/migrating-from-spine.md. No DOM: tests run it under Node.
 
 import { isSkeletonJson, readSkeletonJson } from '../core/interop.js';
+import { t, tn } from './i18n.js';
 
 /** Status of a feature: 'ok' (plays as in the original), 'kept' (kept and exported, not shown in the editor), 'partial', 'no'. */
 const FEATURES = [
@@ -12,8 +13,8 @@ const FEATURES = [
   ['linkedmesh', 'Linked meshes', 'ok'],
   ['clipping', 'Clipping', 'ok'],
   ['path', 'Path attachments', 'ok'],
-  ['boundingbox', 'Bounding boxes', 'kept', 'Kept and exported for game collision; not drawn.'],
-  ['point', 'Points', 'kept', 'Kept and exported; not drawn.'],
+  ['boundingbox', 'Bounding boxes', 'kept', tn('Kept and exported for game collision; not drawn.')],
+  ['point', 'Points', 'kept', tn('Kept and exported; not drawn.')],
   ['sequence', 'Image sequences', 'ok'],
   ['ik', 'IK constraints', 'ok'],
   ['transform', 'Transform constraints', 'ok'],
@@ -72,9 +73,9 @@ export function checkSkeleton(obj, name = 'skeleton') {
   let supported = true;
   if (version.major === 3 && version.minor < 8) {
     supported = false;
-    notes.push(`Format ${version.text} is older than 3.8. Export the project again as JSON 3.8 or newer (the original editor can open old projects and export them in a newer format).`);
+    notes.push(t('Format {version} is older than 3.8. Export the project again as JSON 3.8 or newer (the original editor can open old projects and export them in a newer format).', { version: version.text }));
   } else if (version.major > 4 || (version.major === 4 && version.minor > 3)) {
-    notes.push(`Format ${version.text} is newer than 4.3: features added after 4.3 are kept as they are but not played.`);
+    notes.push(t('Format {version} is newer than 4.3: features added after 4.3 are kept as they are but not played.', { version: version.text }));
   }
   let warnings = [];
   let summary = null;

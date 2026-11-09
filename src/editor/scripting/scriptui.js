@@ -70,7 +70,7 @@ function saveLibrary(list) {
   try {
     localStorage.setItem(STORAGE, JSON.stringify(list));
   } catch (e) {
-    log.exception(e, { source: 'scripts', context: 'Could not store the script library' });
+    log.exception(e, { source: 'scripts', context: t('Could not store the script library') });
   }
 }
 
@@ -96,7 +96,7 @@ export class Scripts {
     await this.refreshFiles();
     let failed = 0;
     for (const s of this.library) if (!(await this.run(s.name, s.source)).ok) failed++;
-    if (!quiet || failed) this.app.setStatus(failed ? `${failed} script(s) failed to load (details in View ▸ Log)` : `Loaded ${this.library.length} script(s)`);
+    if (!quiet || failed) this.app.setStatus(failed ? t('{count} script(s) failed to load (details in View ▸ Log)', { count: failed }) : t('Loaded {count} script(s)', { count: this.library.length }));
   }
 
   /** Desktop: scripts added from files are re-read, so editing them in another editor works. */
@@ -119,7 +119,7 @@ export class Scripts {
       return await this.host.runScript(name, source);
     } catch (e) {
       // Python itself did not start; the host has logged why.
-      this.app.setStatus(`Python could not start: ${log.errorMessage(e)}`);
+      this.app.setStatus(t('Python could not start: {error}', { error: log.errorMessage(e) }));
       return { ok: false, error: log.errorMessage(e) };
     }
   }
@@ -131,7 +131,7 @@ export class Scripts {
     else this.library.push({ name, source, path });
     saveLibrary(this.library);
     const r = await this.run(name, source);
-    if (r.ok) this.app.setStatus(r.value.length ? `${name}: added ${r.value.join(', ')} to the Scripts menu` : `Ran ${name}`);
+    if (r.ok) this.app.setStatus(r.value.length ? t('{name}: added {tools} to the Scripts menu', { name, tools: r.value.join(', ') }) : t('Ran {name}', { name }));
     this.changed();
     return r;
   }
@@ -140,11 +140,11 @@ export class Scripts {
     this.library = this.library.filter((s) => s.name !== name);
     saveLibrary(this.library);
     this.host.forget(name);
-    this.app.setStatus(`Removed script ${name}`);
+    this.app.setStatus(t('Removed script {name}', { name }));
   }
 
   async addFiles() {
-    const files = await this.app.guard(() => pickImportFiles('Python scripts', ['py'], true));
+    const files = await this.app.guard(() => pickImportFiles(t('Python scripts'), ['py'], true));
     if (!files?.length) return;
     for (const f of files) {
       const name = f.name.split(/[\\/]/).pop();
@@ -162,7 +162,7 @@ export class Scripts {
   /** Stops a script that runs too long; the library's tools load again. */
   async stop() {
     this.host.stop();
-    this.app.setStatus('Stopped the script. Python restarts with your library and add-ons.');
+    this.app.setStatus(t('Stopped the script. Python restarts with your library and add-ons.'));
     await this.loadAll({ quiet: true });
     await this.afterStop?.();
   }
@@ -244,7 +244,7 @@ function scriptEditor(scripts) {
   };
   const run = async (save) => {
     busy(true);
-    state.textContent = scripts.host.state === 'ready' ? 'Running…' : 'Starting Python…';
+    state.textContent = scripts.host.state === 'ready' ? t('Running…') : t('Starting Python…');
     try {
       const n = fileName();
       if (save && n !== current && names().includes(n)) {
@@ -263,8 +263,8 @@ function scriptEditor(scripts) {
         drafts.delete(n);
         current = n;
       }
-      if (r.ok && !save) scripts.app.setStatus(`Ran ${n}${r.value.length ? `; tools: ${r.value.join(', ')}` : ''}`);
-      state.textContent = r.ok ? 'Done' : `Failed: ${r.error}`;
+      if (r.ok && !save) scripts.app.setStatus(t('Ran {name}', { name: n }) + (r.value.length ? t('; tools: {tools}', { tools: r.value.join(', ') }) : ''));
+      state.textContent = r.ok ? t('Done') : t('Failed: {error}', { error: r.error });
       if (!r.ok) openLogWindow();
     } finally {
       busy(false);
@@ -310,22 +310,22 @@ function scriptEditor(scripts) {
         'div',
         {
           class: `script-item${n === current ? ' selected' : ''}${isNew ? ' unsaved' : ''}`,
-          title: isNew ? 'New: not saved yet' : (saved(n)?.path ?? 'Stored in the editor') + (drafts.has(n) ? ' (unsaved changes)' : ''),
+          title: isNew ? t('New: not saved yet') : (saved(n)?.path ?? t('Stored in the editor')) + (drafts.has(n) ? t(' (unsaved changes)') : ''),
           onclick: () => n !== current && load(n),
         },
         h('span', null, `${n}${drafts.has(n) ? ' •' : ''}`),
         h('span', { class: 'weak' }, tools ? ` ${tools}` : ''),
       );
     };
-    list.replaceChildren(...names().map(item), h('button', { class: 'script-new', onclick: () => newScript() }, '＋ New script'));
-    if (!state.textContent) state.textContent = { idle: 'Python starts on first run', loading: 'Starting Python…', ready: 'Python ready', failed: 'Python failed to start (see Log)' }[scripts.host.state];
+    list.replaceChildren(...names().map(item), h('button', { class: 'script-new', onclick: () => newScript() }, t('＋ New script')));
+    if (!state.textContent) state.textContent = { idle: t('Python starts on first run'), loading: t('Starting Python…'), ready: t('Python ready'), failed: t('Python failed to start (see Log)') }[scripts.host.state];
   };
 
   const close = () => {
     el.remove();
     scripts.window = null;
   };
-  const header = h('div', { class: 'float-header' }, h('b', null, 'Script editor'), h('span', { class: 'float-spacer' }), h('button', { title: 'Close', onclick: close }, '✕'));
+  const header = h('div', { class: 'float-header' }, h('b', null, t('Script editor')), h('span', { class: 'float-spacer' }), h('button', { title: t('Close'), onclick: close }, '✕'));
   const el = h(
     'div',
     { class: 'float-window script-window' },
@@ -343,20 +343,20 @@ function scriptEditor(scripts) {
         h(
           'div',
           { class: 'script-bar' },
-          h('button', { 'data-run': '', class: 'primary', title: 'Ctrl+Enter', onclick: () => run(false) }, '▶ Run'),
-          h('button', { 'data-run': '', title: 'Keep in the library: it loads with the editor and its tools stay in the Scripts menu', onclick: () => run(true) }, 'Save to library'),
+          h('button', { 'data-run': '', class: 'primary', title: t('Ctrl+Enter'), onclick: () => run(false) }, t('▶ Run')),
+          h('button', { 'data-run': '', title: t('Keep in the library: it loads with the editor and its tools stay in the Scripts menu'), onclick: () => run(true) }, t('Save to library')),
           h(
             'button',
             {
               'data-run': '',
-              title: 'Remove from the library',
+              title: t('Remove from the library'),
               onclick: remove,
             },
-            'Remove',
+            t('Remove'),
           ),
           h('span', { class: 'float-spacer' }),
-          h('button', { title: 'Show or hide the scripting API', onclick: () => (reference.hidden = !reference.hidden) }, 'API reference'),
-          h('button', { title: 'The scripting guide on rigby2d.com', onclick: () => openExternal(GUIDE_URL) }, 'Guide ↗'),
+          h('button', { title: t('Show or hide the scripting API'), onclick: () => (reference.hidden = !reference.hidden) }, 'API reference'),
+          h('button', { title: t('The scripting guide on rigby2d.com'), onclick: () => openExternal(GUIDE_URL) }, t('Guide ↗')),
         ),
       ),
     ),

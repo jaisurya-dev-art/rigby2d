@@ -71,7 +71,7 @@ export function installRecovery(app) {
       log.debug(`Auto-saved (${reason})`, { source: 'recovery' });
       return true;
     } catch (e) {
-      log.exception(e, { source: 'recovery', context: 'Auto-save failed' });
+      log.exception(e, { source: 'recovery', context: t('Auto-save failed') });
       return false;
     } finally {
       busy = false;
@@ -156,7 +156,7 @@ export function installRecovery(app) {
     app.saveTarget = original ? platform.desktopFile(original) : null;
     app.saved = ''; // unsaved until saved again
     app.changed();
-    app.setStatus(`Recovered ${session?.name || baseName(original) || 'the project'} from ${file.endsWith(QUIT_FILE) ? 'the last session' : 'an auto-save'}. Save to keep it.`);
+    app.setStatus((file.endsWith(QUIT_FILE) ? t('Recovered {name} from the last session. Save to keep it.', { name: session?.name || baseName(original) || t('the project') }) : t('Recovered {name} from an auto-save. Save to keep it.', { name: session?.name || baseName(original) || t('the project') })));
     await autosave('recovered');
     if (session) forget(session);
   }
@@ -188,8 +188,8 @@ export function installRecovery(app) {
       if (m && !live.has(m[1])) platform.userStore.remove(f.path);
     }
     const crashed = crashedSessions(sessions, { current: id, alive, hasAutosave });
-    recoverable = crashed.map((s) => ({ label: `${s.name || 'untitled'}, auto-saved ${dayOf(names.get(at(sessionAutosave(s.id))) || s.beat)}`, file: at(sessionAutosave(s.id)), session: s }));
-    if (names.has(at(QUIT_FILE))) recoverable.push({ label: `Last session, closed ${dayOf(names.get(at(QUIT_FILE)))}`, file: at(QUIT_FILE), session: null });
+    recoverable = crashed.map((s) => ({ label: t('{name}, auto-saved {when}', { name: s.name || t('untitled'), when: dayOf(names.get(at(sessionAutosave(s.id))) || s.beat) }), file: at(sessionAutosave(s.id)), session: s }));
+    if (names.has(at(QUIT_FILE))) recoverable.push({ label: t('Last session, closed {when}', { when: dayOf(names.get(at(QUIT_FILE))) }), file: at(QUIT_FILE), session: null });
     return crashed;
   }
 
@@ -254,7 +254,7 @@ export function installRecovery(app) {
       h('span', null, saved ? t('Rigby2D ran into an error. Your work was auto-saved. Details are in View ▸ Log.') : t('Rigby2D ran into an error. Details are in View ▸ Log.')),
       h('button', { onclick: () => openCrashReport() }, t('Report…')),
       h('button', { onclick: () => app.save(true) }, t('Save as…')),
-      h('button', { class: 'dialog-close', 'aria-label': 'Dismiss', onclick: () => banner.remove() }, '✕'),
+      h('button', { class: 'dialog-close', 'aria-label': t('Dismiss'), onclick: () => banner.remove() }, '✕'),
     );
     document.body.append(banner);
   }
@@ -262,7 +262,7 @@ export function installRecovery(app) {
   function openCrashReport() {
     banner?.remove();
     const report = makeReport();
-    const { body } = dialog('crash-dialog', 'Report a problem', 'The report has the version, the platform and the errors, with your folder names hidden. Nothing is sent until you choose to.');
+    const { body } = dialog('crash-dialog', t('Report a problem'), t('The report has the version, the platform and the errors, with your folder names hidden. Nothing is sent until you choose to.'));
     const text = h('textarea', { class: 'crash-report', readonly: true, rows: 14 }, report);
     const issue = `${LINKS.repo}/issues/new?title=${encodeURIComponent('Crash: ' + (log.entries.filter((x) => x.level === 'error').at(-1)?.message ?? 'error').slice(0, 80))}&body=${encodeURIComponent(('**What were you doing?**\n\n\n**Report**\n```\n' + report).slice(0, 6000) + '\n```')}`;
     body.append(
@@ -270,8 +270,8 @@ export function installRecovery(app) {
       h(
         'div',
         { class: 'dialog-actions' },
-        h('button', { onclick: () => navigator.clipboard?.writeText(report).then(() => app.setStatus('Copied the crash report')) }, 'Copy'),
-        h('button', { class: 'primary', onclick: () => platform.openExternal(issue) }, 'Report on GitHub ↗'),
+        h('button', { onclick: () => navigator.clipboard?.writeText(report).then(() => app.setStatus(t('Copied the crash report'))) }, t('Copy')),
+        h('button', { class: 'primary', onclick: () => platform.openExternal(issue) }, t('Report on GitHub ↗')),
       ),
     );
   }

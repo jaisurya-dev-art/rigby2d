@@ -8,6 +8,7 @@
 import { BONE_CHANNELS, SLOT_CHANNELS } from '../core/animation.js';
 import { listConstraints } from '../core/constraintdata.js';
 import { channelKeys, keyedChannels } from '../core/constraintkeys.js';
+import { t } from './i18n.js';
 
 /** Rows of the dopesheet for the current animation: [{ track, label }]. */
 export function tracks(app, anim) {
@@ -26,14 +27,14 @@ export function tracks(app, anim) {
     }
   }
   anim.deform.forEach((d, i) => {
-    out.push({ track: { deform: i, slot: d.slot }, label: `${app.doc.slots[d.slot]?.name ?? '?'} · deform ${d.attachment}` });
+    out.push({ track: { deform: i, slot: d.slot }, label: `${app.doc.slots[d.slot]?.name ?? '?'} · ${t('deform')} ${d.attachment}` });
   });
   anim.ik.forEach((k, i) => out.push({ track: { ik: i }, label: `IK ${app.doc.ik[k.constraint]?.name ?? '?'}` }));
   for (const [skin, slots] of Object.entries(anim.extra?.attachments ?? {})) {
     for (const [slot, atts] of Object.entries(slots)) {
       for (const [attachment, timelines] of Object.entries(atts)) {
         if (Array.isArray(timelines.sequence) && timelines.sequence.length) {
-          out.push({ track: { sequence: { skin, slot, attachment } }, label: `${slot} · sequence${skin === 'default' ? '' : ` [${skin}]`}` });
+          out.push({ track: { sequence: { skin, slot, attachment } }, label: `${slot} · ${t('sequence')}${skin === 'default' ? '' : ` [${skin}]`}` });
         }
       }
     }

@@ -3,12 +3,13 @@
 // out into its own OS window (e.g. on a second monitor). The editor window stays the single
 // authority (document, undo, selection); the windows mirror its state over these events. Adding a
 // panel is: one entry in PANELS here, one builder in panel.js, and a detach button + CSS in the host.
+import { tn } from './i18n.js';
 
 /** Detachable panels, by id. width/height size the pop-out window; label titles it. */
 export const PANELS = {
-  timeline: { label: 'Timeline', width: 940, height: 340 },
-  tree: { label: 'Tree', width: 340, height: 640 },
-  inspector: { label: 'Inspector', width: 340, height: 560 },
+  timeline: { label: tn('Timeline'), width: 940, height: 340 },
+  tree: { label: tn('Tree'), width: 340, height: 640 },
+  inspector: { label: tn('Inspector'), width: 340, height: 560 },
 };
 
 /** The OS window label for a panel (a glob the capability `panel` grants: "panel-*"). */

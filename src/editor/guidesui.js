@@ -6,6 +6,7 @@
 
 import { GUIDES_DEFAULTS } from './app.js';
 import { h, popupMenu } from './widgets.js';
+import { t } from './i18n.js';
 
 const toHex = (rgb) => '#' + rgb.slice(0, 3).map((x) => Math.round(Math.max(0, Math.min(1, x)) * 255).toString(16).padStart(2, '0')).join('');
 const fromHex = (hex) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255);
@@ -27,7 +28,7 @@ function guideRow(label, cfg, def, refresh) {
     {
       class: 'guides-reset',
       type: 'button',
-      title: 'Reset to the default color',
+      title: t('Reset to the default color'),
       onclick: () => {
         cfg.color = [...def];
         color.value = toHex(cfg.color);
@@ -48,18 +49,18 @@ export function guidesPanel(app, x, y) {
   const node = h(
     'div',
     { class: 'guides-panel', onpointerdown: (e) => e.stopPropagation() },
-    h('div', { class: 'guides-title' }, 'Guides'),
-    h('div', { class: 'guides-subtitle' }, 'Real-time guides'),
-    guideRow('Rotate', g.realtime.rotate, D.rotate, refresh),
-    guideRow('Translate', g.realtime.translate, D.translate, refresh),
-    guideRow('Scale', g.realtime.scale, D.scale, refresh),
-    guideRow('Shear', g.realtime.shear, D.shear, refresh),
+    h('div', { class: 'guides-title' }, t('Guides')),
+    h('div', { class: 'guides-subtitle' }, t('Real-time guides')),
+    guideRow(t('Rotate'), g.realtime.rotate, D.rotate, refresh),
+    guideRow(t('Translate'), g.realtime.translate, D.translate, refresh),
+    guideRow(t('Scale'), g.realtime.scale, D.scale, refresh),
+    guideRow(t('Shear'), g.realtime.shear, D.shear, refresh),
     h('div', { class: 'guides-sep' }),
-    h('div', { class: 'guides-subtitle' }, 'Static guides'),
-    guideRow('Vertical', g.static.vertical, D.vertical, refresh),
-    guideRow('Horizontal', g.static.horizontal, D.horizontal, refresh),
-    guideRow('Diagonal', g.static.diagonal, D.diagonal, refresh),
-    guideRow('Antidiagonal', g.static.antidiagonal, D.antidiagonal, refresh),
+    h('div', { class: 'guides-subtitle' }, t('Static guides')),
+    guideRow(t('Vertical'), g.static.vertical, D.vertical, refresh),
+    guideRow(t('Horizontal'), g.static.horizontal, D.horizontal, refresh),
+    guideRow(t('Diagonal'), g.static.diagonal, D.diagonal, refresh),
+    guideRow(t('Antidiagonal'), g.static.antidiagonal, D.antidiagonal, refresh),
     placed
       ? h(
           'button',
@@ -71,7 +72,7 @@ export function guidesPanel(app, x, y) {
               refresh();
             },
           },
-          `Clear ${placed} placed guide${placed === 1 ? '' : 's'}`,
+          t('Clear {count} placed guide(s)', { count: placed }),
         )
       : null,
   );

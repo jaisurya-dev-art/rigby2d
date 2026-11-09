@@ -3,6 +3,7 @@
 
 import { LEVELS, clear, entries, formatEntries, markRead, stamp, subscribe } from './log.js';
 import { h } from './widgets.js';
+import { t } from './i18n.js';
 
 let win = null;
 // Expanded tracebacks stay open when the list is redrawn for new entries.
@@ -85,9 +86,9 @@ export function openLogWindow() {
   const header = h(
     'div',
     { class: 'float-header' },
-    h('b', null, 'Log'),
+    h('b', null, t('Log')),
     h('span', { class: 'float-spacer' }),
-    h('button', { title: 'Close', onclick: () => closeLogWindow() }, '✕'),
+    h('button', { title: t('Close'), onclick: () => closeLogWindow() }, '✕'),
   );
   const toolbar = h(
     'div',
@@ -95,7 +96,7 @@ export function openLogWindow() {
     ...LEVELS.map(levelToggle),
     h('input', {
       type: 'search',
-      placeholder: 'Filter…',
+      placeholder: t('Filter…'),
       value: view.search,
       oninput: (e) => {
         view.search = e.target.value;
@@ -107,21 +108,21 @@ export function openLogWindow() {
     h(
       'button',
       {
-        title: 'Copy the shown entries, with tracebacks',
+        title: t('Copy the shown entries, with tracebacks'),
         onclick: async (e) => {
           const button = e.currentTarget;
           try {
             await navigator.clipboard.writeText(formatEntries(visible()));
-            button.textContent = 'Copied';
+            button.textContent = t('Copied');
           } catch {
-            button.textContent = 'Copy failed';
+            button.textContent = t('Copy failed');
           }
-          setTimeout(() => (button.textContent = 'Copy'), 1200);
+          setTimeout(() => (button.textContent = t('Copy')), 1200);
         },
       },
-      'Copy',
+      t('Copy'),
     ),
-    h('button', { onclick: () => clear() }, 'Clear'),
+    h('button', { onclick: () => clear() }, t('Clear')),
   );
   const el = h('div', { class: 'float-window log-window' }, header, toolbar, list);
   makeDraggable(el, header);

@@ -9,9 +9,10 @@ import { confirmDialog } from './platform.js';
 import { h, select, submenuItem, textField } from './widgets.js';
 import { PANELS } from './dock.js';
 import { assignHotkey, hotkeyLabel, loadLayouts, newLayoutId, removeLayout, renameLayout, saveLayouts, updatePanels, upsertLayout } from './layouts.js';
+import { t, tn } from './i18n.js';
 
 // Ctrl+Alt+<digit> options for a shortcut: none, then 1–9 and 0.
-const HOTKEY_OPTIONS = [['', 'No shortcut'], ...[1, 2, 3, 4, 5, 6, 7, 8, 9, 0].map((d) => [String(d), `Ctrl+Alt+${d}`])];
+const HOTKEY_OPTIONS = [['', tn('No shortcut')], ...[1, 2, 3, 4, 5, 6, 7, 8, 9, 0].map((d) => [String(d), `Ctrl+Alt+${d}`])];
 const toHotkey = (v) => (v === '' ? null : Number(v));
 const hotkeyValue = (hotkey) => (hotkey === null || hotkey === undefined ? '' : String(hotkey));
 
@@ -45,8 +46,8 @@ export function windowLayoutsSubmenu(ctx) {
   const layouts = loadLayouts();
   const { id: activeId, dirty } = ctx.sync.activeLayout();
   return [
-    { label: 'Save current layout…', action: () => openSaveLayout(ctx) },
-    { label: 'Manage layouts…', disabled: !layouts.length, action: () => openManageLayouts(ctx) },
+    { label: t('Save current layout…'), action: () => openSaveLayout(ctx) },
+    { label: t('Manage layouts…'), disabled: !layouts.length, action: () => openManageLayouts(ctx) },
     'separator',
     ...(layouts.length
       ? layouts.map((l) => {
@@ -56,45 +57,45 @@ export function windowLayoutsSubmenu(ctx) {
             label: `${active ? '● ' : ''}${l.name}${unsaved ? ' — unsaved' : ''}`,
             shortcut: hotkeyLabel(l.hotkey),
             class: active ? (unsaved ? 'active unsaved' : 'active') : null,
-            title: `${active ? (unsaved ? 'Active layout — the windows moved since it was saved. ' : 'Active layout. ') : ''}Load: ${summary(l.panels)}`,
+            title: (active ? (unsaved ? t('Active layout — the windows moved since it was saved.') + ' ' : t('Active layout.') + ' ') : '') + t('Load: {panels}', { panels: summary(l.panels) }),
             action: () => loadLayout(ctx, l),
           };
         })
-      : [{ label: 'No saved layouts yet', disabled: true, action: () => {} }]),
+      : [{ label: t('No saved layouts yet'), disabled: true, action: () => {} }]),
   ];
 }
 
 /** The entry to drop into the View menu (a submenu that unfolds to the right). */
 export function windowLayoutsMenuItem(ctx) {
-  return submenuItem('Window layouts', () => windowLayoutsSubmenu(ctx), { title: 'Save and recall where the detached panels sit (for multi-monitor setups)' });
+  return submenuItem(t('Window layouts'), () => windowLayoutsSubmenu(ctx), { title: t('Save and recall where the detached panels sit (for multi-monitor setups)') });
 }
 
 function loadLayout(ctx, layout) {
   ctx.sync.applyLayout(layout.panels, layout.id);
-  ctx.app.setStatus(`Window layout: ${layout.name}`);
+  ctx.app.setStatus(t('Window layout: {name}', { name: layout.name }));
 }
 
 function openSaveLayout(ctx) {
   const existing = loadLayouts();
-  let name = `Layout ${existing.length + 1}`;
+  let name = t('Layout {number}', { number: existing.length + 1 });
   let hotkey = null;
   modal((close) => [
-    h('h3', null, 'Save window layout'),
-    h('p', { class: 'weak' }, 'Stores which panels are popped out and where, so you can bring the whole arrangement back later — handy across two monitors.'),
-    h('p', { class: 'small weak' }, `Capturing: ${summary(currentPanelsHint(ctx))}.`),
+    h('h3', null, t('Save window layout')),
+    h('p', { class: 'weak' }, t('Stores which panels are popped out and where, so you can bring the whole arrangement back later — handy across two monitors.')),
+    h('p', { class: 'small weak' }, t('Capturing: {panels}.', { panels: summary(currentPanelsHint(ctx)) })),
     h(
       'div',
       { class: 'grid' },
-      h('label', null, 'Name'),
+      h('label', null, t('Name')),
       textField(name, (v) => (name = v), { width: '100%' }),
-      h('label', null, 'Shortcut'),
-      select(HOTKEY_OPTIONS, '', (v) => (hotkey = toHotkey(v))),
+      h('label', null, t('Shortcut')),
+      select(HOTKEY_OPTIONS.map(([v, l]) => [v, t(l)]), '', (v) => (hotkey = toHotkey(v))),
     ),
-    h('p', { class: 'small weak' }, 'The shortcut is optional: Ctrl+Alt+<number> loads this layout from any Rigby2D window.'),
+    h('p', { class: 'small weak' }, t('The shortcut is optional: Ctrl+Alt+<number> loads this layout from any Rigby2D window.')),
     h(
       'div',
       { class: 'modal-buttons' },
-      h('button', { onclick: close }, 'Cancel'),
+      h('button', { onclick: close }, t('Cancel')),
       h(
         'button',
         {
@@ -102,14 +103,14 @@ function openSaveLayout(ctx) {
           onclick: async (e) => {
             e.currentTarget.disabled = true;
             const panels = await ctx.sync.captureLayout();
-            const layout = { id: newLayoutId(), name: name.trim() || `Layout ${existing.length + 1}`, hotkey, panels };
+            const layout = { id: newLayoutId(), name: name.trim() || t('Layout {number}', { number: existing.length + 1 }), hotkey, panels };
             saveLayouts(upsertLayout(loadLayouts(), layout));
             ctx.sync.setActiveLayout(layout.id); // the saved layout is now the active, clean one
-            ctx.app.setStatus(`Saved window layout "${layout.name}"${hotkey !== null ? ` (${hotkeyLabel(hotkey)})` : ''}`);
+            ctx.app.setStatus(t('Saved window layout "{name}"', { name: layout.name }) + (hotkey !== null ? ` (${hotkeyLabel(hotkey)})` : ''));
             close();
           },
         },
-        'Save',
+        t('Save'),
       ),
     ),
   ]);
@@ -139,28 +140,28 @@ function openManageLayouts(ctx) {
               const unsaved = active && dirty;
               return h(
                 'div',
-                { class: `layout-row${active ? ' active' : ''}${unsaved ? ' dirty' : ''}`, title: `Panels: ${summary(l.panels)}` },
-                h('span', { class: 'layout-dot', title: active ? (unsaved ? 'Active — unsaved window changes' : 'Active layout') : '' }, active ? '●' : ''),
+                { class: `layout-row${active ? ' active' : ''}${unsaved ? ' dirty' : ''}`, title: t('Panels: {panels}', { panels: summary(l.panels) }) },
+                h('span', { class: 'layout-dot', title: active ? (unsaved ? t('Active — unsaved window changes') : t('Active layout')) : '' }, active ? '●' : ''),
                 textField(l.name, (v) => saveLayouts(renameLayout(loadLayouts(), l.id, v)), { width: '100%' }),
-                select(HOTKEY_OPTIONS, hotkeyValue(l.hotkey), (v) => persist(assignHotkey(loadLayouts(), l.id, toHotkey(v)))),
+                select(HOTKEY_OPTIONS.map(([v, l]) => [v, t(l)]), hotkeyValue(l.hotkey), (v) => persist(assignHotkey(loadLayouts(), l.id, toHotkey(v)))),
                 h('div', { class: 'layout-actions' },
-                  h('button', { title: 'Load this layout now', onclick: () => { loadLayout(ctx, l); render(); } }, 'Load'),
-                  h('button', { title: 'Save the current window arrangement into this layout and make it the active one', onclick: async (e) => { e.currentTarget.disabled = true; const panels = await ctx.sync.captureLayout(); saveLayouts(updatePanels(loadLayouts(), l.id, panels)); ctx.sync.setActiveLayout(l.id); ctx.app.setStatus(`Updated "${l.name}" to the current arrangement`); render(); } }, 'Update'),
-                  h('button', { title: 'Delete this layout', onclick: async () => { if (await confirmDialog(`Delete the layout "${l.name}"?`, 'Delete layout')) { if (active) ctx.sync.setActiveLayout(null); persist(removeLayout(loadLayouts(), l.id)); } } }, 'Delete'),
+                  h('button', { title: t('Load this layout now'), onclick: () => { loadLayout(ctx, l); render(); } }, t('Load')),
+                  h('button', { title: t('Save the current window arrangement into this layout and make it the active one'), onclick: async (e) => { e.currentTarget.disabled = true; const panels = await ctx.sync.captureLayout(); saveLayouts(updatePanels(loadLayouts(), l.id, panels)); ctx.sync.setActiveLayout(l.id); ctx.app.setStatus(t('Updated "{name}" to the current arrangement', { name: l.name })); render(); } }, t('Update')),
+                  h('button', { title: t('Delete this layout'), onclick: async () => { if (await confirmDialog(t('Delete the layout "{name}"?', { name: l.name }), t('Delete layout'))) { if (active) ctx.sync.setActiveLayout(null); persist(removeLayout(loadLayouts(), l.id)); } } }, t('Delete')),
                 ),
-                unsaved ? h('span', { class: 'layout-badge', title: 'The windows moved since this layout was saved' }, 'unsaved') : null,
+                unsaved ? h('span', { class: 'layout-badge', title: t('The windows moved since this layout was saved') }, 'unsaved') : null,
               );
             })
-          : [h('p', { class: 'weak' }, 'No saved layouts yet. Use View ▸ Window layouts ▸ Save current layout.')]),
+          : [h('p', { class: 'weak' }, t('No saved layouts yet. Use View ▸ Window layouts ▸ Save current layout.'))]),
       );
     };
     render();
     return [
-      h('h3', null, 'Manage window layouts'),
-      h('p', { class: 'weak' }, 'Rename a layout, bind a Ctrl+Alt+<number> shortcut, update it to the current arrangement, or delete it.'),
-      h('p', { class: 'small weak layout-legend' }, h('span', { class: 'layout-dot' }, '●'), ' current layout · ', h('span', { class: 'layout-badge' }, 'unsaved'), ' the windows moved since it was saved (use Update to save their new spots).'),
+      h('h3', null, t('Manage window layouts')),
+      h('p', { class: 'weak' }, t('Rename a layout, bind a Ctrl+Alt+<number> shortcut, update it to the current arrangement, or delete it.')),
+      h('p', { class: 'small weak layout-legend' }, h('span', { class: 'layout-dot' }, '●'), t(' current layout · '), h('span', { class: 'layout-badge' }, 'unsaved'), t(' the windows moved since it was saved (use Update to save their new spots).')),
       list,
-      h('div', { class: 'modal-buttons' }, h('button', { class: 'primary', onclick: close }, 'Done')),
+      h('div', { class: 'modal-buttons' }, h('button', { class: 'primary', onclick: close }, t('Done'))),
     ];
   }, { wide: true });
 }

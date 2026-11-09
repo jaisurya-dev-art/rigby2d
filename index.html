@@ -16,22 +16,22 @@
       </main>
       <div id="split-right" class="split-v"></div>
       <aside id="side">
-        <button class="panel-detach-btn" data-panel="tree" title="Pop out the bone tree into its own window" hidden>⧉</button>
+        <button class="panel-detach-btn" data-panel="tree" title="Pop out the bone tree into its own window" data-i18n-title hidden>⧉</button>
         <section id="tree" class="panel" data-tut="tree"></section>
         <div id="split-tree" class="split-h"></div>
-        <section id="properties" class="panel" data-tut="inspector"><button class="panel-detach-btn" data-panel="inspector" title="Pop out the inspector into its own window" hidden>⧉</button><div class="content scroll"></div></section>
+        <section id="properties" class="panel" data-tut="inspector"><button class="panel-detach-btn" data-panel="inspector" title="Pop out the inspector into its own window" data-i18n-title hidden>⧉</button><div class="content scroll"></div></section>
       </aside>
       <div id="split-bottom" class="split-h"></div>
       <section id="timeline" data-tut="timeline">
-        <button class="panel-detach-btn" data-panel="timeline" title="Pop out the timeline into its own window" hidden>⧉</button>
+        <button class="panel-detach-btn" data-panel="timeline" title="Pop out the timeline into its own window" data-i18n-title hidden>⧉</button>
         <div id="controls"></div>
         <div class="dopesheet-wrap">
-          <div class="empty">No animation. Press ＋ New or Tab to start animating.</div>
+          <div data-i18n class="empty">No animation. Press ＋ New or Tab to start animating.</div>
           <div id="dopesheet"><canvas></canvas></div>
           <div id="graph" hidden><canvas></canvas></div>
         </div>
       </section>
-      <footer id="status"><span id="status-text"></span><span class="status-right"><span id="status-info"></span><button id="status-community" title="Discord: show your work, get help, hear about every release">Discord</button><button id="status-log" title="Show the log (View ▸ Log)">Log</button><button id="status-version" title="About Rigby2D"></button></span></footer>
+      <footer id="status"><span id="status-text"></span><span class="status-right"><span id="status-info"></span><button id="status-community" title="Discord: show your work, get help, hear about every release" data-i18n-title>Discord</button><button data-i18n id="status-log" title="Show the log (View ▸ Log)" data-i18n-title>Log</button><button id="status-version" title="About Rigby2D" data-i18n-title></button></span></footer>
     </div>
     <script type="module" src="/src/editor/main.js"></script>
   </body>

@@ -15,6 +15,7 @@ import { dragValue, h, popupMenu, select, textField } from './widgets.js';
 // selection round trip can be tested in Node). Re-exported here so the windows import them as before.
 import { tracks, trackKeys } from './keyorder.js';
 import { drawLanes, laneActors, pressLane } from './sceneui.js';
+import { t, tn } from './i18n.js';
 export { orderedKeys, keySelectionIndices, applyKeySelection } from './keyorder.js';
 
 const GUTTER = 170;
@@ -25,7 +26,7 @@ const RULER = 22;
 export function renderControls(app, el) {
   const anim = app.currentAnimation();
   const names = app.doc.animations.map((a, i) => [i, a.name]);
-  const play = h('button', { 'data-tut': 'timeline:play', disabled: app.anim === null, title: 'Play / pause (Space)', onclick: () => app.togglePlay() }, app.playing ? '⏸' : '▶');
+  const play = h('button', { 'data-tut': 'timeline:play', disabled: app.anim === null, title: t('Play / pause (Space)'), onclick: () => app.togglePlay() }, app.playing ? '⏸' : '▶');
   el.replaceChildren(
     ...[
       names.length
@@ -40,7 +41,7 @@ export function renderControls(app, el) {
             },
             { tut: 'timeline:animations' },
           )
-        : h('span', { class: 'weak' }, '(no animation)'),
+        : h('span', { class: 'weak' }, t('(no animation)')),
       h(
         'button',
         {
@@ -53,7 +54,7 @@ export function renderControls(app, el) {
             app.changed();
           },
         },
-        '＋ New',
+        t('＋ New'),
       ),
       anim
         ? [
@@ -65,7 +66,7 @@ export function renderControls(app, el) {
               },
               { width: '110px' },
             ),
-            h('span', null, 'Length'),
+            h('span', null, t('Length')),
             dragValue(
               anim.duration,
               (v) => {
@@ -77,7 +78,7 @@ export function renderControls(app, el) {
             h(
               'button',
               {
-                title: 'Delete animation',
+                title: t('Delete animation'),
                 onclick: () => {
                   app.doc.animations.splice(app.anim, 1);
                   app.anim = app.doc.animations.length ? 0 : null;
@@ -93,7 +94,7 @@ export function renderControls(app, el) {
       h(
         'button',
         {
-          title: 'Go to start',
+          title: t('Go to start'),
           onclick: () => {
             app.time = 0;
             app.playing = false;
@@ -102,9 +103,9 @@ export function renderControls(app, el) {
         },
         '⏮',
       ),
-      h('button', { title: 'Previous frame (←)', onclick: () => app.stepFrame(-1) }, '◀'),
+      h('button', { title: t('Previous frame (←)'), onclick: () => app.stepFrame(-1) }, '◀'),
       play,
-      h('button', { 'data-tut': 'timeline:next', title: 'Next frame (→)', onclick: () => app.stepFrame(1) }, '▶|'),
+      h('button', { 'data-tut': 'timeline:next', title: t('Next frame (→)'), onclick: () => app.stepFrame(1) }, '▶|'),
       h(
         'label',
         null,
@@ -116,7 +117,7 @@ export function renderControls(app, el) {
             app.changed();
           },
         }),
-        ' Loop',
+        ' ' + t('Loop'),
       ),
       select(
         [
@@ -136,37 +137,37 @@ export function renderControls(app, el) {
       ),
       h(
         'span',
-        { class: 'mono', title: has(app, 'timecode') ? 'Timecode (hours:minutes:seconds:frames) and frame' : 'Frame and seconds' },
-        has(app, 'timecode') ? `${timecode(app.time, FPS)}  frame ${Math.round(app.time * FPS)}` : `frame ${String(Math.round(app.time * FPS)).padStart(3, ' ')}  ${app.time.toFixed(2)}s`,
+        { class: 'mono', title: has(app, 'timecode') ? t('Timecode (hours:minutes:seconds:frames) and frame') : t('Frame and seconds') },
+        has(app, 'timecode') ? `${timecode(app.time, FPS)}  ${t('frame {frame}', { frame: Math.round(app.time * FPS) })}` : `${t('frame {frame}', { frame: String(Math.round(app.time * FPS)).padStart(3, ' ') })}  ${app.time.toFixed(2)}s`,
       ),
       h('span', { class: 'vsep' }),
-      h('button', { 'data-tut': 'timeline:key', disabled: app.mode !== Mode.Animate, onclick: () => edit.keySelection(app) }, '◆ Key (K)'),
+      h('button', { 'data-tut': 'timeline:key', disabled: app.mode !== Mode.Animate, onclick: () => edit.keySelection(app) }, t('◆ Key (K)')),
       h('span', { class: 'vsep' }),
-      h('button', { title: 'Copy selected keys (Ctrl+C)', disabled: !app.selectedKeys.size, onclick: () => copySelectedKeys(app) }, '⧉ Copy'),
-      h('button', { title: 'Paste keys at the playhead (Ctrl+V)', disabled: !hasClipboard(), onclick: () => pasteKeys(app) }, '⎘ Paste'),
+      h('button', { title: t('Copy selected keys (Ctrl+C)'), disabled: !app.selectedKeys.size, onclick: () => copySelectedKeys(app) }, t('⧉ Copy')),
+      h('button', { title: t('Paste keys at the playhead (Ctrl+V)'), disabled: !hasClipboard(), onclick: () => pasteKeys(app) }, t('⎘ Paste')),
       h(
         'button',
         {
           class: frameSelectActive() ? 'active' : '',
-          title: 'Select whole frame columns: drag to select a range, Alt+drag to add another. Click again for key select.',
+          title: t('Select whole frame columns: drag to select a range, Alt+drag to add another. Click again for key select.'),
           onclick: () => toggleFrameSelect(app),
         },
-        '▦ Frames',
+        t('▦ Frames'),
       ),
       h(
         'button',
         {
           class: multiAddActive() ? 'active' : '',
-          title: 'Multi-select: each drag adds another area (keys or columns) without holding Ctrl/Alt. Copy or Escape ends it.',
+          title: t('Multi-select: each drag adds another area (keys or columns) without holding Ctrl/Alt. Copy or Escape ends it.'),
           onclick: () => toggleMultiAdd(app),
         },
-        '＋ Multi',
+        t('＋ Multi'),
       ),
       h(
         'button',
         {
           class: pasteModeActive() ? 'active' : '',
-          title: 'How paste treats existing keys. Click to cycle: Merge → Overwrite (copied tracks) → Overwrite all (whole area). Erased keys show a red ✕ in the preview.',
+          title: t('How paste treats existing keys. Click to cycle: Merge → Overwrite (copied tracks) → Overwrite all (whole area). Erased keys show a red ✕ in the preview.'),
           onclick: () => cyclePasteMode(app),
         },
         pasteModeLabel(),
@@ -175,18 +176,18 @@ export function renderControls(app, el) {
         'button',
         {
           class: retimeArmedActive() ? 'active' : '',
-          title: 'Retime (scale the selected keys’ timing): show the drag handles for one use. Or right-click + drag anytime.',
+          title: t('Retime (scale the selected keys’ timing): show the drag handles for one use. Or right-click + drag anytime.'),
           onclick: () => toggleRetime(app),
         },
-        '⇔ Retime',
+        t('⇔ Retime'),
       ),
       h('span', { class: 'vsep' }),
       h(
         'span',
-        { class: 'segmented', title: 'Timeline view' },
+        { class: 'segmented', title: t('Timeline view') },
         [
-          ['dopesheet', 'Dopesheet'],
-          ['graph', 'Graph'],
+          ['dopesheet', t('Dopesheet')],
+          ['graph', t('Graph')],
         ].map(([id, label]) =>
           h(
             'button',
@@ -224,7 +225,7 @@ export function deleteSelectedKeys(app) {
   const count = app.selectedKeys.size;
   app.selectedKeys.clear();
   anim.prune();
-  app.setStatus(`Deleted ${count} key${count === 1 ? '' : 's'}`);
+  app.setStatus(count === 1 ? t('Deleted 1 key') : t('Deleted {count} keys', { count }));
 }
 
 // ---- copy and paste ---------------------------------------------------------------------------
@@ -244,7 +245,7 @@ let multiAdd = false; // true makes every selection gesture add to the selection
 // the copied tracks, 'full' clears it in every track the selection spanned (even empty ones).
 let pasteMode = 'none';
 const PASTE_MODES = ['none', 'overwrite', 'full'];
-const PASTE_LABELS = { none: '⊟ Merge', overwrite: '⊟ Overwrite', full: '⊟ Overwrite all' };
+const PASTE_LABELS = { none: tn('⊟ Merge'), overwrite: tn('⊟ Overwrite'), full: tn('⊟ Overwrite all') };
 let selectionIsColumns = false; // the current selection came from the ruler (whole columns), not a box
 let retimeArmed = false; // true shows the retiming handles for one use (otherwise hidden)
 // The areas the current selection was built from, each { f0, f1, r0, r1, full } in frames/rows, so the
@@ -299,7 +300,7 @@ function endCopyArming() {
 export function copySelectedKeys(app) {
   const anim = app.currentAnimation();
   if (!anim || !app.selectedKeys.size) {
-    app.setStatus('Select keys to copy');
+    app.setStatus(t('Select keys to copy'));
     return;
   }
   const groups = [];
@@ -348,7 +349,7 @@ export function copySelectedKeys(app) {
   multiAdd = false;
   clearRegions(); // the copy snapshotted them; the next selection gesture starts fresh
   const n = clipboard?.count ?? 0;
-  app.setStatus(`Copied ${n} key${n === 1 ? '' : 's'} — move the playhead and paste (Ctrl+V), Escape to cancel`);
+  app.setStatus(n === 1 ? t('Copied 1 key — move the playhead and paste (Ctrl+V), Escape to cancel') : t('Copied {count} keys — move the playhead and paste (Ctrl+V), Escape to cancel', { count: n }));
 }
 
 /** The dopesheet track id a copied track has in `anim` now (its row, if it has one). */
@@ -410,7 +411,7 @@ export function retimeArmedActive() {
 /** Arms (or disarms) the retiming handles. They scale the selected keys' timing, then disarm. */
 export function toggleRetime(app) {
   retimeArmed = !retimeArmed;
-  app.setStatus(retimeArmed ? 'Retime: drag an end of the selected range to scale its timing (one use). Right-drag works anytime.' : 'Retime off.');
+  app.setStatus(retimeArmed ? t('Retime: drag an end of the selected range to scale its timing (one use). Right-drag works anytime.') : t('Retime off.'));
 }
 
 /** Records a selection area so the copy preview can colour each copied section on its own. */
@@ -437,7 +438,7 @@ export function frameSelectActive() {
 export function toggleFrameSelect(app) {
   frameSelect = !frameSelect;
   if (frameSelect) endCopyArming(); // re-arming a column selection drops any pending copy
-  app.setStatus(frameSelect ? 'Frame columns: drag (or Alt+drag) to select; Alt or Multi add more.' : 'Key select: drag a box over the keys.');
+  app.setStatus(frameSelect ? t('Frame columns: drag (or Alt+drag) to select; Alt or Multi add more.') : t('Key select: drag a box over the keys.'));
 }
 
 /** Whether multi-region add is on (drives the Multi button). */
@@ -449,12 +450,12 @@ export function multiAddActive() {
 export function toggleMultiAdd(app) {
   multiAdd = !multiAdd;
   if (multiAdd) endCopyArming();
-  app.setStatus(multiAdd ? 'Multi-select: each drag adds another area. Copy or Escape to finish.' : 'Single select.');
+  app.setStatus(multiAdd ? t('Multi-select: each drag adds another area. Copy or Escape to finish.') : t('Single select.'));
 }
 
 /** The paste mode's button label (changes as it cycles). */
 export function pasteModeLabel() {
-  return PASTE_LABELS[pasteMode];
+  return t(PASTE_LABELS[pasteMode]);
 }
 
 /** Whether paste is in an overwriting mode (drives the button's active state). */
@@ -466,9 +467,9 @@ export function pasteModeActive() {
 export function cyclePasteMode(app) {
   pasteMode = PASTE_MODES[(PASTE_MODES.indexOf(pasteMode) + 1) % PASTE_MODES.length];
   const msg = {
-    none: 'Paste merges: existing keys between the pasted ones are kept.',
-    overwrite: 'Paste overwrites: clears existing keys in the pasted area, in the copied tracks.',
-    full: 'Paste overwrites all: clears the whole pasted area, even tracks with no copied key.',
+    none: t('Paste merges: existing keys between the pasted ones are kept.'),
+    overwrite: t('Paste overwrites: clears existing keys in the pasted area, in the copied tracks.'),
+    full: t('Paste overwrites all: clears the whole pasted area, even tracks with no copied key.'),
   };
   app.setStatus(msg[pasteMode]);
 }
@@ -486,11 +487,11 @@ export function pasteKeys(app) {
   reconcileToDocument(app); // never paste the old project's keys if a new one was opened (e.g. in graph view)
   const anim = app.currentAnimation();
   if (!anim) {
-    app.setStatus('Select an animation to paste into');
+    app.setStatus(t('Select an animation to paste into'));
     return;
   }
   if (!clipboard) {
-    app.setStatus('Clipboard is empty — copy keys first (Ctrl+C)');
+    app.setStatus(t('Clipboard is empty — copy keys first (Ctrl+C)'));
     return;
   }
   const pasteTime = snap(app.time);
@@ -505,7 +506,7 @@ export function pasteKeys(app) {
       applyPaste(app, anim, pasteTime, { mode: 'all' });
     },
     clip: () => applyPaste(app, anim, pasteTime, { mode: 'clip', limit: anim.duration }),
-    cancel: () => app.setStatus('Paste cancelled'),
+    cancel: () => app.setStatus(t('Paste cancelled')),
   });
 }
 
@@ -536,13 +537,12 @@ function applyPaste(app, anim, pasteTime, opts) {
   clearRegions(); // and the next selection gesture starts fresh, not adding to the pasted area
   app.selectedKeys = new Set(pasted); // select what was pasted, ready to nudge
   const n = pasted.length;
-  app.setStatus(n ? `Pasted ${n} key${n === 1 ? '' : 's'} at frame ${Math.round(pasteTime * FPS)}` : 'Nothing pasted (no keys fit)');
+  app.setStatus(n ? t('Pasted {count} key(s) at frame {frame}', { count: n, frame: Math.round(pasteTime * FPS) }) : t('Nothing pasted (no keys fit)'));
   app.changed();
 }
 
 /** Asks how to handle a paste that overflows the animation: extend, paste what fits, or cancel. */
 function overflowDialog(extraFrames, actions) {
-  const plural = extraFrames === 1 ? '' : 's';
   const overlay = h('div', { class: 'modal-backdrop' });
   const onKey = (e) => {
     if (e.key === 'Escape') {
@@ -563,14 +563,14 @@ function overflowDialog(extraFrames, actions) {
     h(
       'div',
       { class: 'modal' },
-      h('h3', null, 'Paste runs past the end'),
-      h('p', null, `The pasted keys extend ${extraFrames} frame${plural} beyond the animation's length.`),
+      h('h3', null, t('Paste runs past the end')),
+      h('p', null, t("The pasted keys extend {count} frame(s) beyond the animation's length.", { count: extraFrames })),
       h(
         'div',
         { class: 'modal-buttons' },
-        h('button', { onclick: choose(actions.cancel) }, 'Cancel'),
-        h('button', { onclick: choose(actions.clip) }, 'Paste what fits'),
-        h('button', { class: 'primary', onclick: choose(actions.expand) }, `Extend by ${extraFrames} frame${plural}`),
+        h('button', { onclick: choose(actions.cancel) }, t('Cancel')),
+        h('button', { onclick: choose(actions.clip) }, t('Paste what fits')),
+        h('button', { class: 'primary', onclick: choose(actions.expand) }, t('Extend by {count} frame(s)', { count: extraFrames })),
       ),
     ),
   );
@@ -933,8 +933,8 @@ export class Dopesheet {
       }
     }
     app.selectedKeys = next;
-    const span = from === to ? `frame ${from}` : `frames ${from}–${to}`;
-    app.setStatus(`Selected ${span}: ${next.size} key${next.size === 1 ? '' : 's'}`);
+    const span = from === to ? t('frame {frame}', { frame: from }) : t('frames {from}–{to}', { from, to });
+    app.setStatus(t('Selected {span}: {count} key(s)', { span, count: next.size }));
   }
 
   /** Time range covered by the selected keys, or null. */
@@ -1123,7 +1123,7 @@ export class Dopesheet {
       } else if (press.retime) {
         resortAnimation(app.currentAnimation());
         clearRegions();
-        app.setStatus(`Retimed ${app.selectedKeys.size} key${app.selectedKeys.size === 1 ? '' : 's'}`);
+        app.setStatus(t('Retimed {count} key(s)', { count: app.selectedKeys.size }));
       } else if (press.selectColumns) {
         // Right-drag over nothing to retime: select the swept columns and arm the handles so the very
         // next drag of an end scales them.
@@ -1136,7 +1136,7 @@ export class Dopesheet {
         this.selectFrames(from, to, false);
         setRegion({ f0: from, f1: to, r0: 0, r1: 0, full: true }, false);
         retimeArmed = true;
-        app.setStatus('Retime: drag an end of the marked range to scale it.');
+        app.setStatus(t('Retime: drag an end of the marked range to scale it.'));
       }
       app.changed();
       return;
@@ -1194,7 +1194,7 @@ export class Dopesheet {
       clearRegions(); // the keys moved; a copy would re-derive its band from the new positions
       if (press.retime) retimeArmed = false; // one-shot: the armed handles switch off after a retime
       const n = app.selectedKeys.size;
-      app.setStatus(`${press.move ? 'Moved' : 'Retimed'} ${n} key${n === 1 ? '' : 's'}`);
+      app.setStatus(press.move ? t('Moved {count} key(s)', { count: n }) : t('Retimed {count} key(s)', { count: n }));
     } else if (press.box) {
       const { from, to } = press.box;
       const [x0, x1] = [Math.min(from[0], to[0]), Math.max(from[0], to[0])];
@@ -1210,7 +1210,7 @@ export class Dopesheet {
       const reg = this.boxRegion(x0, y0, x1, y1);
       if (inside.length && reg) setRegion(reg, press.add);
       else if (!press.add) clearRegions();
-      app.setStatus(`${next.size} key${next.size === 1 ? '' : 's'} selected`);
+      app.setStatus(t('{count} key(s) selected', { count: next.size }));
     }
     app.changed();
   }
@@ -1283,13 +1283,13 @@ export function curveMenu(app, x, y) {
     app.changed();
   };
   popupMenu(x, y, [
-    { label: 'Linear', action: setCurve(LINEAR) },
-    { label: 'Ease in-out', action: setCurve(EASE_IN_OUT) },
-    { label: 'Ease in', action: setCurve(EASE_IN) },
-    { label: 'Ease out', action: setCurve(EASE_OUT) },
-    { label: 'Stepped', action: setCurve(STEPPED) },
+    { label: t('Linear'), action: setCurve(LINEAR) },
+    { label: t('Ease in-out'), action: setCurve(EASE_IN_OUT) },
+    { label: t('Ease in'), action: setCurve(EASE_IN) },
+    { label: t('Ease out'), action: setCurve(EASE_OUT) },
+    { label: t('Stepped'), action: setCurve(STEPPED) },
     'separator',
-    { label: app.selectedKeys.size > 1 ? `Delete ${app.selectedKeys.size} keys` : 'Delete key', action: () => deleteSelectedKeys(app) },
+    { label: app.selectedKeys.size > 1 ? t('Delete {count} keys', { count: app.selectedKeys.size }) : t('Delete key'), action: () => deleteSelectedKeys(app) },
   ]);
 }
 

@@ -8,6 +8,7 @@ import { BONE_CHANNELS } from '../core/animation.js';
 import { STEPPED, bezierFor, ease } from '../core/curve.js';
 import { FPS, Mode, snap } from './app.js';
 import { curveMenu, resortAnimation } from './timeline.js';
+import { t } from './i18n.js';
 
 const GUTTER = 170;
 const RULER = 22;
@@ -272,7 +273,7 @@ export class GraphEditor {
     ctx.fillStyle = 'rgb(150,150,150)';
     ctx.font = '11px system-ui, "Segoe UI", sans-serif';
     ctx.textBaseline = 'middle';
-    ctx.fillText(curves.length ? (this.range || this.timeRange ? 'Double-click: fit' : 'Curves') : 'No keyed bone channels', 8, RULER / 2);
+    ctx.fillText(curves.length ? (this.range || this.timeRange ? t('Double-click: fit') : t('Curves')) : t('No keyed bone channels'), 8, RULER / 2);
     this.rows = [];
     curves.forEach((cv, r) => {
       const y = RULER + r * ROW;
@@ -517,15 +518,15 @@ export class GraphEditor {
       app.mode = Mode.Animate;
     } else if (press.move) {
       resortAnimation(app.currentAnimation());
-      app.setStatus(`Moved ${app.selectedKeys.size} key${app.selectedKeys.size === 1 ? '' : 's'}`);
+      app.setStatus(t('Moved {count} key(s)', { count: app.selectedKeys.size }));
     } else if (press.handleDrag) {
-      app.setStatus('Curve edited');
+      app.setStatus(t('Curve edited'));
     } else if (press.box) {
       const { from, to } = press.box;
       const [x0, x1] = [Math.min(from[0], to[0]), Math.max(from[0], to[0])];
       const [y0, y1] = [Math.min(from[1], to[1]), Math.max(from[1], to[1])];
       this.selectPoints(this.points.filter((pt) => pt.x >= x0 && pt.x <= x1 && pt.y >= y0 && pt.y <= y1), press.add);
-      app.setStatus(`${app.selectedKeys.size} key${app.selectedKeys.size === 1 ? '' : 's'} selected`);
+      app.setStatus(t('{count} key(s) selected', { count: app.selectedKeys.size }));
     }
     app.changed();
   }

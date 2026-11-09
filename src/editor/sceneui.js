@@ -13,6 +13,7 @@ import { DEMOS } from './demos.js';
 import * as platform from './platform.js';
 import { dragValue, h, popupMenu, select, submenuItem, textField } from './widgets.js';
 import { track as count } from './analytics.js';
+import { t } from './i18n.js';
 
 const row = (label, ...content) => [h('label', null, label), h('div', { class: 'cell' }, ...content)];
 const snap = (t) => Math.round(t * FPS) / FPS;
@@ -45,7 +46,7 @@ export async function newScene(app) {
   app.commitHistory(false);
   app.changed();
   count('editor-new-scene');
-  app.setStatus('New scene: add characters with ＋ Actor in the Scene section of the tree, and backgrounds with File ▸ Import ▸ PNG images (select the background bone first).');
+  app.setStatus(t('New scene: add characters with ＋ Actor in the Scene section of the tree, and backgrounds with File ▸ Import ▸ PNG images (select the background bone first).'));
 }
 
 /** Adds an actor from a work file's bytes at the view's center, selects it and keys nothing yet. */
@@ -60,9 +61,9 @@ async function addFrom(app, name, bytes) {
     app.commitHistory(false);
     app.select({ bone: app.doc.boneIndex(actor.bone) });
     count('editor-add-actor');
-    app.setStatus(`Added ${actor.name}: move it with the transform tools, and add clips in the inspector or the dopesheet's actor lane.`);
+    app.setStatus(t("Added {name}: move it with the transform tools, and add clips in the inspector or the dopesheet's actor lane.", { name: actor.name }));
   } catch (e) {
-    app.setStatus(`Could not add the actor: ${e.message}`);
+    app.setStatus(t('Could not add the actor: {error}', { error: e.message }));
   }
 }
 
@@ -70,9 +71,9 @@ async function addFrom(app, name, bytes) {
 export function addActorMenu(app, x, y) {
   popupMenu(x, y, [
     {
-      label: 'Character from a .rigby file…',
+      label: t('Character from a .rigby file…'),
       action: async () => {
-        const [file] = (await app.guard(() => platform.pickImportFiles('Rigby2D work file', ['rigby'], false))) ?? [];
+        const [file] = (await app.guard(() => platform.pickImportFiles(t('Rigby2D work file'), ['rigby'], false))) ?? [];
         if (file) await addFrom(app, file.name.split(/[\\/]/).pop(), file.bytes);
       },
     },
@@ -138,26 +139,26 @@ export function actorUi(app, bone) {
     return h(
       'div',
       { class: 'clip-card', style: { borderLeftColor: actorColor(doc, actor) } },
-      h('div', { class: 'clip-head' }, select(anims, c.animation, set('animation')), h('button', { class: 'small', title: 'Remove this clip', onclick: () => (clips.splice(i, 1), changed()) }, '✕')),
+      h('div', { class: 'clip-head' }, select(anims, c.animation, set('animation')), h('button', { class: 'small', title: t('Remove this clip'), onclick: () => (clips.splice(i, 1), changed()) }, '✕')),
       h(
         'div',
         { class: 'grid' },
-        ...row('Starts at', dragValue(c.start, (v) => set('start')(snap(Math.max(0, v))), { speed: 0.01, min: 0, decimals: 2, suffix: ' s' })),
-        ...row('In / out', dragValue(a, (v) => set('in')(Math.max(0, v)), { speed: 0.01, min: 0, decimals: 2, suffix: ' s' }), dragValue(b, (v) => set('out')(Math.max(0, v)), { speed: 0.01, min: 0, decimals: 2, suffix: ' s' })),
-        ...row('Speed', dragValue(c.speed, set('speed'), { speed: 0.01, min: 0.05, max: 8, decimals: 2, suffix: '×' })),
-        ...row('Plays', select([[1, 'once'], [2, '2 times'], [3, '3 times'], [4, '4 times'], [0, 'loops until the next clip']], c.loops, set('loops'))),
-        ...row('Blend in', dragValue(c.blend, set('blend'), { speed: 0.01, min: 0, max: 5, decimals: 2, suffix: ' s' })),
+        ...row(t('Starts at'), dragValue(c.start, (v) => set('start')(snap(Math.max(0, v))), { speed: 0.01, min: 0, decimals: 2, suffix: ' s' })),
+        ...row(t('In / out'), dragValue(a, (v) => set('in')(Math.max(0, v)), { speed: 0.01, min: 0, decimals: 2, suffix: ' s' }), dragValue(b, (v) => set('out')(Math.max(0, v)), { speed: 0.01, min: 0, decimals: 2, suffix: ' s' })),
+        ...row(t('Speed'), dragValue(c.speed, set('speed'), { speed: 0.01, min: 0.05, max: 8, decimals: 2, suffix: '×' })),
+        ...row(t('Plays'), select([[1, 'once'], [2, '2 times'], [3, '3 times'], [4, '4 times'], [0, 'loops until the next clip']], c.loops, set('loops'))),
+        ...row(t('Blend in'), dragValue(c.blend, set('blend'), { speed: 0.01, min: 0, max: 5, decimals: 2, suffix: ' s' })),
       ),
     );
   });
   return [
-    h('h2', null, `🎬 Actor: ${actor.name}`),
-    h('div', { class: 'small weak' }, `${lib ? `${lib.doc.bones.length} bones · ${lib.doc.animations.length} animations` : 'character missing'}${actor.source ? ` · from ${actor.source}` : ''}. Move, turn and scale it with the transform tools; key it like any bone.`),
+    h('h2', null, `🎬 ${t('Actor: {name}', { name: actor.name })}`),
+    h('div', { class: 'small weak' }, (lib ? t('{bones} bones · {animations} animations', { bones: lib.doc.bones.length, animations: lib.doc.animations.length }) : t('character missing')) + (actor.source ? ' · ' + t('from {source}', { source: actor.source }) : '') + '. ' + t('Move, turn and scale it with the transform tools; key it like any bone.')),
     h(
       'div',
       { class: 'grid' },
       ...row(
-        'Name',
+        t('Name'),
         textField(actor.name, (v) => {
           const name = v.trim();
           if (name && !doc.scene.actors.some((a) => a !== actor && a.name === name)) {
@@ -166,24 +167,24 @@ export function actorUi(app, bone) {
           }
         }),
       ),
-      ...row('Skin', select(skins, actor.skin ?? '', (v) => ((actor.skin = v || null), changed()))),
-      ...row('', h('label', { class: 'check' }, h('input', { type: 'checkbox', checked: actor.flip, onchange: (e) => ((actor.flip = e.target.checked), changed()) }), ' Face the other way (flip)')),
+      ...row(t('Skin'), select(skins, actor.skin ?? '', (v) => ((actor.skin = v || null), changed()))),
+      ...row('', h('label', { class: 'check' }, h('input', { type: 'checkbox', checked: actor.flip, onchange: (e) => ((actor.flip = e.target.checked), changed()) }), t(' Face the other way (flip)'))),
       ...row(
-        'Ground',
+        t('Ground'),
         dragValue(actor.ground ?? 0, (v) => {
           actor.ground = v;
           app.changed();
         }, { speed: 1, decimals: 0 }),
-        lib ? h('button', { class: 'small', title: "Stand the character's feet (the lowest point of its setup pose) on the anchor bone", onclick: () => ((actor.ground = groundOffset(lib.doc)), changed()) }, 'Feet on anchor') : null,
+        lib ? h('button', { class: 'small', title: "Stand the character's feet (the lowest point of its setup pose) on the anchor bone", onclick: () => ((actor.ground = groundOffset(lib.doc)), changed()) }, t('Feet on anchor')) : null,
       ),
     ),
-    h('strong', null, shot ? `Clips in “${shot.name}”` : 'Clips'),
-    shot ? null : h('div', { class: 'small weak' }, 'Create a shot (an animation of the scene) to place clips on.'),
+    h('strong', null, shot ? t('Clips in “{name}”', { name: shot.name }) : t('Clips')),
+    shot ? null : h('div', { class: 'small weak' }, t('Create a shot (an animation of the scene) to place clips on.')),
     ...clipRows,
     shot && anims.length
-      ? h('div', { class: 'buttons' }, select(anims, undefined, (name) => (addClip(app, actor, name, snap(app.time)), changed()), { placeholder: '＋ Add clip at the playhead…' }))
+      ? h('div', { class: 'buttons' }, select(anims, undefined, (name) => (addClip(app, actor, name, snap(app.time)), changed()), { placeholder: t('＋ Add clip at the playhead…') }))
       : null,
-    h('div', { class: 'buttons' }, h('button', { onclick: () => (removeActor(app, actor), app.deselect(), changed()) }, '🗑 Remove actor')),
+    h('div', { class: 'buttons' }, h('button', { onclick: () => (removeActor(app, actor), app.deselect(), changed()) }, t('🗑 Remove actor'))),
     h('hr'),
   ];
 }
@@ -197,13 +198,13 @@ export function depthUi(app, bone) {
     'div',
     { class: 'grid' },
     ...row(
-      'Depth',
+      t('Depth'),
       dragValue(doc.scene.depth[name] ?? 0, (v) => {
         if (Math.abs(v) < 1e-6) delete doc.scene.depth[name];
         else doc.scene.depth[name] = v;
         app.changed();
       }, { speed: 5, min: -900, max: 100000, decimals: 0 }),
-      h('span', { class: 'small weak', title: 'Far layers (larger depth) drift behind near ones when the camera moves, keeping their size. 0 = moves with the stage.' }, ' parallax'),
+      h('span', { class: 'small weak', title: t('Far layers (larger depth) drift behind near ones when the camera moves, keeping their size. 0 = moves with the stage.') }, ' parallax'),
     ),
   );
 }
@@ -325,7 +326,7 @@ export function pressLane(app, rects, p, e, xToTime, laneTop, ROW) {
     end() {
       tidy(app, hit.actor);
       app.commitHistory(false);
-      app.setStatus(`${hit.actor.name}: ${clip.animation} ${edge === 'move' ? `at ${clip.start.toFixed(2)} s` : `plays ${clip.in.toFixed(2)}–${clipSpan(clip, anim)[1].toFixed(2)} s`}`);
+      app.setStatus(`${hit.actor.name}: ${clip.animation} ${edge === 'move' ? t('at {time} s', { time: clip.start.toFixed(2) }) : t('plays {from}–{to} s', { from: clip.in.toFixed(2), to: clipSpan(clip, anim)[1].toFixed(2) })}`);
     },
   };
 }
@@ -340,18 +341,18 @@ function clipMenu(app, actor, clip, x, y) {
     app.changed();
   };
   popupMenu(x, y, [
-    submenuItem('Plays', [[1, 'Once'], [2, '2 times'], [3, '3 times'], [0, 'Loops until the next clip']].map(([v, l]) => ({ label: `${clip.loops === v ? '● ' : ''}${l}`, action: set('loops', v) }))),
-    submenuItem('Speed', [0.25, 0.5, 0.75, 1, 1.5, 2].map((v) => ({ label: `${clip.speed === v ? '● ' : ''}${v}×`, action: set('speed', v) }))),
-    submenuItem('Blend in', [0, 0.1, 0.25, 0.5, 1].map((v) => ({ label: `${clip.blend === v ? '● ' : ''}${v ? `${v} s` : 'Cut (no blend)'}`, action: set('blend', v) }))),
+    submenuItem(t('Plays'), [[1, t('Once')], [2, t('2 times')], [3, t('3 times')], [0, t('Loops until the next clip')]].map(([v, l]) => ({ label: `${clip.loops === v ? '● ' : ''}${l}`, action: set('loops', v) }))),
+    submenuItem(t('Speed'), [0.25, 0.5, 0.75, 1, 1.5, 2].map((v) => ({ label: `${clip.speed === v ? '● ' : ''}${v}×`, action: set('speed', v) }))),
+    submenuItem(t('Blend in'), [0, 0.1, 0.25, 0.5, 1].map((v) => ({ label: `${clip.blend === v ? '● ' : ''}${v ? `${v} s` : t('Cut (no blend)')}`, action: set('blend', v) }))),
     {
-      label: 'Split at the playhead',
+      label: t('Split at the playhead'),
       action: () => {
         const anim = animOf(actor, clip);
         const len = clipLength(clip, anim);
-        const t = snap(app.time);
-        if (t <= clip.start || (Number.isFinite(len) && t >= clip.start + len) || clip.loops !== 1) return app.setStatus('Split works on a clip that plays once, with the playhead inside it.');
-        const at = clip.in + (t - clip.start) * clip.speed;
-        const second = { ...clip, start: t, in: at, blend: 0 };
+        const now = snap(app.time);
+        if (now <= clip.start || (Number.isFinite(len) && now >= clip.start + len) || clip.loops !== 1) return app.setStatus(t('Split works on a clip that plays once, with the playhead inside it.'));
+        const at = clip.in + (now - clip.start) * clip.speed;
+        const second = { ...clip, start: now, in: at, blend: 0 };
         clip.out = at;
         list.push(second);
         tidy(app, actor);
@@ -360,7 +361,7 @@ function clipMenu(app, actor, clip, x, y) {
       },
     },
     'separator',
-    { label: 'Delete clip', action: () => (list.splice(list.indexOf(clip), 1), (app.selectedClip = null), app.commitHistory(false), app.changed()) },
+    { label: t('Delete clip'), action: () => (list.splice(list.indexOf(clip), 1), (app.selectedClip = null), app.commitHistory(false), app.changed()) },
   ]);
 }
 
@@ -370,7 +371,7 @@ function addMenu(app, actor, t, x, y) {
     x,
     y,
     (lib?.doc.animations ?? []).map((a) => ({
-      label: `＋ ${a.name} at ${t.toFixed(2)} s`,
+      label: `＋ ${a.name} @ ${t.toFixed(2)} s`,
       action: () => {
         addClip(app, actor, a.name, t);
         app.commitHistory(false);

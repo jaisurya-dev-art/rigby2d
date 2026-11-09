@@ -81,7 +81,7 @@ function screens(app, { showPreferences }) {
     },
     {
       id: 'defold',
-      art: () => h('div', { class: 'wn-art-stack' }, engines(['defold'], 132), h('div', { class: 'wn-chips' }, ...['Windows', 'macOS', 'Linux', 'Android', 'iOS', 'HTML5'].map((p, i) => h('span', { style: `animation-delay:${0.45 + i * 0.07}s` }, p)))),
+      art: () => h('div', { class: 'wn-art-stack' }, engines(['defold'], 132), h('div', { class: 'wn-chips' }, ...[t('Windows'), 'macOS', t('Linux'), t('Android'), 'iOS', 'HTML5'].map((p, i) => h('span', { style: `animation-delay:${0.45 + i * 0.07}s` }, p)))),
       title: t('Now in Defold.'),
       text: t('A native runtime in C++, on every platform Defold ships to, matching the editor frame for frame.'),
       cta: [t('Get the Defold runtime'), () => openRuntimes(app)],
@@ -109,7 +109,7 @@ function screens(app, { showPreferences }) {
     },
     {
       id: 'keys',
-      art: () => h('div', { class: 'wn-keyart' }, keys('Ctrl', 'Shift', 'B'), h('span', { class: 'wn-keyarrow' }, '→'), h('span', { class: 'wn-keyto' }, t('Create bone'))),
+      art: () => h('div', { class: 'wn-keyart' }, keys(t('Ctrl'), t('Shift'), 'B'), h('span', { class: 'wn-keyarrow' }, '→'), h('span', { class: 'wn-keyto' }, t('Create bone'))),
       title: t('Your keys. Your way.'),
       text: t('Rebind any action, keep more than one key for it, and take your keymap to any computer.'),
       cta: [t('Customize shortcuts'), () => showPreferences('interface')],

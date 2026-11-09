@@ -4,6 +4,7 @@
 
 import { ONION_DEFAULTS } from './app.js';
 import { h, popupMenu } from './widgets.js';
+import { t } from './i18n.js';
 
 const toHex = (rgb) => '#' + rgb.slice(0, 3).map((x) => Math.round(Math.max(0, Math.min(1, x)) * 255).toString(16).padStart(2, '0')).join('');
 const fromHex = (hex) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255);
@@ -44,7 +45,7 @@ function colorRow(label, rgb, onChange, onReset) {
         {
           class: 'onion-reset',
           type: 'button',
-          title: 'Reset to the default color',
+          title: t('Reset to the default color'),
           onclick: () => {
             const v = onReset();
             if (v) inp.value = toHex(v);
@@ -63,26 +64,26 @@ export function onionPanel(app, x, y) {
   const node = h(
     'div',
     { class: 'onion-panel', onpointerdown: (e) => e.stopPropagation() },
-    h('div', { class: 'onion-title' }, 'Onion skin'),
-    checkRow('Show future', o.showFuture, (v) => { o.showFuture = v; refresh(); }),
-    numRow('Future frames', o.future, (v) => { o.future = v; refresh(); }),
-    colorRow('Future color', o.futureColor, (c) => { o.futureColor = c; refresh(); }, () => {
+    h('div', { class: 'onion-title' }, t('Onion skin')),
+    checkRow(t('Show future'), o.showFuture, (v) => { o.showFuture = v; refresh(); }),
+    numRow(t('Future frames'), o.future, (v) => { o.future = v; refresh(); }),
+    colorRow(t('Future color'), o.futureColor, (c) => { o.futureColor = c; refresh(); }, () => {
       o.futureColor = [...ONION_DEFAULTS.futureColor];
       refresh();
       return o.futureColor;
     }),
     h('div', { class: 'onion-sep' }),
-    checkRow('Show past', o.showPast, (v) => { o.showPast = v; refresh(); }),
-    numRow('Past frames', o.past, (v) => { o.past = v; refresh(); }),
-    colorRow('Past color', o.pastColor, (c) => { o.pastColor = c; refresh(); }, () => {
+    checkRow(t('Show past'), o.showPast, (v) => { o.showPast = v; refresh(); }),
+    numRow(t('Past frames'), o.past, (v) => { o.past = v; refresh(); }),
+    colorRow(t('Past color'), o.pastColor, (c) => { o.pastColor = c; refresh(); }, () => {
       o.pastColor = [...ONION_DEFAULTS.pastColor];
       refresh();
       return o.pastColor;
     }),
     h('div', { class: 'onion-sep' }),
-    numRow('Spacing (frames)', o.step ?? 1, (v) => { o.step = v; refresh(); }, { min: 1, max: 12 }),
-    checkRow('Loop', o.loop, (v) => { o.loop = v; refresh(); }),
-    h('div', { class: 'onion-note' }, app.onionOverrideCount() ? `${app.onionOverrideCount()} bone(s) have their own settings: prediction shows only on those. Clear them from each bone or the ANIMATE notice.` : 'Applies to the whole skeleton. Enable individual bones from the tree to limit it.'),
+    numRow(t('Spacing (frames)'), o.step ?? 1, (v) => { o.step = v; refresh(); }, { min: 1, max: 12 }),
+    checkRow(t('Loop'), o.loop, (v) => { o.loop = v; refresh(); }),
+    h('div', { class: 'onion-note' }, app.onionOverrideCount() ? t('{count} bone(s) have their own settings: prediction shows only on those. Clear them from each bone or the ANIMATE notice.', { count: app.onionOverrideCount() }) : t('Applies to the whole skeleton. Enable individual bones from the tree to limit it.')),
   );
   popupMenu(x, y, [node]);
 }
@@ -108,21 +109,21 @@ export function onionBonePanel(app, bone, x, y) {
   const node = h(
     'div',
     { class: 'onion-panel', onpointerdown: (e) => e.stopPropagation() },
-    h('div', { class: 'onion-title' }, `Onion skin · ${name}`),
-    checkRow('Show on this bone (and its children)', !!app.onionOverride(bone), (v) => {
+    h('div', { class: 'onion-title' }, `${t('Onion skin')} · ${name}`),
+    checkRow(t('Show on this bone (and its children)'), !!app.onionOverride(bone), (v) => {
       if (v) ensure();
       else app.setOnionOverride(bone, null);
       refresh();
     }),
     h('div', { class: 'onion-sep' }),
-    checkRow('Show future', ov.showFuture ?? o.showFuture, (v) => { ensure().showFuture = v; refresh(); }),
-    numRow('Future frames', ov.future ?? o.future, (v) => { ensure().future = v; refresh(); }),
-    colorRow('Future color', ov.futureColor ?? o.futureColor, (c) => { ensure().futureColor = c; refresh(); }, clearOverride('futureColor', o.futureColor)),
+    checkRow(t('Show future'), ov.showFuture ?? o.showFuture, (v) => { ensure().showFuture = v; refresh(); }),
+    numRow(t('Future frames'), ov.future ?? o.future, (v) => { ensure().future = v; refresh(); }),
+    colorRow(t('Future color'), ov.futureColor ?? o.futureColor, (c) => { ensure().futureColor = c; refresh(); }, clearOverride('futureColor', o.futureColor)),
     h('div', { class: 'onion-sep' }),
-    checkRow('Show past', ov.showPast ?? o.showPast, (v) => { ensure().showPast = v; refresh(); }),
-    numRow('Past frames', ov.past ?? o.past, (v) => { ensure().past = v; refresh(); }),
-    colorRow('Past color', ov.pastColor ?? o.pastColor, (c) => { ensure().pastColor = c; refresh(); }, clearOverride('pastColor', o.pastColor)),
-    h('div', { class: 'onion-note' }, 'Blank values use the global defaults.'),
+    checkRow(t('Show past'), ov.showPast ?? o.showPast, (v) => { ensure().showPast = v; refresh(); }),
+    numRow(t('Past frames'), ov.past ?? o.past, (v) => { ensure().past = v; refresh(); }),
+    colorRow(t('Past color'), ov.pastColor ?? o.pastColor, (c) => { ensure().pastColor = c; refresh(); }, clearOverride('pastColor', o.pastColor)),
+    h('div', { class: 'onion-note' }, t('Blank values use the global defaults.')),
   );
   popupMenu(x, y, [node]);
 }

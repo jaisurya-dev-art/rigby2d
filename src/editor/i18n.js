@@ -47,6 +47,15 @@ export function language() {
   return current;
 }
 
+/**
+ * Marks English text kept in a table built when a module loads (before the language is chosen):
+ * returns it unchanged, so the table stays English, and the place that shows it calls t(). The
+ * translation test collects these texts too.
+ */
+export function tn(text) {
+  return text;
+}
+
 /** `text` in the interface language, with `{name}` placeholders filled from `vars`. */
 export function t(text, vars) {
   const s = table?.[text] ?? text;

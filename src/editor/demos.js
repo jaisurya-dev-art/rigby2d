@@ -6,6 +6,7 @@
 // and its files in site/vite.config.js.
 
 import { REMOTE, SOURCES } from '@demo-sources';
+import { tn } from './i18n.js';
 
 /** Whether demos are downloaded from the website (the desktop app) rather than bundled. */
 export const DEMOS_REMOTE = REMOTE;
@@ -18,7 +19,7 @@ export const DEMOS = [
     url: SOURCES.rigbytron.url,
     thumbnail: SOURCES.rigbytron.thumbnail,
     animation: 'release',
-    description: 'The Rigby2D mascot: a robot rig with IK, a meshed body and its hold and release animations.',
+    description: tn('The Rigby2D mascot: a robot rig with IK, a meshed body and its hold and release animations.'),
   },
   {
     id: 'nila',
@@ -27,7 +28,7 @@ export const DEMOS = [
     url: SOURCES.nila.url,
     thumbnail: SOURCES.nila.thumbnail,
     animation: 'wave',
-    description: 'A layered character with bending meshes, physics on her braid and jhumkas, face poses, voice with viseme lip-sync, and the 70-second promo animation (Film workspace).',
+    description: tn('A layered character with bending meshes, physics on her braid and jhumkas, face poses, voice with viseme lip-sync, and the 70-second promo animation (Film workspace).'),
   },
   {
     id: 'scene',
@@ -36,7 +37,7 @@ export const DEMOS = [
     url: SOURCES.scene.url,
     thumbnail: SOURCES.scene.thumbnail,
     animation: 'meet',
-    description: 'Scene composition: both characters as actors with clips (her line with its voice and lip-sync, then his hello in a robot voice and his slash), a painted multiplane stage with parallax and a moving camera.',
+    description: tn('Scene composition: both characters as actors with clips (her line with its voice and lip-sync, then his hello in a robot voice and his slash), a painted multiplane stage with parallax and a moving camera.'),
   },
 ];
 
