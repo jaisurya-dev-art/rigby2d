@@ -23,6 +23,8 @@ Rigby2D follow your system language. You'll get Chinese text everywhere:
 - **Every message**: status lines, import warnings (DragonBones files included) and errors.
 - **The tutorials**: all four lessons, step by step, from the first click to your first animation.
 
+![The Rigby2D editor in Simplified Chinese, with the NILA demo open](/docs/images/devlog-0-5-1-editor.jpg)
+
 That's about 1,450 translated texts, up from 400. A test now fails the build if any interface text
 is missing its Chinese translation, so new features will arrive in Chinese too.
 
@@ -34,7 +36,7 @@ Help menu has a new home for support and community links. The release is coming 
 
 ## Our home is Discord now
 
-After Reddit banned r/rigby2d ([here's what happened](https://rigby2d.com/blog/2026-11-07-fck-reddit.html)),
+After Reddit banned r/rigby2d ([here's what happened](https://rigby2d.com/blog/fck-reddit.html)),
 we moved the community to Discord, and it has already grown into a nice place to hang out.
 
 **[Join the Rigby2D Discord](https://discord.gg/PGgaTwbNH)**
