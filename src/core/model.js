@@ -119,6 +119,12 @@ export class Skeleton {
     this.settingsInFile = false;
     /** Texture filtering for the viewport, renders and the exported atlas (see TEXTURE_FILTERS). */
     this.textureFilter = 'linear';
+    /**
+     * Pixel grid for pixel art: world units per art pixel (usually 1), or 0 = off. When on, the
+     * editor draws the skeleton at that pixel size and scales it up, so rotated and bent parts
+     * stay on the art's pixel grid (viewport and renders).
+     */
+    this.pixelGrid = 0;
     /** Pose library: { name, bones: { bone name: local transform }, slots: { slot name: attachment } }. */
     this.poses = [];
     /** Facial controllers: { name, from (pose name or null = setup pose), to (pose name), value }. */
@@ -687,6 +693,7 @@ function readSkeleton(o) {
   sk.settings = readSettings(o.settings);
   sk.settingsInFile = o.settings !== undefined;
   sk.textureFilter = oneOf(o.textureFilter, TEXTURE_FILTERS, 'linear');
+  sk.pixelGrid = Number.isFinite(o.pixelGrid) && o.pixelGrid > 0 ? o.pixelGrid : 0;
   sk.poses = readPoses(o.poses);
   sk.controllers = readControllers(o.controllers);
   sk.workspace = oneOf(o.workspace, ['game', 'film'], null);
@@ -798,6 +805,7 @@ function writeSkeleton(sk) {
   if (sk.settingsInFile || JSON.stringify(sk.settings) !== JSON.stringify(defaultSettings())) out.settings = raw(sk.settings);
   // Only when not the default, so files saved before the option existed are unchanged.
   if (sk.textureFilter !== 'linear') out.textureFilter = sk.textureFilter;
+  if (sk.pixelGrid > 0) out.pixelGrid = sk.pixelGrid;
   if (sk.poses.length) out.poses = raw(sk.poses);
   if (sk.controllers.length) out.controllers = raw(sk.controllers);
   if (sk.workspace) out.workspace = sk.workspace;

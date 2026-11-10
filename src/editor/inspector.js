@@ -410,6 +410,7 @@ function projectUi(app) {
         }),
       ),
       row(t('Textures'), textureFilterSelect(app)),
+      row(t('Pixel grid'), pixelGridSelect(app)),
     ),
     app.doc.skins.length
       ? h(
@@ -466,6 +467,30 @@ function textureFilterSelect(app) {
     },
   );
   el.title = t('How images are drawn when scaled. Pixel art keeps every pixel sharp in the viewport, in renders and in exported atlases (filter: Nearest).');
+  return el;
+}
+
+/**
+ * Pixel grid for pixel art: the viewport and renders draw the skeleton at the art's pixel size and
+ * scale it up sharp, so rotated parts stay on the pixel grid. The value is world units per pixel.
+ */
+function pixelGridSelect(app) {
+  const el = select(
+    [
+      ['0', t('Off')],
+      ['1', t('On: 1 unit per pixel')],
+      ['2', t('On: 2 units per pixel')],
+      ['3', t('On: 3 units per pixel')],
+      ['4', t('On: 4 units per pixel')],
+    ],
+    String(app.doc.pixelGrid || 0),
+    (v) => {
+      app.doc.pixelGrid = Number(v);
+      if (app.doc.pixelGrid > 0) app.doc.textureFilter = 'nearest';
+      app.changed();
+    },
+  );
+  el.title = t("Draws the skeleton at the art's own pixel size and scales it up sharp, so rotated and bent parts stay on the pixel grid, as in a pixel-art game. Applies to the viewport and renders; zoom in to see each pixel's outline. Use 2 to 4 units per pixel for art imported at 2x to 4x.");
   return el;
 }
 

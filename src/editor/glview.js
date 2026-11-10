@@ -2,6 +2,7 @@
 // WebGL layer of the viewport: background, grid and attachments, drawn with the runtime's
 // WebGL renderer. Bones, handles and other overlays stay on the 2D canvas above it.
 
+import { PixelGrid } from '../webgl/pixelgrid.js';
 import { WebGLRenderer } from '../webgl/renderer.js';
 import { actorSlots } from '../core/scene.js';
 import { imageKey } from './actors.js';
@@ -10,6 +11,10 @@ const BACKGROUND = [38 / 255, 38 / 255, 38 / 255];
 const GRID = [48 / 255, 48 / 255, 48 / 255, 1];
 const X_AXIS = [90 / 255, 60 / 255, 60 / 255, 1];
 const Y_AXIS = [60 / 255, 90 / 255, 60 / 255, 1];
+/** The art pixels' outlines, over the art when zoomed in on a pixel grid. */
+const PIXEL_LINES = [1, 1, 1, 0.07];
+/** Screen pixels per art pixel from which the pixel outlines show. */
+const PIXEL_LINES_FROM = 12;
 const identity = (u, v, out) => ((out[0] = u), (out[1] = v), out);
 
 export class GLView {
@@ -28,6 +33,7 @@ export class GLView {
     this.canvas = canvas;
     this.gl = gl;
     this.renderer = new WebGLRenderer(gl);
+    this.pixelGrid = new PixelGrid(this.renderer);
     /** Image name -> { canvas, entry }: textures follow the editor's image store. */
     this.textures = new Map();
     this.lost = false;
@@ -77,7 +83,8 @@ export class GLView {
     gl.clear(gl.COLOR_BUFFER_BIT);
     const { zoom, panX, panY } = app.view;
     const r = this.renderer;
-    r.begin(w, h, { x: -panX / zoom, y: panY / zoom, zoom: zoom * dpr });
+    const camera = { x: -panX / zoom, y: panY / zoom, zoom: zoom * dpr };
+    r.begin(w, h, camera);
 
     // Grid: the same spacing rules as the 2D overlay used.
     let step = 50;
@@ -93,13 +100,31 @@ export class GLView {
     r.line(x0, 0, x1, 0, px, X_AXIS);
     r.line(0, y0, 0, y1, px, Y_AXIS);
 
-    const linear = app.doc.textureFilter !== 'nearest';
+    const size = app.doc.pixelGrid;
+    // A pixel grid samples the art sharp too: it is pixel art.
+    const linear = app.doc.textureFilter !== 'nearest' && !(size > 0);
     const lookup = (name) => this.lookup(app.images, name, linear);
-    // Onion skinning: ghosts of nearby frames, faded (and optionally masked per bone) behind the pose.
-    for (const g of app.onionDraws?.() ?? []) r.drawSkeleton(app.doc, g.pose, lookup, { tint: g.tint, skip: g.skip });
-    r.drawSkeleton(app.doc, pose, lookup, { between: sceneActors(app, pose, r, lookup) });
+    const scene = () => {
+      // Onion skinning: ghosts of nearby frames, faded (and optionally masked per bone) behind the pose.
+      for (const g of app.onionDraws?.() ?? []) r.drawSkeleton(app.doc, g.pose, lookup, { tint: g.tint, skip: g.skip });
+      r.drawSkeleton(app.doc, pose, lookup, { between: sceneActors(app, pose, r, lookup) });
+    };
     r.end();
-    this.stats = { drawCalls: r.drawCalls };
+    let gridded = false;
+    if (size > 0) gridded = this.pixelGrid.draw(w, h, camera, size, scene);
+    if (!gridded) {
+      r.begin(w, h, camera);
+      scene();
+      r.end();
+    }
+    // Zoomed in on a pixel grid: each art pixel's outline, to place pivots and judge silhouettes.
+    if (gridded && camera.zoom * size >= PIXEL_LINES_FROM) {
+      r.begin(w, h, camera);
+      for (let x = Math.floor(x0 / size) * size; x <= x1; x += size) r.line(x, y0, x, y1, px, PIXEL_LINES);
+      for (let y = Math.floor(y0 / size) * size; y <= y1; y += size) r.line(x0, y, x1, y, px, PIXEL_LINES);
+      r.end();
+    }
+    this.stats = { drawCalls: r.drawCalls, pixelGrid: gridded };
     return true;
   }
 }

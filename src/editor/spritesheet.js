@@ -196,7 +196,8 @@ function packShelves(sizes, { layout, padding, maxWidth, maxHeight }) {
  */
 export function renderFrames(doc, lookup, names, options = {}) {
   const o = { ...DEFAULTS, ...options };
-  const smooth = o.smooth ?? doc.textureFilter !== 'nearest';
+  // A pixel grid project is pixel art: always sampled sharp.
+  const smooth = o.smooth ?? (doc.textureFilter !== 'nearest' && !(doc.pixelGrid > 0));
   const rect = frameRect(framesBounds(doc, names, o), o.scale);
   if (!rect) return null;
   const { width, height, x0, y1, scale } = rect;

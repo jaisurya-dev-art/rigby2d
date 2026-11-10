@@ -82,7 +82,7 @@ export function openSpriteSheetDialog(app) {
     const names = doc.animations.filter((a) => choice.animations.has(a.name));
     const frames = names.reduce((n, a) => n + frameCount(a.duration, choice.fps, choice.loop), 0);
     const sheet = choice.format === 'json';
-    const pixelArt = doc.textureFilter === 'nearest';
+    const pixelArt = doc.textureFilter === 'nearest' || doc.pixelGrid > 0;
     const parts = [
       h('h3', null, t('Export sprite sheet')),
       h('div', { class: 'small weak' }, t('Each animation rendered frame by frame, for engines and tools that play frames instead of bones. Physics settles into loops first, so a loop joins up.')),

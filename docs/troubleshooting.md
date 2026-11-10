@@ -9,6 +9,7 @@
 | A mesh creases at a joint. | Paint a softer weight blend across the joint. See [Weights](meshes.md#weights). |
 | Hair or earrings don't swing. | Physics only runs while the animation plays. |
 | Pixel art looks blurry. | Set **Textures** to *Pixel art (nearest)* in the Project panel. |
+| Rotated pixel art has tilted, mixed-size pixels. | Turn on **Pixel grid** in the Project panel (see [Pixel grid](importing-art.md#pixel-grid)). |
 | Export to `.skel` refused. | The rig uses a feature `.skel` can't hold; export JSON instead. |
 | MP4 has a black background. | MP4 has no transparency: set a background color, or render WebM or PNG. |
 | Lip-sync transcription is slow the first time. | The speech model (about 77 MB) downloads once, then it is cached. |

@@ -79,6 +79,25 @@ when scaled:
 
 Opening a skeleton export picks the setting up from its atlas.
 
+### Pixel grid
+
+Sharp textures keep each pixel crisp, but a rotated or bent part still lands between screen pixels,
+so its pixels come out tilted and in mixed sizes ("mixels"). The Project panel's **Pixel grid**
+fixes that: the viewport and renders draw the skeleton at the art's own pixel size, then scale that
+up sharp, so every part, however it turns, is drawn in whole pixels on one grid, as a pixel-art game
+shows it.
+
+- **On: 1 unit per pixel** for art imported at its real size (the usual case). Use 2 to 4 units per
+  pixel for art you imported at 2× to 4×.
+- The grid is fixed to the world (from the origin), so a part that doesn't move keeps its pixels.
+- Zoom in and each pixel's outline appears, for placing pivots and checking silhouettes.
+- Turning it on also sets **Textures** to *Pixel art (nearest)*.
+- Sprite sheets exported at 100% already draw one sheet pixel per art pixel; use 100% and let the
+  game scale them up.
+
+The setting is saved with the project. Game runtimes draw the skeleton at the game's own resolution;
+for the same look in a game, render it into a target at the art's size and scale that up.
+
 ## Images in the project
 
 The **Images** section of the tree and the Project panel list every image with its size. Images are

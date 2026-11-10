@@ -6,6 +6,7 @@
 
 import { Pose } from '../../core/pose.js';
 import { AnimationState } from '../../core/state.js';
+import { PixelGrid } from '../../webgl/pixelgrid.js';
 import { WebGLRenderer } from '../../webgl/renderer.js';
 import { readFrame } from '../glframes.js';
 import { animationBounds, outputFrame } from '../output.js';
@@ -45,6 +46,7 @@ export class FrameRenderer {
     if (!gl) throw new Error('WebGL is not available for rendering');
     this.gl = gl;
     this.renderer = new WebGLRenderer(gl);
+    this.pixelGrid = new PixelGrid(this.renderer);
     this.textures = new Map();
     this.images = images;
     const bounds = s.frame ? null : animationBounds(doc, job.animation, s.fps);
@@ -95,7 +97,7 @@ export class FrameRenderer {
     if (!canvas || !canvas.width) return null;
     let entry = this.textures.get(name);
     if (!entry) {
-      entry = { tex: this.renderer.createTexture(canvas, { linear: this.doc.textureFilter !== 'nearest' }), trim: [0, 0, 1, 1], map: identity };
+      entry = { tex: this.renderer.createTexture(canvas, { linear: this.doc.textureFilter !== 'nearest' && !(this.doc.pixelGrid > 0) }), trim: [0, 0, 1, 1], map: identity };
       this.textures.set(name, entry);
     }
     return entry;
@@ -122,14 +124,20 @@ export class FrameRenderer {
     if (bg) gl.clearColor(bg[0] * bg[3], bg[1] * bg[3], bg[2] * bg[3], bg[3]);
     else gl.clearColor(0, 0, 0, 0);
     gl.clear(gl.COLOR_BUFFER_BIT);
-    this.renderer.begin(this.width, this.height, cameraFor(job.settings, doc, this.pose, this.camera));
-    this.renderer.drawSkeleton(doc, this.pose, (name) => this.lookup(name), { between: this.actorDrawer() });
-    this.renderer.end();
+    const camera = cameraFor(job.settings, doc, this.pose, this.camera);
+    const scene = () => this.renderer.drawSkeleton(doc, this.pose, (name) => this.lookup(name), { between: this.actorDrawer() });
+    // Pixel art on a pixel grid renders at its own pixel size, scaled up sharp (as in the viewport).
+    if (!(doc.pixelGrid > 0 && this.pixelGrid.draw(this.width, this.height, camera, doc.pixelGrid, scene))) {
+      this.renderer.begin(this.width, this.height, camera);
+      scene();
+      this.renderer.end();
+    }
     gl.finish();
     return this.canvas;
   }
 
   dispose() {
+    this.pixelGrid.dispose();
     for (const e of this.textures.values()) this.renderer.deleteTexture(e.tex);
     this.textures.clear();
     this.doc.skin = this.previousSkin;
