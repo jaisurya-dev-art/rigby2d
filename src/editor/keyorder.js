@@ -8,12 +8,37 @@
 import { BONE_CHANNELS, SLOT_CHANNELS } from '../core/animation.js';
 import { listConstraints } from '../core/constraintdata.js';
 import { channelKeys, keyedChannels } from '../core/constraintkeys.js';
-import { t } from './i18n.js';
+import { t, tn } from './i18n.js';
+
+/** Timeline channel names as track labels show them (bone names stay as they are). */
+const CHANNEL_LABELS = {
+  rotate: tn('rotate'),
+  translate: tn('translate'),
+  scale: tn('scale'),
+  shear: tn('shear'),
+  translateX: tn('translate x'),
+  translateY: tn('translate y'),
+  scaleX: tn('scale x'),
+  scaleY: tn('scale y'),
+  shearX: tn('shear x'),
+  shearY: tn('shear y'),
+  inherit: tn('inherit'),
+  attachment: tn('image'),
+  color: tn('color'),
+  rgb: tn('rgb'),
+  alpha: tn('alpha'),
+  rgba2: tn('two-color'),
+  rgb2: tn('two-color rgb'),
+  mix: tn('mix'),
+};
+
+/** A channel's label in the interface language (unknown channels as they are). */
+export const channelLabel = (ch) => (CHANNEL_LABELS[ch] ? t(CHANNEL_LABELS[ch]) : ch.replace(/([A-Z])/g, ' $1').toLowerCase());
 
 /** Rows of the dopesheet for the current animation: [{ track, label }]. */
 export function tracks(app, anim) {
   const out = [];
-  const label = (ch) => ch.replace(/([A-Z])/g, ' $1').toLowerCase();
+  const label = channelLabel;
   for (const tl of anim.bones) {
     const name = app.doc.bones[tl.bone]?.name ?? `#${tl.bone}`;
     for (const channel of BONE_CHANNELS) {
@@ -23,7 +48,7 @@ export function tracks(app, anim) {
   for (const tl of anim.slots) {
     const name = app.doc.slots[tl.slot]?.name ?? `#${tl.slot}`;
     for (const channel of SLOT_CHANNELS) {
-      if (tl[channel].length) out.push({ track: { slot: tl.slot, channel }, label: `${name} · ${channel === 'attachment' ? 'image' : channel}` });
+      if (tl[channel].length) out.push({ track: { slot: tl.slot, channel }, label: `${name} · ${channelLabel(channel)}` });
     }
   }
   anim.deform.forEach((d, i) => {
@@ -39,11 +64,11 @@ export function tracks(app, anim) {
       }
     }
   }
-  for (const t of keyedChannels(anim, listConstraints(app.doc))) {
-    out.push({ track: { raw: { type: t.type, name: t.name, channel: t.channel } }, label: `${t.name} · ${t.channel ?? 'mix'}` });
+  for (const c of keyedChannels(anim, listConstraints(app.doc))) {
+    out.push({ track: { raw: { type: c.type, name: c.name, channel: c.channel } }, label: `${c.name} · ${channelLabel(c.channel ?? 'mix')}` });
   }
-  if (anim.drawOrder.length) out.push({ track: { drawOrder: true }, label: 'draw order' });
-  if (anim.events.length) out.push({ track: { events: true }, label: 'events' });
+  if (anim.drawOrder.length) out.push({ track: { drawOrder: true }, label: t('draw order') });
+  if (anim.events.length) out.push({ track: { events: true }, label: t('events') });
   return out;
 }
 

@@ -9,6 +9,7 @@ import { STEPPED, bezierFor, ease } from '../core/curve.js';
 import { FPS, Mode, snap } from './app.js';
 import { curveMenu, resortAnimation } from './timeline.js';
 import { t } from './i18n.js';
+import { channelLabel } from './keyorder.js';
 
 const GUTTER = 170;
 const RULER = 22;
@@ -93,7 +94,7 @@ export class GraphEditor {
         if (!numeric(keys)) continue;
         const n = componentCount(keys[0]);
         for (let c = 0; c < n; c++) {
-          const label = `${name} · ${channel.replace(/([A-Z])/g, ' $1').toLowerCase()}${n > 1 ? ` ${COMPONENT_NAMES[c] ?? c}` : ''}`;
+          const label = `${name} · ${channelLabel(channel)}${n > 1 ? ` ${COMPONENT_NAMES[c] ?? c}` : ''}`;
           out.push({ id: `${tl.bone}:${channel}:${c}`, keys, c, label, color: n > 1 ? COMPONENT_COLORS[c] : SINGLE_COLOR });
         }
       }
