@@ -29,5 +29,5 @@ export { AnimationState } from './state.js';
 export { isSkeletonJson, readSkeletonJson, writeSkeletonJson } from './interop.js';
 export { parseAtlas, writeAtlas, regionPlacement } from './atlas.js';
 export { isSkeletonBinary, readSkeletonBinary } from './binary.js';
-export { atlasLookup, imageLookup, drawSkeletonGeometry, regionEntry, QUAD } from './draw.js';
+export { atlasLookup, imageLookup, drawSkeletonGeometry, geometryCache, regionEntry, QUAD } from './draw.js';
 export { ScenePlayer, loadScene, readSceneManifest, sceneDrawList, actorSlots } from './scene.js';

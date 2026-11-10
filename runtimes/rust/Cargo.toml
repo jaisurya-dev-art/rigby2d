@@ -1,7 +1,7 @@
 # Rigby2D native runtimes: the Rust core and engine integrations.
 [workspace]
 resolver = "2"
-members = ["rigby-runtime", "rigby-godot"]
+members = ["rigby-runtime", "rigby-godot", "rigby-wasm"]
 
 [workspace.package]
 version = "0.2.0"

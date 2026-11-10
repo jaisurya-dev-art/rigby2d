@@ -103,6 +103,36 @@ mesh, and every mesh is batched by PixiJS whatever its size. The slot blend mode
 (`normal`, `add`, `multiply`, `screen`). A slot with a dark color (two-color tint) is drawn with a
 small shader of its own, written for both WebGL and WebGPU, and draws outside the batcher.
 
+## WebAssembly (faster)
+
+For crowds, the posing and geometry can run in WebAssembly: the Rust runtime
+(`runtimes/rust/rigby-wasm`, the same animation frame for frame) builds each skeleton's triangles in
+its own memory, and the meshes copy them from there in one block. Opt in by passing the module:
+
+```js
+import { rigbyPixi, loadRigbyWasm } from './rigby-pixi.js';
+const wasm = await loadRigbyWasm('rigby_wasm.wasm');
+const { loadRigby, RigbySkeleton } = rigbyPixi(PIXI, { wasm });
+```
+
+Build the module with `cargo build --release -p rigby-wasm --target wasm32-unknown-unknown` in
+`runtimes/rust` (needs `rustup target add wasm32-unknown-unknown`); add `RUSTFLAGS="-C
+strip=symbols"` for the smallest file: about 450 KB, 150 KB gzipped.
+
+Time per frame with NILA's `wave` against the official Spine runtime for PixiJS 8 (4.3.13), same
+export, PixiJS 8.22, WebGL, Chrome on a desktop PC (update = animation and geometry, render =
+PixiJS's render call; each runtime draws in one draw call):
+
+| Characters | JavaScript | WebAssembly | Spine |
+| --- | --- | --- | --- |
+| 50 | 4.0 ms | 2.1 ms | 2.6 ms |
+| 200 | 16.0 ms | 8.5 ms | 10.4 ms |
+| 500 | 43.2 ms | 25.0 ms | 30.1 ms |
+
+In WebAssembly mode `play`, `queue`, `stop`, `skin`, `boneTransform`, `attachToBone` and
+`meshCount` work as usual; `state`, `pose`, animation events and `physicsMovement` still belong to
+the JavaScript runtime and are not driven.
+
 ## Notes
 
 - PixiJS 8 only (`Mesh`, `MeshGeometry` and the v8 shader system). The Canvas renderer is not
@@ -112,3 +142,5 @@ small shader of its own, written for both WebGL and WebGPU, and draws outside th
   `/examples/pixi.html`; add `?webgpu` for WebGPU).
 - Tests: `node --test test/pixi.test.js` checks the meshes hold exactly the JavaScript runtime's
   triangles, and covers blend modes, per-object skins, two-color tint, events and bone children.
+  `test/pixi-wasm.test.js` checks the WebAssembly mode draws the same triangles and UVs (skipped
+  when the module isn't built).

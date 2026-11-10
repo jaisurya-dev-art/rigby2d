@@ -6,6 +6,35 @@ use crate::curve::{cubic4, sample_raw};
 use crate::math::{angle_of, lerp, wrap_degrees, Affine, Transform, DEG};
 use crate::model::*;
 use std::collections::HashMap;
+use std::hash::{BuildHasherDefault, Hasher};
+
+/// A small, fast hasher for the deform map's integer keys (the default SipHash is slow, above all
+/// in WebAssembly).
+#[derive(Default)]
+pub struct KeyHasher(u64);
+
+impl Hasher for KeyHasher {
+    fn finish(&self) -> u64 {
+        self.0
+    }
+    fn write(&mut self, bytes: &[u8]) {
+        for &b in bytes {
+            self.write_u64(b as u64);
+        }
+    }
+    fn write_u64(&mut self, v: u64) {
+        self.0 = (self.0.rotate_left(5) ^ v).wrapping_mul(0x51_7c_c1_b7_27_22_0a_95);
+    }
+    fn write_usize(&mut self, v: usize) {
+        self.write_u64(v as u64);
+    }
+    fn write_u32(&mut self, v: u32) {
+        self.write_u64(v as u64);
+    }
+}
+
+/// Deform offsets by (slot, attachment name).
+pub type DeformMap = HashMap<(usize, NameId), Vec<f64>, BuildHasherDefault<KeyHasher>>;
 
 const EPSILON: f64 = 1e-5;
 
@@ -90,7 +119,7 @@ pub struct Pose {
     pub draw_order: Vec<usize>,
     pub sequence: Vec<i64>,
     /// Deform deltas by (slot, attachment name).
-    pub deform: HashMap<(usize, NameId), Vec<f64>>,
+    pub deform: DeformMap,
     pub ik: Vec<IkState>,
     pub constraint_state: Vec<ConstraintState>,
     /// Physics simulation state by constraint; it survives `reset` (see `reset_physics`).
@@ -125,7 +154,7 @@ impl Pose {
             dark: Vec::new(),
             draw_order: Vec::new(),
             sequence: Vec::new(),
-            deform: HashMap::new(),
+            deform: DeformMap::default(),
             ik: Vec::new(),
             constraint_state: sk.constraints.iter().map(ConstraintState::setup).collect(),
             physics: vec![None; sk.constraints.len()],
@@ -1009,6 +1038,21 @@ impl Pose {
         let d = |k: usize| deform.map_or(0.0, |v| v.get(k).copied().unwrap_or(0.0));
         let Some(vertices) = vertices_of(source) else { return };
         match vertices {
+            // Without deform (the common case) the offsets are all zero.
+            Vertices::Weighted(weights) if deform.is_none() => {
+                out.reserve(weights.len() * 2);
+                for v in weights {
+                    let (mut x, mut y) = (0.0, 0.0);
+                    for w in v {
+                        let (bx, by) = (w.x + 0.0, w.y + 0.0);
+                        let m = &self.world[w.bone];
+                        x += (m.a * bx + m.c * by + m.tx) * w.weight;
+                        y += (m.b * bx + m.d * by + m.ty) * w.weight;
+                    }
+                    out.push(x);
+                    out.push(y);
+                }
+            }
             Vertices::Weighted(weights) => {
                 let mut k = 0;
                 for v in weights {

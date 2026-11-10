@@ -1,0 +1,15 @@
+[package]
+name = "rigby-wasm"
+description = "Rigby2D runtime as a WebAssembly module with a small C ABI (no wasm-bindgen): load, play, update and read draw batches from linear memory."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+publish = false
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+rigby-runtime = { path = "../rigby-runtime" }

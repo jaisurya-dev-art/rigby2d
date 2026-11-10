@@ -146,6 +146,13 @@ name = "rigby-runtime"
 version = "0.2.0"
 
 [[package]]
+name = "rigby-wasm"
+version = "0.2.0"
+dependencies = [
+ "rigby-runtime",
+]
+
+[[package]]
 name = "unicode-ident"
 version = "1.0.27"
 source = "registry+https://github.com/rust-lang/crates.io-index"

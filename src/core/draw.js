@@ -69,12 +69,68 @@ export function imageLookup(textures) {
 }
 
 /**
+ * A cache for drawSkeletonGeometry, for runtimes whose skeleton data doesn't change while it plays:
+ * each attachment's atlas UVs are worked out once, and the arrays handed to `emit` are reused from
+ * one attachment to the next (copy what you keep). Not for the editor, where UVs change in place.
+ */
+export function geometryCache() {
+  return { uvs: new WeakMap(), positions: [], regionUvs: [], light: [0, 0, 0, 0] };
+}
+
+/**
+ * A weighted mesh's world vertices (as Pose.worldVertices), from its weights packed once into a
+ * flat array: per vertex, the bone count, then bone, x, y, weight for each bone.
+ */
+function weightedVertices(pose, slot, att, source, cache) {
+  let packed = cache.uvs.get(source.weights);
+  if (!packed) {
+    const flat = [];
+    for (const v of source.weights) {
+      flat.push(v.length);
+      for (const w of v) flat.push(w.bone, w.x, w.y, w.weight);
+    }
+    cache.uvs.set(source.weights, (packed = Float64Array.from(flat)));
+  }
+  const deform = pose.deformOf(slot, att);
+  const world = pose.world;
+  const out = cache.positions;
+  const n = source.weights.length;
+  out.length = n * 2;
+  let p = 0;
+  let k = 0;
+  for (let vi = 0; vi < n; vi++) {
+    const count = packed[p++];
+    let x = 0;
+    let y = 0;
+    for (let wi = 0; wi < count; wi++, p += 4, k += 2) {
+      const m = world[packed[p]];
+      const bx = deform ? packed[p + 1] + deform[k] : packed[p + 1];
+      const by = deform ? packed[p + 2] + deform[k + 1] : packed[p + 2];
+      const wt = packed[p + 3];
+      x += (m.a * bx + m.c * by + m.tx) * wt;
+      y += (m.b * bx + m.d * by + m.ty) * wt;
+    }
+    out[2 * vi] = x;
+    out[2 * vi + 1] = y;
+  }
+  return out;
+}
+
+/** Page UVs of an attachment for an atlas entry, from the cache (computed the first time). */
+function cachedUvs(cache, key, entry, compute) {
+  let hit = cache.uvs.get(key);
+  if (!hit || hit.entry !== entry) cache.uvs.set(key, (hit = { entry, uvs: compute() }));
+  return hit.uvs;
+}
+
+/**
  * Walks every visible region and mesh of a posed skeleton in draw order, masked by clipping
  * attachments, and calls `emit(tex, blend, positions, uvs, triangles, light, dark)` for each.
  * `tint` multiplies every color; `skip(slot, attachment)` leaves attachments out; `between(slot)` is
- * called as each slot's turn comes, before its attachment (a scene draws its actors there).
+ * called as each slot's turn comes, before its attachment (a scene draws its actors there). With a
+ * `cache` (geometryCache()), the arrays passed to `emit` are only valid during the call.
  */
-export function drawSkeletonGeometry(sk, pose, lookup, emit, { tint = [1, 1, 1, 1], skip = null, between = null } = {}) {
+export function drawSkeletonGeometry(sk, pose, lookup, emit, { tint = [1, 1, 1, 1], skip = null, between = null, cache = null } = {}) {
   let clipper = null;
   let clipEnd = null;
   const uv = [0, 0];
@@ -87,20 +143,31 @@ export function drawSkeletonGeometry(sk, pose, lookup, emit, { tint = [1, 1, 1, 
       clipper = new Clipper(pose.worldVertices(sk, i, att));
       clipEnd = att.end === i ? null : (att.end ?? null); // ending at its own slot means: to the end
     } else if (att && (type === 'region' || type === 'mesh' || type === 'linkedmesh') && !skip?.(i, att)) {
-      attachmentGeometry(sk, pose, i, att, type, lookup, tint, clipper, uv, emit);
+      attachmentGeometry(sk, pose, i, att, type, lookup, tint, clipper, uv, emit, cache);
     }
     if (clipper && clipEnd === i) clipper = null;
   }
 }
 
-function attachmentGeometry(sk, pose, i, att, type, lookup, tint, clipper, uv, emit) {
+const CORNERS = [
+  [0, 0],
+  [1, 0],
+  [1, 1],
+  [0, 1],
+];
+
+function attachmentGeometry(sk, pose, i, att, type, lookup, tint, clipper, uv, emit, cache) {
   const source = type === 'region' ? att : sk.meshSource(i, att);
   if (!source) return;
   const entry = lookup(pose.imageOf(i, type === 'mesh' ? source : att));
   if (!entry) return;
   const c = pose.color[i];
   const ac = att.color ?? [1, 1, 1, 1];
-  const light = [c[0] * ac[0] * tint[0], c[1] * ac[1] * tint[1], c[2] * ac[2] * tint[2], c[3] * ac[3] * tint[3]];
+  const light = cache ? cache.light : [0, 0, 0, 0];
+  light[0] = c[0] * ac[0] * tint[0];
+  light[1] = c[1] * ac[1] * tint[1];
+  light[2] = c[2] * ac[2] * tint[2];
+  light[3] = c[3] * ac[3] * tint[3];
   const dark = pose.dark[i];
   const blend = sk.slots[i].blend ?? 'normal';
   let positions;
@@ -112,30 +179,41 @@ function attachmentGeometry(sk, pose, i, att, type, lookup, tint, clipper, uv, e
     const [u0, v0, u1, v1] = entry.trim;
     const hw = att.width / 2;
     const hh = att.height / 2;
-    positions = [];
-    uvs = [];
-    for (const [u, v] of [
-      [u0, v0],
-      [u1, v0],
-      [u1, v1],
-      [u0, v1],
-    ]) {
+    positions = cache ? cache.positions : [];
+    positions.length = 8;
+    for (let k = 0; k < 4; k++) {
+      const u = CORNERS[k][0] ? u1 : u0;
+      const v = CORNERS[k][1] ? v1 : v0;
       const lx = -hw + u * att.width;
       const ly = hh - v * att.height;
-      positions.push(m.a * lx + m.c * ly + m.tx, m.b * lx + m.d * ly + m.ty);
-      entry.map(u, v, uv);
-      uvs.push(uv[0], uv[1]);
+      positions[2 * k] = m.a * lx + m.c * ly + m.tx;
+      positions[2 * k + 1] = m.b * lx + m.d * ly + m.ty;
     }
+    const corners = () => {
+      const out = new Array(8);
+      for (let k = 0; k < 4; k++) {
+        entry.map(CORNERS[k][0] ? u1 : u0, CORNERS[k][1] ? v1 : v0, uv);
+        out[2 * k] = uv[0];
+        out[2 * k + 1] = uv[1];
+      }
+      return out;
+    };
+    uvs = cache ? cachedUvs(cache, att, entry, corners) : corners();
     triangles = QUAD;
   } else {
-    positions = pose.worldVertices(sk, i, att);
+    positions = cache && source.weights ? weightedVertices(pose, i, att, source, cache) : pose.worldVertices(sk, i, att, cache ? cache.positions : undefined);
     const n = positions.length / 2;
-    uvs = new Array(n * 2);
-    for (let k = 0; k < n; k++) {
-      entry.map(source.uvs[2 * k], source.uvs[2 * k + 1], uv);
-      uvs[2 * k] = uv[0];
-      uvs[2 * k + 1] = uv[1];
-    }
+    const mapped = () => {
+      const out = new Array(n * 2);
+      for (let k = 0; k < n; k++) {
+        entry.map(source.uvs[2 * k], source.uvs[2 * k + 1], uv);
+        out[2 * k] = uv[0];
+        out[2 * k + 1] = uv[1];
+      }
+      return out;
+    };
+    // Keyed by the UV array itself: a linked mesh shares its parent's UVs and image placement.
+    uvs = cache ? cachedUvs(cache, source.uvs, entry, mapped) : mapped();
     triangles = source.triangles;
   }
   if (clipper) clipper.clip(positions, uvs, triangles, (p, t, tri) => emit(entry.tex, blend, p, t, tri, light, dark));

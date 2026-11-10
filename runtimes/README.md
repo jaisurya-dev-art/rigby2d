@@ -7,6 +7,7 @@ Rust, C++ and C# cores are ports of it, tested against it frame by frame.
 | --- | --- | --- |
 | [`rust/rigby-runtime`](rust/rigby-runtime) | The runtime in Rust: loads skeleton `.json` (3.8, 4.2, 4.3) and binary `.skel` (4.3) with `.atlas`, evaluates poses, constraints and playback, plays scenes (`.scene.json`), and builds textured, clipped draw batches. No dependencies. | Complete |
 | [`rust/rigby-godot`](rust/rigby-godot) | Godot 4.3+ GDExtension: the `RigbySkeleton2D` and `RigbyScene2D` nodes. | Windows x64, macOS and Linux x64 downloads on [Releases](https://github.com/jaisurya-dev-art/rigby2d/releases); build from source elsewhere |
+| [`rust/rigby-wasm`](rust/rigby-wasm) | The Rust runtime as a WebAssembly module with a small C ABI (no wasm-bindgen), used by the PixiJS runtime's opt-in WebAssembly mode. | Preview |
 | [`godot`](godot) | Godot addon (`addons/rigby2d`, with [user guide](godot/addons/rigby2d/README.md)), demo scene and tests. | Complete |
 | [`phaser`](phaser) | Phaser 3.60+ and Phaser 4 plugin ([guide](phaser/README.md)) on the JavaScript runtime (`src/core`) and WebGL renderer: `this.load.rigby`, `this.add.rigby`. | Complete |
 | [`pixi`](pixi) | PixiJS 8 runtime ([guide](pixi/README.md)) on the JavaScript runtime: `RigbySkeleton` is a native `Container` whose attachments are PixiJS meshes, batched with sprites on WebGL and WebGPU, with a two-color tint shader for both. | Complete |
@@ -86,6 +87,7 @@ Needs [Rust](https://rustup.rs) (stable) and, for the Godot tests, Godot 4.3 or 
 cd runtimes/rust
 cargo test --release --workspace          # unit and golden tests
 cargo build --release -p rigby-godot      # the Godot library
+cargo build --release -p rigby-wasm --target wasm32-unknown-unknown   # the WebAssembly module
 
 # Godot: copy the library into the addon, import the project, run the tests headless.
 cp target/release/rigby_godot.dll ../godot/addons/rigby2d/bin/   # .so / .dylib elsewhere

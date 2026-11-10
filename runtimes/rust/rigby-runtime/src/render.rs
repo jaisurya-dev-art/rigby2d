@@ -64,13 +64,19 @@ pub struct Batch {
 #[derive(Default)]
 pub struct RenderOutput {
     pub batches: Vec<Batch>,
+    /// Also starts a new batch when the light or dark color changes, so every batch has one color
+    /// (for engines that tint a whole mesh, such as PixiJS); `colors` and `darks` then hold that
+    /// one color instead of one per vertex.
+    pub split_colors: bool,
     used: usize,
     source: usize,
     scratch_p: Vec<f64>,
-    scratch_uv: Vec<f64>,
     clip_p: Vec<f64>,
     clip_uv: Vec<f64>,
     clip_t: Vec<u32>,
+    /// Page UVs of the attachment each slot drew last, by (attachment address, image): they only
+    /// change when the slot shows another attachment or sequence frame.
+    uv_cache: Vec<(usize, NameId, Vec<f64>)>,
 }
 
 const QUAD: [u32; 6] = [0, 1, 2, 0, 2, 3];
@@ -135,9 +141,16 @@ impl RenderOutput {
         };
         let blend = sk.slots[i].blend;
         let mut positions = std::mem::take(&mut self.scratch_p);
-        let mut uvs = std::mem::take(&mut self.scratch_uv);
         positions.clear();
-        uvs.clear();
+        if self.uv_cache.len() <= i {
+            self.uv_cache.resize_with(i + 1, || (0, 0, Vec::new()));
+        }
+        let key = (source as *const crate::model::Attachment as usize, image);
+        let cached = self.uv_cache[i].0 == key.0 && self.uv_cache[i].1 == key.1;
+        let mut uvs = std::mem::take(&mut self.uv_cache[i].2);
+        if !cached {
+            uvs.clear();
+        }
         let triangles: &[u32] = match &att.kind {
             AttachmentKind::Region { offset, width, height } => {
                 // The packed (trimmed) part of the image, as corners of the attachment quad.
@@ -149,8 +162,10 @@ impl RenderOutput {
                     let ly = hh - v * height;
                     let p = m.apply(lx, ly);
                     positions.extend_from_slice(&[p.0, p.1]);
-                    let t = entry.map(u, v);
-                    uvs.extend_from_slice(&[t.0, t.1]);
+                    if !cached {
+                        let t = entry.map(u, v);
+                        uvs.extend_from_slice(&[t.0, t.1]);
+                    }
                 }
                 &QUAD
             }
@@ -158,12 +173,15 @@ impl RenderOutput {
                 pose.world_vertices_into(sk, i, att, &mut positions);
                 let AttachmentKind::Mesh { uvs: mesh_uvs, triangles, .. } = &source.kind else {
                     self.scratch_p = positions;
-                    self.scratch_uv = uvs;
+                    self.uv_cache[i] = (0, 0, uvs);
                     return;
                 };
-                for k in 0..positions.len() / 2 {
-                    let t = entry.map(mesh_uvs.get(2 * k).copied().unwrap_or(0.0), mesh_uvs.get(2 * k + 1).copied().unwrap_or(0.0));
-                    uvs.extend_from_slice(&[t.0, t.1]);
+                if !cached || uvs.len() != positions.len() {
+                    uvs.clear();
+                    for k in 0..positions.len() / 2 {
+                        let t = entry.map(mesh_uvs.get(2 * k).copied().unwrap_or(0.0), mesh_uvs.get(2 * k + 1).copied().unwrap_or(0.0));
+                        uvs.extend_from_slice(&[t.0, t.1]);
+                    }
                 }
                 triangles
             }
@@ -184,14 +202,14 @@ impl RenderOutput {
             self.emit(entry.page, blend, &positions, &uvs, triangles, light, dark);
         }
         self.scratch_p = positions;
-        self.scratch_uv = uvs;
+        self.uv_cache[i] = (key.0, key.1, uvs);
     }
 
     #[allow(clippy::too_many_arguments)]
     fn emit(&mut self, page: usize, blend: Blend, positions: &[f64], uvs: &[f64], triangles: &[u32], light: [f32; 4], dark: [f32; 4]) {
         let continues = self.used > 0 && {
             let b = &self.batches[self.used - 1];
-            b.source == self.source && b.page == page && b.blend == blend
+            b.source == self.source && b.page == page && b.blend == blend && (!self.split_colors || (b.colors.last() == Some(&light) && b.darks.last() == Some(&dark)))
         };
         if !continues {
             if self.batches.len() == self.used {
@@ -210,9 +228,13 @@ impl RenderOutput {
         }
         let b = &mut self.batches[self.used - 1];
         let base = b.positions.len() as u32;
-        for k in 0..positions.len() / 2 {
-            b.positions.push([positions[2 * k] as f32, positions[2 * k + 1] as f32]);
-            b.uvs.push([uvs[2 * k] as f32, uvs[2 * k + 1] as f32]);
+        let n = positions.len() / 2;
+        b.positions.extend((0..n).map(|k| [positions[2 * k] as f32, positions[2 * k + 1] as f32]));
+        b.uvs.extend((0..n).map(|k| [uvs[2 * k] as f32, uvs[2 * k + 1] as f32]));
+        if !self.split_colors {
+            b.colors.resize(b.colors.len() + n, light);
+            b.darks.resize(b.darks.len() + n, dark);
+        } else if b.colors.is_empty() {
             b.colors.push(light);
             b.darks.push(dark);
         }

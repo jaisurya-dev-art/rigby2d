@@ -25,11 +25,13 @@ const robotData = () => parseRigby(read('rigbytron/export/rigbytron.json').toStr
 /** Every visible mesh's triangles, flattened to world-space triangle corners (PixiJS axes). */
 function meshTriangles(sk) {
   const out = [];
-  for (const m of sk.children[0].children) {
+  const view = sk.children[0]; // the meshes' container, flipped to PixiJS's Y down
+  assert.equal(view.scale.y, -1);
+  for (const m of view.children) {
     if (!m.visible) continue;
     const g = m.geometry;
     const p = g.getBuffer('aPosition').data;
-    for (const i of g.getIndex().data) out.push(p[2 * i], p[2 * i + 1]);
+    for (const i of g.getIndex().data) out.push(p[2 * i], -p[2 * i + 1]);
   }
   return out;
 }

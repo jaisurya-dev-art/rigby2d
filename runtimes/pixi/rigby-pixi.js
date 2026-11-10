@@ -15,7 +15,7 @@
 
 import { parseAtlas } from '../../src/core/atlas.js';
 import { isSkeletonBinary, readSkeletonBinary } from '../../src/core/binary.js';
-import { atlasLookup, drawSkeletonGeometry } from '../../src/core/draw.js';
+import { atlasLookup, drawSkeletonGeometry, geometryCache } from '../../src/core/draw.js';
 import { readSkeletonJson } from '../../src/core/interop.js';
 import { Affine } from '../../src/core/math.js';
 import { Pose } from '../../src/core/pose.js';
@@ -25,6 +25,9 @@ import { AnimationState } from '../../src/core/state.js';
 export const BLEND_MODES = { normal: 'normal', additive: 'add', multiply: 'multiply', screen: 'screen' };
 
 /** The folder part of a URL, with its trailing slash: "assets/nila.atlas" -> "assets/". */
+/** Blend modes by the WebAssembly runtime's blend index. */
+const WASM_BLENDS = ['normal', 'additive', 'multiply', 'screen'];
+
 const folderOf = (url) => url.slice(0, url.lastIndexOf('/') + 1);
 
 /**
@@ -62,7 +65,7 @@ class Buf {
  * Creates the runtime for a PixiJS namespace (`import * as PIXI from 'pixi.js'`, or the `PIXI`
  * global of the script build). Returns { loadRigby, parseRigby, RigbySkeleton, RigbyData }.
  */
-export function rigbyPixi(PIXI = globalThis.PIXI) {
+export function rigbyPixi(PIXI = globalThis.PIXI, { wasm = null } = {}) {
   if (!PIXI?.Mesh || !PIXI?.MeshGeometry || !PIXI?.Container) throw new Error('Rigby2D: pass the PixiJS namespace (PixiJS 8): rigbyPixi(PIXI)');
   const { Assets, Container, DOMAdapter, Mesh, MeshGeometry, Shader, Texture, Ticker } = PIXI;
 
@@ -79,6 +82,8 @@ export function rigbyPixi(PIXI = globalThis.PIXI) {
       /** Atlas page name -> PixiJS Texture. */
       this.pages = pages;
       this.lookup = atlasLookup(atlas, (page) => pages.get(page.name) ?? null);
+      /** Atlas UVs worked out once per attachment, and scratch arrays, shared by every skeleton made from this data. */
+      this.geometry = geometryCache();
       if (skeleton.skins.length && skeleton.skin === undefined) skeleton.skin = null;
     }
     get animationNames() {
@@ -94,6 +99,7 @@ export function rigbyPixi(PIXI = globalThis.PIXI) {
    * parsed JSON object), the atlas text, and the page textures (page name -> Texture, or a function).
    */
   function parseRigby(skeleton, atlasText, textures) {
+    const raw = skeleton instanceof ArrayBuffer ? new Uint8Array(skeleton) : skeleton;
     let json = skeleton;
     if (skeleton instanceof ArrayBuffer) json = new Uint8Array(skeleton);
     if (json instanceof Uint8Array) json = isSkeletonBinary(json) ? readSkeletonBinary(json) : JSON.parse(new TextDecoder().decode(json));
@@ -105,7 +111,13 @@ export function rigbyPixi(PIXI = globalThis.PIXI) {
       const tex = typeof textures === 'function' ? textures(page.name, page) : textures instanceof Map ? textures.get(page.name) : textures?.[page.name];
       if (tex) pages.set(page.name, tex);
     }
-    return new RigbyData(data, atlas, pages);
+    const result = new RigbyData(data, atlas, pages);
+    if (wasm) {
+      const bytes = raw instanceof Uint8Array ? raw : new TextEncoder().encode(typeof raw === 'string' ? raw : JSON.stringify(raw));
+      result.wasm = wasm.load(bytes, atlasText);
+      result.pageTextures = atlas.pages.map((p) => pages.get(p.name) ?? null);
+    }
+    return result;
   }
 
   const cache = new Map();
@@ -177,8 +189,19 @@ export function rigbyPixi(PIXI = globalThis.PIXI) {
     begin(tex, blend, light, dark) {
       this.tex = tex;
       this.blend = blend;
-      this.light = light;
-      this.dark = dark;
+      // Copies: the drawing walk reuses its color arrays.
+      const l = (this.light ??= [0, 0, 0, 0]);
+      l[0] = light[0];
+      l[1] = light[1];
+      l[2] = light[2];
+      l[3] = light[3];
+      if (dark) {
+        const d = (this._dark ??= [0, 0, 0]);
+        d[0] = dark[0];
+        d[1] = dark[1];
+        d[2] = dark[2];
+        this.dark = d;
+      } else this.dark = null;
       this.positions.length = this.uvs.length = this.indices.length = 0;
       if (this.darks) this.darks.length = 0;
     }
@@ -198,13 +221,12 @@ export function rigbyPixi(PIXI = globalThis.PIXI) {
       const t = this.uvs.data;
       const ix = this.indices.data;
       let o = this.positions.length;
-      // Skeleton space is Y up; PixiJS is Y down.
-      for (let k = 0; k < n; k++, o += 2) {
-        p[o] = positions[2 * k];
-        p[o + 1] = -positions[2 * k + 1];
-        t[o] = uvs[2 * k];
-        t[o + 1] = uvs[2 * k + 1];
+      // Skeleton space is Y up: the mesh container is flipped (scale.y = -1), so vertices copy as they are.
+      for (let k = 0, m = n * 2; k < m; k++) {
+        p[o + k] = positions[k];
+        t[o + k] = uvs[k];
       }
+      o += n * 2;
       this.positions.length = this.uvs.length = o;
       o = this.indices.length;
       for (let k = 0; k < triangles.length; k++) ix[o + k] = base + triangles[k];
@@ -222,7 +244,7 @@ export function rigbyPixi(PIXI = globalThis.PIXI) {
       }
     }
     /** Writes the run into its Mesh (the plain one, or the two-color one when it has a dark color). */
-    flush(container, index) {
+    flush(container, index, views = null) {
       const dark = !!this.dark;
       let mesh = dark ? this.darkMesh : this.mesh;
       if (!mesh) {
@@ -246,10 +268,17 @@ export function rigbyPixi(PIXI = globalThis.PIXI) {
       mesh.visible = true;
       if (container.getChildIndex(mesh) !== index) container.setChildIndex(mesh, Math.min(index, container.children.length - 1));
       const g = mesh.geometry;
-      setBuffer(g.getBuffer('aPosition'), this.positions);
-      setBuffer(g.getBuffer('aUV'), this.uvs);
-      setBuffer(g.getIndex(), this.indices);
-      if (dark) setBuffer(g.getBuffer('aDark'), this.darks);
+      if (views) {
+        setView(g.getBuffer('aPosition'), views[0]);
+        setView(g.getBuffer('aUV'), views[1]);
+        setView(g.getIndex(), views[2]);
+        if (dark) setView(g.getBuffer('aDark'), views[3]);
+      } else {
+        setBuffer(g.getBuffer('aPosition'), this.positions);
+        setBuffer(g.getBuffer('aUV'), this.uvs);
+        setBuffer(g.getIndex(), this.indices);
+        if (dark) setBuffer(g.getBuffer('aDark'), this.darks);
+      }
       if (mesh.texture !== this.tex) {
         mesh.texture = this.tex;
         if (dark) {
@@ -280,7 +309,9 @@ export function rigbyPixi(PIXI = globalThis.PIXI) {
 
   /** Puts `buf`'s live part into a PixiJS buffer, reusing its storage while it is big enough. */
   function setBuffer(buffer, buf) {
-    const view = buf.data.subarray(0, buf.length);
+    setView(buffer, buf.data.subarray(0, buf.length));
+  }
+  function setView(buffer, view) {
     if (buffer.data.length === view.length) {
       buffer.data.set(view);
       buffer.update();
@@ -320,8 +351,12 @@ export function rigbyPixi(PIXI = globalThis.PIXI) {
       this._followers = [];
       this._placement = new Affine();
       this._placed = false;
+      // Skeleton space is Y up and PixiJS's Y down: the meshes live in a flipped container.
       this._view = new Container({ label: 'rigby-meshes' });
+      this._view.scale.y = -1;
       this.addChild(this._view);
+      /** The WebAssembly instance that poses this skeleton (with rigbyPixi(PIXI, { wasm })). */
+      this._w = data.wasm ? wasm.create(data.wasm) : 0;
       this.state.addListener({
         start: (entry) => this.emit('start', entry),
         end: (entry) => this.emit('end', entry),
@@ -364,17 +399,20 @@ export function rigbyPixi(PIXI = globalThis.PIXI) {
     /** Plays `name` on `track` (0 by default), crossfading over `mix` seconds. Returns the track entry. */
     play(name, loop = true, mix = 0, track = 0) {
       this._check(name);
+      if (this._w) return void wasm.setAnimation(this._w, track, name, loop, mix);
       return this.state.setAnimation(this.skeleton, track, name, loop, mix);
     }
 
     /** Queues `name` after the current animation on `track`. Returns the queued entry. */
     queue(name, loop = true, mix = 0.2, track = 0, delay = null) {
       this._check(name);
+      if (this._w) return void wasm.addAnimation(this._w, track, name, loop, mix, delay);
       return this.state.addAnimation(this.skeleton, track, name, loop, mix, delay);
     }
 
     /** Stops every track and goes back to the setup pose. */
     stop() {
+      if (this._w) wasm.stop(this._w);
       this.state.stop();
       this.pose.setToSetup(this.skeleton);
       this.update(0);
@@ -400,6 +438,7 @@ export function rigbyPixi(PIXI = globalThis.PIXI) {
     set skin(name) {
       if (name !== null && !this.skeleton.skins.some((s) => s.name === name)) throw new Error(`Rigby2D: no skin '${name}' (has: ${this.skinNames.join(', ')})`);
       this._skin = name;
+      if (this._w) return void (wasm.setSkin(this._w, name), this.update(0));
       this._withSkin(() => {
         this.pose.setToSetup(this.skeleton);
         this.state.apply(this.skeleton, this.pose);
@@ -428,6 +467,11 @@ export function rigbyPixi(PIXI = globalThis.PIXI) {
      */
     update(seconds) {
       const dt = Math.max(0, seconds) * this.timeScale;
+      if (this._w) {
+        this._drawWasm(wasm.update(this._w, dt));
+        this._follow();
+        return;
+      }
       this._withSkin(() => {
         this._place();
         this.state.update(this.skeleton, dt);
@@ -500,11 +544,50 @@ export function rigbyPixi(PIXI = globalThis.PIXI) {
             current.begin(tex, blend, light, d);
           }
           current.add(positions, uvs, triangles);
-        }),
+        }, { cache: this.data.geometry }),
       );
       if (current) current.flush(this._view, count++);
       for (let k = count; k < pieces.length; k++) pieces[k].hide();
       /** How many meshes the skeleton drew with in its last update. */
+      this.meshCount = count;
+    }
+
+    /** Rebuilds the meshes from the WebAssembly runtime's batch table (one mesh per batch). */
+    _drawWasm(table) {
+      const { u32, f32 } = wasm.views();
+      const pages = this.data.pageTextures;
+      const pieces = this._pieces;
+      const n = u32[table];
+      let count = 0;
+      const light = (this._wl ??= [0, 0, 0, 0]);
+      const dark = (this._wd ??= [0, 0, 0]);
+      for (let b = 0, o = table + 1; b < n; b++, o += 15) {
+        const tex = pages[u32[o]];
+        if (!tex) continue;
+        const vc = u32[o + 4];
+        const pos = f32.subarray(u32[o + 2] >> 2, (u32[o + 2] >> 2) + vc * 2);
+        const uv = f32.subarray(u32[o + 3] >> 2, (u32[o + 3] >> 2) + vc * 2);
+        const idx = u32.subarray(u32[o + 5] >> 2, (u32[o + 5] >> 2) + u32[o + 6]);
+        light[0] = f32[o + 7];
+        light[1] = f32[o + 8];
+        light[2] = f32[o + 9];
+        light[3] = f32[o + 10];
+        dark[0] = f32[o + 11];
+        dark[1] = f32[o + 12];
+        dark[2] = f32[o + 13];
+        const hasDark = f32[o + 14] === 1 && (dark[0] || dark[1] || dark[2]);
+        const piece = (pieces[count] ??= new Piece(this));
+        piece.begin(tex, WASM_BLENDS[u32[o + 1]], light, hasDark ? dark : null);
+        let darks = null;
+        if (hasDark) {
+          piece.darks ??= new Buf(Float32Array);
+          piece.darks.reserve(vc * 3);
+          darks = piece.darks.data.subarray(0, vc * 3);
+          for (let k = 0; k < vc * 3; k += 3) darks.set(dark, k);
+        }
+        piece.flush(this._view, count++, [pos, uv, idx, darks]);
+      }
+      for (let k = count; k < pieces.length; k++) pieces[k].hide();
       this.meshCount = count;
     }
 
@@ -514,7 +597,7 @@ export function rigbyPixi(PIXI = globalThis.PIXI) {
      */
     boneTransform(name, out = {}) {
       const i = this.skeleton.bones.findIndex((b) => b.name === name);
-      const w = i >= 0 ? this.pose.world[i] : null;
+      const w = i >= 0 ? (this._w ? wasm.boneWorld(this._w, i) : this.pose.world[i]) : null;
       if (!w) return null;
       const ox = this.pose.placement ? this._placement.tx : 0;
       const oy = this.pose.placement ? this._placement.ty : 0;
@@ -566,6 +649,8 @@ export function rigbyPixi(PIXI = globalThis.PIXI) {
       this.autoUpdate = false;
       this.state.stop();
       this.state.listeners.length = 0;
+      if (this._w) wasm.free(this._w);
+      this._w = 0;
       for (const p of this._pieces) p.destroy();
       this._pieces.length = 0;
       super.destroy(options);
@@ -573,4 +658,64 @@ export function rigbyPixi(PIXI = globalThis.PIXI) {
   }
 
   return { loadRigby, parseRigby, RigbySkeleton, RigbyData };
+}
+
+/**
+ * Loads the WebAssembly build of the Rust runtime (runtimes/rust/rigby-wasm) for
+ * rigbyPixi(PIXI, { wasm }): posing and geometry then run in WebAssembly. `source` is a URL, a
+ * Response, bytes or a WebAssembly.Module.
+ */
+export async function loadRigbyWasm(source) {
+  let module = source;
+  if (!(source instanceof WebAssembly.Module)) {
+    const bytes = typeof source === 'string' || source instanceof URL ? await (await fetch(source)).arrayBuffer() : source instanceof Response ? await source.arrayBuffer() : source;
+    module = await WebAssembly.compile(bytes);
+  }
+  const x = (await WebAssembly.instantiate(module, {})).exports;
+  const enc = new TextEncoder();
+  let u32 = null;
+  let f32 = null;
+  let f64 = null;
+  const views = () => {
+    if (!u32 || u32.buffer !== x.memory.buffer) {
+      u32 = new Uint32Array(x.memory.buffer);
+      f32 = new Float32Array(x.memory.buffer);
+      f64 = new Float64Array(x.memory.buffer);
+    }
+    return { u32, f32, f64 };
+  };
+  const withBytes = (bytes, fn) => {
+    const p = x.alloc(bytes.length);
+    new Uint8Array(x.memory.buffer, p, bytes.length).set(bytes);
+    try {
+      return fn(p, bytes.length);
+    } finally {
+      x.dealloc(p, bytes.length);
+    }
+  };
+  const withString = (s, fn) => withBytes(enc.encode(s ?? ''), fn);
+  return {
+    exports: x,
+    views,
+    load(skel, atlasText) {
+      const d = withBytes(skel, (sp, sl) => withString(atlasText, (ap, al) => x.data_load(sp, sl, ap, al)));
+      if (!d) throw new Error(`Rigby2D: ${new TextDecoder().decode(new Uint8Array(x.memory.buffer, x.error_ptr(), x.error_len()))}`);
+      return d;
+    },
+    create: (d) => x.inst_new(d),
+    free: (h) => x.inst_free(h),
+    setAnimation: (h, track, name, loop, mix) => withString(name, (p, l) => x.inst_set_animation(h, track, p, l, loop ? 1 : 0, mix)),
+    addAnimation: (h, track, name, loop, mix, delay) => withString(name, (p, l) => x.inst_add_animation(h, track, p, l, loop ? 1 : 0, mix, delay ?? NaN)),
+    stop: (h) => x.inst_stop(h),
+    setSkin: (h, name) => withString(name, (p, l) => x.inst_set_skin(h, p, l)),
+    /** Advances, poses and builds geometry; returns the batch table's index in the u32 view. */
+    update: (h, dt) => x.inst_update(h, dt) >> 2,
+    boneWorld(h, i) {
+      const p = x.inst_bone_world(h, i);
+      if (!p) return null;
+      const v = views().f64;
+      const o = p >> 3;
+      return { a: v[o], b: v[o + 1], c: v[o + 2], d: v[o + 3], tx: v[o + 4], ty: v[o + 5] };
+    },
+  };
 }
