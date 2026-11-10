@@ -42,6 +42,9 @@ The editor's dialogs and the website use icons from:
 - **Simple Icons** (the Unity, Godot, JavaScript, Rust, Apple and Linux marks): CC0 1.0. Source:
   <https://simpleicons.org>. The marks are trademarks of their owners and only name the engines and
   platforms the runtimes and downloads are for.
+- **PixiJS logo** (the PixiJS mark on the website, in the editor and in the README, PixiJS's own
+  mark artwork, unchanged): a trademark of its owners, used only to name the engine the PixiJS
+  runtime is for.
 
 ## Godot runtime
 

@@ -6,7 +6,7 @@ reference runtime.
 
 The reference implementation is [`src/core`](https://github.com/jaisurya-dev-art/rigby2d/tree/main/src/core)
 (JavaScript, no dependencies). Every official runtime (Unity, Godot, Defold, Cocos Creator, Phaser,
-JavaScript and Rust) follows it, and the Rust and Defold runtimes are tested against it frame by
+PixiJS, JavaScript and Rust) follows it, and the Rust and Defold runtimes are tested against it frame by
 frame. When this page and `src/core` disagree, `src/core` is right. Please
 [open an issue](https://github.com/jaisurya-dev-art/rigby2d/issues) so this page can be fixed.
 

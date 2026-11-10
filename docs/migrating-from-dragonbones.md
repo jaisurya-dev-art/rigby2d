@@ -76,4 +76,4 @@ Each of these is listed in the import report when a file uses it.
 ## Runtimes
 
 After saving, export with *File ▸ Export* and play the character with the Unity, Godot, Defold, Cocos Creator, Phaser,
-JavaScript or Rust runtime: see [Runtimes](runtimes.md). *File ▸ Get runtimes…* downloads them.
+PixiJS, JavaScript or Rust runtime: see [Runtimes](runtimes.md). *File ▸ Get runtimes…* downloads them.

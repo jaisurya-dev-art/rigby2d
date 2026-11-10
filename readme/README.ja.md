@@ -29,15 +29,24 @@
   <sub>AlternativeTo で Spine・DragonBones・Live2D の代替として掲載</sub>
 </p>
 
+<h3 align="center">いつものエンジンで再生</h3>
+
+<table align="center">
+  <tr>
+    <td align="center" width="104"><a href="../runtimes/godot/addons/rigby2d/README.md"><img src="../docs/images/engines/godot.svg" width="56" height="56" alt="Godot"><br><b>Godot</b></a><br><sub>4.3+</sub></td>
+    <td align="center" width="104"><a href="../runtimes/unity/com.rigby2d.unity/README.md"><img src="../docs/images/engines/unity.svg" width="56" height="56" alt="Unity"><br><b>Unity</b></a><br><sub>2021.3+ · 6</sub></td>
+    <td align="center" width="104"><a href="../runtimes/defold/README.md"><img src="../docs/images/engines/defold.svg" width="56" height="56" alt="Defold"><br><b>Defold</b></a><br><sub>1.14+</sub></td>
+    <td align="center" width="104"><a href="../runtimes/cocos/README.md"><img src="../docs/images/engines/cocos.svg" width="56" height="56" alt="Cocos Creator"><br><b>Cocos Creator</b></a><br><sub>3.8</sub></td>
+    <td align="center" width="104"><a href="../runtimes/phaser/README.md"><img src="../docs/images/engines/phaser.svg" width="56" height="56" alt="Phaser"><br><b>Phaser</b></a><br><sub>3.60+ · 4</sub></td>
+    <td align="center" width="104"><a href="../runtimes/pixi/README.md"><img src="../docs/images/engines/pixijs.svg" width="56" height="56" alt="PixiJS"><br><b>PixiJS</b></a><br><sub>8 · WebGPU</sub></td>
+    <td align="center" width="104"><a href="../docs/runtimes.md#javascript"><img src="../docs/images/engines/javascript.svg" width="56" height="56" alt="JavaScript"><br><b>JavaScript</b></a><br><sub>任意のエンジン</sub></td>
+    <td align="center" width="104"><a href="../runtimes/README.md"><img src="../docs/images/engines/rust.svg" width="56" height="56" alt="Rust"><br><b>Rust</b></a><br><sub>ネイティブ</sub></td>
+  </tr>
+</table>
+
+<p align="center"><sub>無料・オープンソースの 8 つのランタイム。どれもエディターと同じアニメーションをフレーム単位で再生します。</sub></p>
+
 <p align="center">
-  <a href="../runtimes/godot/addons/rigby2d/README.md"><img alt="Godot" src="https://img.shields.io/badge/Godot-runtime-478cbf?logo=godotengine&logoColor=white"></a>
-  <a href="../runtimes/unity/com.rigby2d.unity/README.md"><img alt="Unity" src="https://img.shields.io/badge/Unity-runtime-222429?logo=unity&logoColor=white"></a>
-  <a href="../runtimes/defold/README.md"><img alt="Defold" src="https://img.shields.io/badge/Defold-runtime-1c9be6"></a>
-  <a href="../runtimes/cocos/README.md"><img alt="Cocos Creator" src="https://img.shields.io/badge/Cocos%20Creator-runtime-55c2e1?logo=cocos&logoColor=white"></a>
-  <a href="../runtimes/phaser/README.md"><img alt="Phaser" src="https://img.shields.io/badge/Phaser-runtime-8fd0ef"></a>
-  <a href="../runtimes/pixi/README.md"><img alt="PixiJS" src="https://img.shields.io/badge/PixiJS-runtime-e72264"></a>
-  <a href="../docs/runtimes.md"><img alt="JavaScript and Rust" src="https://img.shields.io/badge/JavaScript%20%7C%20Rust-runtimes-f7df1e?labelColor=555"></a>
-  <br>
   <img alt="Status: public beta" src="https://img.shields.io/badge/status-public%20beta-blue">
   <a href="#license"><img alt="License: MIT or Apache-2.0" src="https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue.svg"></a>
   <a href="https://github.com/jaisurya-dev-art/rigby2d/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/jaisurya-dev-art/rigby2d?style=flat&logo=github&color=yellow"></a>

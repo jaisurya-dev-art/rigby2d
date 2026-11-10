@@ -2886,6 +2886,10 @@ kbd {
 .rt-unity .rt-logo {
   border: 1px solid #3a3d44;
 }
+/* PixiJS's own mark is pink: shown on white, as in PixiJS's light logo. */
+.rt-pixijs .rt-logo {
+  background: #fff;
+}
 .rt-body {
   display: flex;
   flex-direction: column;
