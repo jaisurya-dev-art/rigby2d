@@ -46,7 +46,14 @@
 
 <p align="center"><sub>Eight free, open-source runtimes. Each plays the same animation as the editor, frame for frame.</sub></p>
 
-<a href="https://upstar.dev/r/jaisurya-dev-art/rigby2d"><picture><source media="(prefers-color-scheme: dark)" srcset="https://upstar.dev/badge/jaisurya-dev-art/rigby2d/award/gamedev-engines-dark.svg"><img alt="Upstar: #5 Riser Of The Week in Game engines, November 2026" src="https://upstar.dev/badge/jaisurya-dev-art/rigby2d/award/gamedev-engines.svg" width="250" height="55"></picture></a>
+<p align="center">
+  <a href="https://upstar.dev/r/jaisurya-dev-art/rigby2d">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="https://upstar.dev/badge/jaisurya-dev-art/rigby2d/award/gamedev-engines-dark.svg">
+      <img alt="Upstar: #5 Riser Of The Week in Game engines, November 2026" src="https://upstar.dev/badge/jaisurya-dev-art/rigby2d/award/gamedev-engines.svg" width="250" height="55">
+    </picture>
+  </a>
+</p>
 
 <p align="center">
   <img alt="Status: public beta" src="https://img.shields.io/badge/status-public%20beta-blue">
