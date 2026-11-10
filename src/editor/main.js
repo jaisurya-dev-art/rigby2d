@@ -6,7 +6,7 @@ import { WORKSPACES, has } from './workspaces.js';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 
 import './style.css';
-import { App, Mode, saveSetting } from './app.js';
+import { App, Mode, saveSetting, saveShapes } from './app.js';
 import { PRESETS, shortcutLabel } from './keymap.js';
 import { installKeyboard, isTyping, runAction } from './keys.js';
 import { openRenderDialog } from './renderui.js';
@@ -178,6 +178,28 @@ function menus() {
         }),
         ` ${t('Show bones')}`,
       ),
+      // Attachment shapes over the art, one switch per kind (remembered between sessions).
+      ...[
+        ['clipping', t('Show clipping masks')],
+        ['boundingbox', t('Show bounding boxes')],
+        ['path', t('Show paths')],
+        ['point', t('Show points')],
+      ].map(([kind, label]) =>
+        h(
+          'label',
+          { class: 'item' },
+          h('input', {
+            type: 'checkbox',
+            checked: app.showShapes[kind],
+            onchange: (e) => {
+              app.showShapes[kind] = e.target.checked;
+              saveShapes(app.showShapes);
+              app.changed();
+            },
+          }),
+          ` ${label}`,
+        ),
+      ),
       has(app, 'outputFrame') &&
       h(
         'label',
@@ -192,6 +214,15 @@ function menus() {
         }),
         ` ${t('Show output frame')}`,
       ),
+      {
+        label: `${app.hideOverlays ? '● ' : '○ '}${t('Hide overlays')}`,
+        shortcut: sc('view.overlays'),
+        title: t('Hides bones, shapes, selection outlines and guides at once, to watch the animation as it renders'),
+        action: () => {
+          app.hideOverlays = !app.hideOverlays;
+          app.changed();
+        },
+      },
       { label: logOpen() ? t('Hide log') : t('Log'), action: () => toggleLogWindow() },
       // Save and recall where the detached panels sit (desktop only; panels pop out only there).
       ...(inTauri && sync ? [windowLayoutsMenuItem({ app, sync })] : []),

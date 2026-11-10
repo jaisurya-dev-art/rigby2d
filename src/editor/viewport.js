@@ -112,7 +112,7 @@ export class Viewport {
     if (gl) {
       // The WebGL layer drew the background, grid and attachments; this canvas only overlays.
       ctx.clearRect(0, 0, this.width, this.height);
-      this.drawOutlines(pose);
+      if (!app.hideOverlays) this.drawOutlines(pose);
     } else {
       ctx.fillStyle = 'rgb(38,38,38)';
       ctx.fillRect(0, 0, this.width, this.height);
@@ -120,10 +120,12 @@ export class Viewport {
       this.drawAttachments(pose, dpr);
     }
     this.attachmentTime = performance.now() - t0;
-    this.drawShapes(pose);
-    if (app.imageGlow) this.drawImageGlow(pose);
-    if (app.showBones) this.drawBones(pose);
-    this.drawGuides(pose);
+    // View ▸ Hide overlays: only the art (and what a tool in use draws), to watch the animation.
+    const overlays = !app.hideOverlays;
+    if (overlays) this.drawShapes(pose);
+    if (overlays && app.imageGlow) this.drawImageGlow(pose);
+    if (overlays && app.showBones) this.drawBones(pose);
+    if (overlays) this.drawGuides(pose);
     this.meshTool.draw(this.ctx);
     this.shapeTool.draw(this.ctx);
     if (this.drag?.kind === 'box') {
@@ -137,7 +139,7 @@ export class Viewport {
       this.line(this.toScreen(this.drag.start), this.toScreen(this.drag.last), SELECTED, 2);
     }
     if (app.showFrame && has(app, 'outputFrame')) this.drawFrameGate();
-    if (app.guides.enabled) {
+    if (app.guides.enabled && overlays) {
       this.drawStaticGuides();
       this.drawRulers();
     }
@@ -315,9 +317,12 @@ export class Viewport {
     const selected = selSlot(this.app.sel);
     const colors = { boundingbox: 'rgb(96,240,0)', clipping: 'rgb(206,58,58)', path: 'rgb(255,127,0)', point: 'rgb(241,241,0)' };
     ctx.save();
+    const shown = this.app.showShapes;
     for (let i = 0; i < doc.slots.length; i++) {
       const att = pose.slotAttachment(doc, i);
       if (!att || !(att.type in colors)) continue;
+      // Kinds turned off in the View menu, unless selected (so it can still be edited).
+      if (shown && shown[att.type] === false && i !== selected) continue;
       const color = att.color ? `rgb(${att.color.slice(0, 3).map((c) => Math.round(c * 255)).join(',')})` : colors[att.type];
       ctx.strokeStyle = color;
       ctx.fillStyle = color;
@@ -921,7 +926,7 @@ export class Viewport {
   /** The nearest bone under a screen position (index), or null. Bones only — used for hover. */
   hitBone(pose, pos) {
     const app = this.app;
-    if (!app.showBones) return null;
+    if (!app.showBones || app.hideOverlays) return null;
     let best = null;
     app.doc.bones.forEach((b, i) => {
       const m = pose.world[i];

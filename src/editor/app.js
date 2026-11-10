@@ -82,6 +82,26 @@ function loadSetting(key, fallback) {
   }
 }
 
+/** The kinds of attachment shapes the viewport can show over the art. */
+export const SHAPE_KINDS = ['clipping', 'boundingbox', 'path', 'point'];
+
+/** Which attachment shapes the viewport shows (all by default), as last chosen. */
+function loadShapes() {
+  const out = Object.fromEntries(SHAPE_KINDS.map((k) => [k, true]));
+  try {
+    const saved = JSON.parse(loadSetting('rigby.view.shapes', '{}'));
+    for (const k of SHAPE_KINDS) if (typeof saved?.[k] === 'boolean') out[k] = saved[k];
+  } catch {
+    // A damaged setting shows everything.
+  }
+  return out;
+}
+
+/** Remembers which attachment shapes the viewport shows. */
+export function saveShapes(shapes) {
+  saveSetting('rigby.view.shapes', JSON.stringify(shapes));
+}
+
 export function saveSetting(key, value) {
   try {
     globalThis.localStorage?.setItem(key, value);
@@ -165,6 +185,13 @@ export class App {
     this.showBones = true;
     /** Shows the output frame (resolution and framing) in the viewport. */
     this.showFrame = false;
+    /**
+     * Attachment shapes drawn over the art, by kind (View menu): clipping masks, bounding boxes,
+     * paths and points. The selected one shows either way, so it can still be edited.
+     */
+    this.showShapes = loadShapes();
+    /** Hides every overlay at once (View ▸ Hide overlays), to watch the animation as it renders. */
+    this.hideOverlays = false;
     /**
      * Onion skinning: ghost poses of nearby frames drawn behind the current one. `future` / `past`
      * are the default frame counts and the colors tint them. `perBone` (bone name -> partial

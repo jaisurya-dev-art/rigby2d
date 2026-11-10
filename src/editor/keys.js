@@ -62,6 +62,10 @@ export function runAction(app, action, ctx) {
     },
     'select.none': () => app.deselect(),
     'view.fit': () => (app.frameRequest = true),
+    'view.overlays': () => {
+      app.hideOverlays = !app.hideOverlays;
+      app.changed();
+    },
     'view.actual': () => zoomActual?.(),
     'edit.copyKeys': () => copySelectedKeys?.(app),
     'edit.pasteKeys': () => pasteKeys?.(app),

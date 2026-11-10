@@ -34,6 +34,7 @@ export const ACTIONS = [
   ['select.none', tn('Deselect')],
   ['view.fit', tn('Fit the skeleton in view')],
   ['view.actual', tn('Zoom to 100%')],
+  ['view.overlays', tn('Hide or show overlays')],
   ['edit.copyKeys', tn('Copy selected keys')],
   ['edit.pasteKeys', tn('Paste keys at the playhead')],
   ['edit.delete', tn('Delete selected key, bone or slot')],
@@ -94,6 +95,7 @@ export const PRESETS = {
       'select.none': ['escape'],
       'view.fit': ['ctrl+shift+f'],
       'view.actual': ['ctrl+f'],
+      'view.overlays': ['ctrl+shift+h'],
     },
   },
   blender: {
@@ -125,6 +127,7 @@ export const PRESETS = {
       'select.none': ['alt+a', 'escape'],
       'view.fit': ['f', 'home'],
       'view.actual': ['ctrl+f'],
+      'view.overlays': ['shift+alt+z'],
     },
   },
 };
