@@ -164,11 +164,14 @@ export function weightsAt(p, points, weights, triangles) {
 }
 
 /** Keeps the 4 largest weights above a small threshold, scaled to sum to 1. */
-export function normalizeWeights(list, max = 4) {
-  const kept = list
+export function normalizeWeights(list, max = 4, { keepOrder = false } = {}) {
+  let kept = list
     .filter((w) => w.weight > 1e-3)
     .sort((a, b) => b.weight - a.weight)
     .slice(0, max);
+  // keepOrder: the strongest `max` influences, but in the order they came (deform keys hold one
+  // offset per influence in that order, so reordering would make them wrong).
+  if (keepOrder) kept = list.filter((w) => kept.includes(w));
   const total = kept.reduce((s, w) => s + w.weight, 0);
   if (total <= 0) return list.length ? [{ bone: list[0].bone, weight: 1 }] : [];
   return kept.map((w) => ({ bone: w.bone, weight: w.weight / total }));
@@ -214,10 +217,23 @@ export function paintWeights(points, weights, bone, center, radius, strength, su
     const others = list.filter((w) => w.bone !== bone);
     const rest = others.reduce((s, w) => s + w.weight, 0);
     if (subtract && rest <= 0) return; // nothing to give the weight to
-    const next = others.map((w) => ({ bone: w.bone, weight: rest > 0 ? (w.weight / rest) * (1 - target) : 0 }));
-    if (target > 0) next.push({ bone, weight: target });
-    weights[i] = normalizeWeights(next);
+    // Each vertex keeps its bones in their order (a new bone goes last), so painting weights
+    // doesn't invalidate deform keys (#36).
+    const scale = (w) => (rest > 0 ? (w.weight / rest) * (1 - target) : 0);
+    const next = list.map((w) => ({ bone: w.bone, weight: w.bone === bone ? target : scale(w) }));
+    if (!list.some((w) => w.bone === bone) && target > 0) next.push({ bone, weight: target });
+    weights[i] = normalizeWeights(next, 4, { keepOrder: true });
     changed.push(i);
   });
   return changed;
+}
+
+/**
+ * What a mesh's deform keys depend on: the vertex count, and for a weighted mesh each vertex's
+ * bones in order (a weighted deform key holds one offset per bone influence). Weight values,
+ * vertex positions and triangles can change without making the keys wrong.
+ */
+export function deformLayout(att) {
+  if (att.weights) return `w:${att.weights.map((v) => v.map((w) => w.bone).join(',')).join('|')}`;
+  return `v:${(att.vertices?.length ?? 0) / 2}`;
 }

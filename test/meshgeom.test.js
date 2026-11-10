@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
-import { autoWeights, paintWeights, triangulateMesh, uvAt, weightsAt } from '../src/core/meshgeom.js';
+import { autoWeights, deformLayout, paintWeights, triangulateMesh, uvAt, weightsAt } from '../src/core/meshgeom.js';
 
 const area = (pts, t) => {
   let a = 0;
@@ -48,4 +48,47 @@ test('automatic weights follow the nearest bone; painting adds and removes weigh
   assert.ok(Math.abs(w[0].reduce((s, x) => s + x.weight, 0) - 1) < 1e-9);
   paintWeights(pts, w, 2, [0, 0], 20, 1, true);
   assert.ok(!w[0].some((x) => x.bone === 2));
+});
+
+// Issue #36: painting weights cleared a mesh's deform keys even though they still fit it.
+test('deform keys only depend on the vertices and their bones, not on weight values', () => {
+  const v = (bone, weight) => ({ bone, x: 10, y: 5, weight });
+  const mesh = { weights: [[v(1, 0.6), v(2, 0.4)], [v(1, 1)], [v(2, 0.5), v(3, 0.5)]] };
+  const layout = deformLayout(mesh);
+  // Strengthening a vertex's main bone (same bones, same order): the keys still fit.
+  const painted = { weights: [[v(1, 0.7), v(2, 0.3)], [v(1, 1)], [v(2, 0.5), v(3, 0.5)]] };
+  assert.equal(deformLayout(painted), layout);
+  // Moved vertices keep their keys too (deform offsets are per influence).
+  assert.equal(deformLayout({ weights: mesh.weights.map((w) => w.map((i) => ({ ...i, x: i.x + 3 }))) }), layout);
+  // A vertex gaining or losing a bone, bones reordered, or a vertex added: the keys no longer fit.
+  assert.notEqual(deformLayout({ weights: [[v(1, 0.6), v(2, 0.3), v(4, 0.1)], [v(1, 1)], [v(2, 0.5), v(3, 0.5)]] }), layout);
+  assert.notEqual(deformLayout({ weights: [[v(2, 0.4), v(1, 0.6)], [v(1, 1)], [v(2, 0.5), v(3, 0.5)]] }), layout);
+  assert.notEqual(deformLayout({ weights: [...mesh.weights, [v(1, 1)]] }), layout);
+  // Unweighted meshes: only the vertex count matters; binding or unbinding changes the layout.
+  assert.equal(deformLayout({ vertices: [0, 0, 1, 0, 1, 1] }), deformLayout({ vertices: [5, 5, 6, 0, 1, 9] }));
+  assert.notEqual(deformLayout({ vertices: [0, 0, 1, 0, 1, 1] }), deformLayout({ vertices: [0, 0, 1, 0] }));
+  assert.notEqual(deformLayout({ vertices: [0, 0, 1, 0, 1, 1] }), deformLayout({ weights: [[v(1, 1)], [v(1, 1)], [v(1, 1)]] }));
+});
+
+test("painting keeps each vertex's bones in their order, so deform keys survive (#36)", () => {
+  const points = [[0, 0], [100, 0]];
+  const weights = [
+    [
+      { bone: 1, weight: 0.6 },
+      { bone: 2, weight: 0.4 },
+    ],
+    [
+      { bone: 2, weight: 0.7 },
+      { bone: 1, weight: 0.3 },
+    ],
+  ];
+  const before = deformLayout({ weights });
+  // Strengthen bone 1 on the first vertex (its main bone), then bone 1 on the second until it leads.
+  paintWeights(points, weights, 1, [0, 0], 10, 0.3);
+  paintWeights(points, weights, 1, [100, 0], 10, 0.9);
+  assert.ok(weights[0][0].weight > 0.6 && weights[1][1].weight > weights[1][0].weight, 'the weights changed');
+  assert.equal(deformLayout({ weights }), before, 'same bones, same order');
+  // Painting a bone a vertex didn't have adds it last (a layout change, as it must be).
+  paintWeights(points, weights, 3, [0, 0], 10, 0.5);
+  assert.deepEqual(weights[0].map((w) => w.bone), [1, 2, 3]);
 });

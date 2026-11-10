@@ -4,7 +4,7 @@
 // in the slot bone's space (unweighted) or each bone's space (weighted).
 
 import { toAffine } from '../core/math.js';
-import { autoWeights, paintWeights, triangulateMesh, uvAt, weightsAt } from '../core/meshgeom.js';
+import { autoWeights, deformLayout, paintWeights, triangulateMesh, uvAt, weightsAt } from '../core/meshgeom.js';
 import { generateMesh } from '../core/meshgen.js';
 import { Pose } from '../core/pose.js';
 import { setKey } from '../core/animation.js';
@@ -80,9 +80,11 @@ export function meshState(doc, slot, att) {
 
 /**
  * Writes edited world-space data back into the mesh (re-triangulated). Returns the number of
- * deform keys removed because the vertices changed.
+ * deform keys removed: only when the deform layout changed (see deformLayout), as when vertices
+ * are added or removed or a vertex gains or loses a bone.
  */
 export function writeMesh(doc, slot, att, state, { topology = true } = {}) {
+  const before = deformLayout(att);
   const pose = new Pose(doc);
   att.uvs = state.uvs.flat();
   att.hull = state.hull;
@@ -103,7 +105,7 @@ export function writeMesh(doc, slot, att, state, { topology = true } = {}) {
     att.vertices = state.points.flatMap((p) => inv.apply(p));
     delete att.weights;
   }
-  return dropDeformKeys(doc, slot, att.name);
+  return deformLayout(att) === before ? 0 : dropDeformKeys(doc, slot, att.name);
 }
 
 /** Binds the mesh to bones with automatic weights. */
