@@ -16,7 +16,8 @@ animations work on any skin and can be layered in games.
 | Set its length | **Length** (seconds). Keys after the end make it longer. |
 | Delete it | The 🗑 button. |
 
-The frame rate is a project setting (Project panel, **Frame rate**); keys snap to its frames.
+The frame rate is a project setting, the **fps** menu in the timeline bar (and *Output ▸ Frame rate* in
+the Film workspace); keys snap to its frames.
 
 ## Setting keys
 
@@ -55,8 +56,10 @@ buttons show the state: keyed at this frame, changed but not keyed, or not keyed
 | ◀ / ▶\| | Previous / next frame (<kbd>F</kbd> / <kbd>R</kbd>, or the arrow keys). <kbd>Shift</kbd> moves 10 frames. |
 | ▶ | Play and stop (<kbd>Space</kbd>). <kbd>A</kbd> plays backward. |
 | **Loop** | Play the animation in a loop (<kbd>Ctrl</kbd>+<kbd>R</kbd>). |
+| **Boomerang** | With Loop on, play to the end and back again (ping-pong), to check a cycle both ways. A preview only: exports are unchanged. |
 | Speed | 0.1× to 2× playback speed, for checking timing. |
-| Time | Frame and seconds, or timecode and frame in the Film workspace. |
+| fps | The project's frame rate. |
+| Time | At the end of the bar: frame and seconds, or timecode (`MM:SS:FF`, minutes:seconds:frames) and frame in the Film workspace. |
 
 <kbd>W</kbd> and <kbd>S</kbd> jump to the next and previous key; <kbd>E</kbd> to the last key.
 Keys are listed for the default *Spine-like* preset; see [Keyboard shortcuts](shortcuts.md).
@@ -80,15 +83,17 @@ draw order and events. Diamonds are keys; their color tells the curve (stepped k
 | Select several areas | <kbd>Alt</kbd>+drag adds another area, or turn on **＋ Multi** so every drag adds one. |
 | Retime keys | Click **⇔ Retime** and drag an edge of the selection (or right-drag at any time): the keys stretch or squeeze relative to the opposite edge. |
 | Change the curve | Right-click a key: *Linear*, *Ease in-out*, *Ease in*, *Ease out* or *Stepped*. |
+| Copy and paste | Right-click a key ▸ *Copy*; once keys are copied, right-click any spot ▸ *Paste here* pastes at that frame. |
 | Delete keys | Right-click ▸ *Delete key*, or <kbd>Delete</kbd>. |
 
 Keys always land on whole frames.
 
 ### Copy and paste keys
 
-Select keys and press <kbd>Ctrl</kbd>+<kbd>C</kbd> (or **⧉ Copy**). The copied area stays marked in
+Select keys and press <kbd>Ctrl</kbd>+<kbd>C</kbd> (or **⧉ Copy**, or right-click ▸ *Copy*). The copied area stays marked in
 green and a preview follows the time cursor; move it to where the first key should land and press
-<kbd>Ctrl</kbd>+<kbd>V</kbd> (or **⎘ Paste**). <kbd>Escape</kbd> cancels.
+<kbd>Ctrl</kbd>+<kbd>V</kbd> (or **⎘ Paste**). Right-click ▸ *Paste here* pastes at the frame you clicked.
+<kbd>Escape</kbd> cancels.
 
 - Keys keep their tracks by name (bone, slot, deformed attachment, IK constraint), so a paste into
   another animation, or after bones were added or deleted, lands on the same tracks. Deform and IK

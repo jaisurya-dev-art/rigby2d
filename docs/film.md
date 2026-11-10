@@ -17,7 +17,7 @@ A workspace decides which tools the editor shows; it never changes the animation
 | For | Game engines and apps | Film, video, motion graphics |
 | Output | Skeleton JSON / `.skel` + atlas, played by the runtimes | PNG sequences, WebM and MP4 renders (exports stay available) |
 | Frame rate of new projects | 30 fps | 24 fps |
-| Time display | Frames and seconds | Timecode (`HH:MM:SS:FF`) and frames |
+| Time display | Frames and seconds | Timecode (`MM:SS:FF`, minutes:seconds:frames; hours appear past one hour) and frames |
 | Output panel, output frame, render | Hidden | Shown |
 | Pose library | Yes | Yes |
 | Face controls, audio tracks, lip-sync | Hidden | Shown |

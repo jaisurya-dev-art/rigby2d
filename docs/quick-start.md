@@ -50,7 +50,8 @@ Undo (<kbd>Ctrl</kbd>+<kbd>Z</kbd>) puts back anything you did not mean to chang
 
 ## 4. Make an animation
 
-1. Press <kbd>Tab</kbd> to switch to **Animate mode**. The viewport gets a red border.
+1. Press <kbd>Tab</kbd> to switch to **Animate mode**. The **ANIMATE** tab at the top glows orange, and
+   the timeline appears.
 2. In the timeline, press **+ New** and name the animation `idle`.
 3. Set its **Length** to `2` seconds.
 4. At frame 0, select the `chest` bone, rotate it a little and press <kbd>K</kbd> to key the
