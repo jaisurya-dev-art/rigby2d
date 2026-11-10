@@ -214,6 +214,20 @@ function menus() {
         }),
         ` ${t('Show output frame')}`,
       ),
+      h(
+        'label',
+        { class: 'item', title: t('Off: the timeline hides in Setup mode, so the viewport gets its room') },
+        h('input', {
+          type: 'checkbox',
+          checked: app.timelineInSetup,
+          onchange: (e) => {
+            app.timelineInSetup = e.target.checked;
+            saveSetting('rigby.view.timelineInSetup', app.timelineInSetup ? '1' : '0');
+            app.changed();
+          },
+        }),
+        ` ${t('Timeline in Setup mode')}`,
+      ),
       {
         label: `${app.hideOverlays ? '● ' : '○ '}${t('Hide overlays')}`,
         shortcut: sc('view.overlays'),
@@ -337,7 +351,11 @@ function buildMenuBar() {
     });
     return btn;
   });
-  const mode = h('button', { class: 'mode', 'data-tut': 'mode', onclick: () => app.toggleMode() });
+  // Setup and Animate as two tabs; clicking the other one switches (Tab does too).
+  const modeButton = (m) => h('button', { onclick: () => app.mode !== m && app.toggleMode() });
+  const setupTab = modeButton(Mode.Setup);
+  const animateTab = modeButton(Mode.Animate);
+  const mode = h('span', { class: 'mode-switch', role: 'tablist' }, setupTab, animateTab);
   // Notice that onion-skin predictions are on, with a menu to turn them off (hidden otherwise).
   const onionNotice = h(
     'button',
@@ -393,9 +411,19 @@ function buildMenuBar() {
     const state = `${app.mode}|${app.workspace}|${app.keymap}|${document.documentElement.lang}`;
     if (state === shown) return;
     shown = state;
-    mode.textContent = app.mode === Mode.Setup ? t('SETUP') : t('ANIMATE');
-    mode.className = `mode ${app.mode}`;
-    mode.title = `${t('Switch Setup / Animate')}${sc('mode.toggle') ? ` (${sc('mode.toggle')})` : ''}`;
+    const tip = `${t('Switch Setup / Animate')}${sc('mode.toggle') ? ` (${sc('mode.toggle')})` : ''}`;
+    for (const [tab, m, label] of [
+      [setupTab, Mode.Setup, t('SETUP')],
+      [animateTab, Mode.Animate, t('ANIMATE')],
+    ]) {
+      tab.textContent = label;
+      tab.className = `mode ${m}${app.mode === m ? ' active' : ''}`;
+      tab.title = tip;
+      tab.setAttribute('aria-selected', String(app.mode === m));
+      // The lessons point at the tab that switches modes: the one not active.
+      if (app.mode === m) tab.removeAttribute('data-tut');
+      else tab.setAttribute('data-tut', 'mode');
+    }
     Object.keys(WORKSPACES).forEach((id, i) => {
       tabs[i].className = `workspace-tab${app.workspace === id ? ' active' : ''}`;
       tabs[i].setAttribute('aria-selected', String(app.workspace === id));
@@ -571,6 +599,12 @@ function frame(now) {
   }
 
   viewport.draw();
+  // Setup mode hides the timeline (keys are made in Animate), unless kept on or a lesson runs.
+  const hideTimeline = app.mode === Mode.Setup && !app.timelineInSetup && !tutorials.coach?.running;
+  if ($('#app').classList.contains('setup-hides-timeline') !== hideTimeline) {
+    $('#app').classList.toggle('setup-hides-timeline', hideTimeline);
+    window.dispatchEvent(new Event('resize'));
+  }
   const showGraph = app.timelineView === 'graph' && !!app.currentAnimation();
   $('#graph').hidden = !showGraph;
   if (showGraph) {

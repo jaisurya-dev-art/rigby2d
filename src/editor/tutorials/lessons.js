@@ -176,7 +176,7 @@ export const LESSONS = [
         student: (ctx) => click(ctx, 'coach:action'),
       },
       {
-        text: tn('Bones are drawn in <b>Setup</b> mode. If the button at the top says ANIMATE, click it to switch to SETUP.'),
+        text: tn('Bones are drawn in <b>Setup</b> mode. If <b>ANIMATE</b> is lit at the top, click <b>SETUP</b> next to it.'),
         target: 'mode',
         done: ({ app }) => app.mode === 'setup',
         student: async (ctx) => {

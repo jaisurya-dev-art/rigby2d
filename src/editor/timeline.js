@@ -16,6 +16,8 @@ import { dragValue, h, popupMenu, select, textField } from './widgets.js';
 import { tracks, trackKeys } from './keyorder.js';
 import { drawLanes, laneActors, pressLane } from './sceneui.js';
 import { t, tn } from './i18n.js';
+import { FPS_PRESETS, formatFps } from './output.js';
+import { shortcutLabel } from './keymap.js';
 export { orderedKeys, keySelectionIndices, applyKeySelection } from './keyorder.js';
 
 const GUTTER = 170;
@@ -34,6 +36,23 @@ function timeReadout(app, anim) {
   const film = has(app, 'timecode');
   const text = film ? `${timecode(app.time, FPS)}  ${frame}` : `${frame}  ${app.time.toFixed(2).padStart(String(Math.floor(anim?.duration ?? 0)).length + 3, ' ')}s`;
   return h('span', { class: 'mono time-readout', title: film ? t('Timecode (minutes:seconds:frames) and frame') : t('Frame and seconds') }, text);
+}
+
+/** The animation frame rate (a project setting, also written to exports), as on most timelines. */
+function fpsSelect(app) {
+  const s = app.doc.settings;
+  const options = FPS_PRESETS.includes(s.fps) ? FPS_PRESETS : [...FPS_PRESETS, s.fps].sort((a, b) => a - b);
+  const el = select(
+    options.map((f) => [f, `${formatFps(f)} fps`]),
+    s.fps,
+    (v) => {
+      s.fps = v;
+      app.changed();
+    },
+  );
+  el.classList.add('fps');
+  el.title = t('Frame rate of the project (also written to exports)');
+  return el;
 }
 
 /** The playback speed menu: as narrow as its longest choice, with a tooltip. */
@@ -141,6 +160,20 @@ export function renderControls(app, el) {
         }),
         ' ' + t('Loop'),
       ),
+      h(
+        'label',
+        { title: t('Boomerang: with Loop on, plays to the end and back (a preview; exports are unchanged)') },
+        h('input', {
+          type: 'checkbox',
+          checked: app.boomerang,
+          disabled: !app.looping,
+          onchange: (e) => {
+            app.boomerang = e.target.checked;
+            app.changed();
+          },
+        }),
+        ' ' + t('Boomerang'),
+      ),
       speedSelect(
         [
           [0.1, '0.1×'],
@@ -157,7 +190,7 @@ export function renderControls(app, el) {
         },
         { tut: 'timeline:speed' },
       ),
-      timeReadout(app, anim),
+      fpsSelect(app),
       h('span', { class: 'vsep' }),
       h('button', { 'data-tut': 'timeline:key', disabled: app.mode !== Mode.Animate, onclick: () => edit.keySelection(app) }, t('◆ Key (K)')),
       h('span', { class: 'vsep' }),
@@ -220,6 +253,9 @@ export function renderControls(app, el) {
           ),
         ),
       ),
+      // The time readout last, where the eye ends up after the tools.
+      anim && h('span', { class: 'vsep' }),
+      anim && timeReadout(app, anim),
     ]
       .flat()
       .filter(Boolean),
@@ -1137,7 +1173,8 @@ export class Dopesheet {
         // A plain right-click: select the key under it if needed, then open the curve menu.
         const hit = this.hit(press.pos);
         if (hit && !app.selectedKeys.has(hit.key)) app.selectedKeys = new Set([hit.key]);
-        if (app.selectedKeys.size) curveMenu(app, press.clientX, press.clientY);
+        // On empty space too when keys are copied: Paste here.
+        if (app.selectedKeys.size || hasClipboard()) curveMenu(app, press.clientX, press.clientY, { pasteAt: snap(this.xToTime(press.pos[0])) });
       } else if (press.retime) {
         resortAnimation(app.currentAnimation());
         clearRegions();
@@ -1282,7 +1319,7 @@ function listConstraintsOf(anim) {
 }
 
 /** Curve presets and delete for the selected keys. */
-export function curveMenu(app, x, y) {
+export function curveMenu(app, x, y, { pasteAt = null } = {}) {
   const setCurve = (curve) => () => {
     const anim = app.currentAnimation();
     if (!anim) return;
@@ -1300,7 +1337,27 @@ export function curveMenu(app, x, y) {
     for (const k of app.selectedKeys) if (!skip.has(k)) k.curve = cloneCurve(curve);
     app.changed();
   };
+  const sc = (action) => shortcutLabel(app.keymap, action) || undefined;
+  const selected = app.selectedKeys.size > 0;
+  // Copy and paste, as on the buttons (Paste here: at the frame right-clicked in the dopesheet).
+  const clipboard = [
+    selected && { label: t('Copy'), shortcut: sc('edit.copyKeys'), action: () => copySelectedKeys(app) },
+    hasClipboard() && {
+      label: pasteAt !== null ? t('Paste here') : t('Paste'),
+      shortcut: sc('edit.pasteKeys'),
+      action: () => {
+        if (pasteAt !== null) {
+          app.time = pasteAt;
+          app.changed();
+        }
+        pasteKeys(app);
+      },
+    },
+  ].filter(Boolean);
+  if (!selected) return popupMenu(x, y, clipboard);
   popupMenu(x, y, [
+    ...clipboard,
+    clipboard.length && 'separator',
     { label: t('Linear'), action: setCurve(LINEAR) },
     { label: t('Ease in-out'), action: setCurve(EASE_IN_OUT) },
     { label: t('Ease in'), action: setCurve(EASE_IN) },
@@ -1308,7 +1365,7 @@ export function curveMenu(app, x, y) {
     { label: t('Stepped'), action: setCurve(STEPPED) },
     'separator',
     { label: app.selectedKeys.size > 1 ? t('Delete {count} keys', { count: app.selectedKeys.size }) : t('Delete key'), action: () => deleteSelectedKeys(app) },
-  ]);
+  ].filter(Boolean));
 }
 
 function diamond(ctx, c, r, fill) {

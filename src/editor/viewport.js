@@ -916,11 +916,6 @@ export class Viewport {
       ctx.fillStyle = `rgba(255,200,90,${1 - age})`;
       ctx.fillText(`⚑ ${f.name}`, ox, oy + row++ * 18);
     }
-    if (app.mode === Mode.Animate) {
-      ctx.strokeStyle = 'rgba(255,110,80,0.7)';
-      ctx.lineWidth = 2;
-      ctx.strokeRect(2, 2, this.width - 4, this.height - 4);
-    }
   }
 
   /** The nearest bone under a screen position (index), or null. Bones only — used for hover. */

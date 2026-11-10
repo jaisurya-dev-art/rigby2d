@@ -429,7 +429,7 @@ function projectUi(app) {
       ? h('div', { class: 'small weak' }, t('Imported from skeleton JSON {version}. Export again with File ▸ Export ▸ JSON + atlas.', { version: app.doc.header.version ?? '' }))
       : null,
     h('hr'),
-    has(app, 'output') ? outputUi(app) : frameRateUi(app),
+    has(app, 'output') ? outputUi(app) : null,
     has(app, 'audio') ? audioUi(app) : null,
     h('hr'),
     h('strong', null, t('Rig')),
@@ -518,27 +518,6 @@ function audioUi(app) {
     ),
     h('div', { class: 'small weak' }, t('Tracks play with the timeline. Lip-sync keys a mouth slot shape by shape from the speech; face controls can also follow loudness.')),
   ];
-}
-
-/** Game workspace: the animation frame rate (also written to skeleton exports). */
-function frameRateUi(app) {
-  const s = app.doc.settings;
-  const options = FPS_PRESETS.includes(s.fps) ? FPS_PRESETS : [...FPS_PRESETS, s.fps];
-  return h(
-    'div',
-    { class: 'grid' },
-    row(
-      t('Frame rate'),
-      select(
-        options.map((f) => [f, `${formatFps(f)} fps`]),
-        s.fps,
-        (v) => {
-          s.fps = v;
-          app.changed();
-        },
-      ),
-    ),
-  );
 }
 
 /** Output settings: frame rate, frame size, background and framing for rendering. */

@@ -180,6 +180,8 @@ export class App {
     this.time = 0;
     this.playing = false;
     this.looping = true;
+    /** Boomerang (ping-pong) preview: with Loop on, playback runs to the end and back. */
+    this.boomerang = false;
     this.selectedKeys.clear();
     this.status = t('Welcome to Rigby2D. Open a demo (File ▸ Open demo), or import a PSD, an SVG or PNGs.');
     this.showBones = true;
@@ -192,6 +194,11 @@ export class App {
     this.showShapes = loadShapes();
     /** Hides every overlay at once (View ▸ Hide overlays), to watch the animation as it renders. */
     this.hideOverlays = false;
+    /**
+     * Keeps the timeline on screen in Setup mode (View menu). Off by default: keys are only made in
+     * Animate mode, so Setup gives the viewport that room.
+     */
+    this.timelineInSetup = loadSetting('rigby.view.timelineInSetup', '0') === '1';
     /**
      * Onion skinning: ghost poses of nearby frames drawn behind the current one. `future` / `past`
      * are the default frame counts and the colors tint them. `perBone` (bone name -> partial
@@ -959,7 +966,8 @@ export class App {
 
   /** Starts playing in `direction` (1 forward, -1 backward), or stops if already playing that way. */
   togglePlay(direction = 1) {
-    const stop = this.playing && this.playDirection === direction;
+    // A boomerang turns around by itself: either play key stops it.
+    const stop = this.playing && (this.playDirection === direction || (this.boomerang && this.looping));
     this.playing = !stop && this.anim !== null;
     this.playDirection = direction;
     if (this.playing) {
@@ -1031,7 +1039,19 @@ export class App {
     this.time += step * this.playDirection;
     let wrapped = false;
     if (this.time > anim.duration || this.time < 0) {
-      if (this.looping && anim.duration > 0) {
+      if (this.looping && this.boomerang && anim.duration > 0) {
+        // Boomerang: bounce off either end and play back the other way.
+        const d = anim.duration;
+        while (this.time > d || this.time < 0) {
+          if (this.time > d) {
+            this.time = 2 * d - this.time;
+            this.playDirection = -1;
+          } else {
+            this.time = -this.time;
+            this.playDirection = 1;
+          }
+        }
+      } else if (this.looping && anim.duration > 0) {
         this.time = remEuclid(this.time, anim.duration);
         wrapped = true;
       } else {
@@ -1081,6 +1101,8 @@ export class App {
       autoKey: this.autoKey,
       playing: this.playing,
       playSpeed: this.playSpeed,
+      looping: this.looping,
+      boomerang: this.boomerang,
       fps: FPS,
       sel: this.sel,
       multi: [...this.multi],
@@ -1143,6 +1165,8 @@ export class App {
     if (s.timelineView) this.timelineView = s.timelineView;
     if (typeof s.autoKey === 'boolean') this.autoKey = s.autoKey;
     if (typeof s.playing === 'boolean') this.playing = s.playing;
+    if (typeof s.looping === 'boolean') this.looping = s.looping;
+    if (typeof s.boomerang === 'boolean') this.boomerang = s.boomerang;
     if (typeof s.playSpeed === 'number') this.playSpeed = s.playSpeed; // the editor drives playback, so its speed must follow a panel's change
     if ('sel' in s) this.sel = s.sel;
     if (s.multi) this.multi = new Set(s.multi);
