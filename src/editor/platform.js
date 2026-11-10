@@ -460,3 +460,27 @@ export async function pickImportFiles(filterName, extensions, multiple) {
   return Promise.all(files.map(async (f) => ({ name: f.name, bytes: new Uint8Array(await f.arrayBuffer()) })));
 }
 
+
+/** Desktop: the file the app was started with (a command-line argument or a double-clicked .rigby), or null. */
+export async function launchFile() {
+  if (!isDesktop) return null;
+  const { invoke } = await import('@tauri-apps/api/core');
+  return invoke('launch_file').catch(() => null);
+}
+
+/**
+ * Desktop: files dragged onto the window. `hover(on)` follows a drag over it; `drop(paths)` gets the
+ * dropped files' paths.
+ */
+export async function onFileDrop({ hover, drop }) {
+  if (!isDesktop) return;
+  const { getCurrentWebview } = await import('@tauri-apps/api/webview');
+  await getCurrentWebview().onDragDropEvent(({ payload }) => {
+    if (payload.type === 'enter' || payload.type === 'over') hover(true);
+    else if (payload.type === 'leave') hover(false);
+    else if (payload.type === 'drop') {
+      hover(false);
+      if (payload.paths?.length) drop(payload.paths);
+    }
+  });
+}

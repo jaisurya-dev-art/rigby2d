@@ -55,6 +55,14 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
+    "fileAssociations": [
+      {
+        "ext": ["rigby"],
+        "name": "Rigby2D work file",
+        "description": "Rigby2D work file",
+        "role": "Editor"
+      }
+    ],
     "homepage": "https://rigby2d.com",
     "license": "MIT OR Apache-2.0"
   },

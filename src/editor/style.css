@@ -3793,9 +3793,9 @@ kbd {
 .result-list { margin: 0 0 10px; padding-left: 18px; max-height: 180px; overflow: auto; }
 .result-list li { margin: 2px 0; word-break: break-all; }
 
-/* Browser: files dragged over the window (main.js) open as a project when dropped. */
+/* Files dragged over the window (main.js) open as a project when dropped. */
 body.drop-open::after {
-  content: 'Drop to open: a project with its images and atlas';
+  content: attr(data-drop-hint);
   position: fixed;
   inset: 10px;
   z-index: 3000;

@@ -16,7 +16,7 @@ import { installNudges } from './nudgeui.js';
 import { openAutoRig, openRetarget } from './rigui.js';
 import { startAudio, stopAudio } from './audio.js';
 import { clipTracks } from './actors.js';
-import { blockNativeContextMenu, isDesktop, memoryFs, openExternal } from './platform.js';
+import { blockNativeContextMenu, desktopFile, isDesktop, launchFile, memoryFs, onFileDrop, openExternal } from './platform.js';
 import * as edit from './edit.js';
 import * as toolbar from './toolbar.js';
 import * as tree from './tree.js';
@@ -636,6 +636,8 @@ if (linkedDemo && DEMOS.some((d) => d.id === linkedDemo)) app.openDemo(linkedDem
 else {
   recovery.offerRecovery().then(async (offered) => {
     if (offered) return;
+    const launched = await launchFile();
+    if (launched) return openDesktopPaths([launched]);
     const last = recentProjects()[0];
     if (inTauri && app.prefs.get('files.reopenLast') && last?.kind === 'file') await app.openRecent(last);
     else {
@@ -650,6 +652,23 @@ else {
 // The window starts hidden while the splash screen plays; the splash opens it when done. Show it
 // anyway if the splash never does.
 if (inTauri) setTimeout(() => getCurrentWindow().maximize().catch(() => {}).finally(() => getCurrentWindow().show().catch(() => {})), 10000);
+
+/**
+ * Desktop: opens the project among files dropped on the window or passed at launch (a work file
+ * first, then a .skel, a skeleton .json, a backup); its images are read from next to it.
+ */
+async function openDesktopPaths(paths) {
+  const rank = (p) => [/\.rigby$/i, /\.skel$/i, /\.json$/i, /\.rigby\d$/i].findIndex((re) => re.test(p));
+  const path = paths.filter((p) => rank(p) >= 0).sort((a, b) => rank(a) - rank(b))[0];
+  if (!path) return app.setStatus(t('Nothing to open: drop a Rigby2D work file (.rigby) or a skeleton (.json or .skel).'));
+  if (!(await app.confirmDiscard())) return;
+  const file = desktopFile(path);
+  await app.openFrom(file.path, file.fs);
+}
+
+// Desktop: drop a project on the window to open it (as File ▸ Open).
+document.body.dataset.dropHint = isDesktop ? t('Drop to open') : t('Drop to open: a project with its images and atlas');
+onFileDrop({ hover: (on) => document.body.classList.toggle('drop-open', on), drop: openDesktopPaths });
 
 // Browser: drop a project with its images and atlas on the window to open it (as File ▸ Open).
 if (!isDesktop) {
