@@ -24,12 +24,13 @@ test('workspaces: definitions and features', () => {
 });
 
 test('workspaces: timecode', () => {
-  assert.equal(timecode(0, 24), '00:00:00:00');
-  assert.equal(timecode(1.5, 24), '00:00:01:12');
+  assert.equal(timecode(0, 24), '00:00:00');
+  assert.equal(timecode(1.5, 24), '00:01:12');
   assert.equal(timecode(3725 + 23 / 24, 24), '01:02:05:23');
   // Non-drop timecode at 23.976 fps counts 24 frames per timecode second.
-  assert.equal(timecode(23 / 23.976, 23.976), '00:00:00:23');
-  assert.equal(timecode(24 / 23.976, 23.976), '00:00:01:00');
+  assert.equal(timecode(23 / 23.976, 23.976), '00:00:23');
+  assert.equal(timecode(24 / 23.976, 23.976), '00:01:00');
+  assert.equal(timecode(1 + 5 / 120, 120), '00:01:005');
 });
 
 test('workspaces: stored in the work file, invisible to exports', () => {

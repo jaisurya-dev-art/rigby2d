@@ -18,6 +18,7 @@
         "minWidth": 900,
         "minHeight": 560,
         "label": "main",
+        "maximized": true,
         "visible": false
       },
       {

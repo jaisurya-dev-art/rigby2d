@@ -16,6 +16,18 @@ import { zip } from './zip.js';
 
 export const isDesktop = typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window;
 
+/**
+ * The desktop app shows its own menus: turns off the WebView's built-in right-click menu (Back,
+ * Reload, Inspect…), which no desktop application has. Text fields keep theirs (cut, copy, paste,
+ * spelling). Development builds keep it everywhere, for Inspect.
+ */
+export function blockNativeContextMenu({ dev = false } = {}) {
+  if (!isDesktop || dev) return;
+  document.addEventListener('contextmenu', (e) => {
+    if (!(e.target instanceof Element) || !e.target.closest('input, textarea, [contenteditable=""], [contenteditable="true"]')) e.preventDefault();
+  });
+}
+
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
 

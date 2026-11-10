@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 // The canvas: draws the rig and handles pan/zoom, selection and the transform tools.
 
-import { has, timecode } from './workspaces.js';
+import { has } from './workspaces.js';
 import { animationBounds, describeOutput, outputFrame } from './output.js';
 import { Affine, toAffine, transform, wrapDegrees } from '../core/math.js';
 import { makeBone } from '../core/model.js';
 import { Pose } from '../core/pose.js';
-import { FPS, Mode, TOOLS, selBone, selSlot } from './app.js';
+import { Mode, selBone, selSlot } from './app.js';
 import * as edit from './edit.js';
 import { GLView } from './glview.js';
 import { actorSlots } from '../core/scene.js';
@@ -894,20 +894,14 @@ export class Viewport {
 
   drawOverlay() {
     const app = this.app;
-    let text = t('SETUP');
-    if (app.mode === Mode.Animate) {
-      const at = has(app, 'timecode') ? timecode(app.time, FPS) : t('frame {frame}', { frame: Math.round(app.time * FPS) });
-      text = `${t('ANIMATE')} · ${app.currentAnimation()?.name ?? ''} · ${at}`;
-    }
-    text += `   ${t(TOOLS.find((tool) => tool.id === app.tool)?.label ?? '')}`;
+    // Mode, animation, frame and tool are on the toolbar and timeline already; the viewport only
+    // shows what happens in it: events as they fire, and a red frame in Animate mode.
     const ctx = this.ctx;
     // Shift clear of the rulers when guides are on, so the status text isn't hidden under them.
     const ox = app.guides.enabled ? RULER_W + 6 : 10;
     const oy = app.guides.enabled ? RULER_W + 4 : 8;
     ctx.font = '13px system-ui, "Segoe UI", sans-serif';
-    ctx.fillStyle = 'rgb(200,200,200)';
     ctx.textBaseline = 'top';
-    ctx.fillText(text, ox, oy);
     // Events fired during playback fade out over a moment.
     const now = performance.now();
     let row = 0;
@@ -915,7 +909,7 @@ export class Viewport {
       const age = (now - f.at) / 1200;
       if (age >= 1) continue;
       ctx.fillStyle = `rgba(255,200,90,${1 - age})`;
-      ctx.fillText(`⚑ ${f.name}`, ox, oy + 22 + row++ * 18);
+      ctx.fillText(`⚑ ${f.name}`, ox, oy + row++ * 18);
     }
     if (app.mode === Mode.Animate) {
       ctx.strokeStyle = 'rgba(255,110,80,0.7)';

@@ -16,7 +16,7 @@ import { installNudges } from './nudgeui.js';
 import { openAutoRig, openRetarget } from './rigui.js';
 import { startAudio, stopAudio } from './audio.js';
 import { clipTracks } from './actors.js';
-import { isDesktop, memoryFs, openExternal } from './platform.js';
+import { blockNativeContextMenu, isDesktop, memoryFs, openExternal } from './platform.js';
 import * as edit from './edit.js';
 import * as toolbar from './toolbar.js';
 import * as tree from './tree.js';
@@ -49,6 +49,9 @@ import { COMMUNITY_URL, DEVLOG_URL } from './news.js';
 import { openMigrationCheck } from './migrationui.js';
 import markUrl from '../../branding/rigby2d-mark.svg?url';
 import { startAnalytics } from './analytics.js';
+
+// The desktop app has its own menus: no WebView right-click menu outside text fields.
+blockNativeContextMenu({ dev: import.meta.env.DEV });
 
 // Anonymous visit and feature counts, only on the public website's browser editor (analytics.js).
 startAnalytics();

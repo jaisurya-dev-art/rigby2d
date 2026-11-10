@@ -17,8 +17,11 @@ import { closeMenu, isMenuOpen, widgetState, h } from './widgets.js';
 import { EV_SYNC, EV_CONTROL, EV_CLOSED, EV_IMAGE, PANELS } from './dock.js';
 import { layoutHotkeyDigit, listenForPlacement } from './panelsync.js';
 import { getCurrentWindow } from '@tauri-apps/api/window';
+import { blockNativeContextMenu } from './platform.js';
 import { emit, listen } from '@tauri-apps/api/event';
 import { t } from './i18n.js';
+
+blockNativeContextMenu({ dev: import.meta.env.DEV });
 
 // ---- panel views ------------------------------------------------------------------------------
 // A builder returns { el, draw?(), rebuild?(), followsTime?, every? }: el is inserted into the

@@ -22,11 +22,33 @@ const GUTTER = 170;
 const ROW = 20;
 const RULER = 22;
 
+/**
+ * The time readout: timecode and frame in the Film workspace, frame and seconds in Game. Numbers
+ * are padded to the animation's length and the box has one width in both workspaces, so nothing
+ * next to it moves while playing or when switching workspaces.
+ */
+function timeReadout(app, anim) {
+  const frames = Math.round(app.time * FPS);
+  const width = String(Math.max(1, Math.round((anim?.duration ?? 0) * FPS))).length;
+  const frame = t('frame {frame}', { frame: String(frames).padStart(width, ' ') });
+  const film = has(app, 'timecode');
+  const text = film ? `${timecode(app.time, FPS)}  ${frame}` : `${frame}  ${app.time.toFixed(2).padStart(String(Math.floor(anim?.duration ?? 0)).length + 3, ' ')}s`;
+  return h('span', { class: 'mono time-readout', title: film ? t('Timecode (minutes:seconds:frames) and frame') : t('Frame and seconds') }, text);
+}
+
+/** The playback speed menu: as narrow as its longest choice, with a tooltip. */
+function speedSelect(...args) {
+  const el = select(...args);
+  el.classList.add('speed');
+  el.title = t('Playback speed');
+  return el;
+}
+
 /** Transport and animation controls (rebuilt when the app changes). */
 export function renderControls(app, el) {
   const anim = app.currentAnimation();
   const names = app.doc.animations.map((a, i) => [i, a.name]);
-  const play = h('button', { 'data-tut': 'timeline:play', disabled: app.anim === null, title: t('Play / pause (Space)'), onclick: () => app.togglePlay() }, app.playing ? '⏸' : '▶');
+  const play = h('button', { class: 'transport', 'data-tut': 'timeline:play', disabled: app.anim === null, title: t('Play / pause (Space)'), onclick: () => app.togglePlay() }, app.playing ? '⏸' : '▶');
   el.replaceChildren(
     ...[
       names.length
@@ -103,9 +125,9 @@ export function renderControls(app, el) {
         },
         '⏮',
       ),
-      h('button', { title: t('Previous frame (←)'), onclick: () => app.stepFrame(-1) }, '◀'),
+      h('button', { class: 'transport', title: t('Previous frame (←)'), onclick: () => app.stepFrame(-1) }, '◀'),
       play,
-      h('button', { 'data-tut': 'timeline:next', title: t('Next frame (→)'), onclick: () => app.stepFrame(1) }, '▶|'),
+      h('button', { class: 'transport', 'data-tut': 'timeline:next', title: t('Next frame (→)'), onclick: () => app.stepFrame(1) }, '▶|'),
       h(
         'label',
         null,
@@ -119,7 +141,7 @@ export function renderControls(app, el) {
         }),
         ' ' + t('Loop'),
       ),
-      select(
+      speedSelect(
         [
           [0.1, '0.1×'],
           [0.25, '0.25×'],
@@ -135,11 +157,7 @@ export function renderControls(app, el) {
         },
         { tut: 'timeline:speed' },
       ),
-      h(
-        'span',
-        { class: 'mono', title: has(app, 'timecode') ? t('Timecode (hours:minutes:seconds:frames) and frame') : t('Frame and seconds') },
-        has(app, 'timecode') ? `${timecode(app.time, FPS)}  ${t('frame {frame}', { frame: Math.round(app.time * FPS) })}` : `${t('frame {frame}', { frame: String(Math.round(app.time * FPS)).padStart(3, ' ') })}  ${app.time.toFixed(2)}s`,
-      ),
+      timeReadout(app, anim),
       h('span', { class: 'vsep' }),
       h('button', { 'data-tut': 'timeline:key', disabled: app.mode !== Mode.Animate, onclick: () => edit.keySelection(app) }, t('◆ Key (K)')),
       h('span', { class: 'vsep' }),

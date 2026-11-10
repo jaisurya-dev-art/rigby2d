@@ -769,6 +769,22 @@ input[type='color'] {
 #controls select {
   width: 150px;
 }
+/* Playback speed: as wide as "0.25×", not as an animation name. */
+#controls select.speed {
+  width: 68px;
+}
+/* Transport buttons keep one width whatever their glyph (play and pause differ). */
+#controls button.transport {
+  width: 30px;
+  padding-left: 0;
+  padding-right: 0;
+  text-align: center;
+}
+/* The time readout: one width while playing and in both workspaces. */
+#controls .time-readout {
+  display: inline-block;
+  min-width: 21ch;
+}
 #controls label {
   display: flex;
   align-items: center;

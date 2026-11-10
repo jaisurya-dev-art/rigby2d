@@ -38,12 +38,16 @@ export function has(app, feature) {
   return workspace(app.workspace).features.has(feature);
 }
 
-/** "01:02:03:04" (hours, minutes, seconds, frames) for a time in seconds at `fps`. */
+/** "02:03:04" (minutes, seconds, frames), with hours in front from one hour: "01:02:03:04". */
 export function timecode(seconds, fps) {
   const base = Math.max(1, Math.round(fps));
   const total = Math.round(seconds * fps);
   const frames = total % base;
   const s = Math.floor(total / base);
-  const pad = (v) => String(v).padStart(2, '0');
-  return `${pad(Math.floor(s / 3600))}:${pad(Math.floor(s / 60) % 60)}:${pad(s % 60)}:${pad(frames)}`;
+  const pad = (v, n = 2) => String(v).padStart(n, '0');
+  // Frames take as many digits as the frame rate needs (2 up to 99 fps).
+  const ff = pad(frames, String(base - 1).length);
+  // Hours only once there are any: minutes:seconds:frames keeps the timeline narrow.
+  const head = s >= 3600 ? `${pad(Math.floor(s / 3600))}:` : '';
+  return `${head}${pad(Math.floor(s / 60) % 60)}:${pad(s % 60)}:${ff}`;
 }
