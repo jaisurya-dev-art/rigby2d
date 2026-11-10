@@ -169,7 +169,7 @@ export function openRuntimes(app) {
         badge: '8 · WebGL · WebGPU',
         text: t('Native PixiJS display objects, batched with your sprites. One file for your game.'),
         primary: action('download', t('ES module'), () => download(`rigby2d-pixi-${V}.mjs`), 'primary'),
-        secondary: [action('download', t('Script tag'), () => download(`rigby2d-pixi-${V}.js`))],
+        secondary: [action('download', t('Script tag'), () => download(`rigby2d-pixi-${V}.js`)), action('download', t('WebAssembly core'), () => download(`rigby2d-pixi-${V}.wasm`))],
         guide: docs('pixijs'),
       }),
       card({

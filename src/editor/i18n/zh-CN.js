@@ -1271,6 +1271,7 @@ export default {
   "Visible attachment": "可见的附件",
   "Volume": "音量",
   "Web": "Web",
+  "WebAssembly core": "WebAssembly 核心",
   "WebGL": "WebGL",
   "WebGL is not available here; drawing with Canvas 2D": "此处无法使用 WebGL；改用 Canvas 2D 绘制",
   "WebM video": "WebM 视频",

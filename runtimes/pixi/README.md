@@ -110,14 +110,17 @@ For crowds, the posing and geometry can run in WebAssembly: the Rust runtime
 its own memory, and the meshes copy them from there in one block. Opt in by passing the module:
 
 ```js
-import { rigbyPixi, loadRigbyWasm } from './rigby-pixi.js';
-const wasm = await loadRigbyWasm('rigby_wasm.wasm');
+import { rigbyPixi, loadRigbyWasm } from './rigby2d-pixi-<version>.mjs';
+const wasm = await loadRigbyWasm('rigby2d-pixi-<version>.wasm');
 const { loadRigby, RigbySkeleton } = rigbyPixi(PIXI, { wasm });
 ```
 
-Build the module with `cargo build --release -p rigby-wasm --target wasm32-unknown-unknown` in
-`runtimes/rust` (needs `rustup target add wasm32-unknown-unknown`); add `RUSTFLAGS="-C
-strip=symbols"` for the smallest file: about 450 KB, 150 KB gzipped.
+Download `rigby2d-pixi-<version>.wasm` (about 450 KB, 150 KB gzipped) with the bundles from the
+[latest release](https://github.com/jaisurya-dev-art/rigby2d/releases/latest); use the same version
+as the bundle. To build it yourself: `cargo build --release -p rigby-wasm --target
+wasm32-unknown-unknown` in `runtimes/rust` (needs `rustup target add wasm32-unknown-unknown`; add
+`RUSTFLAGS="-C strip=symbols"` for the smallest file), which writes
+`target/wasm32-unknown-unknown/release/rigby_wasm.wasm`.
 
 Time per frame with NILA's `wave` against the official Spine runtime for PixiJS 8 (4.3.13), same
 export, PixiJS 8.22, WebGL, Chrome on a desktop PC (update = animation and geometry, render =

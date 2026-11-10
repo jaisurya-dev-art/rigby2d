@@ -53,6 +53,15 @@ jobs:
       - run: npm run build:mcpb
       - run: npm run build:phaser
       - run: npm run build:pixi
+      # The PixiJS runtime's optional WebAssembly core (the Rust runtime, rigby-wasm).
+      - name: Build the WebAssembly core
+        shell: bash
+        working-directory: runtimes/rust
+        env:
+          RUSTFLAGS: -C strip=symbols
+        run: |
+          rustup target add wasm32-unknown-unknown
+          cargo build --release -p rigby-wasm --target wasm32-unknown-unknown
       - run: npm run build:cocos
       # Godot runtime: the GDExtension library and the addon and demo zips.
       - run: cargo build --release -p rigby-godot
@@ -94,6 +103,7 @@ jobs:
           cp runtimes/defold/dist/rigby2d-defold.zip "runtimes/defold/dist/rigby2d-defold-demo-${V}.zip" release/
           cp dist-phaser/* release/
           cp dist-pixi/* release/
+          cp runtimes/rust/target/wasm32-unknown-unknown/release/rigby_wasm.wasm "release/rigby2d-pixi-${V}.wasm"
           cp dist-cocos/rigby2d-cocos-*.zip release/
           ls -la release
 
