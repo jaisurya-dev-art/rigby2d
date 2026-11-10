@@ -68,6 +68,7 @@ your game. They load the same `.json` / `.skel` + `.atlas` exports:
 | Unity | `com.rigby2d.unity`: `RigbySkeleton` and `RigbyScene` components ([guide](https://github.com/jaisurya-dev-art/rigby2d/blob/develop/runtimes/unity/com.rigby2d.unity/README.md)) |
 | Godot | `RigbySkeleton2D` and `RigbyScene2D` nodes ([guide](https://github.com/jaisurya-dev-art/rigby2d/blob/develop/runtimes/godot/addons/rigby2d/README.md)) |
 | Phaser | `this.load.rigby()` and `this.add.rigby()` ([guide](https://github.com/jaisurya-dev-art/rigby2d/blob/develop/runtimes/phaser/README.md)) |
+| PixiJS | `new RigbySkeleton(await loadRigby(...))`, a native `Container` ([guide](https://github.com/jaisurya-dev-art/rigby2d/blob/develop/runtimes/pixi/README.md)) |
 | Web (any engine) | The JavaScript runtime and WebGL renderer |
 | Native | The Rust runtime |
 

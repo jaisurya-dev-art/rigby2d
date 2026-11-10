@@ -3,6 +3,7 @@ dist/
 build/
 dist-mcpb/
 dist-phaser/
+dist-pixi/
 dist-cocos/
 src-tauri/target/
 src-tauri/gen/schemas/

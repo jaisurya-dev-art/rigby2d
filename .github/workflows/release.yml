@@ -52,6 +52,7 @@ jobs:
       # AI assistant extension, and the Phaser runtime bundles.
       - run: npm run build:mcpb
       - run: npm run build:phaser
+      - run: npm run build:pixi
       - run: npm run build:cocos
       # Godot runtime: the GDExtension library and the addon and demo zips.
       - run: cargo build --release -p rigby-godot
@@ -92,6 +93,7 @@ jobs:
           cp "com.rigby2d.unity-${V}.tgz" "release/rigby2d-unity-${V}.tgz"
           cp runtimes/defold/dist/rigby2d-defold.zip "runtimes/defold/dist/rigby2d-defold-demo-${V}.zip" release/
           cp dist-phaser/* release/
+          cp dist-pixi/* release/
           cp dist-cocos/rigby2d-cocos-*.zip release/
           ls -la release
 

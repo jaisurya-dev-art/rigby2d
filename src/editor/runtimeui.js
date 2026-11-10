@@ -164,6 +164,15 @@ export function openRuntimes(app) {
         guide: docs('phaser'),
       }),
       card({
+        id: 'pixijs',
+        name: 'PixiJS',
+        badge: '8 · WebGL · WebGPU',
+        text: t('Native PixiJS display objects, batched with your sprites. One file for your game.'),
+        primary: action('download', t('ES module'), () => download(`rigby2d-pixi-${V}.mjs`), 'primary'),
+        secondary: [action('download', t('Script tag'), () => download(`rigby2d-pixi-${V}.js`))],
+        guide: docs('pixijs'),
+      }),
+      card({
         id: 'javascript',
         name: 'JavaScript',
         badge: t('Web'),

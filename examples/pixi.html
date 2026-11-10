@@ -1,0 +1,34 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Rigby2D for PixiJS</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        background: #1b1b1b;
+        color: #cfcfcf;
+        font: 14px system-ui, sans-serif;
+      }
+      #game {
+        display: flex;
+        justify-content: center;
+      }
+      p {
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="game"></div>
+    <p>
+      Click NILA for the next animation, or drag her. Rigbytron's slash event flashes the text; the star rides his hand.
+      Add <code>?webgpu</code> to the address to draw with WebGPU. Run <code>npm run web:dev</code> and open /examples/pixi.html.
+    </p>
+    <script type="module" src="./pixi.js"></script>
+  </body>
+</html>

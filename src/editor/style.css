@@ -2866,6 +2866,9 @@ kbd {
   --rt: #8fd0ef;
   --rt-fg: #0b1d24;
 }
+.rt-pixijs {
+  --rt: #e72264;
+}
 .rt-defold {
   --rt: #1c9be6;
 }

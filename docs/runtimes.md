@@ -12,6 +12,7 @@ characters on a stage with a moving camera and parallax.
 <a href="#defold" data-mark="defold"><strong>Defold <span class="status">New</span></strong>A native extension: the runtime in C++, golden-tested like the Rust one, with a Lua player. <small>Defold 1.14+ · every platform</small></a>
 <a href="#cocos-creator" data-mark="cocos"><strong>Cocos Creator <span class="status">Complete</span></strong>A <code>RigbySkeleton</code> component for 2D scenes, drawn in order with sprites and UI. <small>Cocos Creator 3.8 · web and native</small></a>
 <a href="#phaser" data-mark="phaser"><strong>Phaser <span class="status">Complete</span></strong>A plugin: <code>this.add.rigby()</code>, on the JavaScript runtime. <small>Phaser 3.60+ and 4 · WebGL</small></a>
+<a href="#pixijs" data-mark="pixijs"><strong>PixiJS <span class="status">New</span></strong>Native PixiJS display objects, batched with your sprites. <small>PixiJS 8 · WebGL and WebGPU</small></a>
 <a href="#javascript" data-mark="javascript"><strong>JavaScript <span class="status">Complete</span></strong>No dependencies, with a ready-made WebGL renderer. <small><code>src/core</code> · <code>src/webgl</code></small></a>
 <a href="#rust" data-mark="rust"><strong>Rust <span class="status">Complete</span></strong>No dependencies; matches the JavaScript runtime frame by frame, 3 to 4× faster. <small><code>runtimes/rust/rigby-runtime</code></small></a>
 </div>
@@ -22,7 +23,7 @@ JavaScript runtime.
 **From the editor:** *File ▸ Get runtimes…* downloads the runtimes that match your editor's version:
 the Unity package (or its git URL), the Godot addon for your system (or installs it straight into a
 Godot project), the Cocos Creator package (or installs it straight into a Cocos project), and the
-Phaser bundles. The welcome screen also offers a **Phaser game starter**: a
+Phaser and PixiJS bundles. The welcome screen also offers a **Phaser game starter**: a
 small playable game with NILA to build on.
 
 ## JavaScript
@@ -119,6 +120,32 @@ A `RigbySkeleton` is an ordinary Phaser game object (position, scale, rotation, 
 input) with the full animation state: tracks, crossfades, queues, skins, events and bone positions
 for attaching objects. It plays exactly as the editor does. See the
 [Phaser guide](https://github.com/jaisurya-dev-art/rigby2d/blob/develop/runtimes/phaser/README.md).
+
+## PixiJS
+
+Native [PixiJS](https://pixijs.com) 8 display objects, on WebGL and WebGPU. Download
+`rigby2d-pixi-<version>.mjs` or the script-tag `rigby2d-pixi-<version>.js` from the
+[latest release](https://github.com/jaisurya-dev-art/rigby2d/releases/latest):
+
+```js
+import * as PIXI from 'pixi.js';
+import { rigbyPixi } from './rigby2d-pixi-<version>.mjs';
+const { loadRigby, RigbySkeleton } = rigbyPixi(PIXI);
+
+const hero = new RigbySkeleton(await loadRigby('assets/hero.skel', 'assets/hero.atlas'), { animation: 'idle' });
+hero.position.set(400, 550);
+app.stage.addChild(hero);
+hero.play('run', true, 0.2);                         // crossfade over 0.2 s
+hero.attachToBone('hand_r', sword);                  // any display object follows a bone
+```
+
+A `RigbySkeleton` is a PixiJS `Container`. Its attachments are PixiJS meshes that go through
+PixiJS's batcher, so a character is usually one batched mesh, drawn in the same draw calls as your
+sprites. Filters, masks, tint, alpha, blend modes, bounds and pointer events work as for any display
+object. It has the full animation state (tracks, crossfades, queues, per-object skins, events),
+two-color tint on WebGL and WebGPU, and bone positions for attaching objects. It plays exactly as
+the editor does. See the
+[PixiJS guide](https://github.com/jaisurya-dev-art/rigby2d/blob/develop/runtimes/pixi/README.md).
 
 ## Defold
 

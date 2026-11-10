@@ -682,6 +682,7 @@ export default {
   "Multiply": "正片叠底",
   "Name": "名称",
   "Native": "原生",
+  "Native PixiJS display objects, batched with your sprites. One file for your game.": "原生 PixiJS 显示对象，与你的精灵合批绘制。游戏只需一个文件。",
   "New": "新建",
   "New constraint from the selected bones": "用所选骨骼新建约束",
   "New event": "新建事件",

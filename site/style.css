@@ -1713,6 +1713,7 @@ h3 {
 .engine-godot { --brand: #478cbf; }
 .engine-unity { --brand: #ffffff; }
 .engine-phaser { --brand: #8fd0ef; }
+.engine-pixijs { --brand: #e72264; }
 .engine-cocos { --brand: #55c2e1; }
 .engine-defold { --brand: #1c9be6; }
 .engine-javascript { --brand: #f7df1e; }
@@ -1835,6 +1836,7 @@ h3 {
 .dl .dl-icon.dl-unity { color: #fff; }
 .dl .dl-icon.dl-godot { color: #478cbf; }
 .dl .dl-icon.dl-phaser { color: #8fd0ef; }
+.dl .dl-icon.dl-pixijs { color: #e72264; }
 .dl .dl-icon.dl-cocos { color: #55c2e1; }
 .dl .dl-icon.dl-defold { color: #1c9be6; }
 
