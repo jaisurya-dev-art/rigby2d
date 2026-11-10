@@ -89,8 +89,8 @@ The *View* menu chooses what is drawn over the art:
   watch the animation as it renders. Press it again to bring them back.
 - *Timeline in Setup mode* keeps the timeline on screen in Setup mode.
 
-It also has the **Log** window, *Window layouts* (desktop app), zoom commands, the renderer (*Draw
-with WebGL* or *Canvas 2D*) and the shortcut presets.
+It also has the **Log** window, *Window layouts* (desktop app) and zoom commands. The viewport
+renderer and the shortcut preset are in [Preferences](preferences.md) (*Interface*).
 
 ## Tree
 

@@ -7,7 +7,7 @@ import { getCurrentWindow } from '@tauri-apps/api/window';
 
 import './style.css';
 import { App, Mode, saveSetting, saveShapes } from './app.js';
-import { PRESETS, shortcutLabel } from './keymap.js';
+import { shortcutLabel } from './keymap.js';
 import { installKeyboard, isTyping, runAction } from './keys.js';
 import { openRenderDialog } from './renderui.js';
 import { openSpriteSheetDialog } from './spritesheetui.js';
@@ -243,27 +243,7 @@ function menus() {
       'separator',
       { label: t('Fit the skeleton in view'), shortcut: sc('view.fit'), action: () => (app.frameRequest = true) },
       { label: t('Zoom to 100%'), shortcut: sc('view.actual'), action: () => zoomActual() },
-      'separator',
-      ...[
-        ['webgl', t('WebGL')],
-        ['canvas', t('Canvas 2D')],
-      ].map(([id, label]) => ({
-        label: `${app.renderer === id ? '● ' : '○ '}${t('Draw with {renderer}', { renderer: label })}`,
-        action: () => {
-          app.renderer = id;
-          saveSetting('rigby.renderer', id);
-          app.setStatus(id === 'webgl' && !viewport.glView ? t('WebGL is not available here; drawing with Canvas 2D') : t('Viewport drawing: {renderer}', { renderer: label }));
-          app.changed();
-        },
-      })),
-      'separator',
-      ...Object.entries(PRESETS).map(([id, p]) => ({
-        label: `${app.keymap === id ? '● ' : '○ '}${t('Shortcuts: {name}', { name: t(p.label) })}`,
-        action: () => {
-          app.setKeymap(id);
-          app.setStatus(t('Keyboard shortcuts: {name}', { name: t(p.label) }));
-        },
-      })),
+      // The renderer and the shortcut preset are in Preferences (Interface, Keyboard).
     ],
     Scripts: scripts.menu(),
     Help: [
