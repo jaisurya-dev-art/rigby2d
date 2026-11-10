@@ -50,7 +50,7 @@
   <img alt="Status: public beta" src="https://img.shields.io/badge/status-public%20beta-blue">
   <a href="#license"><img alt="License: MIT or Apache-2.0" src="https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue.svg"></a>
   <a href="https://github.com/jaisurya-dev-art/rigby2d/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/jaisurya-dev-art/rigby2d?style=flat&logo=github&color=yellow"></a>
-  <a href="https://upstar.dev/r/jaisurya-dev-art/rigby2d"><img alt="Upstar" src="https://upstar.dev/badge/jaisurya-dev-art/rigby2d.svg"></a>
+  <a href="https://upstar.dev/r/jaisurya-dev-art/rigby2d"><picture><source media="(prefers-color-scheme: dark)" srcset="https://upstar.dev/badge/jaisurya-dev-art/rigby2d/award/gamedev-engines-dark.svg"><img alt="Upstar: #5 Riser Of The Week in Game engines, November 2026" src="https://upstar.dev/badge/jaisurya-dev-art/rigby2d/award/gamedev-engines.svg" width="250" height="55"></picture></a>
   <a href="CONTRIBUTING.md"><img alt="PRs welcome" src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg"></a>
 </p>
 
