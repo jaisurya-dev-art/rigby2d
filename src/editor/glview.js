@@ -86,10 +86,17 @@ export class GLView {
     const camera = { x: -panX / zoom, y: panY / zoom, zoom: zoom * dpr };
     r.begin(w, h, camera);
 
-    // Grid: the same spacing rules as the 2D overlay used.
+    const size = app.doc.pixelGrid;
+    // Grid: the same spacing rules as the 2D overlay used. On a pixel grid its lines fall on art
+    // pixel edges (a power-of-two count of art pixels apart), never between them.
     let step = 50;
-    while (step * zoom < 24) step *= 2;
-    while (step * zoom > 120) step /= 2;
+    if (size > 0) {
+      step = size;
+      while (step * zoom < 24) step *= 2;
+    } else {
+      while (step * zoom < 24) step *= 2;
+      while (step * zoom > 120) step /= 2;
+    }
     const x0 = (-width / 2 - panX) / zoom;
     const x1 = (width / 2 - panX) / zoom;
     const y0 = (-height / 2 + panY) / zoom;
@@ -100,7 +107,6 @@ export class GLView {
     r.line(x0, 0, x1, 0, px, X_AXIS);
     r.line(0, y0, 0, y1, px, Y_AXIS);
 
-    const size = app.doc.pixelGrid;
     // A pixel grid samples the art sharp too: it is pixel art.
     const linear = app.doc.textureFilter !== 'nearest' && !(size > 0);
     const lookup = (name) => this.lookup(app.images, name, linear);
