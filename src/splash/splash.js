@@ -16,6 +16,17 @@ $('#lockup').src = lockupUrl;
 
 let finished = false;
 
+/**
+ * Shows the editor window maximized. The window is made maximized but hidden (tauri.conf.json);
+ * some platforms drop that when a hidden window is first shown, so it is maximized again here.
+ */
+async function showMaximized(main) {
+  if (!main) return;
+  await main.maximize().catch(() => {});
+  await main.show();
+  await main.maximize().catch(() => {});
+}
+
 /** Opens the editor window and closes the splash. Safe to call more than once. */
 async function finish() {
   if (finished) return;
@@ -23,7 +34,7 @@ async function finish() {
   if (!inTauri) return;
   try {
     const main = await Window.getByLabel('main');
-    await main?.show();
+    await showMaximized(main);
     await main?.setFocus();
   } finally {
     document.body.classList.add('leaving');
@@ -38,7 +49,7 @@ if (inTauri) {
       if (finished) return;
       finished = true;
       const main = await Window.getByLabel('main');
-      await main?.show();
+      await showMaximized(main);
     })
     .catch(() => {});
 }

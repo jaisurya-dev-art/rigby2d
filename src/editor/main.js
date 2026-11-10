@@ -604,7 +604,7 @@ else {
 
 // The window starts hidden while the splash screen plays; the splash opens it when done. Show it
 // anyway if the splash never does.
-if (inTauri) setTimeout(() => getCurrentWindow().show().catch(() => {}), 10000);
+if (inTauri) setTimeout(() => getCurrentWindow().maximize().catch(() => {}).finally(() => getCurrentWindow().show().catch(() => {})), 10000);
 
 // Browser: drop a project with its images and atlas on the window to open it (as File ▸ Open).
 if (!isDesktop) {
