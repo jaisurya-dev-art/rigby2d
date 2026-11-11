@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SignPath artifact configuration for the Windows editor files (artifact "rigby2d-<version>-windows",
+     uploaded by release.yml as a zip). Kept here for review; SignPath stores the active copy. -->
+<artifact-configuration xmlns="http://signpath.io/artifact-configuration/v1">
+  <zip-file>
+    <!-- Portable editor. -->
+    <pe-file path="Rigby2D_*_x64_portable.exe">
+      <authenticode-sign/>
+    </pe-file>
+    <!-- Setup program (NSIS). Its contents can't be opened, so only the installer is signed. -->
+    <pe-file path="Rigby2D_*_x64-setup.exe">
+      <authenticode-sign/>
+    </pe-file>
+    <!-- Windows Installer package, with the editor inside it. -->
+    <msi-file path="Rigby2D_*_x64_en-US.msi">
+      <pe-file path="rigby2d.exe">
+        <authenticode-sign/>
+      </pe-file>
+      <authenticode-sign/>
+    </msi-file>
+  </zip-file>
+</artifact-configuration>

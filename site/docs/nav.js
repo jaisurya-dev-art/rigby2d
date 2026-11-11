@@ -29,7 +29,7 @@ export const NAV = [
   },
   {
     title: 'Reference',
-    pages: ['shortcuts', 'recovery', 'troubleshooting', 'demos', 'privacy'],
+    pages: ['shortcuts', 'recovery', 'troubleshooting', 'demos', 'privacy', 'code-signing'],
   },
 ];
 
@@ -72,4 +72,5 @@ export const PAGE_ICONS = {
   troubleshooting: 'bug',
   demos: 'sparkles',
   privacy: 'shield',
+  'code-signing': 'shield-check',
 };
