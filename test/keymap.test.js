@@ -18,6 +18,7 @@ import {
   resetCustom,
   shortcutLabel,
   unbindCombo,
+  withShortcut,
 } from '../src/editor/keymap.js';
 
 test('a new custom keymap is its base preset', () => {
@@ -86,4 +87,17 @@ test('reading drops unknown actions, bad combos and reserved keys', () => {
   assert.deepEqual(custom.changes, { 'tool.pose': ['p'] });
   assert.ok(reservedCombo('ctrl+alt+1'));
   assert.equal(comboLabel('ctrl+shift+arrowleft'), 'Ctrl+Shift+Left');
+});
+
+test('tooltips name the shortcut of the current keymap', () => {
+  assert.equal(withShortcut('Undo', 'reference', 'edit.undo'), 'Undo (Ctrl+Z)');
+  assert.equal(withShortcut('Go to start', 'blender', 'time.start'), 'Go to start (Home)');
+  assert.equal(withShortcut('Auto key', 'reference', 'autokey.toggle'), 'Auto key');
+});
+
+test('every preset can show or hide bones without a conflict', () => {
+  for (const id of ['reference', 'blender']) {
+    const combo = PRESETS[id].bindings['view.bones'][0];
+    assert.deepEqual(conflictsFor(PRESETS[id].bindings, combo, 'view.bones'), []);
+  }
 });

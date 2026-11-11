@@ -7,7 +7,8 @@ import { getCurrentWindow } from '@tauri-apps/api/window';
 
 import './style.css';
 import { App, Mode, saveSetting, saveShapes } from './app.js';
-import { shortcutLabel } from './keymap.js';
+import { shortcutLabel, withShortcut } from './keymap.js';
+import { icon } from './icons.js';
 import { installKeyboard, isTyping, runAction } from './keys.js';
 import { openRenderDialog } from './renderui.js';
 import { openSpriteSheetDialog } from './spritesheetui.js';
@@ -336,6 +337,16 @@ function buildMenuBar() {
   const setupTab = modeButton(Mode.Setup);
   const animateTab = modeButton(Mode.Animate);
   const mode = h('span', { class: 'mode-switch', role: 'tablist' }, setupTab, animateTab);
+  // Undo, redo, fit and the bones overlay, one click away (also in the Edit and View menus).
+  const quick = (name, onclick) => h('button', { class: 'quick-btn', onclick }, icon(name, 16));
+  const undoBtn = quick('undo-2', () => app.undo());
+  const redoBtn = quick('redo-2', () => app.redo());
+  const fitBtn = quick('scan', () => (app.frameRequest = true));
+  const bonesBtn = quick('bone', () => {
+    app.showBones = !app.showBones;
+    app.changed();
+  });
+  const quickBar = h('span', { class: 'quick-actions' }, undoBtn, redoBtn, fitBtn, bonesBtn);
   // Notice that onion-skin predictions are on, with a menu to turn them off (hidden otherwise).
   const onionNotice = h(
     'button',
@@ -363,7 +374,7 @@ function buildMenuBar() {
     : h('a', { class: 'home-link', href: '../', title: t('Rigby2D website: home, documentation and downloads'), 'data-goatcounter-click': 'editor-home' }, h('img', { src: markUrl, alt: '', width: 18, height: 18 }), h('span', null, t('Rigby2D')));
   const docTitle = inTauri ? null : h('span', { class: 'doc-title' });
   bar.replaceChildren(
-    ...[home, home && h('span', { class: 'vsep' }), ...titles, h('span', { class: 'vsep' }), mode, onionNotice, h('span', { class: 'spacer' }), docTitle, docTitle && h('span', { class: 'spacer' }), updateBadge(app), switcher].filter(Boolean),
+    ...[home, home && h('span', { class: 'vsep' }), ...titles, h('span', { class: 'vsep' }), mode, quickBar, onionNotice, h('span', { class: 'spacer' }), docTitle, docTitle && h('span', { class: 'spacer' }), updateBadge(app), switcher].filter(Boolean),
   );
   // Called every frame: touch the DOM only when something shown changed.
   let shown = '';
@@ -374,6 +385,13 @@ function buildMenuBar() {
     if (document.documentElement.lang !== shownLanguage) {
       shownLanguage = document.documentElement.lang;
       for (const b of titles) b.textContent = t(b.dataset.title);
+    }
+    // Live states of the quick buttons (property writes only when they change).
+    if (undoBtn.disabled !== !app.history.undo.length) undoBtn.disabled = !app.history.undo.length;
+    if (redoBtn.disabled !== !app.history.redo.length) redoBtn.disabled = !app.history.redo.length;
+    if (bonesBtn.classList.contains('on') !== app.showBones) {
+      bonesBtn.classList.toggle('on', app.showBones);
+      bonesBtn.setAttribute('aria-pressed', String(app.showBones));
     }
     // The notice follows the live onion state, independent of the cached menubar state below.
     onionNotice.hidden = !app.onionActive();
@@ -392,6 +410,10 @@ function buildMenuBar() {
     if (state === shown) return;
     shown = state;
     const tip = `${t('Switch Setup / Animate')}${sc('mode.toggle') ? ` (${sc('mode.toggle')})` : ''}`;
+    undoBtn.title = withShortcut(t('Undo'), app.keymap, 'edit.undo');
+    redoBtn.title = withShortcut(t('Redo'), app.keymap, 'edit.redo');
+    fitBtn.title = withShortcut(t('Fit the skeleton in view'), app.keymap, 'view.fit');
+    bonesBtn.title = withShortcut(t('Show or hide bones'), app.keymap, 'view.bones');
     for (const [tab, m, label] of [
       [setupTab, Mode.Setup, t('SETUP')],
       [animateTab, Mode.Animate, t('ANIMATE')],

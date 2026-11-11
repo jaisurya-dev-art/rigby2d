@@ -626,6 +626,43 @@ input[type='color'] {
   text-shadow: 0 0 8px rgba(255, 120, 90, 0.85);
   box-shadow: 0 0 12px rgba(255, 120, 90, 0.35);
 }
+.pref-scale {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.pref-scale input {
+  width: 160px;
+}
+.pref-scale-value {
+  min-width: 3.5em;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+/* Undo, redo, fit and bones next to the mode tabs. */
+#menubar .quick-actions {
+  display: flex;
+  gap: 2px;
+  margin-left: 6px;
+}
+#menubar .quick-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px 5px;
+  background: transparent;
+  color: var(--weak);
+}
+#menubar .quick-btn:hover:not(:disabled) {
+  background: var(--widget);
+  color: var(--text);
+}
+#menubar .quick-btn:disabled {
+  opacity: 0.35;
+}
+#menubar .quick-btn.on {
+  color: var(--accent);
+}
 .vsep {
   width: 1px;
   align-self: stretch;

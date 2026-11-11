@@ -17,7 +17,7 @@ import { tracks, trackKeys } from './keyorder.js';
 import { drawLanes, laneActors, pressLane } from './sceneui.js';
 import { t, tn } from './i18n.js';
 import { FPS_PRESETS, formatFps } from './output.js';
-import { shortcutLabel } from './keymap.js';
+import { shortcutLabel, withShortcut } from './keymap.js';
 export { orderedKeys, keySelectionIndices, applyKeySelection } from './keyorder.js';
 
 const GUTTER = 170;
@@ -67,7 +67,7 @@ function speedSelect(...args) {
 export function renderControls(app, el) {
   const anim = app.currentAnimation();
   const names = app.doc.animations.map((a, i) => [i, a.name]);
-  const play = h('button', { class: 'transport', 'data-tut': 'timeline:play', disabled: app.anim === null, title: t('Play / pause (Space)'), onclick: () => app.togglePlay() }, app.playing ? '⏸' : '▶');
+  const play = h('button', { class: 'transport', 'data-tut': 'timeline:play', disabled: app.anim === null, title: withShortcut(t('Play / pause'), app.keymap, 'play.forward'), onclick: () => app.togglePlay() }, app.playing ? '⏸' : '▶');
   el.replaceChildren(
     ...[
       names.length
@@ -135,7 +135,7 @@ export function renderControls(app, el) {
       h(
         'button',
         {
-          title: t('Go to start'),
+          title: withShortcut(t('Go to start'), app.keymap, 'time.start'),
           onclick: () => {
             app.time = 0;
             app.playing = false;
@@ -144,12 +144,12 @@ export function renderControls(app, el) {
         },
         '⏮',
       ),
-      h('button', { class: 'transport', title: t('Previous frame (←)'), onclick: () => app.stepFrame(-1) }, '◀'),
+      h('button', { class: 'transport', title: withShortcut(t('Previous frame'), app.keymap, 'frame.previous'), onclick: () => app.stepFrame(-1) }, '◀'),
       play,
-      h('button', { class: 'transport', 'data-tut': 'timeline:next', title: t('Next frame (→)'), onclick: () => app.stepFrame(1) }, '▶|'),
+      h('button', { class: 'transport', 'data-tut': 'timeline:next', title: withShortcut(t('Next frame'), app.keymap, 'frame.next'), onclick: () => app.stepFrame(1) }, '▶|'),
       h(
         'label',
-        null,
+        { title: withShortcut(t('Toggle looping'), app.keymap, 'loop.toggle') },
         h('input', {
           type: 'checkbox',
           checked: app.looping,

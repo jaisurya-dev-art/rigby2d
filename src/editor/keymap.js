@@ -35,6 +35,7 @@ export const ACTIONS = [
   ['view.fit', tn('Fit the skeleton in view')],
   ['view.actual', tn('Zoom to 100%')],
   ['view.overlays', tn('Hide or show overlays')],
+  ['view.bones', tn('Show or hide bones')],
   ['edit.copyKeys', tn('Copy selected keys')],
   ['edit.pasteKeys', tn('Paste keys at the playhead')],
   ['edit.delete', tn('Delete selected key, bone or slot')],
@@ -60,6 +61,7 @@ const COMMON = {
   'edit.delete': ['delete', 'backspace'],
   'menu.close': ['escape'],
   'app.preferences': ['ctrl+,'],
+  'view.bones': ['ctrl+shift+b'],
 };
 
 /** Keymap presets: action id -> list of bindings. */
@@ -177,6 +179,12 @@ export function comboLabel(combo) {
 export function shortcutLabel(presetId, action) {
   const combo = (PRESETS[presetId] ?? PRESETS.reference).bindings[action]?.[0];
   return combo ? comboLabel(combo) : '';
+}
+
+/** A tooltip with the action's shortcut: "Undo (Ctrl+Z)", or the text alone when it has none. */
+export function withShortcut(text, presetId, action) {
+  const key = shortcutLabel(presetId, action);
+  return key ? `${text} (${key})` : text;
 }
 
 // ---- custom keymap ------------------------------------------------------------------------------

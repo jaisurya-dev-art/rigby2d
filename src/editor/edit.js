@@ -3,7 +3,7 @@
 // changes are written as keyframes instead of changing the setup pose.
 
 import { Animation, setKey } from '../core/animation.js';
-import { LINEAR, STEPPED } from '../core/curve.js';
+import { EASE_IN_OUT, LINEAR, STEPPED, cloneCurve } from '../core/curve.js';
 import { toAffine, transform } from '../core/math.js';
 import { makeBone, moveAttachment } from '../core/model.js';
 import { Pose } from '../core/pose.js';
@@ -42,13 +42,20 @@ function channelValue(channel, t, setup) {
   }
 }
 
+/** The curve new transform keys start with (Preferences ▸ Editing). */
+function newKeyCurve(app) {
+  const pref = app.prefs?.get('editing.keyCurve');
+  return pref === 'ease' ? EASE_IN_OUT : pref === 'stepped' ? STEPPED : LINEAR;
+}
+
 /** Writes keys for `channels` of `bone` at the current time from local transform `t`. */
 function writeKeys(app, bone, t, channels) {
   const time = snap(app.time);
   const anim = app.doc.animations[ensureAnimation(app)];
   const tl = anim.boneTimelineMut(bone);
   const setup = app.doc.bones[bone].setup;
-  for (const ch of channels) setKey(tl[ch], time, channelValue(ch, t, setup), LINEAR);
+  const curve = newKeyCurve(app);
+  for (const ch of channels) setKey(tl[ch], time, channelValue(ch, t, setup), cloneCurve(curve));
   growDuration(anim, time);
   const pending = app.pending.get(bone);
   if (pending) {

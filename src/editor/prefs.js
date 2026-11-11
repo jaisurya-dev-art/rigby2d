@@ -13,6 +13,8 @@ export const PREFS = {
   'general.welcome': { default: true },
   'updates.check': { default: true },
   'editing.undoSteps': { default: 200, min: 20, max: 1000 },
+  /** Curve of new transform keys: 'linear', 'ease' (ease in and out) or 'stepped'. */
+  'editing.keyCurve': { default: 'linear', options: ['linear', 'ease', 'stepped'] },
   'files.backups': { default: 1, min: 0, max: 9 },
   'files.autosave': { default: true },
   'files.autosaveMinutes': { default: 2, min: 1, max: 60 },

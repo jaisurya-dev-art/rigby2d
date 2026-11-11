@@ -77,6 +77,26 @@ function number(app, key, unit) {
   );
 }
 
+/** Interface scale as a slider (5% steps); the window zooms when the slider is let go. */
+function scaleSlider(app) {
+  const def = PREFS['interface.scale'];
+  const pct = (v) => `${Math.round(v * 100)}%`;
+  const label = h('span', { class: 'pref-scale-value' }, pct(app.prefs.get('interface.scale')));
+  const input = h('input', {
+    type: 'range',
+    min: def.min,
+    max: def.max,
+    step: 0.05,
+    value: app.prefs.get('interface.scale'),
+    oninput: (e) => (label.textContent = pct(Number(e.target.value))),
+    onchange: (e) => {
+      app.prefs.set('interface.scale', Number(e.target.value));
+      applyInterfaceScale(app);
+    },
+  });
+  return h('span', { class: 'pref-scale' }, input, label);
+}
+
 const PAGES = [
   {
     id: 'general',
@@ -95,10 +115,9 @@ const PAGES = [
     id: 'interface',
     label: 'Interface',
     render(app) {
-      const scales = [0.75, 0.9, 1, 1.1, 1.25, 1.5, 1.75, 2].map((s) => [s, `${Math.round(s * 100)}%`]);
       return [
         isDesktop
-          ? row('Interface scale', 'Size of all text and controls.', choice(scales, app.prefs.get('interface.scale'), (v) => (app.prefs.set('interface.scale', Number(v)), applyInterfaceScale(app))))
+          ? row('Interface scale', 'Size of all text and controls.', scaleSlider(app))
           : row(t('Interface scale'), "In the browser, use the browser's zoom (Ctrl + and Ctrl −).", h('span')),
         row(t('Keyboard shortcuts'), t('Keys as in Spine, keys that follow Blender, or your own.'), shortcutControl(app)),
         row(
@@ -132,7 +151,22 @@ const PAGES = [
   {
     id: 'editing',
     label: 'Editing',
-    render: (app) => [row('Undo steps', 'How many steps Undo can go back. More steps use more memory on large projects.', number(app, 'editing.undoSteps'))],
+    render: (app) => [
+      row('Undo steps', 'How many steps Undo can go back. More steps use more memory on large projects.', number(app, 'editing.undoSteps')),
+      row(
+        'Curve of new keys',
+        'The curve a new bone key starts with. Change any key later in the dopesheet or the graph.',
+        choice(
+          [
+            ['linear', t('Linear')],
+            ['ease', t('Ease in-out')],
+            ['stepped', t('Stepped')],
+          ],
+          app.prefs.get('editing.keyCurve'),
+          (v) => app.prefs.set('editing.keyCurve', v),
+        ),
+      ),
+    ],
   },
   {
     id: 'files',

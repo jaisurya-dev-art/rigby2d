@@ -16,7 +16,7 @@ defaults.
 
 | Setting | What it does |
 | --- | --- |
-| Interface scale | Size of all text and controls, from 75% to 200% (desktop app). In the browser, use the browser's zoom. |
+| Interface scale | Size of all text and controls, from 75% to 200% in 5% steps (desktop app). In the browser, use the browser's zoom. |
 | Keyboard shortcuts | Keys like Spine's (the default), keys that follow Blender, or your own (**Customize…**). See [Shortcuts](shortcuts.md#your-own-shortcuts). |
 | Viewport drawing | WebGL, or Canvas 2D for graphics drivers that have trouble with WebGL. |
 | New projects | The workspace (Game or Film) that *File ▸ New* starts in. |
@@ -26,6 +26,7 @@ defaults.
 | Setting | What it does |
 | --- | --- |
 | Undo steps | How many steps *Edit ▸ Undo* can go back (20 to 1000, 200 by default). More steps use more memory on large projects. |
+| Curve of new keys | The curve a new bone key starts with: *Linear* (default), *Ease in-out* or *Stepped*. Change any key later in the dopesheet or the graph. |
 
 ## Files and recovery
 

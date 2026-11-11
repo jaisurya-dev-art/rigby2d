@@ -66,6 +66,10 @@ export function runAction(app, action, ctx) {
       app.hideOverlays = !app.hideOverlays;
       app.changed();
     },
+    'view.bones': () => {
+      app.showBones = !app.showBones;
+      app.changed();
+    },
     'view.actual': () => zoomActual?.(),
     'edit.copyKeys': () => copySelectedKeys?.(app),
     'edit.pasteKeys': () => pasteKeys?.(app),

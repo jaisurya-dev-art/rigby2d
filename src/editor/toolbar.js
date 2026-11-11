@@ -5,7 +5,7 @@
 import { Affine, wrapDegrees } from '../core/math.js';
 import { Mode, TOOLS, selBone } from './app.js';
 import * as edit from './edit.js';
-import { shortcutLabel } from './keymap.js';
+import { shortcutLabel, withShortcut } from './keymap.js';
 import { onionPanel } from './onionui.js';
 import { guidesPanel } from './guidesui.js';
 import { dragValue, h } from './widgets.js';
@@ -134,7 +134,7 @@ export function render(app, el) {
           {
             class: `autokey${app.autoKey ? ' on' : ''}`,
             'data-tut': 'autokey',
-            title: t('Auto key: every change in Animate mode sets keys right away'),
+            title: withShortcut(t('Auto key: every change in Animate mode sets keys right away'), app.keymap, 'autokey.toggle'),
             onclick: () => {
               app.autoKey = !app.autoKey;
               app.changed();

@@ -8,7 +8,7 @@ their own windows.
 
 | | Area | What it is for |
 | --- | --- | --- |
-| 1 | **Menu bar** | *File* (with *New*, *Open recent*, *Import* and *Export* submenus), *Edit*, *View*, *Scripts* and *Help* (see [The Help menu](#the-help-menu)), and the **SETUP** and **ANIMATE** mode tabs. When an update is ready, an **Update available** button appears here too. |
+| 1 | **Menu bar** | *File* (with *New*, *Open recent*, *Import* and *Export* submenus), *Edit*, *View*, *Scripts* and *Help* (see [The Help menu](#the-help-menu)), the **SETUP** and **ANIMATE** mode tabs, and buttons for *Undo*, *Redo*, *Fit the skeleton in view* and *Show or hide bones* (hover one to see its shortcut). When an update is ready, an **Update available** button appears here too. |
 | 2 | **Workspace switch** | **Game** or **Film**: which tools are shown. See [Workspaces](#workspaces). |
 | 3 | **Viewport toolbar** | Transform tools, the active tool's values with a key button, axes, onion skin, guides and auto key. |
 | 4 | **Viewport** | The character. Select, pose and edit here. |
