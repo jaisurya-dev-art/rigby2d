@@ -73,6 +73,7 @@ all of its parameters, generated from the server itself.
 | `validate_project` | Structure, images missing from the work file, atlas or images folder, animations without keys, whether skeleton JSON 4.3 round-trips the data, whether binary `.skel` export is possible. | No |
 | `convert_project` | Writes skeleton JSON (3.8, 4.2 or 4.3) or binary `.skel` (4.3) from a `.rigby`, `.json` or `.skel` file. | Yes |
 | `export_sprite_sheet` | Renders animations into a sprite sheet (PNG + JSON hash), a Defold atlas with frames, or PNG frames, into a folder. | Yes |
+| `export_defold_game_object` | Writes a Defold game object for an exported skeleton (`.skel` or `.json` with its atlas): it shows the character in the Defold editor and plays it with the Rigby2D runtime. | Yes |
 
 ### Editing
 

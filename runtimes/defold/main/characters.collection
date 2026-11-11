@@ -1,7 +1,11 @@
 name: "characters"
 instances {
-  id: "rigbytron"
+  id: "rigbytron_controls"
   prototype: "/main/rigbytron.go"
+}
+instances {
+  id: "rigbytron"
+  prototype: "/assets/rigbytron.go"
   position {
     x: 380.0
     y: 90.0

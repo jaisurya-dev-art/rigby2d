@@ -10,6 +10,7 @@ file stays the source; export again whenever it changes.
 | *File ▸ Export ▸ JSON + atlas…* (<kbd>Ctrl</kbd>+<kbd>E</kbd>) | `name.json` in the project's format version, `name.atlas`, `name.png` |
 | *Export ▸ JSON format 3.8… / 4.2… / 4.3…* | The same, in that skeleton JSON version. |
 | *Export ▸ Binary .skel + atlas (4.3)…* | Binary `name.skel` (smaller, faster to load), `name.atlas`, `name.png` |
+| *Export ▸ Defold game object…* | The binary skeleton and atlas, plus `name.go` and `name.script` (a game object that shows the character in the Defold editor and plays it with the [Defold runtime](runtimes.md#defold)) and its editor picture, `name_preview.atlas` and `name_preview.png`. Save into your Defold project: the paths inside come from its `game.project` (the browser editor asks for the folder). |
 | *Export ▸ Sprite sheet…* | Animations rendered as frames: a packed sheet with its data, a Defold atlas with frames, or PNG frames. See [Sprite sheets](#sprite-sheets). |
 | *Export ▸ Scene for runtimes…* (scenes only) | A [scene](scenes.md#in-games-and-apps): `name.scene.json`, plus the stage and each character as skeleton JSON 4.3 with their own atlas |
 

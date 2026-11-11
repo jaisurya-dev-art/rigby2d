@@ -14,6 +14,7 @@ import { Pose } from '../core/pose.js';
 import { atlasLookup, imageLookup } from '../core/draw.js';
 import { usedImages } from '../editor/io.js';
 import { FORMATS as SHEET_FORMATS, buildSpriteSheet } from '../editor/spritesheet.js';
+import { defoldFiles, defoldFolderOf } from '../editor/defold.js';
 import { unzip } from '../editor/zip.js';
 import { filmSummary } from './film.js';
 import { sceneSummary } from './scene.js';
@@ -455,6 +456,44 @@ async function convert(ws, { input, output, version = '4.3', overwrite = false }
   };
 }
 
+// ---- Defold game objects ----------------------------------------------------------------------
+
+async function defoldObject(ws, { skeleton, atlas, folder, animation = '', skin = '', overwrite = false }) {
+  const source = await ws.existing(skeleton);
+  const ext = path.extname(source).toLowerCase();
+  if (ext !== '.skel' && ext !== '.json') throw new ToolError('The skeleton must be an exported .skel or .json (export it from the Rigby2D editor, with its atlas).');
+  const dir = path.dirname(source);
+  const name = path.basename(source, ext);
+  const atlasFile = await ws.existing(atlas ?? path.join(dir, `${name}.atlas`));
+  if (path.dirname(atlasFile) !== dir) throw new ToolError('The atlas must sit in the same folder as the skeleton.');
+  // The folder's path in the Defold project: given, or found from the game.project above it (inside the workspace).
+  let projectFolder = folder ?? null;
+  if (!projectFolder) {
+    projectFolder = await defoldFolderOf(dir, async (root) => ws.inside(path.resolve(root)) && fs.stat(path.join(root, 'game.project')).then(() => true, () => false));
+    if (!projectFolder) throw new ToolError('No game.project found in the skeleton folder or above it. Pass folder: the folder path in the Defold project, such as "/assets/hero".');
+  }
+  if (!projectFolder.startsWith('/')) throw new ToolError('folder is a path in the Defold project and starts with "/", such as "/assets/hero".');
+  const p = await loadProject(source);
+  if (animation && !p.doc.animations.some((a) => a.name === animation)) throw new ToolError(`No animation '${animation}'. The skeleton has: ${p.doc.animations.map((a) => a.name).join(', ') || 'none'}.`);
+  if (skin && skin !== 'default' && !p.doc.skins.some((s) => s.name === skin)) throw new ToolError(`No skin '${skin}'.`);
+  if (p.imageSource !== `atlas ${path.basename(atlasFile)}`) p.imageSource = `atlas ${path.basename(atlasFile)}`;
+  const files = defoldFiles({ doc: p.doc, lookup: await rasterLookup(p), name, folder: projectFolder, skeleton: path.basename(source), animation, skin });
+  const targets = [];
+  for (const f of files) {
+    const target = await ws.writable(path.join(dir, f.path));
+    if (!overwrite && (await fs.stat(target).then(() => true, () => false))) throw new ToolError(`${f.path} already exists. Pass overwrite: true to replace it.`);
+    targets.push([target, f.png ? encodePng({ width: f.png.width, height: f.png.height, data: f.png.rgba }) : f.text]);
+  }
+  for (const [target, data] of targets) await fs.writeFile(target, data);
+  return {
+    gameObject: path.join(dir, `${name}.go`),
+    folder: projectFolder,
+    files: files.map((f) => f.path),
+    preview: files.some((f) => f.png),
+    note: `Add ${projectFolder}/${name}.go to a collection: the Defold editor shows its setup pose. The project needs the rigby2d library, and ${projectFolder} in game.project's custom_resources.`,
+  };
+}
+
 // ---- sprite sheets ----------------------------------------------------------------------------
 
 /** Image lookup for a loaded project: the work file's images, or the export's atlas or images folder. */
@@ -616,6 +655,26 @@ export function createTools(ws) {
       },
       annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
       handler: (args) => convert(ws, args),
+    },
+    {
+      name: 'export_defold_game_object',
+      title: 'Export Defold game object',
+      description: 'Write a Defold game object (.go) for an exported skeleton (.skel or .json with its .atlas): it shows the character setup pose in the Defold editor and plays it in the game with the rigby2d library. Writes <name>.go, <name>.script and the preview picture (<name>_preview.png and its Defold atlas <name>_preview.atlas) next to the skeleton. The folder path in the Defold project is found from the game.project above it, or given as folder.',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          skeleton: { type: 'string', description: 'Exported skeleton (.skel or .json) inside the workspace, with its .atlas and page images next to it.' },
+          atlas: { type: 'string', description: 'The atlas, if not <skeleton name>.atlas in the same folder.' },
+          folder: { type: 'string', description: 'The skeleton folder path in the Defold project, such as "/assets/hero" (default: found from game.project).' },
+          animation: { type: 'string', description: 'Animation to play at start (the script animation property; default none).' },
+          skin: { type: 'string', description: 'Skin to show (the script skin property; default the default skin).' },
+          overwrite: { type: 'boolean', description: 'Replace files from an earlier export (default false).' },
+        },
+        required: ['skeleton'],
+        additionalProperties: false,
+      },
+      annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
+      handler: (args) => defoldObject(ws, args),
     },
     {
       name: 'export_sprite_sheet',

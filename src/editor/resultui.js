@@ -79,6 +79,46 @@ export function askChoice({ title, detail = '', list = [], choices }) {
 }
 
 /**
+ * Asks for a line of text, starting from `value`. Resolves with the text (trimmed), or null when
+ * cancelled (Cancel or Escape).
+ */
+export function askText({ title, detail = '', value = '', okLabel = 'OK' }) {
+  return new Promise((resolve) => {
+    const overlay = h('div', { class: 'modal-backdrop result-backdrop' });
+    const input = h('input', { type: 'text', value, spellcheck: false, style: { width: '100%' } });
+    const done = (result) => {
+      overlay.remove();
+      document.removeEventListener('keydown', onKey, true);
+      resolve(result);
+    };
+    const onKey = (e) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        e.stopPropagation();
+        done(null);
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        done(input.value.trim());
+      }
+    };
+    overlay.append(
+      h(
+        'div',
+        { class: 'modal result-dialog', role: 'dialog', 'aria-labelledby': 'text-title' },
+        h('h3', { id: 'text-title' }, title),
+        detail ? h('p', null, detail) : null,
+        input,
+        h('div', { class: 'modal-buttons' }, h('button', { onclick: () => done(null) }, t('Cancel')), h('button', { class: 'primary', onclick: () => done(input.value.trim()) }, t(okLabel))),
+      ),
+    );
+    document.body.append(overlay);
+    document.addEventListener('keydown', onKey, true);
+    input.focus();
+    input.select();
+  });
+}
+
+/**
  * Asks to pick one option from a list, then confirm. `options`: [{ label, value }]; `value` is
  * selected at first. Clicking an option only selects it; `okLabel` (or Enter, or a double-click)
  * confirms. Resolves with the chosen value, or null when cancelled (Cancel or Escape).

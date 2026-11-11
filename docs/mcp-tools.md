@@ -9,7 +9,7 @@ root folders. Editing tools save the file in its own format, or a copy when `out
 
 <!-- generated:mcp-tools -->
 
-The server has **41 tools**. Parameters marked **required** must be given; the others are optional.
+The server has **42 tools**. Parameters marked **required** must be given; the others are optional.
 
 ### `inspect_project`
 
@@ -65,6 +65,19 @@ Write a project as skeleton JSON (format 3.8, 4.2 or 4.3) or binary .skel (4.3).
 | `output` **required** | string | Output file ending in .json or .skel, inside the workspace. Its folder must exist. |
 | `version` | `'3.8'`, `'4.2'`, `'4.3'` | Skeleton JSON format version (default 4.3; .skel is always 4.3). |
 | `overwrite` | boolean | Replace the output file if it exists (default false). |
+
+### `export_defold_game_object`
+
+Write a Defold game object (.go) for an exported skeleton (.skel or .json with its .atlas): it shows the character setup pose in the Defold editor and plays it in the game with the rigby2d library. Writes <name>.go, <name>.script and the preview picture (<name>_preview.png and its Defold atlas <name>_preview.atlas) next to the skeleton. The folder path in the Defold project is found from the game.project above it, or given as folder.
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `skeleton` **required** | string | Exported skeleton (.skel or .json) inside the workspace, with its .atlas and page images next to it. |
+| `atlas` | string | The atlas, if not <skeleton name>.atlas in the same folder. |
+| `folder` | string | The skeleton folder path in the Defold project, such as "/assets/hero" (default: found from game.project). |
+| `animation` | string | Animation to play at start (the script animation property; default none). |
+| `skin` | string | Skin to show (the script skin property; default the default skin). |
+| `overwrite` | boolean | Replace files from an earlier export (default false). |
 
 ### `export_sprite_sheet`
 
@@ -572,7 +585,7 @@ Set the depth of a top-level stage bone (a background or foreground layer) for p
 
 ### `run_script`
 
-Run a Python script against a project with the Rigby2D scripting API (`import rigby`: bones, slots, animations, keys, selection, time; see docs/scripting.md), then save the project. The script runs in a sandbox (CPython 3.14 on Pyodide, standard library only). print() output is returned. If the script raises, nothing is saved and the traceback is returned. dry_run: true runs it without saving (for queries). 'animation' and 'time' set what rigby.current_animation() and rigby.time() return; 'selection' sets rigby.selected_bones().
+Run a Python script against a project with the Rigby2D scripting API (`import rigby`: bones, slots, animations, keys, selection, time; see https://rigby2d.com/docs/scripting.html), then save the project. The script runs in a sandbox (CPython 3.14 on Pyodide, standard library only). print() output is returned. If the script raises, nothing is saved and the traceback is returned. dry_run: true runs it without saving (for queries). 'animation' and 'time' set what rigby.current_animation() and rigby.time() return; 'selection' sets rigby.selected_bones().
 
 | Parameter | Type | Description |
 | --- | --- | --- |

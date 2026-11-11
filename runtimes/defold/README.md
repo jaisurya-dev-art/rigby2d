@@ -25,10 +25,81 @@ https://github.com/jaisurya-dev-art/rigby2d/releases/latest/download/rigby2d-def
 folder into your project.
 
 `rigby2d-defold-demo-<version>.zip` on the [Releases](https://github.com/jaisurya-dev-art/rigby2d/releases)
-page is a ready-to-run project: Rigbytron slashes on Space or a click, NILA runs through her
-animations, and Tab switches to a scene with both of them. Open its `game.project` in Defold and choose *Project ▸ Build*.
+page is a ready-to-run project: Rigbytron (a Rigby2D game object, visible in the editor) slashes on
+Space or a click, NILA (played from a script) runs through her animations, and Tab switches to a
+scene with both of them. Open its `game.project` in Defold and choose *Project ▸ Build*.
 
-## Use
+## Game objects: see the character in the editor
+
+![Rigbytron in the Defold editor, placed in a collection as a Rigby2D game object](https://rigby2d.com/docs/images/runtime-defold-editor.jpg)
+
+The quickest way in, and the one that shows your character in the Defold editor:
+
+1. In Rigby2D, choose *File ▸ Export ▸ Defold game object…* and save into a folder of your Defold
+   project, say `/assets/hero`. Rigby2D finds the project from its `game.project` (in the browser
+   editor, it asks for the folder's path). It writes:
+
+   | File | |
+   | --- | --- |
+   | `hero.skel`, `hero.atlas`, `hero.png` | The skeleton and its atlas, which the runtime plays. |
+   | `hero.go` | The game object to place: the player script, the piece factory, and a sprite of the setup pose. |
+   | `hero.script` | The player, with properties you set in the editor (below). |
+   | `hero_preview.atlas`, `hero_preview.png` | The setup-pose picture the sprite shows in the editor. |
+
+2. Add the folder to *game.project ▸ Project ▸ Custom Resources* (the runtime reads the skeleton
+   and atlas at run time), then drag `hero.go` into a collection. The editor shows the character
+   where it will stand: move, rotate and scale it like any game object. In the game, the script
+   hides the sprite and the skeleton plays in its place.
+
+Select the game object to set its script's properties:
+
+| Property | |
+| --- | --- |
+| `animation` | Animation to play from the start, looping (`""` for none). Rigby2D presets the one you had open. |
+| `skin` | Skin to show (`""` for the default skin). The editor picture shows the skin set at export. |
+| `loop` | Whether that animation loops. |
+| `speed` | Playback speed. |
+
+Drive it from your own scripts with messages to its script (`hero#rigby2d_player`):
+
+```lua
+msg.post("hero#rigby2d_player", "play", { animation = "attack", loop = false, mix = 0.1 })
+msg.post("hero#rigby2d_player", "add_animation", { animation = "idle", loop = true, mix = 0.2 })
+```
+
+| Message | Fields |
+| --- | --- |
+| `play` (or `set_animation`) | `animation` (name or hash), `loop` (default true), `mix` (seconds), `track` (default 0) |
+| `add_animation` | The same, plus `delay`: queued after the current animation |
+| `clear_track` | `track` |
+| `stop` | |
+| `set_skin` | `skin` (name or hash; nil for the default skin) |
+| `set_speed` | `speed` |
+| `set_tint` | `r`, `g`, `b`, `a` (0 to 1) |
+
+Playback events arrive at every script on the same game object as `rigby2d_event` messages, with
+the fields described for `player:on_event` below (`kind`, `track`, `animation`, `name`...). To
+call the player directly, for bones and everything else in the table below, get it with
+`require("rigby2d.component").player("hero")` (a game object id or url) once the object has
+started:
+
+```lua
+local component = require("rigby2d.component")
+local hero = component.player("hero")
+local x, y = hero:bone("hand_r")
+```
+
+The editor picture is the setup pose, drawn when you export: export again after changing the rig
+or the art. It is a small sprite (at most 1024 pixels on its longest side) that ships in the game
+build but stays hidden. The export also writes the game object's script, so keep your own code in
+other scripts (on the same game object or elsewhere) and leave `hero.script` to Rigby2D. The
+[MCP server](https://rigby2d.com/docs/mcp.html) writes the same files from an existing export with
+`export_defold_game_object`.
+
+## Scripts
+
+To create characters from code, or to keep everything in one script, play a skeleton directly. A
+character made this way appears when the game runs, not in the editor:
 
 1. Export your skeleton from Rigby2D: *File ▸ Export ▸ Binary .skel + atlas (4.3)* (or *JSON + atlas*).
    Put the `.skel`/`.json`, the `.atlas` and its page images in a folder, say `/assets`, and add
@@ -111,7 +182,7 @@ The demo plays the scene from the editor's demo (NILA and Rigbytron on a moonlit
 
 ### Native module
 
-`rigby2d.lua` is built on the native `rigby` module, usable on its own: `rigby.load(skeleton_bytes,
+`component.lua` (the Rigby2D game objects) and `rigby2d.lua` are built on the native `rigby` module, usable on its own: `rigby.load(skeleton_bytes,
 atlas_text)` returns skeleton data (`:animations()`, `:pages()`...), `rigby.new(data)` a skeleton
 with `:set_animation`, `:update(dt)`, `:bone`, and `:build()` / `:piece(i)` / `:write(i, buffer)`
 to write the geometry into a vertex buffer; `rigby.load_scene(manifest, reader)` a scene with the same

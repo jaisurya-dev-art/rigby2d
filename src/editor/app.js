@@ -10,7 +10,9 @@ import * as edit from './edit.js';
 import { Images } from './images.js';
 import * as io from './io.js';
 import * as platform from './platform.js';
-import { askChoice, askOption, showResult } from './resultui.js';
+import { askChoice, askOption, askText, showResult } from './resultui.js';
+import { defoldFiles, defoldFolderOf } from './defold.js';
+import { imageLookup } from '../core/draw.js';
 import { addSound, sounds, stopAudio } from './audio.js';
 import { WORKSPACES, workspace as workspaceDef } from './workspaces.js';
 import * as onion from './onion.js';
@@ -859,6 +861,69 @@ export class App {
       showResult(this, { ok: true, title: t('Binary skeleton exported'), detail: t('With its atlas {path}.', { path: atlasPath }) + note, path: target.path });
     } catch (e) {
       showResult(this, { ok: false, title: t('Binary export failed'), detail: errorText(e) });
+    }
+  }
+
+  /**
+   * Writes a binary skeleton with its atlas, plus a Defold game object for it (defold.js): a .go
+   * that shows the setup pose in the Defold editor and plays the skeleton with the rigby2d library.
+   */
+  async exportDefold() {
+    const target = await this.guard(() => platform.pickSaveTarget(`${this.doc.name || 'skeleton'}.skel`, t('Binary skeleton'), 'skel'));
+    if (!target) return;
+    try {
+      const name = io.stem(target.path);
+      const dir = io.dirname(target.path);
+      // The folder's path in the Defold project: from the game.project above it (desktop), or asked.
+      let folder = platform.isDesktop ? await defoldFolderOf(dir, (root) => target.fs.readText(`${root}/game.project`).then(() => true, () => false)) : null;
+      if (!folder) {
+        folder = await askText({
+          title: t('Folder in your Defold project'),
+          detail: platform.isDesktop
+            ? t('No game.project was found above this folder. Where will these files sit in your Defold project?')
+            : t('Where will these files sit in your Defold project? The game object refers to them by this path.'),
+          value: `/assets/${name}`,
+          okLabel: t('Export'),
+        });
+        if (!folder) return;
+        folder = `/${folder.replace(/\\/g, '/').replace(/^\/+|\/+$/g, '')}`;
+      }
+      const { atlasPath, warnings } = await io.exportSkeletonBinary(target.path, target.fs, this.doc, this.images);
+      const textures = new Map();
+      for (const image of io.usedImages(this.doc)) {
+        const canvas = this.images.get(image);
+        if (canvas) textures.set(image, { width: canvas.width, height: canvas.height, data: canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height).data, pma: false });
+      }
+      const files = defoldFiles({
+        doc: this.doc,
+        lookup: imageLookup(textures),
+        name,
+        folder,
+        skeleton: io.basename(target.path),
+        animation: this.currentAnimation()?.name ?? '',
+        skin: this.doc.skin ?? '',
+      });
+      for (const f of files) {
+        const path = dir === '.' ? f.path : io.joinPath(dir, f.path);
+        if (f.png) {
+          const canvas = document.createElement('canvas');
+          canvas.width = f.png.width;
+          canvas.height = f.png.height;
+          canvas.getContext('2d').putImageData(new ImageData(new Uint8ClampedArray(f.png.rgba), f.png.width, f.png.height), 0, 0);
+          await target.fs.writeFile(path, await io.encodePng(canvas));
+        } else await target.fs.writeText(path, f.text);
+      }
+      await target.fs.finish();
+      const note = warnings.length ? t(' (warnings: {warnings})', { warnings: warnings.join('; ') }) : '';
+      track('editor-export-defold');
+      showResult(this, {
+        ok: true,
+        title: t('Defold game object exported'),
+        detail: t('Add {go} to a collection: the Defold editor shows the character, and the game plays it. The project needs the rigby2d library, and {folder} in Custom Resources. With its atlas {path}.', { go: `${folder}/${name}.go`, folder, path: atlasPath }) + note,
+        path: target.path,
+      });
+    } catch (e) {
+      showResult(this, { ok: false, title: t('Defold export failed'), detail: errorText(e) });
     }
   }
 
