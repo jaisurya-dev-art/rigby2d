@@ -13,7 +13,7 @@
     </pe-file>
     <!-- Windows Installer package, with the editor inside it. -->
     <msi-file path="Rigby2D_*_x64_en-US.msi">
-      <pe-file path="rigby2d.exe">
+      <pe-file path="**/rigby2d.exe">
         <authenticode-sign/>
       </pe-file>
       <authenticode-sign/>
