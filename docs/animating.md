@@ -119,6 +119,9 @@ Each key has a curve that shapes the motion to the next key:
 | **Stepped** | Holds the value until the next key: snappy timing, image swaps. |
 | **Custom** | Any Bézier shape, set in the [graph editor](graph-editor.md). |
 
+New bone keys are linear. To start them eased or stepped instead, set *Preferences ▸ Editing ▸ Curve
+of new keys*; it changes only keys made from then on.
+
 ## Tips for good motion
 
 - **Block first, then refine.** Key the main poses with stepped curves, check the timing, then

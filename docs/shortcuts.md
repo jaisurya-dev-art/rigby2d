@@ -2,7 +2,8 @@
 
 Rigby2D has two shortcut presets, and you can make your own. Choose one in *Preferences ▸ Interface*;
 *Help ▸ Keyboard shortcuts* lists the keys of the active preset, with a search box and the preset
-switch. On macOS, <kbd>Ctrl</kbd> also works as <kbd>Cmd</kbd>.
+switch. On macOS, <kbd>Ctrl</kbd> also works as <kbd>Cmd</kbd>. Buttons show their shortcut in the
+tooltip when you hover them, in the keys of the active preset.
 
 - **Spine-like** (default): the keys Spine animators know, with tools and playback on the left hand (B, N, C, V, X, Z; Q, W, E, A, S, D,
   R, F), as in common 2D animation tools.

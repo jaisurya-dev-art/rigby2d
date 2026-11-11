@@ -43,7 +43,7 @@ work in both modes; only the result differs.
 | Transform the selection | Drag it with the active tool, or drag empty space while bones are selected. |
 | Pan | Right or middle drag. |
 | Zoom | Mouse wheel. |
-| Fit the skeleton in view | *View ▸ Fit the skeleton in view* (<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F</kbd>). |
+| Fit the skeleton in view | The fit button in the menu bar, or *View ▸ Fit the skeleton in view* (<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F</kbd>). |
 | Deselect | <kbd>Esc</kbd>, or click empty space. |
 
 Hovering a bone — in the viewport, the tree or a timeline track — highlights it in all three at
@@ -82,7 +82,8 @@ The *View* menu chooses what is drawn over the art:
 
 - *Show bones*, *Show clipping masks*, *Show bounding boxes*, *Show paths* and *Show points*, one
   switch per kind (remembered between sessions). A shape you select stays visible even when its kind
-  is hidden, so you can still edit it.
+  is hidden, so you can still edit it. The bone button in the menu bar and <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>B</kbd>
+  also show or hide bones.
 - *Show output frame* (Film workspace).
 - **Hide overlays** (<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>H</kbd>, or <kbd>Shift</kbd>+<kbd>Alt</kbd>+<kbd>Z</kbd>
   with the Blender-like shortcuts) hides bones, shapes, selection outlines and guides at once, to
