@@ -413,8 +413,8 @@ export class Pose {
       return;
     }
     const [p, ch] = c.bones;
-    let P = this.world[p].apply([0, 0]);
-    let C = this.world[ch].apply([0, 0]);
+    const P = this.world[p].apply([0, 0]);
+    const C = this.world[ch].apply([0, 0]);
     const tip = this.world[ch].apply([sk.bones[ch].length, 0]);
     const a = len(sub(C, P));
     const bLen = len(sub(tip, C));
@@ -425,13 +425,17 @@ export class Pose {
     }
     let d = len(sub(target, P));
     if (state.stretch && d > a + bLen) {
+      // Out of reach: straighten the chain toward the target (the parent aims, then the child),
+      // then stretch the parent to the distance. Straightening first keeps the child in line, so
+      // the parent's scale stretches it along its length instead of skewing it.
+      aim(p, P, C);
+      this.updateBranch(sk, p);
+      this.finishTwoBone(sk, p, ch, target, mix, state, parentSign);
       const s = (d / (a + bLen) - 1) * mix + 1;
       this.applied[p].scale_x *= s;
       if (c.uniform) this.applied[p].scale_y *= s;
       this.updateBranch(sk, p);
-      P = this.world[p].apply([0, 0]);
-      C = this.world[ch].apply([0, 0]);
-      return this.finishTwoBone(sk, p, ch, target, mix, state, parentSign);
+      return;
     }
     const soft = state.softness;
     if (soft > 0 && d > a + bLen - soft) d = a + bLen - soft * Math.exp(-(d - (a + bLen - soft)) / soft);

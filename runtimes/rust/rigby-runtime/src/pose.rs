@@ -610,13 +610,17 @@ impl Pose {
         }
         let mut d = (target.0 - pp.0).hypot(target.1 - pp.1);
         if state.stretch && d > a + b_len {
+            // Out of reach: straighten the chain toward the target (the parent aims, then the
+            // child), then stretch the parent to the distance, so the child stretches in line.
+            self.aim(sk, p, pp, cc, target, mix);
+            self.update_branch(sk, p);
+            self.finish_two_bone(sk, ch, target, mix);
             let s = (d / (a + b_len) - 1.0) * mix + 1.0;
             self.applied[p].scale_x *= s;
             if c.uniform {
                 self.applied[p].scale_y *= s;
             }
             self.update_branch(sk, p);
-            self.finish_two_bone(sk, ch, target, mix);
             return;
         }
         let soft = state.softness;

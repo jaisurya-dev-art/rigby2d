@@ -174,22 +174,6 @@ export function renderControls(app, el) {
         }),
         ' ' + t('Boomerang'),
       ),
-      speedSelect(
-        [
-          [0.1, '0.1×'],
-          [0.25, '0.25×'],
-          [0.5, '0.5×'],
-          [1, '1×'],
-          [1.5, '1.5×'],
-          [2, '2×'],
-        ],
-        app.playSpeed ?? 1,
-        (v) => {
-          app.playSpeed = v;
-          app.changed();
-        },
-        { tut: 'timeline:speed' },
-      ),
       fpsSelect(app),
       h('span', { class: 'vsep' }),
       h('button', { 'data-tut': 'timeline:key', disabled: app.mode !== Mode.Animate, onclick: () => edit.keySelection(app) }, t('◆ Key (K)')),
@@ -253,9 +237,26 @@ export function renderControls(app, el) {
           ),
         ),
       ),
-      // The time readout last, where the eye ends up after the tools.
+      // The time readout last, where the eye ends up after the tools, with the playback speed
+      // next to it.
       anim && h('span', { class: 'vsep' }),
       anim && timeReadout(app, anim),
+      speedSelect(
+        [
+          [0.1, '0.1×'],
+          [0.25, '0.25×'],
+          [0.5, '0.5×'],
+          [1, '1×'],
+          [1.5, '1.5×'],
+          [2, '2×'],
+        ],
+        app.playSpeed ?? 1,
+        (v) => {
+          app.playSpeed = v;
+          app.changed();
+        },
+        { tut: 'timeline:speed' },
+      ),
     ]
       .flat()
       .filter(Boolean),

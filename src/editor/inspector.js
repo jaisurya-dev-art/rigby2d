@@ -6,7 +6,7 @@ import { BLEND_MODES, INHERIT_MODES, findAttachment, makeAttachment, makeBone, u
 import { FPS, Mode, selBone, selSlot } from './app.js';
 import * as edit from './edit.js';
 import { renameBoneRefs, renameSlotRefs } from '../core/constraintdata.js';
-import { sequenceFrameName } from '../core/sequence.js';
+import { inferSequence, sequenceFrameName } from '../core/sequence.js';
 import { constraintUi } from './constraintui.js';
 import { actorUi, depthUi } from './sceneui.js';
 import { bindMesh, generateFromImage, regionToMesh, unbindMesh } from './meshtool.js';
@@ -829,8 +829,22 @@ function sequenceUi(app, s, att, setupMode) {
         type: 'checkbox',
         checked: !!seq,
         onchange: (e) => {
-          if (e.target.checked) att.sequence = { count: 2 };
-          else delete att.sequence;
+          if (e.target.checked) {
+            // "guy-01" is a frame of the sequence "guy-": the frames are named from that base.
+            const found = inferSequence(att.image ?? att.name, (n) => !!app.images.get(n));
+            if (found) {
+              att.image = found.base;
+              att.sequence = { count: found.count };
+              if (found.start !== 1) att.sequence.start = found.start;
+              if (found.digits) att.sequence.digits = found.digits;
+              if (found.setup) att.sequence.setup = found.setup;
+            } else att.sequence = { count: 2 };
+          } else {
+            // Back to a single image: the frame that was showing.
+            const shown = sequenceFrameName(att, att.sequence.setup ?? 0);
+            delete att.sequence;
+            if (app.images.get(shown)) att.image = shown;
+          }
           app.changed();
         },
       }),

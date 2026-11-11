@@ -189,3 +189,31 @@ test('slider constraint drives an animation from a bone rotation', () => {
   sk.bones[1].setup.rotation = 180;
   assert.ok(close(rot(new Pose(sk), sk, 'arm'), 100));
 });
+
+test('a sequence is read from the name of one of its frames', async () => {
+  const { inferSequence, sequenceFrameName } = await import('../src/core/sequence.js');
+  const images = new Set(['guy-01', 'guy-02', 'guy-03', 'fire0', 'fire1', 'fire2', 'wing7']);
+  const has = (n) => images.has(n);
+  assert.deepEqual(inferSequence('guy-01', has), { base: 'guy-', start: 1, digits: 2, count: 3, setup: 0 });
+  assert.deepEqual(inferSequence('guy-02', has), { base: 'guy-', start: 1, digits: 2, count: 3, setup: 1 });
+  assert.deepEqual(inferSequence('fire1', has), { base: 'fire', start: 0, digits: 0, count: 3, setup: 1 });
+  assert.equal(inferSequence('guy', has), null);
+  const one = inferSequence('wing7', has);
+  assert.equal(one.count, 2);
+  const att = { image: 'guy-', sequence: { count: 3, digits: 2 } };
+  assert.deepEqual([0, 1, 2].map((i) => sequenceFrameName(att, i)), ['guy-01', 'guy-02', 'guy-03']);
+});
+
+test('a stretching two-bone IK reaches a target out of reach, bent or straight', () => {
+  for (const [tx, ty, bent] of [[500, 200, 0], [500, 0, 40], [300, 400, 0], [600, -50, -30]]) {
+    const { skeleton: sk } = readSkeletonJson({
+      skeleton: { [V]: '4.2.0' },
+      bones: [{ name: 'root' }, { name: 'a', parent: 'root', length: 100 }, { name: 'b', parent: 'a', x: 100, rotation: bent, length: 100 }, { name: 't', parent: 'root', x: tx, y: ty }],
+      slots: [],
+      ik: [{ name: 'ik', bones: ['a', 'b'], target: 't', stretch: true }],
+    });
+    const pose = new Pose(sk);
+    const [x, y] = pose.world[2].apply([100, 0]);
+    assert.ok(close(x, tx, 1e-6) && close(y, ty, 1e-6), `tip ${x}, ${y} for target ${tx}, ${ty}`);
+  }
+});

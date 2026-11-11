@@ -817,11 +817,15 @@ void Pose::solve_ik(const SkeletonData& sk, const IkData& c, const IkState& stat
     }
     double d = std::hypot(target[0] - pp[0], target[1] - pp[1]);
     if (state.stretch && d > a + b_len) {
+        // Out of reach: straighten the chain toward the target (the parent aims, then the child),
+        // then stretch the parent to the distance, so the child stretches in line.
+        aim(sk, p, pp, cc, target, mix);
+        update_branch(sk, p);
+        finish_two_bone(sk, ch, target, mix);
         double s = (d / (a + b_len) - 1.0) * mix + 1.0;
         applied[p].scale_x *= s;
         if (c.uniform) applied[p].scale_y *= s;
         update_branch(sk, p);
-        finish_two_bone(sk, ch, target, mix);
         return;
     }
     double soft = state.softness;

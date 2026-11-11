@@ -13,6 +13,26 @@ export function sequenceFrameName(att, index) {
   return `${att.image ?? att.name}${String(start + i).padStart(digits, '0')}`;
 }
 
+/**
+ * A sequence read from the name of one of its frames: "guy-01" with "guy-02" next to it gives base
+ * "guy-", start 1, 2 digits. `has(name)` tells whether an image exists. Counts the frames found
+ * from the start number on (at least 2) and returns the index of `name` among them as `setup`.
+ * Null when the name does not end in a number.
+ */
+export function inferSequence(name, has = () => false) {
+  const m = /^(.*?)(\d+)$/.exec(name ?? '');
+  if (!m) return null;
+  const [, base, number] = m;
+  const own = Number(number);
+  const digits = number.length > 1 && number.startsWith('0') ? number.length : 0;
+  const frame = (n) => `${base}${String(n).padStart(digits, '0')}`;
+  // The first frame: 0 or 1 when present, otherwise this one.
+  const start = [0, 1].find((n) => n < own && has(frame(n))) ?? own;
+  let count = own - start + 1;
+  while (has(frame(start + count))) count++;
+  return { base, start, digits, count: Math.max(2, count), setup: own - start };
+}
+
 /** Frame shown when no key sets one. */
 export function sequenceSetupIndex(att) {
   return att.sequence?.setup ?? 0;

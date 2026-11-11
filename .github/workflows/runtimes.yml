@@ -27,7 +27,7 @@ jobs:
         run: |
           mkdir -p "$RUNNER_TEMP/golden"
           cd runtimes/rust/rigby-runtime/tests/golden
-          for f in branding/nila/export/nila.json branding/nila/export/nila.skel branding/rigbytron/export/rigbytron.json; do
+          for f in branding/nila/export/nila.json branding/nila/export/nila.skel branding/rigbytron/export/rigbytron.json test/fixtures/ik-stretch.json; do
             node generate.mjs "$RUNNER_TEMP/golden/$(basename "$f" | tr . _).golden.json" "$GITHUB_WORKSPACE/$f" "$(basename "$f")"
           done
       - name: Rust runtime

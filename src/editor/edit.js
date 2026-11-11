@@ -204,12 +204,15 @@ export function deleteSelection(app) {
   app.deselect();
 }
 
-/** Adds a child bone under `parent` pointing along the parent's direction. */
+/**
+ * Adds a child bone under `parent` pointing along the parent's direction, as long as the parent
+ * (so a chain made this way keeps its size instead of shrinking with every bone).
+ */
 export function addChildBone(app, parent) {
   const len = Math.max(app.doc.bones[parent].length, 40);
   const name = app.doc.uniqueBoneName('bone');
   const setup = transform(app.doc.bones[parent].length, 0, 0);
-  const i = app.doc.addBone(makeBone(name, parent, setup, len * 0.8));
+  const i = app.doc.addBone(makeBone(name, parent, setup, len));
   app.select({ bone: i });
   return i;
 }

@@ -578,11 +578,15 @@ namespace Rigby2D
             double d = MathUtil.Hypot(gx - ppx, gy - ppy);
             if (state.Stretch && d > a + bLen)
             {
+                // Out of reach: straighten the chain toward the target (the parent aims, then the
+                // child), then stretch the parent to the distance, so the child stretches in line.
+                Aim(p, ppx, ppy, ccx, ccy, gx, gy, mix);
+                UpdateBranch(p);
+                FinishTwoBone(ch, gx, gy, mix);
                 double s = (d / (a + bLen) - 1.0) * mix + 1.0;
                 Applied[p].ScaleX *= s;
                 if (c.Uniform) Applied[p].ScaleY *= s;
                 UpdateBranch(p);
-                FinishTwoBone(ch, gx, gy, mix);
                 return;
             }
             double soft = state.Softness;
