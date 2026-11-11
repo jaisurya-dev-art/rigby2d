@@ -1,0 +1,23 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+// Rigby2D model component (.rigbymodel): a skeleton exported from Rigby2D, drawn with the images of
+// a Defold atlas. Built by the bob plugin (pluginsrc) into .rigbymodelc, which the engine
+// component (src/comp_rigby_model.cpp) plays; the editor plugin (editor/src) previews it live.
+
+syntax = "proto2";
+package dmRigby2DDDF;
+
+import "ddf/ddf_extensions.proto";
+
+option java_package = "com.rigby2d.defold.proto";
+option java_outer_classname = "Rigby2D";
+
+message RigbyModelDesc
+{
+    required string skeleton          = 1 [(resource)=true];  // .rigbyskel: binary skeleton exported from Rigby2D
+    required string atlas             = 2 [(resource)=true];  // .atlas: a Defold atlas with the skeleton's images
+    optional string default_animation = 3 [default = ""];
+    optional string skin              = 4 [default = ""];
+    optional string material          = 5 [(resource)=true, default = "/rigby2d/materials/rigby2d_model.material"];
+    optional float playback_rate      = 6 [default = 1.0];
+    optional bool loop                = 7 [default = true];
+}

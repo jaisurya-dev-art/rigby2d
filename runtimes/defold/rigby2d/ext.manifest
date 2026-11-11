@@ -1,1 +1,6 @@
 name: "Rigby2D"
+
+platforms:
+    common:
+        context:
+            symbols: ["ResourceTypeRigbySkel", "ResourceTypeRigbyModel", "ComponentTypeRigbyModel"]

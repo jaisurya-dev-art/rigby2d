@@ -137,7 +137,7 @@ function menus() {
       submenuItem(t('Export'), [
         { label: t('JSON + atlas…'), shortcut: t('Ctrl+E'), action: () => app.exportSkeletonJson(app.saveVersion()) },
         { label: t('Binary .skel + atlas (4.3)…'), action: () => app.exportSkeletonBinary() },
-        { label: t('Defold game object…'), title: t('A binary skeleton with its atlas, and a game object that shows the character in the Defold editor and plays it with the Rigby2D runtime'), action: () => app.exportDefold() },
+        { label: t('Defold model…'), title: t('A Rigby2D model component for Defold: the Defold editor plays it live, and the game plays it natively'), action: () => app.exportDefold() },
         ...(app.doc.scene ? [] : [{ label: t('Sprite sheet…'), title: t('Animations as frames: a packed sheet with JSON, a Defold atlas, or PNG frames'), action: () => openSpriteSheetDialog(app) }]),
         'separator',
         { label: t('JSON format 3.8…'), action: () => app.exportSkeletonJson('3.8') },

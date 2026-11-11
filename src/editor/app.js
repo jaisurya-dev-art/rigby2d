@@ -11,8 +11,7 @@ import { Images } from './images.js';
 import * as io from './io.js';
 import * as platform from './platform.js';
 import { askChoice, askOption, askText, showResult } from './resultui.js';
-import { defoldFiles, defoldFolderOf } from './defold.js';
-import { imageLookup } from '../core/draw.js';
+import { defoldFolderOf, defoldModelFiles } from './defold.js';
 import { addSound, sounds, stopAudio } from './audio.js';
 import { WORKSPACES, workspace as workspaceDef } from './workspaces.js';
 import * as onion from './onion.js';
@@ -865,11 +864,12 @@ export class App {
   }
 
   /**
-   * Writes a binary skeleton with its atlas, plus a Defold game object for it (defold.js): a .go
-   * that shows the setup pose in the Defold editor and plays the skeleton with the rigby2d library.
+   * Writes a Rigby2D model for Defold (defold.js): the skeleton, its images in a Defold atlas, the
+   * .rigbymodel component and a game object holding it. With the rigby2d library, the Defold editor
+   * plays the model live in the scene view, and the game plays it natively.
    */
   async exportDefold() {
-    const target = await this.guard(() => platform.pickSaveTarget(`${this.doc.name || 'skeleton'}.skel`, t('Binary skeleton'), 'skel'));
+    const target = await this.guard(() => platform.pickSaveTarget(`${this.doc.name || 'skeleton'}.rigbymodel`, t('Rigby2D model'), 'rigbymodel'));
     if (!target) return;
     try {
       const name = io.stem(target.path);
@@ -881,45 +881,32 @@ export class App {
           title: t('Folder in your Defold project'),
           detail: platform.isDesktop
             ? t('No game.project was found above this folder. Where will these files sit in your Defold project?')
-            : t('Where will these files sit in your Defold project? The game object refers to them by this path.'),
+            : t('Where will these files sit in your Defold project? The model refers to them by this path.'),
           value: `/assets/${name}`,
           okLabel: t('Export'),
         });
         if (!folder) return;
         folder = `/${folder.replace(/\\/g, '/').replace(/^\/+|\/+$/g, '')}`;
       }
-      const { atlasPath, warnings } = await io.exportSkeletonBinary(target.path, target.fs, this.doc, this.images);
-      const textures = new Map();
+      const images = new Map();
       for (const image of io.usedImages(this.doc)) {
         const canvas = this.images.get(image);
-        if (canvas) textures.set(image, { width: canvas.width, height: canvas.height, data: canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height).data, pma: false });
+        if (canvas) images.set(image, canvas);
       }
-      const files = defoldFiles({
-        doc: this.doc,
-        lookup: imageLookup(textures),
-        name,
-        folder,
-        skeleton: io.basename(target.path),
-        animation: this.currentAnimation()?.name ?? '',
-        skin: this.doc.skin ?? '',
-      });
+      const files = defoldModelFiles({ doc: this.doc, images, name, folder, animation: this.currentAnimation()?.name ?? '', skin: this.doc.skin ?? '' });
+      const at = (p) => (dir === '.' ? p : io.joinPath(dir, p));
+      await target.fs.mkdir?.(at('images'));
       for (const f of files) {
-        const path = dir === '.' ? f.path : io.joinPath(dir, f.path);
-        if (f.png) {
-          const canvas = document.createElement('canvas');
-          canvas.width = f.png.width;
-          canvas.height = f.png.height;
-          canvas.getContext('2d').putImageData(new ImageData(new Uint8ClampedArray(f.png.rgba), f.png.width, f.png.height), 0, 0);
-          await target.fs.writeFile(path, await io.encodePng(canvas));
-        } else await target.fs.writeText(path, f.text);
+        if (f.png) await target.fs.writeFile(at(f.path), await io.encodePng(f.png));
+        else if (f.bytes) await target.fs.writeFile(at(f.path), f.bytes);
+        else await target.fs.writeText(at(f.path), f.text);
       }
       await target.fs.finish();
-      const note = warnings.length ? t(' (warnings: {warnings})', { warnings: warnings.join('; ') }) : '';
       track('editor-export-defold');
       showResult(this, {
         ok: true,
-        title: t('Defold game object exported'),
-        detail: t('Add {go} to a collection: the Defold editor shows the character, and the game plays it. The project needs the rigby2d library, and {folder} in Custom Resources. With its atlas {path}.', { go: `${folder}/${name}.go`, folder, path: atlasPath }) + note,
+        title: t('Rigby2D model exported'),
+        detail: t('Add {go} to a collection, or {model} to a game object: the Defold editor plays it in the scene view, and the game plays it. The project needs the rigby2d library.', { go: `${folder}/${name}.go`, model: `${folder}/${name}.rigbymodel` }),
         path: target.path,
       });
     } catch (e) {

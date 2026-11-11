@@ -2,7 +2,7 @@
 // Times animating one character for one frame (apply the animation, solve constraints, compute
 // world transforms and vertices), median of 2000 frames, like the Rust runtime's bench example,
 // plus building the draw batches:
-//   g++ -std=c++17 -O2 -I runtimes/defold/rigby2d/src runtimes/defold/test/bench.cpp runtimes/defold/rigby2d/src/rigby_*.cpp -o bench
+//   g++ -std=c++17 -O2 -I runtimes/defold/rigby2d/include runtimes/defold/test/bench.cpp runtimes/defold/rigby2d/commonsrc/rigby_*.cpp -o bench
 //   ./bench <skeleton> [animation] [atlas]
 #include "rigby.h"
 

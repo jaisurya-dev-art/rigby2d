@@ -1,12 +1,14 @@
 # Rigby2D for Defold
 
 Play Rigby2D animations in Defold 1.14 or newer. The `rigby2d` library is a native extension: the
-Rigby2D runtime in C++ (`rigby2d/src`), a port of the Rust runtime that matches the JavaScript
+Rigby2D runtime in C++ (`rigby2d/commonsrc`), a port of the Rust runtime that matches the JavaScript
 runtime frame by frame (golden-tested in CI). It loads skeleton exports (binary `.skel` 4.3 or
 skeleton `.json` 3.8 / 4.2 / 4.3) with their `.atlas`, and plays them: meshes and weights, IK,
 transform, path, physics and slider constraints, skins, image sequences, clipping, draw order,
 events, two-color tint and blend modes, with layered tracks, crossfades and queued animations,
-and whole scenes (a stage, several characters, a camera and parallax).
+and whole scenes (a stage, several characters, a camera and parallax). Rigby2D models are a
+component the Defold editor plays live in the scene view, like Spine models, and the game draws
+natively.
 
 ![The Defold 1.14 editor with the demo project, and the game it launched playing a Rigby2D scene](https://rigby2d.com/docs/images/runtime-defold.jpg)
 
@@ -25,81 +27,82 @@ https://github.com/jaisurya-dev-art/rigby2d/releases/latest/download/rigby2d-def
 folder into your project.
 
 `rigby2d-defold-demo-<version>.zip` on the [Releases](https://github.com/jaisurya-dev-art/rigby2d/releases)
-page is a ready-to-run project: Rigbytron (a Rigby2D game object, visible in the editor) slashes on
-Space or a click, NILA (played from a script) runs through her animations, and Tab switches to a
-scene with both of them. Open its `game.project` in Defold and choose *Project ▸ Build*.
+page is a ready-to-run project: Rigbytron (a Rigby2D model, live in the editor) slashes on Space or
+a click, NILA (played from a script) runs through her animations, and Tab switches to a scene with
+both of them. Open its `game.project` in Defold and choose *Project ▸ Build*.
 
-## Game objects: see the character in the editor
+## Rigby2D models: live in the editor
 
-![Rigbytron in the Defold editor, placed in a collection as a Rigby2D game object](https://rigby2d.com/docs/images/runtime-defold-editor.jpg)
+![Rigbytron, a Rigby2D model, in the Defold editor's scene view](https://rigby2d.com/docs/images/runtime-defold-editor.jpg)
 
-The quickest way in, and the one that shows your character in the Defold editor:
+A **Rigby2D Model** is a component, like a sprite or a Spine model: add it to a game object and the
+Defold editor plays it in the scene view, through the same Rigby2D runtime the game uses. Pick its
+animation and skin in the Properties panel and press **Play** (<kbd>Space</kbd>) in the scene view to
+watch it move, then build: the game draws it natively, with nothing to set up in code.
 
-1. In Rigby2D, choose *File ▸ Export ▸ Defold game object…* and save into a folder of your Defold
-   project, say `/assets/hero`. Rigby2D finds the project from its `game.project` (in the browser
-   editor, it asks for the folder's path). It writes:
+1. In Rigby2D, choose *File ▸ Export ▸ Defold model…* and save into a folder of your Defold project,
+   say `/assets/hero`. Rigby2D finds the project from its `game.project` (in the browser editor,
+   it asks for the folder's path). It writes:
 
    | File | |
    | --- | --- |
-   | `hero.skel`, `hero.atlas`, `hero.png` | The skeleton and its atlas, which the runtime plays. |
-   | `hero.go` | The game object to place: the player script, the piece factory, and a sprite of the setup pose. |
-   | `hero.script` | The player, with properties you set in the editor (below). |
-   | `hero_preview.atlas`, `hero_preview.png` | The setup-pose picture the sprite shows in the editor. |
+   | `hero.rigbyskel` | The skeleton (a binary export). |
+   | `images/*.png`, `hero.atlas` | The images, and a Defold atlas with them, so texture profiles, compression and the rest of Defold's pipeline apply. |
+   | `hero.rigbymodel` | The component. |
+   | `hero.go` | A game object holding it, to drag into a collection. |
 
-2. Add the folder to *game.project ▸ Project ▸ Custom Resources* (the runtime reads the skeleton
-   and atlas at run time), then drag `hero.go` into a collection. The editor shows the character
-   where it will stand: move, rotate and scale it like any game object. In the game, the script
-   hides the sprite and the skeleton plays in its place.
+2. Drag `hero.go` into a collection (or add `hero.rigbymodel` to any game object with *Add
+   Component File*). Move, rotate and scale it like any game object.
 
-Select the game object to set its script's properties:
+Its properties, all shown in the editor:
 
 | Property | |
 | --- | --- |
-| `animation` | Animation to play from the start, looping (`""` for none). Rigby2D presets the one you had open. |
-| `skin` | Skin to show (`""` for the default skin). The editor picture shows the skin set at export. |
-| `loop` | Whether that animation loops. |
-| `speed` | Playback speed. |
+| Skeleton | The `.rigbyskel` file. |
+| Atlas | A Defold atlas with the skeleton's images: each image's id is its name in Rigby2D (Rigby2D's export writes it). Images packed with rotation work; leave sprite trimming off. |
+| Animation | Plays from the start (empty: the setup pose). A list of the skeleton's animations. |
+| Skin | The skin to show (empty: the default skin). |
+| Loop, Playback Rate | How that animation plays. |
+| Material | Defaults to `/rigby2d/materials/rigby2d_model.material` (two-color tint and blend modes). A custom one needs Vertex Space set to World. |
 
-Drive it from your own scripts with messages to its script (`hero#rigby2d_player`):
+Scripts drive a model with the `rigby` module (`url` is the component, such as `"hero#rigbymodel"`):
 
 ```lua
-msg.post("hero#rigby2d_player", "play", { animation = "attack", loop = false, mix = 0.1 })
-msg.post("hero#rigby2d_player", "add_animation", { animation = "idle", loop = true, mix = 0.2 })
+function init(self)
+	rigby.on_event("#rigbymodel", function(self, event)
+		if event.kind == "event" and event.name == "footstep" then sound.play("#step") end
+	end)
+end
+
+function on_input(self, action_id, action)
+	if action_id == hash("attack") and action.pressed then
+		rigby.play("#rigbymodel", "attack", { loop = false, mix = 0.1 })
+		rigby.queue("#rigbymodel", "idle", { mix = 0.2 })
+	end
+end
 ```
 
-| Message | Fields |
+| Call | |
 | --- | --- |
-| `play` (or `set_animation`) | `animation` (name or hash), `loop` (default true), `mix` (seconds), `track` (default 0) |
-| `add_animation` | The same, plus `delay`: queued after the current animation |
-| `clear_track` | `track` |
-| `stop` | |
-| `set_skin` | `skin` (name or hash; nil for the default skin) |
-| `set_speed` | `speed` |
-| `set_tint` | `r`, `g`, `b`, `a` (0 to 1) |
+| `rigby.play(url, animation, [options], [callback])` | Plays now. `options`: `loop` (default true), `mix` (seconds), `track` (default 0). `callback(self, event)` gets this animation's events. Returns false when there is no such animation. |
+| `rigby.queue(url, animation, [options], [callback])` | Plays after the current animation on the track (or `delay` seconds after it starts). `loop` defaults to false, `mix` to 0.2. |
+| `rigby.stop(url, [track])` | Stops a track, or all of them. |
+| `rigby.set_skin(url, skin)` | Shows a skin (nil or `""`: the default skin). |
+| `rigby.set_tint(url, vmath.vector4(r, g, b, a))` | Multiplies every color. |
+| `rigby.bone(url, name)` | A bone's position (`vmath.vector3`, in the game object's space) and rotation in degrees, to attach things to it. |
+| `rigby.on_event(url, callback)` | `callback(self, event)` for every playback event; nil removes it. |
+| `go.get` / `go.set(url, "animation" | "skin" | "playback_rate")` | The animation on track 0 and the skin (hashes), and the playback speed. Setting `animation` plays it looping. |
 
-Playback events arrive at every script on the same game object as `rigby2d_event` messages, with
-the fields described for `player:on_event` below (`kind`, `track`, `animation`, `name`...). To
-call the player directly, for bones and everything else in the table below, get it with
-`require("rigby2d.component").player("hero")` (a game object id or url) once the object has
-started:
-
-```lua
-local component = require("rigby2d.component")
-local hero = component.player("hero")
-local x, y = hero:bone("hand_r")
-```
-
-The editor picture is the setup pose, drawn when you export: export again after changing the rig
-or the art. It is a small sprite (at most 1024 pixels on its longest side) that ships in the game
-build but stays hidden. The export also writes the game object's script, so keep your own code in
-other scripts (on the same game object or elsewhere) and leave `hero.script` to Rigby2D. The
-[MCP server](https://rigby2d.com/docs/mcp.html) writes the same files from an existing export with
-`export_defold_game_object`.
+Events are tables with `kind` (`"start"`, `"end"`, `"complete"` or `"event"`), `track`,
+`animation` and `entry`, plus, for event keys, `name`, `time`, `int`, `float`, `string`,
+`audio`, `volume` and `balance`. A collection holds up to 128 models; raise
+*game.project ▸ Rigby2D ▸ Max Count* for more. The [MCP server](https://rigby2d.com/docs/mcp.html)
+writes the same files with `export_defold_model`, from a `.rigby` work file or an export.
 
 ## Scripts
 
-To create characters from code, or to keep everything in one script, play a skeleton directly. A
-character made this way appears when the game runs, not in the editor:
+To create characters from code, or to play an export without a Defold atlas, play a skeleton
+from a script. A character made this way appears when the game runs, not in the editor:
 
 1. Export your skeleton from Rigby2D: *File ▸ Export ▸ Binary .skel + atlas (4.3)* (or *JSON + atlas*).
    Put the `.skel`/`.json`, the `.atlas` and its page images in a folder, say `/assets`, and add
@@ -203,13 +206,22 @@ multiply darkens by the color's grey level.
 NILA (39 bones, 890 mesh vertices, hair physics) takes about 12 µs a frame to pose and 24 µs to
 build its geometry on one desktop core (`test/bench.cpp`).
 
+## The editor plugin
+
+The Defold editor runs `rigby2d/editor/src/rigby2d.clj`, which registers the Rigby2D Model and
+skeleton types and draws models in the scene view with `libRigby2D` (`pluginsrc/plugin.cpp`, the
+same C++ runtime and geometry code as the engine component, `commonsrc`). Bob builds models with
+the builders in `pluginRigby2D.jar`. Both are prebuilt in `rigby2d/plugins` for Windows, macOS
+(x86_64, arm64) and Linux (x86_64, arm64); `build_plugins.sh` rebuilds them on Defold's build server
+after a change to `commonsrc`, `pluginsrc` or `commonsrc/rigby2d_ddf.proto`.
+
 ## Tests
 
 `test/golden.cpp` replays the golden files of the Rust runtime (the JavaScript runtime's output:
 bone matrices, drawables, draw order and events, frame by frame) against the C++ runtime:
 
 ```bash
-g++ -std=c++17 -O2 -I runtimes/defold/rigby2d/src runtimes/defold/test/golden.cpp runtimes/defold/rigby2d/src/rigby_*.cpp -o golden
+g++ -std=c++17 -O2 -I runtimes/defold/rigby2d/include runtimes/defold/test/golden.cpp runtimes/defold/rigby2d/commonsrc/rigby_*.cpp -o golden
 ./golden .
 ```
 

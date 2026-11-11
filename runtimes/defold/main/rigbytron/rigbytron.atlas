@@ -1,0 +1,73 @@
+animations {
+  id: "arm_back"
+  images {
+    image: "/main/rigbytron/images/arm_back.png"
+  }
+  playback: PLAYBACK_NONE
+}
+animations {
+  id: "forearm"
+  images {
+    image: "/main/rigbytron/images/forearm.png"
+  }
+  playback: PLAYBACK_NONE
+}
+animations {
+  id: "hand"
+  images {
+    image: "/main/rigbytron/images/hand.png"
+  }
+  playback: PLAYBACK_NONE
+}
+animations {
+  id: "hand_e"
+  images {
+    image: "/main/rigbytron/images/hand_e.png"
+  }
+  playback: PLAYBACK_NONE
+}
+animations {
+  id: "head"
+  images {
+    image: "/main/rigbytron/images/head.png"
+  }
+  playback: PLAYBACK_NONE
+}
+animations {
+  id: "leg_l"
+  images {
+    image: "/main/rigbytron/images/leg_l.png"
+  }
+  playback: PLAYBACK_NONE
+}
+animations {
+  id: "leg_r"
+  images {
+    image: "/main/rigbytron/images/leg_r.png"
+  }
+  playback: PLAYBACK_NONE
+}
+animations {
+  id: "slash_fx"
+  images {
+    image: "/main/rigbytron/images/slash_fx.png"
+  }
+  playback: PLAYBACK_NONE
+}
+animations {
+  id: "torso"
+  images {
+    image: "/main/rigbytron/images/torso.png"
+  }
+  playback: PLAYBACK_NONE
+}
+animations {
+  id: "upperarm"
+  images {
+    image: "/main/rigbytron/images/upperarm.png"
+  }
+  playback: PLAYBACK_NONE
+}
+margin: 0
+extrude_borders: 2
+inner_padding: 0

@@ -66,17 +66,18 @@ Write a project as skeleton JSON (format 3.8, 4.2 or 4.3) or binary .skel (4.3).
 | `version` | `'3.8'`, `'4.2'`, `'4.3'` | Skeleton JSON format version (default 4.3; .skel is always 4.3). |
 | `overwrite` | boolean | Replace the output file if it exists (default false). |
 
-### `export_defold_game_object`
+### `export_defold_model`
 
-Write a Defold game object (.go) for an exported skeleton (.skel or .json with its .atlas): it shows the character setup pose in the Defold editor and plays it in the game with the rigby2d library. Writes <name>.go, <name>.script and the preview picture (<name>_preview.png and its Defold atlas <name>_preview.atlas) next to the skeleton. The folder path in the Defold project is found from the game.project above it, or given as folder.
+Write a Rigby2D model for Defold from a character (.rigby work file, or .skel / .json with its atlas or images): the skeleton (<name>.rigbyskel), its images unpacked into images/ with a Defold atlas (<name>.atlas), the component (<name>.rigbymodel) and a game object holding it (<name>.go). With the rigby2d library, the Defold editor plays the model live in the scene view and the game plays it natively. The output folder path in the Defold project is found from the game.project above it, or given as folder.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `skeleton` **required** | string | Exported skeleton (.skel or .json) inside the workspace, with its .atlas and page images next to it. |
-| `atlas` | string | The atlas, if not <skeleton name>.atlas in the same folder. |
-| `folder` | string | The skeleton folder path in the Defold project, such as "/assets/hero" (default: found from game.project). |
-| `animation` | string | Animation to play at start (the script animation property; default none). |
-| `skin` | string | Skin to show (the script skin property; default the default skin). |
+| `input` **required** | string | Project file: a .rigby work file or a skeleton .json / .skel export. Relative paths resolve against the first workspace root. |
+| `output_folder` | string | Folder to write into, inside the workspace (default: the input file folder). Created files go here and in its images/ subfolder. |
+| `name` | string | Base name of the files (default: the input file name). |
+| `folder` | string | The output folder path in the Defold project, such as "/assets/hero" (default: found from game.project). |
+| `animation` | string | Animation the model plays from the start (its default_animation; default none). |
+| `skin` | string | Skin to show (default: the default skin). |
 | `overwrite` | boolean | Replace files from an earlier export (default false). |
 
 ### `export_sprite_sheet`

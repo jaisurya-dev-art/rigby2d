@@ -686,6 +686,8 @@ class RegionLookup {
 public:
     RegionLookup() {}
     RegionLookup(const SkeletonData& sk, const Atlas& atlas);
+    /// From regions by image name (an engine's own atlas, such as a Defold texture set).
+    RegionLookup(const SkeletonData& sk, const std::unordered_map<std::string, RegionUv>& regions);
     const RegionUv* get(NameId image) const;
     /// Images the skeleton's region and mesh attachments use that have no atlas region.
     std::vector<std::string> missing(const SkeletonData& sk) const;

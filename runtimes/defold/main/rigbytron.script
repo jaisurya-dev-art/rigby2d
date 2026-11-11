@@ -1,35 +1,23 @@
 -- SPDX-License-Identifier: MIT OR Apache-2.0
--- Demo: drives the Rigbytron game object exported from Rigby2D (/assets/rigbytron.go, which the
--- Defold editor shows in place): slashes on Space (or a click) and reports animation events.
+-- Demo: drives Rigbytron, a Rigby2D model component (main/rigbytron/rigbytron.rigbymodel, which
+-- the Defold editor plays live): slashes on Space (or a click) and reports animation events.
 
-local component = require("rigby2d.component")
-
-local PLAYER = "rigbytron#rigby2d_player"
+local MODEL = "rigbytron#rigbymodel"
 
 function init(self)
 	msg.post(".", "acquire_input_focus")
-end
-
-function update(self, dt)
-	-- The player exists once the Rigbytron object has started; listen to its events from then on.
-	if not self.listening then
-		local player = component.player("rigbytron")
-		if player then
-			player:on_event(function(event)
-				if event.kind == "event" then
-					print(("event %s on track %d"):format(event.name, event.track))
-				elseif event.kind == "complete" then
-					print(("%s completed on track %d"):format(event.animation, event.track))
-				end
-			end)
-			self.listening = true
+	rigby.on_event(MODEL, function(self, event)
+		if event.kind == "event" then
+			print(("event %s on track %d"):format(event.name, event.track))
+		elseif event.kind == "complete" then
+			print(("%s completed on track %d"):format(event.animation, event.track))
 		end
-	end
+	end)
 end
 
 function on_input(self, action_id, action)
 	if (action_id == hash("key_space") or action_id == hash("touch")) and action.pressed then
-		msg.post(PLAYER, "play", { animation = "release", loop = false, mix = 0.1 })
-		msg.post(PLAYER, "add_animation", { animation = "hold", loop = true, mix = 0.3 })
+		rigby.play(MODEL, "release", { loop = false, mix = 0.1 })
+		rigby.queue(MODEL, "hold", { loop = true, mix = 0.3 })
 	end
 end

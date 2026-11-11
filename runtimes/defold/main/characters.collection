@@ -5,7 +5,7 @@ instances {
 }
 instances {
   id: "rigbytron"
-  prototype: "/assets/rigbytron.go"
+  prototype: "/main/rigbytron/rigbytron.go"
   position {
     x: 380.0
     y: 90.0

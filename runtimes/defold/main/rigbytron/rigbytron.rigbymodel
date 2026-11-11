@@ -1,0 +1,3 @@
+skeleton: "/main/rigbytron/rigbytron.rigbyskel"
+atlas: "/main/rigbytron/rigbytron.atlas"
+default_animation: "hold"

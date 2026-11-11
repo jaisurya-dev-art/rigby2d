@@ -11,7 +11,7 @@ Rust, C++ and C# cores are ports of it, tested against it frame by frame.
 | [`godot`](godot) | Godot addon (`addons/rigby2d`, with [user guide](godot/addons/rigby2d/README.md)), demo scene and tests. | Complete |
 | [`phaser`](phaser) | Phaser 3.60+ and Phaser 4 plugin ([guide](phaser/README.md)) on the JavaScript runtime (`src/core`) and WebGL renderer: `this.load.rigby`, `this.add.rigby`. | Complete |
 | [`pixi`](pixi) | PixiJS 8 runtime ([guide](pixi/README.md)) on the JavaScript runtime: `RigbySkeleton` is a native `Container` whose attachments are PixiJS meshes, batched with sprites on WebGL and WebGPU, with a two-color tint shader for both. | Complete |
-| [`defold`](defold) | Defold 1.14+ native extension ([guide](defold/README.md)): the runtime in C++ (`rigby2d/src`, a port of the Rust core, golden-tested the same way), a Lua player, game objects that show the character in the Defold editor (written by Rigby2D's *Export ▸ Defold game object*) and a demo. Defold's build server compiles it for every platform. | Complete |
+| [`defold`](defold) | Defold 1.14+ native extension ([guide](defold/README.md)): the runtime in C++ (`rigby2d/commonsrc`, a port of the Rust core, golden-tested the same way), a Rigby2D Model component that the Defold editor plays live in the scene view (an editor plugin running the same runtime; written by Rigby2D's *Export ▸ Defold model*), a Lua player and a demo. Defold's build server compiles it for every platform. | Complete |
 | [`cocos`](cocos) | Cocos Creator 3.8 extension ([guide](cocos/README.md), [中文](cocos/README.zh-CN.md)): the `RigbySkeleton` component for 2D scenes, on the JavaScript runtime. | Complete |
 | [`unity/com.rigby2d.unity`](unity/com.rigby2d.unity) | Unity 2021.3+ package ([guide](unity/com.rigby2d.unity/README.md)): `RigbySkeleton`, `RigbyScene`, `RigbyBoneFollower`, importers and a shader. A C# port of the core (`Rigby2D.Core`, no Unity dependency), golden-tested like the Rust one; multi-core and garbage-free. | Complete |
 
@@ -43,7 +43,7 @@ for batch in out.batches() { /* positions, UVs, colors, dark colors, indices for
 
 ### Correctness
 
-The Rust runtime, and the C++ one in `defold/rigby2d/src`, must match the JavaScript runtime frame
+The Rust runtime, and the C++ one in `defold/rigby2d/commonsrc`, must match the JavaScript runtime frame
 by frame (CI runs both against the same golden files, plus files generated from every demo export
 in `.json` and `.skel`). `tests/golden/generate.mjs`
 plays a skeleton with the JavaScript runtime through fixed scenarios (every animation looping, a

@@ -149,8 +149,9 @@ void Clipper::clip(const std::vector<double>& positions, const std::vector<doubl
 
 // ---- region lookup --------------------------------------------------------------------------------
 
-RegionLookup::RegionLookup(const SkeletonData& sk, const Atlas& atlas) {
-    std::unordered_map<std::string, RegionUv> map = atlas.lookup();
+RegionLookup::RegionLookup(const SkeletonData& sk, const Atlas& atlas) : RegionLookup(sk, atlas.lookup()) {}
+
+RegionLookup::RegionLookup(const SkeletonData& sk, const std::unordered_map<std::string, RegionUv>& map) {
     regions_.resize(sk.names.size());
     for (size_t i = 0; i < sk.names.size(); i++) {
         std::unordered_map<std::string, RegionUv>::const_iterator it = map.find(sk.names[i]);

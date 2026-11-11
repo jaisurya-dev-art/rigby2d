@@ -2,6 +2,7 @@
 // Rigby2D for Defold: the native `rigby` Lua module. The C++ runtime (rigby_*.cpp) does all the
 // per-frame work: playback, pose, constraints and geometry, written straight into the vertex
 // buffers of the mesh pieces that draw a skeleton or a scene. rigby2d/rigby2d.lua builds the player on top.
+// The rigbymodel component and its functions in this module are in comp_rigby_model.cpp.
 
 #define EXTENSION_NAME Rigby2D
 #define LIB_NAME "Rigby2D"
@@ -14,7 +15,10 @@
 #include <math.h>
 #include <string.h>
 
-#include "rigby.h"
+#include <rigby.h>
+
+// The rigbymodel component's script functions (comp_rigby_model.cpp).
+void rigby_model_register(lua_State* L);
 
 namespace {
 
@@ -884,6 +888,7 @@ dmExtension::Result initialize(dmExtension::Params* params) {
     register_type(L, SKELETON_TYPE, skeleton_methods, skeleton_gc);
     register_type(L, SCENE_TYPE, scene_methods, scene_gc);
     luaL_register(L, MODULE_NAME, module_functions);
+    rigby_model_register(L);
     lua_pop(L, 1);
     return dmExtension::RESULT_OK;
 }
