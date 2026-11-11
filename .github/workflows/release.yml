@@ -9,17 +9,25 @@ name: Release build
 
 on:
   workflow_dispatch:
+    inputs:
+      signing_policy:
+        description: SignPath signing policy (test-signing to try the setup without the release certificate)
+        type: choice
+        options: [release-signing, test-signing]
+        default: test-signing
   push:
     tags: ['v*']
 
 permissions:
   contents: read
+  actions: read
 
 jobs:
   build:
     runs-on: windows-latest
     outputs:
       version: ${{ steps.version.outputs.version }}
+      windows-artifact: ${{ steps.windows.outputs.artifact-id }}
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -114,6 +122,17 @@ jobs:
           path: release/
           if-no-files-found: error
 
+      # The three Windows editor files on their own, the zip SignPath signs (.signpath/artifact-configuration.xml).
+      - id: windows
+        uses: actions/upload-artifact@v7
+        with:
+          name: rigby2d-${{ steps.version.outputs.version }}-windows
+          path: |
+            release/Rigby2D_*_x64_portable.exe
+            release/Rigby2D_*_x64-setup.exe
+            release/Rigby2D_*_x64_en-US.msi
+          if-no-files-found: error
+
   # Linux: the editor as an AppImage and a .deb, and the Godot runtime for Linux.
   build-linux:
     runs-on: ubuntu-22.04
@@ -130,9 +149,12 @@ jobs:
             src-tauri
             runtimes/rust
       - name: System libraries for Tauri
+        # GitHub's Azure Ubuntu mirror once stalled for hours (0.5.1): use Ubuntu's own, retry, give up early.
+        timeout-minutes: 10
         run: |
-          sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.1-dev libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev patchelf file
+          sudo sed -i 's#http://azure.archive.ubuntu.com/ubuntu#http://archive.ubuntu.com/ubuntu#g' /etc/apt/sources.list /etc/apt/sources.list.d/*.list /etc/apt/sources.list.d/*.sources 2>/dev/null || true
+          sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 update
+          sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 install -y libwebkit2gtk-4.1-dev libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev patchelf file
       - id: version
         run: echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
       - run: npm ci
@@ -236,26 +258,17 @@ jobs:
   sign:
     needs: build
     runs-on: windows-latest
-    # Signing starts once SignPath is set up (see the top of this file).
+    # Signing starts once SignPath is set up (see the top of this file). Release tags use the
+    # release-signing policy; a manual run (Run workflow) can pick test-signing to try the setup.
     if: ${{ vars.SIGNPATH_ORGANIZATION_ID != '' }}
     steps:
-      - name: Find the unsigned artifact
-        id: artifact
-        shell: bash
-        env:
-          GH_TOKEN: ${{ github.token }}
-          NAME: rigby2d-${{ needs.build.outputs.version }}-unsigned
-        run: |
-          id=$(gh api "repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts" --jq ".artifacts[] | select(.name == \"$NAME\") | .id")
-          echo "id=$id" >> "$GITHUB_OUTPUT"
-      - uses: signpath/github-action-submit-signing-request@v2
+      - uses: signpath/github-action-submit-signing-request@v3
         with:
           api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
           organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
           project-slug: ${{ vars.SIGNPATH_PROJECT_SLUG }}
-          signing-policy-slug: release-signing
-          artifact-configuration-slug: initial
-          github-artifact-id: ${{ steps.artifact.outputs.id }}
+          signing-policy-slug: ${{ inputs.signing_policy || 'release-signing' }}
+          github-artifact-id: ${{ needs.build.outputs.windows-artifact }}
           wait-for-completion: true
           wait-for-completion-timeout-in-seconds: 86400
           output-artifact-directory: signed
