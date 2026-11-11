@@ -413,6 +413,14 @@ li {
 .row.slot {
   color: rgb(180, 200, 160);
 }
+.row.slot .slot-shown {
+  color: var(--weak);
+  font-size: 12px;
+}
+.row.slot .twisty {
+  color: var(--weak);
+  font-size: 11px;
+}
 .order-row {
   display: flex;
   align-items: center;

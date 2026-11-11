@@ -16,6 +16,9 @@ import { t } from './i18n.js';
 
 /** Collapsed sections and bones (kept for the session). */
 const collapsed = new Set(['images', 'events']);
+// Slots whose attachments are listed (by slot name). Slots start folded, showing only the visible
+// attachment on their row, so rigs with many images stay readable.
+const openSlots = new Set();
 
 /** The app and the tree's root, so bone-hover updates reach the live DOM between rebuilds. */
 let treeApp = null;
@@ -139,9 +142,29 @@ export function render(app, el) {
     );
     if (!open) return;
     for (const [slot, i] of slots) {
-      skeleton.push(row(`▣ ${slot.name}`, { tut: `slot:${slot.name}`, depth: depth + 1, cls: 'slot', selected: selSlot(app.sel) === i, onclick: select({ slot: i }) }));
       const names = new Set(slot.attachments.map((a) => a.name));
       if (doc.skin) for (const a of doc.skinAttachments(i, doc.skin)) names.add(a.name);
+      const slotOpen = openSlots.has(slot.name);
+      const slotTwisty = names.size
+        ? h(
+            'span',
+            {
+              class: 'twisty right',
+              title: slotOpen ? t('Hide the attachments') : t('Show the attachments'),
+              onclick: (e) => {
+                e.stopPropagation();
+                if (slotOpen) openSlots.delete(slot.name);
+                else openSlots.add(slot.name);
+                app.changed();
+              },
+            },
+            slotOpen ? '▾' : `▸ ${names.size}`,
+          )
+        : null;
+      // Folded: the visible attachment's name follows the slot's.
+      const shown = !slotOpen && pose.attachment[i] ? h('span', { class: 'slot-shown', title: t('Visible attachment') }, ` · ${pose.attachment[i]}`) : null;
+      skeleton.push(row(`▣ ${slot.name}`, { tut: `slot:${slot.name}`, depth: depth + 1, cls: 'slot', selected: selSlot(app.sel) === i, onclick: select({ slot: i }), extra: [shown, slotTwisty] }));
+      if (!slotOpen) continue;
       for (const name of names) {
         const visible = pose.attachment[i] === name;
         skeleton.push(

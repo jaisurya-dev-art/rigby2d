@@ -114,6 +114,7 @@ function boneUi(app, b) {
         app.changed();
       }, { speed: 0.5, min: 0, disabled: !setupMode }),
     ),
+    ...row(t('Color'), boneColorUi(app, b)),
     ...row(
       t('Inherit'),
       select(INHERIT_MODES.map((m) => [m, t(MODE_LABELS[m] ?? m)]), bone.inherit ?? 'normal', (m) => {
@@ -163,6 +164,31 @@ function boneUi(app, b) {
       setupMode && b !== 0 ? h('button', { onclick: () => edit.deleteSelection(app) }, t('🗑 Delete')) : null,
     ),
   ];
+}
+
+/**
+ * The color the bone is drawn with in the viewport (stored in the skeleton file, as in Spine).
+ * Applies to every selected bone; × goes back to the default color.
+ */
+function boneColorUi(app, b) {
+  const bones = app.selectedBones().includes(b) ? app.selectedBones() : [b];
+  const hex = app.doc.bones[b].color;
+  const set = (value) => {
+    for (const i of bones) app.doc.bones[i].color = value;
+    app.changed();
+  };
+  return h(
+    'span',
+    { class: 'bone-color' },
+    h('input', {
+      type: 'color',
+      value: hex ? `#${hex.slice(0, 6)}` : '#6ec8e6',
+      title: t('Color of the bone in the viewport'),
+      oninput: (e) => set(`${e.target.value.slice(1)}ff`),
+      onchange: (e) => e.target.blur(),
+    }),
+    hex ? h('button', { class: 'small', title: t('Back to the default bone color'), onclick: () => set(null) }, '×') : null,
+  );
 }
 
 const toHex = (c) => `#${c.slice(0, 3).map((v) => Math.round(Math.min(1, Math.max(0, v)) * 255).toString(16).padStart(2, '0')).join('')}`;

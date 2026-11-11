@@ -23,7 +23,7 @@ import * as toolbar from './toolbar.js';
 import * as tree from './tree.js';
 import * as inspector from './inspector.js';
 import { GraphEditor } from './graph.js';
-import { Dopesheet, copySelectedKeys, deleteSelectedKeys, exitSelectModes, pasteKeys, renderControls } from './timeline.js';
+import { Dopesheet, copySelectedKeys, cutSelectedKeys, deleteSelectedKeys, exitSelectModes, pasteKeys, renderControls } from './timeline.js';
 import { Viewport } from './viewport.js';
 import { closeMenu, h, isMenuOpen, popupMenu, submenuItem, widgetState } from './widgets.js';
 import * as log from './log.js';
@@ -157,6 +157,7 @@ function menus() {
       { label: t('Key all transforms of the selection'), shortcut: sc('key.transforms'), action: () => edit.keyTransforms(app) },
       { label: t('Key everything shown'), shortcut: sc('key.shown'), action: () => edit.keyShown(app) },
       'separator',
+      { label: t('Cut keys'), shortcut: sc('edit.cutKeys'), disabled: !app.selectedKeys.size, action: () => cutSelectedKeys(app) },
       { label: t('Copy keys'), shortcut: sc('edit.copyKeys'), disabled: !app.selectedKeys.size, action: () => copySelectedKeys(app) },
       { label: t('Paste keys'), shortcut: sc('edit.pasteKeys'), action: () => pasteKeys(app) },
       'separator',
@@ -499,7 +500,7 @@ sync = installPanelSync(app, {
 });
 const dopesheet = new Dopesheet(app, $('#dopesheet'), $('#dopesheet canvas'));
 const graph = new GraphEditor(app, $('#graph'), $('#graph canvas'));
-installKeyboard(app, { viewport, zoomActual, deleteSelectedKeys, copySelectedKeys, pasteKeys, exitSelectModes, closeMenu, isMenuOpen, openPreferences: () => showPreferences() });
+installKeyboard(app, { viewport, zoomActual, deleteSelectedKeys, copySelectedKeys, cutSelectedKeys, pasteKeys, exitSelectModes, closeMenu, isMenuOpen, openPreferences: () => showPreferences() });
 const renderMenuBar = buildMenuBar();
 
 // In the browser, leaving the page (the home link, closing the tab) asks first when there are unsaved

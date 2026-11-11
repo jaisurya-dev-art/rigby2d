@@ -27,6 +27,8 @@ const RULER_W = 18;
 const GUIDE_GRAB = 5;
 
 const rgba = (rgb, a) => rgb.replace('rgb(', 'rgba(').replace(')', `,${a})`);
+/** A bone's own color ('rrggbbaa' as in skeleton files) as 'rgb(r,g,b)', or null. */
+const boneRgb = (hex) => (typeof hex === 'string' && /^[0-9a-f]{6}/i.test(hex) ? `rgb(${[0, 2, 4].map((i) => parseInt(hex.slice(i, i + 2), 16)).join(',')})` : null);
 const rgbCss = (rgb) => `rgb(${rgb.slice(0, 3).map((x) => Math.round(x * 255)).join(',')})`;
 
 export class Viewport {
@@ -507,7 +509,7 @@ export class Viewport {
     app.doc.bones.forEach((b, i) => {
       const selected = selection.has(i);
       const hovered = i === app.hoverBone;
-      const color = selected ? SELECTED : BONE;
+      const color = selected ? SELECTED : (boneRgb(b.color) ?? BONE);
       // A short, tight glow on the outline marks the hovered bone (and the selection), synced with
       // the tree and timeline. Hover wins the glow colour so it reads even over a selected bone.
       const glow = hovered ? HOVER : selected ? SELECTED : null;
@@ -1064,7 +1066,7 @@ export class Viewport {
         this.press.started = true;
         this.dragStart(this.press.pos);
       }
-      if (this.press.started) this.dragMove(pos);
+      if (this.press.started) this.dragMove(pos, e.shiftKey);
     }
     // Shared bone highlight: light up the bone under the cursor, unless dragging or in a sub-editor.
     if (!this.panning && !this.press && !this.meshTool.active && !this.shapeTool.active) {
@@ -1158,11 +1160,20 @@ export class Viewport {
     app.changed();
   }
 
-  dragMove(pos) {
+  dragMove(pos, shift = false) {
     const d = this.drag;
     if (!d) return;
     const app = this.app;
-    const world = this.toWorld(pos);
+    let world = this.toWorld(pos);
+    // Translating with Shift held moves along one axis only: the one the drag has gone further on.
+    const translating = (d.kind === 'bones' && app.tool === 'translate') || d.kind === 'poseTranslate';
+    if (translating && shift) {
+      const dx = world[0] - d.start[0];
+      const dy = world[1] - d.start[1];
+      world = Math.abs(dx) >= Math.abs(dy) ? [world[0], d.start[1]] : [d.start[0], world[1]];
+      if (!d.axisLockShown) app.setStatus(t('Moving along one axis (release Shift to move freely)'));
+      d.axisLockShown = true;
+    }
     if (d.kind === 'box') {
       d.to = pos;
     } else {

@@ -83,14 +83,15 @@ draw order and events. Diamonds are keys; their color tells the curve (stepped k
 | Select several areas | <kbd>Alt</kbd>+drag adds another area, or turn on **＋ Multi** so every drag adds one. |
 | Retime keys | Click **⇔ Retime** and drag an edge of the selection (or right-drag at any time): the keys stretch or squeeze relative to the opposite edge. |
 | Change the curve | Right-click a key: *Linear*, *Ease in-out*, *Ease in*, *Ease out* or *Stepped*. |
-| Copy and paste | Right-click a key ▸ *Copy*; once keys are copied, right-click any spot ▸ *Paste here* pastes at that frame. |
+| Cut, copy and paste | Right-click a key ▸ *Cut* or *Copy*; once keys are copied, right-click any spot ▸ *Paste here* pastes at that frame. |
+| Zoom the timeline | <kbd>Ctrl</kbd>+wheel zooms time around the cursor, <kbd>Alt</kbd>+wheel pans. Zoom all the way out to see the whole animation again. |
 | Delete keys | Right-click ▸ *Delete key*, or <kbd>Delete</kbd>. |
 
 Keys always land on whole frames.
 
 ### Copy and paste keys
 
-Select keys and press <kbd>Ctrl</kbd>+<kbd>C</kbd> (or **⧉ Copy**, or right-click ▸ *Copy*). The copied area stays marked in
+Select keys and press <kbd>Ctrl</kbd>+<kbd>C</kbd> (or **⧉ Copy**, or right-click ▸ *Copy*); <kbd>Ctrl</kbd>+<kbd>X</kbd> cuts them. The copied area stays marked in
 green and a preview follows the time cursor; move it to where the first key should land and press
 <kbd>Ctrl</kbd>+<kbd>V</kbd> (or **⎘ Paste**). Right-click ▸ *Paste here* pastes at the frame you clicked.
 <kbd>Escape</kbd> cancels.

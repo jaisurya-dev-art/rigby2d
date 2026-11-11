@@ -8,7 +8,7 @@
 
 import './style.css';
 import { App } from './app.js';
-import { Dopesheet, renderControls, keySelectionIndices, applyKeySelection, copySelectedKeys, pasteKeys, exitSelectModes } from './timeline.js';
+import { Dopesheet, renderControls, keySelectionIndices, applyKeySelection, copySelectedKeys, cutSelectedKeys, pasteKeys, exitSelectModes } from './timeline.js';
 import { GraphEditor } from './graph.js';
 import * as tree from './tree.js';
 import * as inspector from './inspector.js';
@@ -123,6 +123,7 @@ installKeyboard(app, {
   // paste's document change still ships to the editor as one undo step. Escape clears this window's
   // own copy/select modes before its deselect is forwarded.
   copySelectedKeys,
+  cutSelectedKeys,
   pasteKeys,
   exitSelectModes,
   closeMenu,

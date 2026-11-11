@@ -11,7 +11,7 @@ import { t } from './i18n.js';
 // on-canvas preview), not on the shared document. A detached window runs these locally — so its
 // own dopesheet shows the overlay — instead of forwarding them to the editor like every other
 // shortcut. The paste's document change still ships to the editor as one undo step (panel.js).
-const LOCAL_ACTIONS = new Set(['edit.copyKeys', 'edit.pasteKeys']);
+const LOCAL_ACTIONS = new Set(['edit.cutKeys', 'edit.copyKeys', 'edit.pasteKeys']);
 
 /** True while the user is typing in a text field (only File shortcuts run then). */
 export const isTyping = (el) =>
@@ -24,7 +24,7 @@ export const isTyping = (el) =>
  * detached window forwards them to the editor).
  */
 export function runAction(app, action, ctx) {
-  const { viewport, zoomActual, deleteSelectedKeys, copySelectedKeys, pasteKeys, onFile, closeMenu } = ctx;
+  const { viewport, zoomActual, deleteSelectedKeys, copySelectedKeys, cutSelectedKeys, pasteKeys, onFile, closeMenu } = ctx;
   if (onFile && action.startsWith('file.')) return onFile(action);
   const setTool = (tool) => () => {
     app.tool = tool;
@@ -71,6 +71,7 @@ export function runAction(app, action, ctx) {
       app.changed();
     },
     'view.actual': () => zoomActual?.(),
+    'edit.cutKeys': () => cutSelectedKeys?.(app),
     'edit.copyKeys': () => copySelectedKeys?.(app),
     'edit.pasteKeys': () => pasteKeys?.(app),
     'edit.delete': () => {
@@ -113,7 +114,7 @@ export function installKeyboard(app, ctx) {
     if (e.repeat && !REPEATING.has(action)) return;
     // Copy with text selected on the page (the Log, a dialog) copies that text, not keys.
     const text = window.getSelection?.();
-    if (action === 'edit.copyKeys' && text && !text.isCollapsed && String(text)) return;
+    if ((action === 'edit.copyKeys' || action === 'edit.cutKeys') && text && !text.isCollapsed && String(text)) return;
     e.preventDefault();
     closeMenu?.();
     // A window can forward the action instead of running it (the detached window hands every

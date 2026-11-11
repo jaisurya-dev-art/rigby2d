@@ -65,6 +65,7 @@ This table is generated from the editor's keymap, so it always matches the curre
 | Zoom to 100% | <kbd>Ctrl</kbd>+<kbd>F</kbd> | <kbd>Ctrl</kbd>+<kbd>F</kbd> |
 | Show or hide bones | <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>B</kbd> | <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>B</kbd> |
 | Hide or show overlays | <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>H</kbd> | <kbd>Shift</kbd>+<kbd>Alt</kbd>+<kbd>Z</kbd> |
+| Cut selected keys | <kbd>Ctrl</kbd>+<kbd>X</kbd> | <kbd>Ctrl</kbd>+<kbd>X</kbd> |
 | Copy selected keys | <kbd>Ctrl</kbd>+<kbd>C</kbd> | <kbd>Ctrl</kbd>+<kbd>C</kbd> |
 | Paste keys at the playhead | <kbd>Ctrl</kbd>+<kbd>V</kbd> | <kbd>Ctrl</kbd>+<kbd>V</kbd> |
 | Delete selected key, bone or slot | <kbd>Delete</kbd> or <kbd>Backspace</kbd> | <kbd>Delete</kbd> or <kbd>Backspace</kbd> |

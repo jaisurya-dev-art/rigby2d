@@ -59,7 +59,7 @@ panel windows). The selection is shown the same way.
 | **Pose** | <kbd>B</kbd> | Drag a bone to aim it at the cursor; drag near its origin to move it. The quickest way to pose. |
 | **Create** | <kbd>N</kbd> | Drag to draw a bone (Setup mode). Select a bone first to chain the new one from it. |
 | **Rotate** | <kbd>C</kbd> | Rotates the selection. |
-| **Translate** | <kbd>V</kbd> | Moves the selection. |
+| **Translate** | <kbd>V</kbd> | Moves the selection. Hold <kbd>Shift</kbd> while dragging to move along one axis only. |
 | **Scale** | <kbd>X</kbd> | Scales the selection. |
 | **Shear** | <kbd>Z</kbd> | Shears the selection. |
 
@@ -97,9 +97,10 @@ renderer and the shortcut preset are in [Preferences](preferences.md) (*Interfac
 
 The tree has collapsible sections:
 
-- **Skeleton**: bones in their hierarchy, each with its slots and their attachments. Click a slot's
-  attachment to show it (in Animate mode, that sets an image-swap key). **+ Bone** adds a child to
-  the selected bone.
+- **Skeleton**: bones in their hierarchy, each with its slots. A slot shows its visible attachment
+  next to its name; click **▸** (with the number of attachments) to list them all, and click one to
+  show it (in Animate mode, that sets an image-swap key). **+ Bone** adds a child to the selected
+  bone, as long as its parent.
 - **Draw order**: slots back to front; *Draw in front* and *Draw behind* move the selected slot, or
   drag a row to drop it anywhere (a side preview shows its image between its new neighbours as you
   drag). See [Draw order](bones-and-slots.md#draw-order).

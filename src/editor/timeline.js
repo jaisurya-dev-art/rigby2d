@@ -352,6 +352,17 @@ function endCopyArming() {
 }
 
 /** Copies the selected keys to the dopesheet clipboard, grouped by their track, and arms the copy. */
+/** Copies the selected keys, then deletes them. */
+export function cutSelectedKeys(app) {
+  if (!app.currentAnimation() || !app.selectedKeys.size) {
+    app.setStatus(t('Select keys to cut'));
+    return;
+  }
+  copySelectedKeys(app);
+  deleteSelectedKeys(app);
+  app.changed();
+}
+
 export function copySelectedKeys(app) {
   const anim = app.currentAnimation();
   if (!anim || !app.selectedKeys.size) {
@@ -651,8 +662,11 @@ export class Dopesheet {
     this.keyRects = [];
     this.layout = null;
     this.press = null;
+    /** Zoomed time window { t0, t1 } (Ctrl+wheel zooms, Alt+wheel pans), or null for the whole animation. */
+    this.view = null;
     canvas.addEventListener('pointerdown', (e) => this.onPointerDown(e));
     canvas.addEventListener('pointermove', (e) => this.onPointerMove(e));
+    canvas.addEventListener('wheel', (e) => this.onWheel(e), { passive: false });
     canvas.addEventListener('pointerup', (e) => this.onPointerUp(e));
     canvas.addEventListener('pointercancel', () => (this.press = null));
     canvas.addEventListener('pointerleave', () => app.setHover(null));
@@ -700,14 +714,24 @@ export class Dopesheet {
 
     const trackLeft = GUTTER;
     const trackW = Math.max(10, width - 12 - trackLeft);
-    const timeToX = (t) => trackLeft + (t / duration) * trackW;
-    this.layout = { trackLeft, trackW, duration };
+    // The time window shown: the whole animation, or the zoomed part of it.
+    const view = this.clampView(this.view, duration);
+    const t0 = view ? view.t0 : 0;
+    const viewSpan = view ? view.t1 - view.t0 : duration;
+    const timeToX = (t) => trackLeft + ((t - t0) / viewSpan) * trackW;
+    this.layout = { trackLeft, trackW, duration, t0, span: viewSpan };
 
-    // Ruler with frame ticks.
+    // Ruler with frame ticks. Zoomed, everything right of the labels is clipped to the track area.
     ctx.fillStyle = 'rgb(45,45,45)';
     ctx.fillRect(0, 0, width, RULER);
+    ctx.save();
+    if (view) {
+      ctx.beginPath();
+      ctx.rect(trackLeft - 7, 0, width - trackLeft + 7, height);
+      ctx.clip();
+    }
     const frames = Math.round(duration * FPS);
-    const pxPerFrame = trackW / (duration * FPS);
+    const pxPerFrame = trackW / (viewSpan * FPS);
     const labelEvery = [1, 2, 5, 10, 15, 30, 60].find((n) => n * pxPerFrame >= 34) ?? 120;
     ctx.strokeStyle = 'rgb(120,120,120)';
     ctx.lineWidth = 1;
@@ -715,7 +739,7 @@ export class Dopesheet {
     ctx.textBaseline = 'top';
     ctx.fillStyle = 'rgb(170,170,170)';
     ctx.beginPath();
-    for (let f = 0; f <= frames; f++) {
+    for (let f = Math.max(0, Math.floor(t0 * FPS)); f <= Math.min(frames, Math.ceil((t0 + viewSpan) * FPS)); f++) {
       const x = Math.round(timeToX(f / FPS)) + 0.5;
       const major = f % labelEvery === 0;
       if (major || pxPerFrame >= 5) {
@@ -725,6 +749,7 @@ export class Dopesheet {
       if (major) ctx.fillText(String(f), x + 2, 2);
     }
     ctx.stroke();
+    ctx.restore();
 
     // Rows.
     const selectedBone = selBone(app.sel);
@@ -750,6 +775,16 @@ export class Dopesheet {
       ctx.textBaseline = 'middle';
       ctx.fillStyle = copiedTrackIds?.has(trackId(track)) ? 'rgb(185,135,255)' : 'rgb(200,200,200)';
       ctx.fillText(label, 8, y + ROW / 2, GUTTER - 14);
+    });
+    // Keys and everything over them stay right of the labels when zoomed.
+    ctx.save();
+    if (view) {
+      ctx.beginPath();
+      ctx.rect(trackLeft - 7, RULER, width - trackLeft + 7, height);
+      ctx.clip();
+    }
+    rows.forEach(({ track }, r) => {
+      const y = top + r * ROW;
       (trackKeys(anim, track) ?? []).forEach((k, index) => {
         const c = [timeToX(k.time), y + ROW / 2];
         const fill = copiedSource?.has(k) ? 'rgb(60,220,110)' : keyFill(app.selectedKeys.has(k), k.curve);
@@ -939,6 +974,37 @@ export class Dopesheet {
     ctx.moveTo(cx, 0);
     ctx.lineTo(cx, height);
     ctx.stroke();
+    ctx.restore();
+  }
+
+  /** `view` kept inside the animation and at least 4 frames wide; null when it shows all of it. */
+  clampView(view, duration) {
+    if (!view) return null;
+    const span = Math.max(4 / FPS, view.t1 - view.t0);
+    if (span >= duration - 1e-9) return null;
+    const t0 = Math.min(Math.max(0, view.t0), duration - span);
+    return { t0, t1: t0 + span };
+  }
+
+  /** Ctrl+wheel zooms time around the cursor, Alt+wheel pans it (as in the graph editor). */
+  onWheel(e) {
+    if (!this.layout || !(e.ctrlKey || e.metaKey || e.altKey)) return; // plain wheel scrolls the rows
+    e.preventDefault();
+    const { t0, span, duration, trackLeft, trackW } = this.layout;
+    let a = t0;
+    let b = t0 + span;
+    if (e.ctrlKey || e.metaKey) {
+      const at = t0 + ((this.pos(e)[0] - trackLeft) / trackW) * span;
+      const f = Math.exp(Math.sign(e.deltaY) * 0.15);
+      a = at + (a - at) * f;
+      b = at + (b - at) * f;
+    } else {
+      const shift = (Math.sign(e.deltaY || e.deltaX) * span) / 10;
+      a += shift;
+      b += shift;
+    }
+    this.view = this.clampView({ t0: a, t1: b }, duration);
+    this.app.changed();
   }
 
   pos(e) {
@@ -951,8 +1017,8 @@ export class Dopesheet {
   }
 
   xToTime(x) {
-    const { trackLeft, trackW, duration } = this.layout;
-    return Math.min(duration, Math.max(0, ((x - trackLeft) / trackW) * duration));
+    const { trackLeft, trackW, duration, t0, span } = this.layout;
+    return Math.min(duration, Math.max(0, t0 + ((x - trackLeft) / trackW) * span));
   }
 
   /** The frame number under x, clamped to the animation. */
@@ -1149,7 +1215,8 @@ export class Dopesheet {
   beginRetime(px) {
     const span = this.selectionSpan();
     if (!span || span.max - span.min <= 1e-6) return null;
-    const timeToX = (time) => this.layout.trackLeft + (time / this.layout.duration) * this.layout.trackW;
+    const { trackLeft, trackW, t0, span: viewSpan } = this.layout;
+    const timeToX = (time) => trackLeft + ((time - t0) / viewSpan) * trackW;
     const handle = Math.abs(px - timeToX(span.min)) <= Math.abs(px - timeToX(span.max)) ? 0 : 1;
     return { retime: this.beginEdit(), span, handle };
   }
@@ -1342,6 +1409,7 @@ export function curveMenu(app, x, y, { pasteAt = null } = {}) {
   const selected = app.selectedKeys.size > 0;
   // Copy and paste, as on the buttons (Paste here: at the frame right-clicked in the dopesheet).
   const clipboard = [
+    selected && { label: t('Cut'), shortcut: sc('edit.cutKeys'), action: () => cutSelectedKeys(app) },
     selected && { label: t('Copy'), shortcut: sc('edit.copyKeys'), action: () => copySelectedKeys(app) },
     hasClipboard() && {
       label: pasteAt !== null ? t('Paste here') : t('Paste'),

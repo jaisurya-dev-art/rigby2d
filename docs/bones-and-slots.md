@@ -27,6 +27,7 @@ with its children.
 | **Name** | Unique name. Animations and runtimes refer to bones by name. |
 | **Parent** | The bone it hangs from. Changing it keeps the bone where it is in the world. |
 | **Length** | Visual length, and the reach used by IK and some constraints. |
+| **Color** | The bone's color in the viewport, to tell limbs or sides apart (applies to every selected bone; **×** goes back to the default). Saved in the skeleton file, as in Spine. |
 | **Inherit** | What it takes from its parent: `normal` (everything), `onlyTranslation`, `noRotationOrReflection`, `noScale` or `noScaleOrReflection`. Use `noScale` for parts that should not stretch when the parent does. |
 | **Setup pose** / **Pose at current frame** | Position, rotation, scale and shear relative to the parent: the setup pose in Setup mode, the animated pose (with key buttons) in Animate mode. |
 
@@ -96,7 +97,9 @@ selected one. Path points have Bézier handles (<kbd>Alt</kbd>+drag moves one ha
 ## Image sequences
 
 A mesh can play numbered images (`flame01`, `flame02`, …) one after another, for flipbook effects
-such as fire, smoke and blinking lights. Tick **Image sequence** in Setup mode and set:
+such as fire, smoke and blinking lights. Tick **Image sequence** in Setup mode. When the image is
+already one of the numbered frames (`guy-01`), the base name (`guy-`), start, digits and frame count
+are read from the images you imported. Otherwise set:
 
 | Setting | Meaning |
 | --- | --- |
