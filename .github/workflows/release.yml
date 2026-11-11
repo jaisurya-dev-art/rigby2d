@@ -149,9 +149,13 @@ jobs:
             src-tauri
             runtimes/rust
       - name: System libraries for Tauri
-        # GitHub's Azure Ubuntu mirror once stalled for hours (0.5.1): use Ubuntu's own, retry, give up early.
+        # The runners' regional Azure apt mirror can stall for hours (it did for 0.5.1: name lookups
+        # failed, so every package waited 20 s): apt reads its mirrors from apt-mirrors.txt, so list
+        # only Ubuntu's own archive there, retry downloads, and give up early.
         timeout-minutes: 10
         run: |
+          getent hosts azure.archive.ubuntu.com archive.ubuntu.com || true
+          if [ -f /etc/apt/apt-mirrors.txt ]; then printf 'http://archive.ubuntu.com/ubuntu/\tpriority:1\n' | sudo tee /etc/apt/apt-mirrors.txt; fi
           sudo sed -i 's#http://azure.archive.ubuntu.com/ubuntu#http://archive.ubuntu.com/ubuntu#g' /etc/apt/sources.list /etc/apt/sources.list.d/*.list /etc/apt/sources.list.d/*.sources 2>/dev/null || true
           sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 update
           sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 install -y libwebkit2gtk-4.1-dev libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev patchelf file
