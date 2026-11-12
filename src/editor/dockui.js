@@ -6,14 +6,14 @@
 // rebuilt, so their contents and listeners stay. A panel popped out into its own window (panelsync)
 // or the timeline hidden in Setup mode leaves its group until it is back.
 
-import { activatePanel, defaultDock, findPanel, loadDock, movePanel, normalizeDock, REGIONS, saveDock, setWeights, visibleDock } from './docklayout.js';
+import { activatePanel, closePanel, defaultDock, findPanel, loadDock, movePanel, normalizeDock, openPanel, REGIONS, saveDock, setWeights, visibleDock } from './docklayout.js';
 import { PANELS } from './dock.js';
 import { t } from './i18n.js';
 import { iconButton } from './ui.js';
 import { h } from './widgets.js';
 
 /** The element of each panel. */
-const PANEL_EL = { tree: '#tree', inspector: '#properties', timeline: '#timeline' };
+const PANEL_EL = { tree: '#tree', inspector: '#properties', timeline: '#timeline', rig: '#rig' };
 
 /** How close to the viewport's edge (px) a dragged tab docks into that region. */
 const EDGE = 72;
@@ -23,9 +23,10 @@ const MIN_GROUP = 72;
 /**
  * Wires up the dock. `appEl` is #app (its `detached-<id>` and `setup-hides-timeline` classes say which
  * panels are out of the window); `onPopOut(id)` pops a panel out into its own window, or null where
- * panels cannot pop out (the browser). Returns { get, set, reset }.
+ * panels cannot pop out (the browser). `onChange(layout)` runs whenever the layout changes (and once
+ * at the start). Returns { get, set, reset, open, close, has }.
  */
-export function installDock({ appEl, onPopOut = null }) {
+export function installDock({ appEl, onPopOut = null, onChange = null }) {
   const $ = (sel) => document.querySelector(sel);
   const regionEl = { left: $('#dock-left'), right: $('#dock-right'), bottom: $('#dock-bottom') };
   const parking = $('#dock-parking');
@@ -279,6 +280,7 @@ export function installDock({ appEl, onPopOut = null }) {
     layout = normalizeDock(next);
     saveDock(layout);
     render();
+    onChange?.(layout);
   }
 
   // A panel popping out or back in, or the timeline hiding in Setup mode, changes what is drawn.
@@ -288,6 +290,7 @@ export function installDock({ appEl, onPopOut = null }) {
   }).observe(appEl, { attributes: true, attributeFilter: ['class'] });
 
   render();
+  onChange?.(layout);
 
   return {
     /** The current layout (a copy). */
@@ -299,6 +302,11 @@ export function installDock({ appEl, onPopOut = null }) {
       set(defaultDock());
       saveDock(null);
     },
+    /** Opens or closes an optional panel (the Rig panel). */
+    open: (id) => set(openPanel(layout, id)),
+    close: (id) => set(closePanel(layout, id)),
+    /** True when a panel is in the layout (shown, behind another tab, or popped out). */
+    has: (id) => !!findPanel(layout, id),
     /** Where a panel sits ({ region, group, tab }), for tests. */
     where: (id) => findPanel(layout, id),
   };

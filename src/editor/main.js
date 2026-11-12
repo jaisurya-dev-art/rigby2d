@@ -22,6 +22,8 @@ import * as edit from './edit.js';
 import * as toolbar from './toolbar.js';
 import * as tree from './tree.js';
 import * as inspector from './inspector.js';
+import * as rigPanel from './rigpanel.js';
+import { findPanel, rigLeftDock } from './docklayout.js';
 import { GraphEditor } from './graph.js';
 import { Dopesheet, copySelectedKeys, cutSelectedKeys, deleteSelectedKeys, exitSelectModes, pasteKeys, renderControls } from './timeline.js';
 import { Viewport } from './viewport.js';
@@ -243,7 +245,16 @@ function menus() {
         },
       },
       { label: logOpen() ? t('Hide log') : t('Log'), action: () => toggleLogWindow() },
-      { label: t('Reset layout'), title: t('Put the panels back in their default places and sizes'), action: () => resetLayout() },
+      submenuItem(t('Panel layout'), () => [
+        { label: t('Rig on the left'), title: t('Skins, constraints, meshes, events and project settings in a Rig panel left of the viewport'), action: () => applyPreset(rigLeftDock(), t('Rig on the left')) },
+        {
+          label: `${dock.has('rig') ? '● ' : '○ '}${t('Rig panel')}`,
+          title: t('Skins, constraints, meshes, events and project settings in their own panel'),
+          action: () => (dock.has('rig') ? dock.close('rig') : dock.open('rig')),
+        },
+        'separator',
+        { label: t('Reset layout'), title: t('Put the panels back in their default places and sizes'), action: () => resetLayout() },
+      ]),
       // Save and recall where the detached panels sit (desktop only; panels pop out only there).
       ...(inTauri && sync ? [windowLayoutsMenuItem({ app, sync })] : []),
       'separator',
@@ -501,7 +512,21 @@ const resetSplitters = SPLITTERS.map((args) => splitter(...args));
 
 // Where the panels sit (dockui.js): tab groups to the left, right and bottom of the viewport. A
 // panel's tab drags it to another group or region; its pop-out button opens it in its own window.
-const dock = installDock({ appEl: $('#app'), onPopOut: inTauri ? (id) => sync?.detachPanel(id) : null });
+// The Rig panel, while open, takes skins, constraints and events over from the tree.
+const dock = installDock({
+  appEl: $('#app'),
+  onPopOut: inTauri ? (id) => sync?.detachPanel(id) : null,
+  onChange: (layout) => {
+    app.rigPanel = !!findPanel(layout, 'rig');
+    app.changed();
+  },
+});
+
+/** View ▸ Panel layout ▸ a preset. */
+function applyPreset(layout, name) {
+  dock.set(layout);
+  app.setStatus(t('Panel layout: {name}', { name }));
+}
 
 /** View ▸ Reset layout: today's arrangement and region sizes. */
 function resetLayout() {
@@ -576,6 +601,7 @@ window.addEventListener('blur', () => (pointersDown = 0));
  */
 const panels = [
   { el: $('#tree'), render: tree.render, built: -1 },
+  { el: $('#rig'), render: rigPanel.render, built: -1 },
   { el: $('#properties .content'), render: inspector.render, built: -1, every: 200 },
   { el: $('#viewbar'), render: toolbar.render, built: -1 },
   { el: $('#controls'), render: renderControls, built: -1, every: 66 },

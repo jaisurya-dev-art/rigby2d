@@ -10,6 +10,7 @@ export const PANELS = {
   timeline: { label: tn('Timeline'), width: 940, height: 340 },
   tree: { label: tn('Tree'), width: 340, height: 640 },
   inspector: { label: tn('Inspector'), width: 340, height: 560 },
+  rig: { label: tn('Rig'), width: 340, height: 640 },
 };
 
 /** The OS window label for a panel (a glob the capability `panel` grants: "panel-*"). */

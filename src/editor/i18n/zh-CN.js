@@ -1674,4 +1674,13 @@ export default {
   "Reset layout": "重置布局",
   "Put the panels back in their default places and sizes": "将面板恢复到默认位置和大小",
   "Panels back in their default places": "面板已恢复到默认位置",
+  "Panel layout": "面板布局",
+  "Rig on the left": "绑定面板在左侧",
+  "Skins, constraints, meshes, events and project settings in a Rig panel left of the viewport": "皮肤、约束、网格、事件和项目设置放在视口左侧的绑定面板中",
+  "Rig panel": "绑定面板",
+  "Skins, constraints, meshes, events and project settings in their own panel": "皮肤、约束、网格、事件和项目设置放在独立面板中",
+  "Panel layout: {name}": "面板布局：{name}",
+  "Turn the selected image into a mesh you can reshape and bind to bones": "将所选图片转换为可调整形状并绑定到骨骼的网格",
+  "Select a slot that shows an image (in Setup mode) to make it a mesh": "（在设置模式下）选择一个显示图片的插槽，将其转换为网格",
+  "New {type} constraint from the selected bones": "用所选骨骼新建{type}约束",
 };

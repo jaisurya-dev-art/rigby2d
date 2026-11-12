@@ -144,6 +144,8 @@ export class App {
     this.meshEdit = null;
     /** Shape being edited (bounding box, clipping or path): { slot, name, selected }. */
     this.shapeEdit = null;
+    /** Whether the Rig panel is open (rigpanel.js): the tree then leaves skins, constraints and events to it. */
+    this.rigPanel = false;
     /** Physics simulation state kept between frames while playing, and the time to simulate. */
     this.physics = new Map();
     this.physicsDelta = 0;
@@ -1173,6 +1175,8 @@ export class App {
       imageGlow: this.imageGlow,
       meshEdit: this.meshEdit,
       shapeEdit: this.shapeEdit,
+      // Whether the Rig panel is open (the tree then leaves skins, constraints and events to it).
+      rigPanel: this.rigPanel,
       // The dopesheet's armed copy (plain data), so detaching/docking the timeline carries the copy
       // and its paste preview across to whichever window now holds the dopesheet. Stamp marks real
       // changes, so the other window adopts only when it actually changed (see timeline.js).
@@ -1188,7 +1192,7 @@ export class App {
    */
   applyStateSnapshot(s, opts = {}) {
     // What forces a full panel rebuild (vs. just a time-dependent redraw during playback).
-    const struct = () => `${this.anim}|${this.mode}|${this.timelineView}|${this.autoKey}|${this.playing}|${JSON.stringify(this.sel)}|${[...this.multi]}|${JSON.stringify(this.meshEdit)}|${JSON.stringify(this.shapeEdit)}`;
+    const struct = () => `${this.anim}|${this.mode}|${this.timelineView}|${this.autoKey}|${this.playing}|${JSON.stringify(this.sel)}|${[...this.multi]}|${JSON.stringify(this.meshEdit)}|${JSON.stringify(this.shapeEdit)}|${this.rigPanel}`;
     const before = struct();
     const prevHover = this.hoverBone;
     let docChanged = false;
@@ -1237,6 +1241,7 @@ export class App {
     if ('imageGlow' in s) this.imageGlow = s.imageGlow; // shared like hoverBone; read by the viewport each frame
     if ('meshEdit' in s) this.meshEdit = s.meshEdit;
     if ('shapeEdit' in s) this.shapeEdit = s.shapeEdit;
+    if (typeof s.rigPanel === 'boolean') this.rigPanel = s.rigPanel;
     this.sanitize();
     // Hover is shared but must not trigger a full panel rebuild (it changes as the cursor sweeps):
     // the viewport and timeline canvases read hoverBone each frame; the tree updates its row class

@@ -12,6 +12,7 @@ import { Dopesheet, renderControls, keySelectionIndices, applyKeySelection, copy
 import { GraphEditor } from './graph.js';
 import * as tree from './tree.js';
 import * as inspector from './inspector.js';
+import * as rigPanel from './rigpanel.js';
 import { installKeyboard } from './keys.js';
 import { closeMenu, isMenuOpen, widgetState, h } from './widgets.js';
 import { EV_SYNC, EV_CONTROL, EV_CLOSED, EV_IMAGE, PANELS } from './dock.js';
@@ -68,7 +69,12 @@ function buildInspector(app) {
   return { el, followsTime: true, every: 200, rebuild: () => inspector.render(app, content) };
 }
 
-const BUILDERS = { timeline: buildTimeline, tree: buildTree, inspector: buildInspector };
+function buildRig(app) {
+  const el = h('section', { id: 'rig', class: 'panel' });
+  return { el, rebuild: () => rigPanel.render(app, el) };
+}
+
+const BUILDERS = { timeline: buildTimeline, tree: buildTree, inspector: buildInspector, rig: buildRig };
 
 // ---- window setup -----------------------------------------------------------------------------
 

@@ -3,7 +3,7 @@
 // the page side is dockui.js. A layout has three regions around the viewport (left, right, bottom);
 // each region holds a stack of tab groups (top to bottom at the sides, left to right at the bottom),
 // and each group shows one of its panels at a time behind a tab strip. Every panel sits in exactly
-// one group. A panel popped out into its own OS window (panelsync.js) keeps its place here, so it
+// one group, except an optional panel (OPTIONAL), which is either in a group or closed. A panel popped out into its own OS window (panelsync.js) keeps its place here, so it
 // comes back to the same spot when it docks again.
 //
 //   { left: { groups: [] }, right: { groups: [{ tabs: ['tree'], active: 'tree', weight: 42 }, …] }, … }
@@ -11,7 +11,9 @@
 // `weight` is a group's share of its region (the groups of a region split its length in proportion).
 
 export const REGIONS = ['left', 'right', 'bottom'];
-export const DOCK_PANELS = ['tree', 'inspector', 'timeline'];
+export const DOCK_PANELS = ['tree', 'inspector', 'timeline', 'rig'];
+/** Panels that can be closed (View ▸ Panel layout): the Rig panel. The others are always placed. */
+export const OPTIONAL = ['rig'];
 
 const STORE = 'rigby.layout.dock';
 
@@ -29,7 +31,18 @@ export function defaultDock() {
   };
 }
 
-/** Where a panel sits by default: [region, group index]. */
+/** The "Rig on the left" preset: the Rig panel (skins, constraints, meshes, events, project) left
+ *  of the viewport, so the tree on the right keeps only the bone hierarchy and the lists. */
+export function rigLeftDock() {
+  const l = defaultDock();
+  l.left.groups.push({ tabs: ['rig'], active: 'rig', weight: 100 });
+  return l;
+}
+
+/** Built-in layouts, by id: offered in View ▸ Panel layout. */
+export const PRESETS = { default: defaultDock, 'rig-left': rigLeftDock };
+
+/** Where a panel sits by default: [region, group index]. Optional panels have none. */
 const HOME = { tree: ['right', 0], inspector: ['right', 1], timeline: ['bottom', 0] };
 
 const clone = (layout) => JSON.parse(JSON.stringify(layout));
@@ -57,7 +70,7 @@ export function normalizeDock(raw) {
     }
   }
   for (const id of DOCK_PANELS) {
-    if (seen.has(id)) continue;
+    if (seen.has(id) || OPTIONAL.includes(id)) continue;
     const [region, index] = HOME[id];
     const groups = out[region].groups;
     groups.splice(Math.min(index, groups.length), 0, { tabs: [id], active: id, weight: 50 });
@@ -123,6 +136,21 @@ export function movePanel(layout, id, target) {
   return next;
 }
 
+/** Takes an optional panel out of the layout (closes it). Returns a new layout. */
+export function closePanel(layout, id) {
+  if (!OPTIONAL.includes(id) || !findPanel(layout, id)) return layout;
+  const next = clone(layout);
+  detach(next, id);
+  return next;
+}
+
+/** Opens an optional panel where the "Rig on the left" preset puts it (a group of its own at the
+ *  left), or does nothing when it is already open. Returns a new layout. */
+export function openPanel(layout, id) {
+  if (!OPTIONAL.includes(id) || findPanel(layout, id)) return layout;
+  return movePanel(layout, id, { region: 'left', where: 'new' });
+}
+
 /** Shows panel `id` in its group. Returns a new layout. */
 export function activatePanel(layout, id) {
   const at = findPanel(layout, id);
@@ -161,8 +189,13 @@ export function visibleDock(layout, hidden = new Set()) {
 
 /** True when the layout is today's default arrangement. */
 export function isDefaultDock(layout) {
+  return sameArrangement(layout, defaultDock());
+}
+
+/** True when two layouts put the same panels in the same groups (sizes aside). */
+export function sameArrangement(a, b) {
   const strip = (l) => JSON.stringify(REGIONS.map((r) => l[r].groups.map((g) => g.tabs)));
-  return strip(layout) === strip(defaultDock());
+  return strip(a) === strip(b);
 }
 
 /** The stored layout (the default when none or unreadable). `storage` is injectable for tests. */

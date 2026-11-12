@@ -36,7 +36,8 @@ function applyBoneHover(bone) {
   }
 }
 
-function section(app, id, title, count, children, actions = null) {
+/** A collapsible section (also used by the Rig panel, rigpanel.js). */
+export function section(app, id, title, count, children, actions = null) {
   const open = !collapsed.has(id);
   return h(
     'div',
@@ -61,16 +62,16 @@ function section(app, id, title, count, children, actions = null) {
 }
 
 /** A row label: a type icon (dimmed with `faint`) and the name. */
-const label = (iconName, text, faint = false) => [h('span', { class: `row-icon${faint ? ' faint' : ''}` }, uiIcon(iconName, 'sm')), h('span', { class: 'row-name' }, text)];
+export const label = (iconName, text, faint = false) => [h('span', { class: `row-icon${faint ? ' faint' : ''}` }, uiIcon(iconName, 'sm')), h('span', { class: 'row-name' }, text)];
 
 /** A fold toggle: chevron right (folded) or down (open), with an optional count. */
 const chevron = (open, count = null) => [uiIcon(open ? 'chevron-down' : 'chevron-right', 'sm'), count !== null ? h('span', { class: 'twisty-count' }, String(count)) : null];
 
 /** A section's add button (ghost, with a plus). */
-const addButton = (text, { title, disabled = false, onclick }) => button(text, { kind: 'ghost', size: 'sm', icon: 'plus', title, disabled, onclick });
+export const addButton = (text, { title, disabled = false, onclick }) => button(text, { kind: 'ghost', size: 'sm', icon: 'plus', title, disabled, onclick });
 
-function row(label, { depth = 0, selected = false, cls = '', onclick, extra = null, title, tut = null, bone = null } = {}) {
-  const attrs = { class: `row${selected ? ' selected' : ''}${cls ? ` ${cls}` : ''}`, 'data-tut': tut, style: { paddingLeft: `${depth * 14 + 4}px` }, onclick, title };
+export function row(label, { depth = 0, selected = false, cls = '', onclick, extra = null, title, tut = null, bone = null } = {}) {
+  const attrs = { class: `row${selected ? ' selected' : ''}${cls ? ` ${cls}` : ''}`, 'data-tut': tut, style: depth ? `--depth: ${depth}` : undefined, onclick, title };
   // Bone rows drive (and show) the shared hover: hovering one lights the bone up here, in the
   // viewport and in the timeline. Done with mouse enter/leave so it never rebuilds the tree.
   if (bone !== null) {
@@ -223,72 +224,6 @@ export function render(app, el) {
   }
   const orderList = h('div', { class: 'order-list' }, ...order);
 
-  // Skins: the active one shows the dot.
-  // Clicking a skin makes it active and shows its settings.
-  const pickSkin = (name) => () => {
-    doc.skin = name === 'default' ? null : name;
-    app.sel = { skin: name };
-    app.multi.clear();
-    app.changed();
-  };
-  const skins = [
-    row(`${doc.skin ? '○' : '●'} ${t('default')}`, { selected: app.sel?.skin === 'default', onclick: pickSkin('default') }),
-    ...doc.skins.map((s) => row(`${doc.skin === s.name ? '●' : '○'} ${s.name}`, { selected: app.sel?.skin === s.name, onclick: pickSkin(s.name) })),
-  ];
-  const setupOnly = app.mode !== Mode.Setup;
-  const newSkin = addButton(t('New'), { disabled: setupOnly, title: t('New skin (becomes active)'), onclick: () => createSkin(app) });
-  const events = doc.events.map((e) =>
-    row(`⚑ ${e.name}`, {
-      selected: app.sel?.event === e.name,
-      onclick: () => {
-        app.sel = { event: e.name };
-        app.multi.clear();
-        app.changed();
-      },
-    }),
-  );
-  const newEvent = addButton(t('New'), { disabled: setupOnly, title: t('New event'), onclick: () => createEvent(app) });
-
-  // Constraints in application order; click to edit their settings.
-  const CONSTRAINT_ICONS = { ik: '⊸', transform: '⇄', path: '∿', physics: '≋', slider: '⇥' };
-  const constraints = listConstraints(doc).map((c) => {
-    const known = c.type in CONSTRAINT_LABELS;
-    return row(`${CONSTRAINT_ICONS[c.type] ?? '⊸'} ${c.name}`, {
-      cls: known ? '' : 'weak',
-      selected: app.sel?.constraint === c.name,
-      title: known ? t('{type} constraint', { type: t(CONSTRAINT_LABELS[c.type]) }) : t('{type} constraint (kept, not evaluated)', { type: c.type }),
-      onclick: () => {
-        app.sel = { constraint: c.name };
-        app.multi.clear();
-        app.changed();
-      },
-    });
-  });
-  const newConstraint = addButton(t('New'), {
-      disabled: app.mode !== Mode.Setup,
-      title: t('New constraint from the selected bones'),
-      onclick: (e) => {
-        const r = e.target.getBoundingClientRect();
-        popupMenu(
-          r.left,
-          r.bottom,
-          Object.entries(CONSTRAINT_LABELS).map(([type, label]) => ({
-            label: t('{type} constraint', { type: t(label) }),
-            action: () => {
-              const result = createConstraint(app, type);
-              if (result.startsWith('!')) app.setStatus(result.slice(1));
-              else {
-                app.sel = { constraint: result };
-                app.multi.clear();
-                app.setStatus(t("Created {type} constraint '{name}'", { type: t(label), name: result }) + (type === 'physics' ? `. ${t(PHYSICS_HINT)}` : ''));
-              }
-              app.changed();
-            },
-          })),
-        );
-      },
-  });
-
   const animations = doc.animations.map((a, i) =>
     row(label('play', a.name, app.anim !== i), {
       selected: app.anim === i,
@@ -311,9 +246,10 @@ export function render(app, el) {
         : null,
       section(app, 'skeleton', doc.name || t('Skeleton'), doc.bones.length, skeleton, [addBone, addPoint]),
       section(app, 'draworder', t('Draw order'), n, orderList),
-      section(app, 'skins', t('Skins'), doc.skins.length + 1, skins, newSkin),
-      section(app, 'constraints', t('Constraints'), constraints.length, constraints, newConstraint),
-      section(app, 'events', t('Events'), doc.events.length, events, newEvent),
+      // With the Rig panel open (rigpanel.js), skins, constraints and events are listed there instead.
+      app.rigPanel ? null : skinsSection(app),
+      app.rigPanel ? null : constraintsSection(app),
+      app.rigPanel ? null : eventsSection(app),
       section(app, 'animations', t('Animations'), doc.animations.length, animations),
       section(app, 'images', t('Images'), doc.images.length, doc.images.map((i) => row(label('image', i.name), { title: `${i.width}×${i.height}` }))),
     ),
@@ -323,4 +259,113 @@ export function render(app, el) {
   treeRoot = el;
   app.onHoverChange = applyBoneHover;
   applyBoneHover(app.hoverBone);
+}
+
+// ---- skins, constraints and events ----------------------------------------------------------------
+// Listed in the tree, or in the Rig panel when it is open (rigpanel.js builds on these).
+
+/** Skins: the active one shows the dot; clicking one makes it active and shows its settings. */
+export function skinsSection(app) {
+  const doc = app.doc;
+  const pickSkin = (name) => () => {
+    doc.skin = name === 'default' ? null : name;
+    app.sel = { skin: name };
+    app.multi.clear();
+    app.changed();
+  };
+  const skins = [
+    row(`${doc.skin ? '○' : '●'} ${t('default')}`, { selected: app.sel?.skin === 'default', onclick: pickSkin('default') }),
+    ...doc.skins.map((s) => row(`${doc.skin === s.name ? '●' : '○'} ${s.name}`, { selected: app.sel?.skin === s.name, onclick: pickSkin(s.name) })),
+  ];
+  const newSkin = addButton(t('New'), { disabled: app.mode !== Mode.Setup, title: t('New skin (becomes active)'), onclick: () => createSkin(app) });
+  return section(app, 'skins', t('Skins'), doc.skins.length + 1, skins, newSkin);
+}
+
+/** Events: click one to edit it. */
+export function eventsSection(app) {
+  const doc = app.doc;
+  const events = doc.events.map((e) =>
+    row(`⚑ ${e.name}`, {
+      selected: app.sel?.event === e.name,
+      onclick: () => {
+        app.sel = { event: e.name };
+        app.multi.clear();
+        app.changed();
+      },
+    }),
+  );
+  const newEvent = addButton(t('New'), { disabled: app.mode !== Mode.Setup, title: t('New event'), onclick: () => createEvent(app) });
+  return section(app, 'events', t('Events'), doc.events.length, events, newEvent);
+}
+
+const CONSTRAINT_ICONS = { ik: '⊸', transform: '⇄', path: '∿', physics: '≋', slider: '⇥' };
+
+/** A row for a constraint; click to edit its settings. */
+function constraintRow(app, c, depth = 0) {
+  const known = c.type in CONSTRAINT_LABELS;
+  return row(`${CONSTRAINT_ICONS[c.type] ?? '⊸'} ${c.name}`, {
+    depth,
+    cls: known ? '' : 'weak',
+    selected: app.sel?.constraint === c.name,
+    title: known ? t('{type} constraint', { type: t(CONSTRAINT_LABELS[c.type]) }) : t('{type} constraint (kept, not evaluated)', { type: c.type }),
+    onclick: () => {
+      app.sel = { constraint: c.name };
+      app.multi.clear();
+      app.changed();
+    },
+  });
+}
+
+/** Makes a constraint of `type` from the selected bones and selects it. */
+export function newConstraint(app, type) {
+  const label = CONSTRAINT_LABELS[type];
+  const result = createConstraint(app, type);
+  if (result.startsWith('!')) app.setStatus(result.slice(1));
+  else {
+    app.sel = { constraint: result };
+    app.multi.clear();
+    app.setStatus(t("Created {type} constraint '{name}'", { type: t(label), name: result }) + (type === 'physics' ? `. ${t(PHYSICS_HINT)}` : ''));
+  }
+  app.changed();
+}
+
+/**
+ * Constraints in application order. `byType` (the Rig panel) groups them under each constraint type,
+ * each with its own add button; otherwise one list with an add menu.
+ */
+export function constraintsSection(app, { byType = false } = {}) {
+  const list = listConstraints(app.doc);
+  const setup = app.mode === Mode.Setup;
+  if (byType) {
+    const groups = Object.entries(CONSTRAINT_LABELS).map(([type, label]) => {
+      const of = list.filter((c) => c.type === type);
+      return h(
+        'div',
+        { class: 'tree-subsection' },
+        h(
+          'div',
+          { class: 'tree-subheading' },
+          h('span', null, t(label)),
+          h('span', { class: 'count' }, String(of.length)),
+          h('span', { class: 'actions' }, addButton(t('New'), { disabled: !setup, title: t('New {type} constraint from the selected bones', { type: t(label) }), onclick: () => newConstraint(app, type) })),
+        ),
+        of.map((c) => constraintRow(app, c, 1)),
+      );
+    });
+    const other = list.filter((c) => !(c.type in CONSTRAINT_LABELS)).map((c) => constraintRow(app, c));
+    return section(app, 'constraints', t('Constraints'), list.length, [...groups, ...other]);
+  }
+  const add = addButton(t('New'), {
+    disabled: !setup,
+    title: t('New constraint from the selected bones'),
+    onclick: (e) => {
+      const r = e.target.getBoundingClientRect();
+      popupMenu(
+        r.left,
+        r.bottom,
+        Object.entries(CONSTRAINT_LABELS).map(([type, label]) => ({ label: t('{type} constraint', { type: t(label) }), action: () => newConstraint(app, type) })),
+      );
+    },
+  });
+  return section(app, 'constraints', t('Constraints'), list.length, list.map((c) => constraintRow(app, c)), add);
 }

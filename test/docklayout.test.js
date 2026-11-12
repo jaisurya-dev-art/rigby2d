@@ -4,7 +4,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
-import { activatePanel, defaultDock, findPanel, isDefaultDock, loadDock, movePanel, normalizeDock, saveDock, setWeights, visibleDock } from '../src/editor/docklayout.js';
+import { activatePanel, closePanel, defaultDock, openPanel, rigLeftDock, findPanel, isDefaultDock, loadDock, movePanel, normalizeDock, saveDock, setWeights, visibleDock } from '../src/editor/docklayout.js';
 
 const tabs = (l) => Object.fromEntries(['left', 'right', 'bottom'].map((r) => [r, l[r].groups.map((g) => g.tabs)]));
 
@@ -96,4 +96,23 @@ test('load/save round trip; null forgets it', () => {
   assert.ok(isDefaultDock(loadDock(storage)));
   store.set('rigby.layout.dock', '{not json');
   assert.ok(isDefaultDock(loadDock(storage)));
+});
+
+test('the Rig panel is optional: closed by default, opened at the left, closed again', () => {
+  assert.equal(findPanel(defaultDock(), 'rig'), null);
+  assert.equal(findPanel(normalizeDock({}), 'rig'), null);
+  const open = openPanel(defaultDock(), 'rig');
+  assert.deepEqual(tabs(open).left, [['rig']]);
+  assert.equal(openPanel(open, 'rig'), open);
+  assert.ok(isDefaultDock(closePanel(open, 'rig')));
+  // The always-placed panels cannot be closed.
+  const d = defaultDock();
+  assert.equal(closePanel(d, 'tree'), d);
+  // It can be grouped and moved like the others, and survives a stored round trip.
+  const tabbed = movePanel(open, 'rig', { region: 'right', group: 0, where: 'tab' });
+  assert.deepEqual(tabs(normalizeDock(JSON.parse(JSON.stringify(tabbed)))).right, [['tree', 'rig'], ['inspector']]);
+});
+
+test('the "Rig on the left" preset keeps the default and adds the Rig panel at the left', () => {
+  assert.deepEqual(tabs(rigLeftDock()), { left: [['rig']], right: [['tree'], ['inspector']], bottom: [['timeline']] });
 });

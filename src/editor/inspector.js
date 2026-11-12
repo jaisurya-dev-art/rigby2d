@@ -423,7 +423,8 @@ function slotUi(app, s) {
   return out;
 }
 
-function projectUi(app) {
+/** The Project settings (also shown in the Rig panel, rigpanel.js). */
+export function projectUi(app) {
   return [
     h('h2', null, t('Project')),
     h(
@@ -692,7 +693,7 @@ function generateUi(app, e, att) {
   ];
 }
 
-function startMeshEdit(app, slot, name) {
+export function startMeshEdit(app, slot, name) {
   app.meshEdit = { slot, name, mode: 'vertices', radius: 40, strength: 0.5, subtract: false, selected: null };
   app.changed();
 }

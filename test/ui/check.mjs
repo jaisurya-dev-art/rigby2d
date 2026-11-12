@@ -73,6 +73,18 @@ const CASES = [
     l = movePanel(l, 'inspector', { region: 'bottom', group: 0, where: 'after' });
     r.dock.set(l);
   }],
+  // The "Rig on the left" preset: skins, constraints by type, meshes, events and the project settings
+  // in the Rig panel; the tree keeps the bones and the lists. Then scrolled down to the project block.
+  ['main-dock-rig-left', async (r) => {
+    await r.app.openDemo('nila', false);
+    r.app.mode = 'setup';
+    r.app.deselect();
+    r.dock.set((await import('/src/editor/docklayout.js')).rigLeftDock());
+  }],
+  ['main-dock-rig-project', async (r) => {
+    const s = document.querySelector('#rig .tree-scroll');
+    s.scrollTop = s.scrollHeight;
+  }],
   ['main-dock-reset', async (r) => {
     r.dock.reset();
     r.app.mode = 'setup';
