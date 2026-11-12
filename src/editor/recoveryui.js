@@ -204,7 +204,7 @@ export function installRecovery(app) {
       t('Recover unsaved work?'),
       [
         h('p', null, t('Rigby2D did not close properly ({when}). Unsaved work on {name} was auto-saved.', { when, name: s.name || 'untitled' })),
-        h('p', { class: 'weak' }, crashed.length > 1 ? t('{count} more auto-save(s) are in File ▸ Recover.', { count: crashed.length - 1 }) : t('Later, it stays in File ▸ Recover until you discard it.')),
+        h('p', { class: 'weak' }, crashed.length > 1 ? t('File ▸ Recover has {count} more auto-save(s).', { count: crashed.length - 1 }) : t('Later, it stays in File ▸ Recover until you discard it.')),
       ],
       [
         { id: 'discard', label: t('Discard') },

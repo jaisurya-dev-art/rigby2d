@@ -743,7 +743,7 @@ export class App {
       this.playDirection = 1;
       this.frameRequest = true;
       rememberProject({ kind: 'demo', id: demo.id, name: demo.name });
-      this.setStatus(t('{name} demo: {description} Save keeps a copy. Demo content © Rigby2D, for learning and evaluation only (see the demo license in File ▸ Open demo).', { name: demo.name, description: t(demo.description) }));
+      this.setStatus(t('{name} demo. Save keeps a copy; demo content is for learning only (license in File ▸ Open demo).', { name: demo.name, description: t(demo.description) }));
     } catch (e) {
       this.setStatus(t('Could not open the demo: {error}', { error: errorText(e) }) + (DEMOS_REMOTE ? ' ' + t('Demos download from the Rigby2D website: check the internet connection.') : ''));
     }

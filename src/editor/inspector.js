@@ -510,7 +510,7 @@ function pixelGridSelect(app) {
       app.changed();
     },
   );
-  el.title = t("Draws the skeleton at the art's own pixel size and scales it up sharp, so rotated and bent parts stay on the pixel grid, as in a pixel-art game. Applies to the viewport and renders; zoom in to see each pixel's outline. Use 2 to 4 units per pixel for art imported at 2x to 4x.");
+  el.title = t('Draws the skeleton at the art\'s pixel size and scales it up, so rotated and bent parts stay on the pixel grid. Use 2 to 4 for art imported at 2x to 4x.');
   return el;
 }
 
@@ -682,7 +682,7 @@ function generateUi(app, e, att) {
       row(t('Shapes'), select([['largest', t('Largest only')], ['merge', t('All, one mesh')], ['split', t('All, one mesh each')]], o.islands, live('islands'))),
       row('', h('label', { class: 'check', title: t('Trace inner contours and leave transparent holes out of the mesh') }, h('input', { type: 'checkbox', checked: !!o.holes, onchange: (ev) => live('holes')(ev.target.checked) }), ' ' + t('Detect holes'))),
     ),
-    h('div', { class: 'small weak' }, t('Min. angle 0 = off; above it, interior points are added until no triangle is thinner. Locked vertices (squares) and vertices you moved stay where they are.')),
+    h('div', { class: 'small weak' }, t('Min. angle 0 is off; above 0, points are added until no triangle is thinner. Locked vertices (squares) and vertices you moved stay put.')),
     h(
       'div',
       { class: 'buttons' },
@@ -706,7 +706,7 @@ function meshUi(app) {
   if (app.mode === Mode.Animate) {
     return [
       h('h2', null, t('Deform mesh: {name}', { name: e.name })),
-      h('div', { class: 'small weak' }, t('Drag vertices to key their positions at the current frame; drag a box (or Ctrl+click) to select several and move them together. Keys appear in the dopesheet as the deform row.')),
+      h('div', { class: 'small weak' }, t('Drag vertices to key them at this frame; drag a box to move several together. The keys show in the dopesheet as the deform row.')),
       h('div', { class: 'buttons' }, button(t('Finish editing'), { kind: 'primary', icon: 'check', onclick: () => ((app.meshEdit = null), app.changed()) })),
       h('hr'),
     ];
@@ -725,7 +725,7 @@ function meshUi(app) {
     h('div', { class: 'buttons' }, h('span', { class: 'segmented' }, mode('vertices', t('Vertices')), mode('weights', t('Weights'))), button(t('Finish editing'), { kind: 'primary', icon: 'check', onclick: () => ((app.meshEdit = null), app.changed()) })),
   ];
   if (e.mode === 'vertices') {
-    out.push(h('div', { class: 'small weak' }, t('Click inside to add a vertex, near or outside the outline to extend it. Drag vertices to move them over the image. Ctrl+click or Ctrl+drag a box to select several; Delete removes the selection.')));
+    out.push(h('div', { class: 'small weak' }, t('Click inside to add a vertex, or on the outline to extend it. Drag to move vertices; Ctrl+drag a box to select several; Delete removes them.')));
     const locks = meshLocks(doc, e.slot, e.name);
     const picked = [...(e.selection ?? [])];
     const allLocked = picked.length > 0 && picked.every((i) => locks.has(i));

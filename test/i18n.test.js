@@ -76,3 +76,14 @@ test('the language follows the system and falls back to English', () => {
   setLanguage('en');
   assert.equal(t('Saved {file}', { file: 'a.rigby' }), 'Saved a.rigby');
 });
+
+test('a word written word(s) after a number placeholder takes the number', () => {
+  setLanguage('en');
+  assert.equal(t('{count} key(s) selected', { count: 1 }), '1 key selected');
+  assert.equal(t('{count} key(s) selected', { count: 3 }), '3 keys selected');
+  assert.equal(t('{count} key(s) selected', { count: 0 }), '0 keys selected');
+  assert.equal(t('{animations} animation(s), {frames} frame(s).', { animations: 1, frames: 61 }), '1 animation, 61 frames.');
+  assert.equal(t('Save the pose of the {count} selected bone(s)', { count: 1 }), 'Save the pose of the 1 selected bone');
+  // Text without a number before it is left alone.
+  assert.equal(t('Show the attachment(s)', {}), 'Show the attachment(s)');
+});

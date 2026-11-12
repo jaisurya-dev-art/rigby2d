@@ -83,7 +83,7 @@ export function onionPanel(app, x, y) {
     h('div', { class: 'onion-sep' }),
     numRow(t('Spacing (frames)'), o.step ?? 1, (v) => { o.step = v; refresh(); }, { min: 1, max: 12 }),
     checkRow(t('Loop'), o.loop, (v) => { o.loop = v; refresh(); }),
-    h('div', { class: 'onion-note' }, app.onionOverrideCount() ? t('{count} bone(s) have their own settings: prediction shows only on those. Clear them from each bone or the ANIMATE notice.', { count: app.onionOverrideCount() }) : t('Applies to the whole skeleton. Enable individual bones from the tree to limit it.')),
+    h('div', { class: 'onion-note' }, app.onionOverrideCount() ? t('Bones with their own settings: {count}. Prediction shows only on those; clear them from each bone or from the ANIMATE notice.', { count: app.onionOverrideCount() }) : t('Applies to the whole skeleton. Enable individual bones from the tree to limit it.')),
   );
   popupMenu(x, y, [node]);
 }

@@ -97,7 +97,7 @@ export function openAutoRig(app) {
           'td',
           null,
           select(
-            [...PART_ROLES.map((r) => [r, ROLE_LABELS[r] ?? r]), ['none', t('— leave unrigged —')]],
+            [...PART_ROLES.map((r) => [r, ROLE_LABELS[r] ?? r]), ['none', t('(leave unrigged)')]],
             choice.roles[p.name] ?? p.role,
             (v) => {
               choice.roles[p.name] = v;
@@ -132,7 +132,7 @@ export function openAutoRig(app) {
     const ready = !!parts?.length;
     fill(
       problem ? hint(problem, { tone: 'danger' }) : null,
-      !problem && !ready ? hint(t('Import layered artwork first: a PSD or SVG with one layer per body part, or one PNG per part, all exported at the same canvas size so each lands where it was drawn.'), { docs: 'autorig' }) : null,
+      !problem && !ready ? hint(t('Import layered artwork first: a PSD or SVG with a layer per body part, or same-size PNGs, one per part.'), { docs: 'autorig' }) : null,
       !problem && !ready ? h('div', { class: 'autorig-imports' }, imports(false).map(([kind, label]) => button(label, { onclick: importArt(kind) }))) : null,
       ready
         ? h('div', { class: 'autorig-table', 'data-tut': 'autorig:parts' }, h('table', null, h('thead', null, h('tr', null, h('th', null, t('Layer')), h('th', null, t('Part')), h('th', null, t('Side')), h('th', null, t('Found by')))), h('tbody', null, rows)))
@@ -228,7 +228,7 @@ export async function openRetarget(app) {
     const { pairs, unmapped } = mapBones(source, target, choice.mapping);
     const byS = new Map(pairs.map((p) => [p.source, p]));
     const keyed = new Set(source.animations.filter((a) => choice.animations.has(a.name)).flatMap((a) => a.bones.map((t) => t.bone)));
-    const targetOptions = [['', t('— none —')], ...target.bones.map((b) => [b.name, b.name])];
+    const targetOptions = [['', t('(none)')], ...target.bones.map((b) => [b.name, b.name])];
     const sh = skeletonHeight(source);
     const auto = sh > 1e-6 ? skeletonHeight(target) / sh : 1;
     const rows = source.bones

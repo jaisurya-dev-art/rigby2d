@@ -39,7 +39,7 @@ export function windowLayoutsSubmenu(ctx) {
             label: `${active ? '● ' : ''}${l.name}${unsaved ? ' — unsaved' : ''}`,
             shortcut: hotkeyLabel(l.hotkey),
             class: active ? (unsaved ? 'active unsaved' : 'active') : null,
-            title: (active ? (unsaved ? t('Active layout — the windows moved since it was saved.') + ' ' : t('Active layout.') + ' ') : '') + t('Load: {panels}', { panels: summary(l.panels) }),
+            title: (active ? (unsaved ? t('Active layout; its windows moved since it was saved.') + ' ' : t('Active layout.') + ' ') : '') + t('Load: {panels}', { panels: summary(l.panels) }),
             action: () => loadLayout(ctx, l),
           };
         })
@@ -115,7 +115,7 @@ function openManageLayouts(ctx) {
             return h(
               'div',
               { class: `layout-row${active ? ' active' : ''}${unsaved ? ' dirty' : ''}`, title: t('Panels: {panels}', { panels: summary(l.panels) }) },
-              h('span', { class: 'layout-dot', title: active ? (unsaved ? t('Active — unsaved window changes') : t('Active layout')) : '' }),
+              h('span', { class: 'layout-dot', title: active ? (unsaved ? t('Active, with unsaved window changes') : t('Active layout')) : '' }),
               textField(l.name, (v) => saveLayouts(renameLayout(loadLayouts(), l.id, v)), { width: '100%' }),
               select(HOTKEY_OPTIONS.map(([v, l]) => [v, t(l)]), hotkeyValue(l.hotkey), (v) => persist(assignHotkey(loadLayouts(), l.id, toHotkey(v)))),
               h(

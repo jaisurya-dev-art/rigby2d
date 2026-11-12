@@ -32,14 +32,27 @@ const rel = (p) => path.relative(editor, p).split(path.sep).join('/');
  */
 const SYMBOL = /(?![©®])\p{Extended_Pictographic}|[＋✓✕✦◉◍▾⧉↻⟲⟳⏵⏸⏹⏮⏭↗]/gu;
 
+/** Interface text longer than this belongs in the docs, with a "Learn more" link. */
+const LONG_TEXT = 140;
+
 function measure() {
-  const m = { symbols: {}, handBuiltDialogs: {}, colorsInCode: {}, css: {} };
+  const m = { symbols: {}, handBuiltDialogs: {}, colorsInCode: {}, longText: {}, dashes: {}, css: {} };
   for (const file of editorFiles()) {
     const name = rel(file);
     const src = fs.readFileSync(file, 'utf8');
     let symbols = 0;
-    for (const s of src.matchAll(/\b(?:t|tn)\(\s*(['"`])((?:\\.|(?!\1).)*)\1/g)) symbols += (s[2].match(SYMBOL) ?? []).length;
+    let long = 0;
+    let dashes = 0;
+    for (const s of src.matchAll(/\b(?:t|tn)\(\s*(['"`])((?:\\.|(?!\1).)*)\1/g)) {
+      symbols += (s[2].match(SYMBOL) ?? []).length;
+      // Wording: one line in panels and dialogs (lessons and demo descriptions may run longer),
+      // and colons or commas, not em-dashes.
+      if (s[2].length > LONG_TEXT && !name.startsWith('tutorials/') && name !== 'demos.js') long++;
+      if (/—/.test(s[2])) dashes++;
+    }
     if (symbols) m.symbols[name] = symbols;
+    if (long) m.longText[name] = long;
+    if (dashes) m.dashes[name] = dashes;
     if (name !== 'ui.js') {
       const dialogs = (src.match(/class: ['"`]modal-backdrop/g) ?? []).length;
       if (dialogs) m.handBuiltDialogs[name] = dialogs;
@@ -65,7 +78,7 @@ test('interface consistency only improves (ratchet)', () => {
   }
   const base = JSON.parse(fs.readFileSync(baselineFile, 'utf8'));
   const worse = [];
-  for (const group of ['symbols', 'handBuiltDialogs', 'colorsInCode']) {
+  for (const group of ['symbols', 'handBuiltDialogs', 'colorsInCode', 'longText', 'dashes']) {
     for (const [file, n] of Object.entries(now[group])) {
       const allowed = base[group][file] ?? 0;
       if (n > allowed) worse.push(`${group}: ${file} has ${n} (baseline ${allowed})`);
@@ -76,6 +89,7 @@ test('interface consistency only improves (ratchet)', () => {
     worse,
     [],
     'Use the design tokens (style.css), ui.js components and uiIcon() instead: ' +
-      'no emoji or symbols in interface text, no hand-built modal-backdrop, no color literals outside the tokens.',
+      'no emoji or symbols in interface text, no hand-built modal-backdrop, no color literals outside the tokens, ' +
+      'interface text short (details in the docs) and without em-dashes.',
   );
 });

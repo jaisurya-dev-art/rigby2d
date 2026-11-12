@@ -164,7 +164,7 @@ export function renderControls(app, el) {
     }),
     button(pasteModeLabel(), {
       kind: 'ghost',
-      title: t('How paste treats existing keys. Click to cycle: Merge → Overwrite (copied tracks) → Overwrite all (whole area). Erased keys show a red cross in the preview.'),
+      title: t('How paste treats keys already there: Merge, Overwrite (the copied tracks) or Overwrite all (the whole area). Click to switch.'),
       onclick: () => cyclePasteMode(app),
     }),
     iconButton('move-horizontal', {
@@ -358,7 +358,7 @@ export function copySelectedKeys(app) {
   multiAdd = false;
   clearRegions(); // the copy snapshotted them; the next selection gesture starts fresh
   const n = clipboard?.count ?? 0;
-  app.setStatus(n === 1 ? t('Copied 1 key — move the playhead and paste (Ctrl+V), Escape to cancel') : t('Copied {count} keys — move the playhead and paste (Ctrl+V), Escape to cancel', { count: n }));
+  app.setStatus(t('Copied {count} key(s): move the playhead and paste (Ctrl+V), or press Escape to cancel', { count: n }));
 }
 
 /** The dopesheet track id a copied track has in `anim` now (its row, if it has one). */
@@ -500,7 +500,7 @@ export function pasteKeys(app) {
     return;
   }
   if (!clipboard) {
-    app.setStatus(t('Clipboard is empty — copy keys first (Ctrl+C)'));
+    app.setStatus(t('Nothing to paste: copy keys first (Ctrl+C)'));
     return;
   }
   const pasteTime = snap(app.time);

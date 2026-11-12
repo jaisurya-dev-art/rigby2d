@@ -12,6 +12,20 @@
     "timeline.js": 33,
     "viewport.js": 31
   },
+  "longText": {
+    "addonui.js": 1,
+    "aiconnect.js": 2,
+    "app.js": 1,
+    "demoui.js": 1,
+    "helpui.js": 1,
+    "inspector.js": 1,
+    "lipsyncui.js": 1,
+    "migration.js": 1,
+    "prefsui.js": 1,
+    "sceneui.js": 1,
+    "spritesheetui.js": 1
+  },
+  "dashes": {},
   "css": {
     "colorLiterals": 280,
     "fontSizesOutsideScale": 8

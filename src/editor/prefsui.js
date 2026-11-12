@@ -104,7 +104,7 @@ const PAGES = [
     render: (app) => [
       row(
         t('Language'),
-        t('The language of menus and dialogs. Some panels are still in English.'),
+        t('The language of the whole editor.'),
         choice([['', t('System ({language})', { language: navigator.language })], ...LANGUAGES], app.prefs.get('interface.language'), (v) => app.prefs.set('interface.language', v)),
       ),
       row('Welcome screen', 'Show the welcome screen when the editor starts.', checkbox(app.prefs.get('general.welcome'), (v) => app.prefs.set('general.welcome', v))),

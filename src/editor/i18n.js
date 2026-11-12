@@ -56,8 +56,11 @@ export function tn(text) {
   return text;
 }
 
-/** `text` in the interface language, with `{name}` placeholders filled from `vars`. */
+/**
+ * `text` in the interface language, with `{name}` placeholders filled from `vars`. A word written
+ * `word(s)` after a number placeholder takes the number: "{count} key(s)" reads "1 key" or "3 keys".
+ */
 export function t(text, vars) {
   const s = table?.[text] ?? text;
-  return vars ? s.replace(/\{(\w+)\}/g, (m, k) => (k in vars ? String(vars[k]) : m)) : s;
+  return vars ? s.replace(/\{(\w+)\}([^{}]*?)\b(\w+)\(s\)/g, (m, k, between, word) => (k in vars ? `{${k}}${between}${Number(vars[k]) === 1 ? word : `${word}s`}` : m)).replace(/\{(\w+)\}/g, (m, k) => (k in vars ? String(vars[k]) : m)) : s;
 }

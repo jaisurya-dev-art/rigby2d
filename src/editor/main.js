@@ -356,7 +356,7 @@ function buildMenuBar() {
     {
       class: 'onion-notice',
       hidden: true,
-      title: t('Onion-skin predictions are visible in the viewport — click for options'),
+      title: t('Onion skin is on in the viewport. Click for options.'),
       onclick: (e) => {
         const r = e.target.getBoundingClientRect();
         popupMenu(r.left, r.bottom, [
