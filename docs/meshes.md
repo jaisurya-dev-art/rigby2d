@@ -39,7 +39,7 @@ triangle counts. A weighted mesh keeps its bones: the new vertices take the weig
 where they are. The settings are remembered, so the next part can use the same ones, and **Reset**
 returns to the defaults. Tiny specks of stray pixels are ignored.
 
-![A ring and a disc traced into one mesh: the ring's hole is left out, two locked vertices are squares, and the panel shows Min. angle, Shapes and Detect holes](images/mesh-generate-shapes.jpg "Two shapes in one mesh, with the hole detected and two locked vertices")
+![A ring and a disc traced into one mesh: the ring's hole is left out, two locked vertices are squares, and the panel shows Min. angle, Shapes and Detect holes](images/mesh-generate-shapes.png "Two shapes in one mesh, with the hole detected and two locked vertices")
 
 With **All, one mesh each**, generating again replaces the meshes it made before instead of adding
 more. A mesh with holes or several shapes keeps every outline as an edge (Spine's mesh edges), so

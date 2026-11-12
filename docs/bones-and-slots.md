@@ -26,7 +26,7 @@ with its children.
 A point bone has a length of 0: a pivot or anchor, such as a shoulder joint, a hip origin, a prop
 attachment point or a common parent for several limbs.
 
-![A rig with point bones for the hip, a shoulder and a prop anchor; the selected hip shows its rotate handle, and the tree marks point bones with a ring](images/point-bones.jpg "Point bones: the hip (selected, with its rotate handle), a shoulder and a prop anchor")
+![A rig with point bones for the hip, a shoulder and a prop anchor; the selected hip shows its rotate handle, and the tree marks point bones with a ring](images/point-bones.png "Point bones: the hip (selected, with its rotate handle), a shoulder and a prop anchor")
 
 It has a position, rotation and scale like any
 bone, can be the parent of regular bones and can bind mesh vertices. In the viewport it is a small
