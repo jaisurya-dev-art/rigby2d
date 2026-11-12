@@ -96,8 +96,8 @@ export function dragValue(value, onChange, opts = {}) {
 }
 
 /** A text field; Enter confirms. */
-export function textField(value, onInput, { disabled = false, width } = {}) {
-  const input = h('input', { type: 'text', value, disabled, spellcheck: false, style: width ? { width } : undefined });
+export function textField(value, onInput, { disabled = false, width, placeholder } = {}) {
+  const input = h('input', { type: 'text', value, disabled, placeholder, spellcheck: false, style: width ? { width } : undefined });
   input.addEventListener('input', () => onInput(input.value));
   input.addEventListener('keydown', (e) => {
     e.stopPropagation();

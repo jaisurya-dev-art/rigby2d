@@ -58,9 +58,9 @@ function poseRow(app, pose, index) {
           app.setStatus(t("Applied pose '{name}'", { name: pose.name }) + (ui.amount < 1 ? t(' at {percent}%', { percent: Math.round(ui.amount * 100) }) : '') + (app.mode === Mode.Animate ? t(' as keys') : ''));
         },
     }),
-    button(t('Update'), {
+    iconButton('refresh-cw', {
         size: 'sm',
-        title: t('Replace with the current pose of the same bones'),
+        title: t('Update: replace with the current pose of the same bones'),
         onclick: () => {
           const bones = Object.keys(pose.bones).map((n) => app.doc.bones.findIndex((b) => b.name === n)).filter((i) => i >= 0);
           const slots = Object.keys(pose.slots).map((n) => app.doc.slots.findIndex((s) => s.name === n)).filter((i) => i >= 0);
@@ -118,13 +118,20 @@ function controllerRow(app, c, index) {
   return h(
     'div',
     { class: 'controller' },
-    h('div', { class: 'controller-head' }, h('strong', null, c.name), h('span', { class: 'small weak' }, ` ${Math.round(c.value * 100)}%`), button(t('Lip-sync'), { size: 'sm', title: t('Key this control from the loudness of the animation\'s audio (mouth open on speech)'), onclick: () => lipSync(app, c) }), iconButton('trash-2', { size: 'sm', title: t('Delete this controller'), onclick: () => (app.doc.controllers.splice(index, 1), app.changed()) })),
+    h(
+      'div',
+      { class: 'controller-head' },
+      h('span', { class: 'controller-name' }, c.name),
+      h('span', { class: 'controller-value' }, `${Math.round(c.value * 100)}%`),
+      iconButton('audio-lines', { size: 'sm', title: t('Lip-sync: key this control from the loudness of the animation\'s audio (mouth open on speech)'), onclick: () => lipSync(app, c) }),
+      iconButton('trash-2', { size: 'sm', title: t('Delete this controller'), onclick: () => (app.doc.controllers.splice(index, 1), app.changed()) }),
+    ),
     slider,
     h(
       'div',
-      { class: 'controller-poses small' },
+      { class: 'controller-poses' },
       select(options, c.from ?? '', (v) => ((c.from = v || null), app.changed())),
-      ' → ',
+      h('span', { class: 'controller-arrow', 'aria-hidden': 'true' }, '→'),
       select(options.slice(1), c.to, (v) => ((c.to = v), app.changed())),
     ),
   );
@@ -159,7 +166,7 @@ export function posesUi(app) {
     h(
       'div',
       { class: 'pose-save' },
-      textField(ui.name, (v) => (ui.name = v), { width: '100%' }),
+      textField(ui.name, (v) => (ui.name = v), { width: '100%', placeholder: t('Pose name') }),
       button(selected ? t('Save pose ({count})', { count: selected }) : t('Save pose (all)'), {
         title: selected ? t('Save the pose of the {count} selected bone(s) and the images of their slots', { count: selected }) : t('Save the pose of every bone'),
         onclick: () => savePose(app, ui.name || (selected ? 'pose' : 'full pose')),
@@ -167,17 +174,30 @@ export function posesUi(app) {
     ),
     doc.poses.length
       ? [
-          h(
-            'div',
-            { class: 'pose-amount small' },
-            t('Apply at '),
-            h('input', { type: 'range', min: 0.05, max: 1, step: 0.05, value: ui.amount, oninput: (e) => (ui.amount = Number(e.target.value)) }),
-            ` ${Math.round(ui.amount * 100)}%`,
-          ),
+          (() => {
+            const value = h('span', { class: 'pose-amount-value' }, `${Math.round(ui.amount * 100)}%`);
+            return h(
+              'label',
+              { class: 'pose-amount', title: t('How far Apply moves toward the pose') },
+              h('span', null, t('Apply at')),
+              h('input', {
+                type: 'range',
+                min: 0.05,
+                max: 1,
+                step: 0.05,
+                value: ui.amount,
+                oninput: (e) => {
+                  ui.amount = Number(e.target.value);
+                  value.textContent = `${Math.round(ui.amount * 100)}%`;
+                },
+              }),
+              value,
+            );
+          })(),
           doc.poses.map((p, i) => poseRow(app, p, i)),
         ]
       : h('div', { class: 'small weak' }, t('Pose bones (select some to save only those), name the pose and save it. Mouth shapes and other image swaps are saved with it.')),
-    faces && h('div', { class: 'section-title' }, t('Face controls')),
+    faces && h('div', { class: 'section-title pose-subtitle' }, t('Face controls')),
     faces && doc.controllers.map((c, i) => controllerRow(app, c, i)),
     !faces
       ? null
@@ -185,25 +205,22 @@ export function posesUi(app) {
       ? h(
           'div',
           { class: 'pose-save' },
-          textField(ui.controllerName, (v) => (ui.controllerName = v), { width: '100%' }),
+          textField(ui.controllerName, (v) => (ui.controllerName = v), { width: '100%', placeholder: t('Control name') }),
           select(
             doc.poses.map((p) => [p.name, p.name]),
             doc.poses.some((p) => p.name === ui.controllerTo) ? ui.controllerTo : doc.poses[0].name,
             (v) => (ui.controllerTo = v),
           ),
-          h(
-            'button',
-            {
-              title: t('A slider from the setup pose to this pose'),
-              onclick: () => {
-                const to = doc.poses.some((p) => p.name === ui.controllerTo) ? ui.controllerTo : doc.poses[0].name;
-                doc.controllers.push({ name: ui.controllerName.trim() || to, from: null, to, value: 0 });
-                ui.controllerName = '';
-                app.changed();
-              },
+          button(t('Add'), {
+            icon: 'plus',
+            title: t('A slider from the setup pose to this pose'),
+            onclick: () => {
+              const to = doc.poses.some((p) => p.name === ui.controllerTo) ? ui.controllerTo : doc.poses[0].name;
+              doc.controllers.push({ name: ui.controllerName.trim() || to, from: null, to, value: 0 });
+              ui.controllerName = '';
+              app.changed();
             },
-            t('Add control'),
-          ),
+          }),
         )
       : h('div', { class: 'small weak' }, t('Save poses first, then add sliders that blend to them (for example brows up, eyes closed, mouth open).')),
   ];

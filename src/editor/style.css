@@ -1243,28 +1243,68 @@ details > summary {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.pose-amount input,
+.pose-amount {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: var(--space-2) 0;
+  color: var(--fg-muted);
+  font-size: var(--text-sm);
+}
+.pose-amount input[type='range'],
 .controller input[type='range'] {
-  vertical-align: middle;
+  flex: 1;
+  min-width: 0;
   width: 100%;
 }
+.pose-amount-value,
+.controller-value {
+  min-width: 3.2em;
+  text-align: right;
+  color: var(--fg-muted);
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+}
+#properties .content .pose-subtitle {
+  margin-top: var(--space-4);
+}
 .controller {
-  padding: 6px;
-  margin: 4px 0;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  margin: var(--space-2) 0;
+  background: var(--surface-2);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius-md);
 }
 .controller-head {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 2px;
 }
-.controller-head strong {
+.controller-name {
   flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+}
+.controller-value {
+  margin-right: var(--space-1);
+}
+.controller-poses {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
 }
 .controller-poses select {
-  max-width: 45%;
+  flex: 1;
+  min-width: 0;
+}
+.controller-arrow {
+  color: var(--fg-faint);
 }
 .section-title {
   margin-top: 8px;
@@ -4463,4 +4503,27 @@ textarea:focus-visible,
 .dialog-search:focus-visible {
   outline: 2px solid var(--ui-accent);
   outline-offset: 1px;
+}
+
+/* Tree sections: headers on their own band, contents set in under them. */
+.tree-section {
+  margin-bottom: var(--space-1);
+}
+.tree-heading {
+  margin-top: var(--space-1);
+  padding: var(--space-1) var(--space-2) var(--space-1) var(--space-1);
+  background: var(--surface-2);
+  border-bottom: none;
+  border-radius: var(--radius-sm);
+}
+.tree-heading:hover {
+  background: var(--surface-3);
+}
+.tree-section > :not(.tree-heading) {
+  margin-left: var(--space-2);
+}
+
+/* The inspector scrolls flush to the panel edge, like the tree and timeline. */
+#properties.panel {
+  padding: 0;
 }
