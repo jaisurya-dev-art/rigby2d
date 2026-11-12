@@ -1,8 +1,9 @@
 # Builds the project website and the browser editor, and publishes them on GitHub Pages:
-# https://rigby2d.com/ (landing page, docs, devlog) and /editor/ (the editor).
+# https://rigby2d.com/ (landing page, devlog, docs) and /editor/ (the editor).
 #
-# The website comes from develop on every push. The browser editor comes from the latest published
-# release, so work on develop reaches it on release day, not before. After publishing a release, run
+# The website (landing page, devlog) comes from develop on every push. The browser editor and the
+# docs come from the latest published release, so work on develop reaches them on release day, not
+# before. After publishing a release, run
 # this workflow on develop (gh workflow run pages.yml --ref develop) to put the new editor live; a
 # run can also build the editor from another tag (editor_ref). Pages deploys only from develop.
 name: Website
@@ -42,7 +43,7 @@ jobs:
       - run: npm test
       - name: Website
         run: node runtimes/phaser/build.mjs && npx vite build --config site/vite.config.js
-      - name: Browser editor (latest release)
+      - name: Browser editor and docs (latest release)
         env:
           GH_TOKEN: ${{ github.token }}
           EDITOR_REF: ${{ inputs.editor_ref }}
@@ -55,6 +56,11 @@ jobs:
           cd "$RUNNER_TEMP/editor"
           npm ci
           npx vite build --base=/editor/ --outDir "$GITHUB_WORKSPACE/_site/editor" --emptyOutDir
+          # The docs as released (pages, screenshots, generated shortcut and tool tables), laid over
+          # develop's so files only develop has (devlog images under docs/images) stay.
+          node runtimes/phaser/build.mjs
+          npx vite build --config site/vite.config.js
+          cp -r _site/docs/. "$GITHUB_WORKSPACE/_site/docs/"
       - uses: actions/configure-pages@v6
       - uses: actions/upload-pages-artifact@v5
         with:
