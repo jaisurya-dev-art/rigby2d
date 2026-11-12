@@ -81,10 +81,19 @@ export function generateMesh(alpha, options = {}) {
       return ring.length > target ? contain(ring, simplify(ring, target)) : refine(ring, target);
     });
     // Locked outline vertices join the nearest outline edge; locked interior ones stay inside.
-    const lockedOut = new Map(); // locked index -> [ring, position]
     lockedHere.forEach((k) => {
       const p = locked[k];
       if (!p.outline) return;
+      const at = Object.assign([p.x, p.y], { locked: k });
+      // A generated point (not a locked one) within a pixel is replaced: the same settings
+      // usually put one exactly there, and two points in one place break the triangles.
+      for (const ring of rings) {
+        const i = ring.findIndex((q) => q.locked === undefined && Math.hypot(q[0] - p.x, q[1] - p.y) < 1);
+        if (i >= 0) {
+          ring[i] = at;
+          return;
+        }
+      }
       let bestRing = 0;
       let bestEdge = 0;
       let bestD = Infinity;
@@ -94,8 +103,7 @@ export function generateMesh(alpha, options = {}) {
           if (d < bestD) [bestD, bestRing, bestEdge] = [d, r, i];
         }
       });
-      rings[bestRing].splice(bestEdge + 1, 0, [p.x, p.y]);
-      rings[bestRing][bestEdge + 1].locked = k;
+      rings[bestRing].splice(bestEdge + 1, 0, at);
     });
     // Back to image pixels; outer outlines clockwise in image space, like a drawn outline.
     const imageRings = rings.map((ring, i) => {

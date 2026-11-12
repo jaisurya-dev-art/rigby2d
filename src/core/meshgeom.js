@@ -219,7 +219,11 @@ export function triangulateRings(points, rings, { minAngle = 0, maxExtra = 0 } =
     });
     return best;
   };
-  for (let i = 0; i < n0; i++) insert(i, locate(pts[i]), false);
+  // A point exactly on another is not inserted (it would make empty triangles); it stays unused.
+  for (let i = 0; i < n0; i++) {
+    if (pts.slice(0, i).some((q) => Math.abs(q[0] - pts[i][0]) < 1e-9 && Math.abs(q[1] - pts[i][1]) < 1e-9)) continue;
+    insert(i, locate(pts[i]), false);
+  }
 
   // Recover ring edges the Delaunay triangulation crossed, by flipping (Sloan).
   const hasEdge = (a, b) => tris.some((t) => t.includes(a) && t.includes(b));

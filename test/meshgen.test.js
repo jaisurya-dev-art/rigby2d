@@ -194,3 +194,18 @@ test('minimum angle adds interior points until triangles are not thin', () => {
   assert.ok(minAngle(better) > minAngle(plain), `${minAngle(plain)} -> ${minAngle(better)}`);
   assert.ok(meshCoverage(circle, better) > 0.995);
 });
+
+test('regenerating with the same settings and locked vertices keeps the mesh intact', () => {
+  const pairWithHole = image(300, 160, (x, y) => (Math.hypot(x - 90, y - 80) < 70 && Math.hypot(x - 90, y - 80) > 32) || Math.hypot(x - 235, y - 80) < 45);
+  const opts = { points: 24, interior: 'low', islands: 'merge', holes: true };
+  const first = generateMesh(pairWithHole, opts);
+  const ringVerts = new Set(first.edges.map((e) => e / 2));
+  const locked = [2, 9].map((i) => ({ x: first.points[i][0], y: first.points[i][1], outline: ringVerts.has(i) }));
+  const again = generateMesh(pairWithHole, { ...opts, locked });
+  const keys = again.points.map(([x, y]) => `${x.toFixed(6)},${y.toFixed(6)}`);
+  assert.equal(new Set(keys).size, keys.length, 'no two points in one place');
+  assert.equal(new Set(again.triangles).size, again.points.length, 'every point is used');
+  assert.ok(meshCoverage(pairWithHole, again) > 0.99);
+  const gap = image(300, 160, (x, y) => x > 165 && x < 185 && y > 60 && y < 100);
+  assert.ok(meshCoverage(gap, again) < 0.05, 'nothing bridges the gap');
+});
