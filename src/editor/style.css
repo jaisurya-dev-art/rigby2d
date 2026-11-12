@@ -269,44 +269,96 @@ body {
   left: 8px;
   right: 8px;
   bottom: 8px;
+  container-type: inline-size;
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
-  gap: 4px;
-  padding: 4px 6px;
-  background: rgba(30, 30, 30, 0.88);
-  border: 1px solid var(--border);
-  border-radius: 6px;
+  gap: var(--space-1);
+  padding: var(--space-1) 6px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  background: color-mix(in srgb, var(--surface-1) 92%, transparent);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
   pointer-events: auto;
+}
+#viewbar > * {
+  flex: none;
 }
 #viewbar .toolgroup {
   display: flex;
   align-items: center;
   gap: 2px;
 }
-#viewbar .tool,
-#viewbar .axis,
-#viewbar .autokey {
+#viewbar .tool {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: var(--button-h);
+  padding: 0 var(--space-2);
+  color: var(--fg-muted);
   background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
 }
-#viewbar .tool:hover,
-#viewbar .axis:hover {
-  background: var(--widget);
+#viewbar .tool:hover {
+  color: var(--fg);
+  background: var(--surface-hover);
 }
-#viewbar .tool.active,
-#viewbar .axis.active {
-  background: var(--selected);
+#viewbar .tool.active {
   color: #fff;
-}
-#viewbar .autokey {
-  color: var(--weak);
-}
-#viewbar .autokey.on {
-  color: rgb(240, 70, 70);
-  font-weight: 600;
+  background: var(--ui-selected);
 }
 #viewbar .fields input.drag {
   width: 84px;
+}
+#viewbar .toolbar-hint {
+  color: var(--fg-faint);
+  white-space: nowrap;
+}
+#viewbar .toolbar-spacer {
+  flex: 1 1 0;
+  min-width: 0;
+}
+#viewbar .toggle-with-options {
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+}
+#viewbar .autokey.on {
+  color: #fff;
+  background: color-mix(in srgb, var(--danger) 25%, transparent);
+  border-color: var(--danger);
+}
+#viewbar .autokey.on svg {
+  color: var(--danger);
+}
+.keybtn.none svg {
+  color: var(--success);
+}
+.keybtn.changed svg {
+  color: var(--warning);
+}
+.keybtn.keyed svg {
+  color: var(--danger);
+  fill: currentColor;
+}
+/* Narrow viewports: tools and toggles show only their icons (names stay in the tooltips). */
+@container (max-width: 980px) {
+  #viewbar .tool-label,
+  #viewbar .ui-toggle span {
+    display: none;
+  }
+  #viewbar .tool,
+  #viewbar .ui-toggle {
+    padding: 0 6px;
+  }
+}
+@container (max-width: 640px) {
+  #viewbar .toolbar-hint {
+    display: none;
+  }
 }
 #split-bottom {
   grid-area: sb;
@@ -879,15 +931,39 @@ input[type='color'] {
 }
 
 #controls {
+  container-type: inline-size;
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 4px;
-  padding: 6px 8px;
-  border-bottom: 1px solid var(--border);
+  flex-wrap: nowrap;
+  gap: var(--space-2);
+  padding: 6px var(--space-2);
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  border-bottom: 1px solid var(--line);
+}
+#controls > * {
+  flex: none;
+}
+#controls .tl-group {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+#controls .tl-animation {
+  gap: var(--space-1);
+}
+#controls .tl-spacer {
+  flex: 1 1 0;
+  min-width: 0;
+}
+#controls .tl-label,
+#controls .tl-empty {
+  color: var(--fg-muted);
+  white-space: nowrap;
 }
 #controls select {
-  width: 150px;
+  width: 140px;
 }
 /* Playback speed: as wide as "0.25×", not as an animation name. */
 #controls select.speed {
@@ -896,26 +972,41 @@ input[type='color'] {
 #controls select.fps {
   width: 84px;
 }
-/* Transport buttons keep one width whatever their glyph (play and pause differ). */
-#controls button.transport {
-  width: 30px;
-  padding-left: 0;
-  padding-right: 0;
-  text-align: center;
-}
 /* The time readout: one width while playing and in both workspaces. */
 #controls .time-readout {
   display: inline-block;
   min-width: 21ch;
+  margin: 0 var(--space-2);
 }
-#controls label {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-}
-#controls button.active {
-  background: var(--selected);
+#controls .ui-btn-ghost.active {
   color: #fff;
+  background: var(--ui-selected);
+}
+#controls .ui-btn-ghost {
+  color: var(--fg-muted);
+}
+/* Narrower timelines: labels go first (the tooltips keep them), then the animation name field. */
+@container (max-width: 1640px) {
+  #controls .tl-label,
+  #controls .ui-toggle span,
+  #controls .ui-btn .ui-btn-label-hide {
+    display: none;
+  }
+  #controls .ui-toggle {
+    padding: 0 6px;
+  }
+  #controls .time-readout {
+    min-width: 0;
+    margin: 0 var(--space-1);
+  }
+}
+@container (max-width: 1400px) {
+  #controls .tl-animation input[type='text'] {
+    display: none;
+  }
+  #controls select {
+    width: 110px;
+  }
 }
 .dopesheet-wrap {
   position: relative;
@@ -1730,24 +1821,6 @@ div.log-entry {
 }
 
 /* ---- Onion skinning (frame prediction) ------------------------------------------------------ */
-#viewbar .onion-tool {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-}
-#viewbar .onion-toggle,
-#viewbar .onion-gear {
-  background: transparent;
-  color: var(--weak);
-}
-#viewbar .onion-toggle:hover,
-#viewbar .onion-gear:hover {
-  background: var(--widget);
-}
-#viewbar .onion-toggle.on {
-  color: var(--accent);
-  font-weight: 600;
-}
 /* Per-bone button and direction marks in the tree. */
 .row .onion-bonebtn {
   margin-left: 4px;
@@ -1848,24 +1921,6 @@ div.log-entry {
 }
 
 /* ---- Guides (real-time transform guides + static ruler guides) ------------------------------ */
-#viewbar .guides-tool {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-}
-#viewbar .guides-toggle,
-#viewbar .guides-gear {
-  background: transparent;
-  color: var(--weak);
-}
-#viewbar .guides-toggle:hover,
-#viewbar .guides-gear:hover {
-  background: var(--widget);
-}
-#viewbar .guides-toggle.on {
-  color: var(--accent);
-  font-weight: 600;
-}
 /* Options popover (inside a .popup). */
 .guides-panel {
   display: flex;

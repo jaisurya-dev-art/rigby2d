@@ -1,24 +1,12 @@
 {
   "symbols": {
-    "addonui.js": 2,
-    "app.js": 4,
     "constraintui.js": 1,
-    "demoui.js": 1,
-    "helpui.js": 2,
     "inspector.js": 18,
-    "main.js": 1,
-    "migrationui.js": 1,
-    "nudgeui.js": 2,
-    "recoveryui.js": 1,
     "sceneui.js": 3,
-    "scripting/scriptui.js": 3,
     "skineventui.js": 3,
-    "timeline.js": 4,
-    "toolbar.js": 1,
     "tree.js": 7,
     "tutorials/coach.js": 1,
-    "tutorials/lessons.js": 9,
-    "updateui.js": 2
+    "tutorials/lessons.js": 9
   },
   "handBuiltDialogs": {},
   "colorsInCode": {
@@ -33,7 +21,7 @@
     "viewport.js": 31
   },
   "css": {
-    "colorLiterals": 281,
+    "colorLiterals": 280,
     "fontSizesOutsideScale": 8
   }
 }

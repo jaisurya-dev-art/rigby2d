@@ -26,6 +26,7 @@ import { GraphEditor } from './graph.js';
 import { Dopesheet, copySelectedKeys, cutSelectedKeys, deleteSelectedKeys, exitSelectModes, pasteKeys, renderControls } from './timeline.js';
 import { Viewport } from './viewport.js';
 import { closeMenu, h, isMenuOpen, popupMenu, submenuItem, widgetState } from './widgets.js';
+import { uiIcon } from './ui.js';
 import * as log from './log.js';
 import { toggleLogWindow, windowOpen as logOpen } from './logwindow.js';
 import { Scripts } from './scripting/scriptui.js';
@@ -364,7 +365,8 @@ function buildMenuBar() {
         ].filter(Boolean));
       },
     },
-    t('◉ Onion skin on'),
+    uiIcon('layers', 'sm'),
+    h('span', null, t('Onion skin on')),
   );
   // Workspace switcher: which tools the editor shows for this project.
   const tabs = Object.values(WORKSPACES).map((ws) => h('button', { class: 'workspace-tab', 'data-tut': `workspace:${ws.id}`, title: t(ws.description), onclick: () => app.workspace !== ws.id && app.setWorkspace(ws.id) }, t(ws.label)));

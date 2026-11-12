@@ -12,6 +12,7 @@ import * as platform from './platform.js';
 import { LINKS, VERSION, askChoice, dialog } from './helpui.js';
 import { t } from './i18n.js';
 import { h } from './widgets.js';
+import { button } from './ui.js';
 import { HEARTBEAT_MS, QUIT_FILE, crashReport, crashedSessions, deadSessions, newSessionId, sessionAutosave } from './recovery.js';
 
 const SESSIONS_KEY = 'rigby.sessions';
@@ -271,7 +272,7 @@ export function installRecovery(app) {
         'div',
         { class: 'dialog-actions' },
         h('button', { onclick: () => navigator.clipboard?.writeText(report).then(() => app.setStatus(t('Copied the crash report'))) }, t('Copy')),
-        h('button', { class: 'primary', onclick: () => platform.openExternal(issue) }, t('Report on GitHub ↗')),
+        button(t('Report on GitHub'), { kind: 'primary', icon: 'external-link', onclick: () => platform.openExternal(issue) }),
       ),
     );
   }

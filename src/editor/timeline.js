@@ -11,7 +11,7 @@ import { FPS, Mode, selBone, selSlot, snap } from './app.js';
 import * as edit from './edit.js';
 import { clearSpan, findTrack, makeClipboard, pasteClipboard, planPaste, previewKeys, trackRef } from './keyclip.js';
 import { dragValue, h, popupMenu, select, textField } from './widgets.js';
-import { button, dialog } from './ui.js';
+import { button, dialog, iconButton, segmented, toggleButton, uiIcon } from './ui.js';
 // The dopesheet's row order and key-selection-by-index live in keyorder.js (core-only, so the
 // selection round trip can be tested in Node). Re-exported here so the windows import them as before.
 import { tracks, trackKeys } from './keyorder.js';
@@ -64,204 +64,146 @@ function speedSelect(...args) {
   return el;
 }
 
-/** Transport and animation controls (rebuilt when the app changes). */
+/**
+ * Transport and animation controls (rebuilt when the app changes), in groups: the animation, playback,
+ * keys and the view. The bar stays on one line: when it is narrow, labels hide (tooltips keep them).
+ */
 export function renderControls(app, el) {
   const anim = app.currentAnimation();
   const names = app.doc.animations.map((a, i) => [i, a.name]);
-  const play = h('button', { class: 'transport', 'data-tut': 'timeline:play', disabled: app.anim === null, title: withShortcut(t('Play / pause'), app.keymap, 'play.forward'), onclick: () => app.togglePlay() }, app.playing ? '⏸' : '▶');
-  el.replaceChildren(
-    ...[
-      names.length
-        ? select(
-            names,
-            app.anim ?? 0,
-            (i) => {
-              app.anim = i;
-              app.time = 0;
+  const changed = (fn) => (...args) => {
+    fn(...args);
+    app.changed();
+  };
+  const group = (cls, ...children) => h('div', { class: `tl-group ${cls}` }, ...children.flat().filter(Boolean));
+  const tut = (el, id) => {
+    el.dataset.tut = id;
+    return el;
+  };
+
+  const animation = group(
+    'tl-animation',
+    names.length
+      ? select(
+          names,
+          app.anim ?? 0,
+          (i) => {
+            app.anim = i;
+            app.time = 0;
+            app.selectedKeys.clear();
+            app.changed();
+          },
+          { tut: 'timeline:animations' },
+        )
+      : h('span', { class: 'tl-empty' }, t('(no animation)')),
+    tut(
+      iconButton('plus', {
+        title: t('New animation'),
+        onclick: changed(() => {
+          app.doc.animations.push(new Animation(uniqueName('animation', (n) => app.doc.animations.some((a) => a.name === n)), 1));
+          app.anim = app.doc.animations.length - 1;
+          app.mode = Mode.Animate;
+          app.time = 0;
+        }),
+      }),
+      'timeline:new',
+    ),
+    anim
+      ? [
+          textField(anim.name, changed((v) => (anim.name = v)), { width: '110px' }),
+          h('span', { class: 'tl-label' }, t('Length')),
+          dragValue(anim.duration, changed((v) => (anim.duration = v)), { speed: 0.01, min: 1 / FPS, max: 600, suffix: ' s', decimals: 2 }),
+          iconButton('trash-2', {
+            title: t('Delete animation'),
+            onclick: changed(() => {
+              app.doc.animations.splice(app.anim, 1);
+              app.anim = app.doc.animations.length ? 0 : null;
               app.selectedKeys.clear();
-              app.changed();
-            },
-            { tut: 'timeline:animations' },
-          )
-        : h('span', { class: 'weak' }, t('(no animation)')),
-      h(
-        'button',
-        {
-          'data-tut': 'timeline:new',
-          onclick: () => {
-            app.doc.animations.push(new Animation(uniqueName('animation', (n) => app.doc.animations.some((a) => a.name === n)), 1));
-            app.anim = app.doc.animations.length - 1;
-            app.mode = Mode.Animate;
-            app.time = 0;
-            app.changed();
-          },
-        },
-        t('＋ New'),
-      ),
-      anim
-        ? [
-            textField(
-              anim.name,
-              (v) => {
-                anim.name = v;
-                app.changed();
-              },
-              { width: '110px' },
-            ),
-            h('span', null, t('Length')),
-            dragValue(
-              anim.duration,
-              (v) => {
-                anim.duration = v;
-                app.changed();
-              },
-              { speed: 0.01, min: 1 / FPS, max: 600, suffix: ' s', decimals: 2 },
-            ),
-            h(
-              'button',
-              {
-                title: t('Delete animation'),
-                onclick: () => {
-                  app.doc.animations.splice(app.anim, 1);
-                  app.anim = app.doc.animations.length ? 0 : null;
-                  app.selectedKeys.clear();
-                  app.changed();
-                },
-              },
-              '🗑',
-            ),
-          ]
-        : null,
-      h('span', { class: 'vsep' }),
-      h(
-        'button',
-        {
-          title: withShortcut(t('Go to start'), app.keymap, 'time.start'),
-          onclick: () => {
-            app.time = 0;
-            app.playing = false;
-            app.changed();
-          },
-        },
-        '⏮',
-      ),
-      h('button', { class: 'transport', title: withShortcut(t('Previous frame'), app.keymap, 'frame.previous'), onclick: () => app.stepFrame(-1) }, '◀'),
-      play,
-      h('button', { class: 'transport', 'data-tut': 'timeline:next', title: withShortcut(t('Next frame'), app.keymap, 'frame.next'), onclick: () => app.stepFrame(1) }, '▶|'),
-      h(
-        'label',
-        { title: withShortcut(t('Toggle looping'), app.keymap, 'loop.toggle') },
-        h('input', {
-          type: 'checkbox',
-          checked: app.looping,
-          onchange: (e) => {
-            app.looping = e.target.checked;
-            app.changed();
-          },
-        }),
-        ' ' + t('Loop'),
-      ),
-      h(
-        'label',
-        { title: t('Boomerang: with Loop on, plays to the end and back (a preview; exports are unchanged)') },
-        h('input', {
-          type: 'checkbox',
-          checked: app.boomerang,
-          disabled: !app.looping,
-          onchange: (e) => {
-            app.boomerang = e.target.checked;
-            app.changed();
-          },
-        }),
-        ' ' + t('Boomerang'),
-      ),
-      fpsSelect(app),
-      h('span', { class: 'vsep' }),
-      h('button', { 'data-tut': 'timeline:key', disabled: app.mode !== Mode.Animate, onclick: () => edit.keySelection(app) }, t('◆ Key (K)')),
-      h('span', { class: 'vsep' }),
-      h('button', { title: t('Copy selected keys (Ctrl+C)'), disabled: !app.selectedKeys.size, onclick: () => copySelectedKeys(app) }, t('⧉ Copy')),
-      h('button', { title: t('Paste keys at the playhead (Ctrl+V)'), disabled: !hasClipboard(), onclick: () => pasteKeys(app) }, t('⎘ Paste')),
-      h(
-        'button',
-        {
-          class: frameSelectActive() ? 'active' : '',
-          title: t('Select whole frame columns: drag to select a range, Alt+drag to add another. Click again for key select.'),
-          onclick: () => toggleFrameSelect(app),
-        },
-        t('▦ Frames'),
-      ),
-      h(
-        'button',
-        {
-          class: multiAddActive() ? 'active' : '',
-          title: t('Multi-select: each drag adds another area (keys or columns) without holding Ctrl/Alt. Copy or Escape ends it.'),
-          onclick: () => toggleMultiAdd(app),
-        },
-        t('＋ Multi'),
-      ),
-      h(
-        'button',
-        {
-          class: pasteModeActive() ? 'active' : '',
-          title: t('How paste treats existing keys. Click to cycle: Merge → Overwrite (copied tracks) → Overwrite all (whole area). Erased keys show a red ✕ in the preview.'),
-          onclick: () => cyclePasteMode(app),
-        },
-        pasteModeLabel(),
-      ),
-      h(
-        'button',
-        {
-          class: retimeArmedActive() ? 'active' : '',
-          title: t('Retime (scale the selected keys’ timing): show the drag handles for one use. Or right-click + drag anytime.'),
-          onclick: () => toggleRetime(app),
-        },
-        t('⇔ Retime'),
-      ),
-      h('span', { class: 'vsep' }),
-      h(
-        'span',
-        { class: 'segmented', title: t('Timeline view') },
-        [
-          ['dopesheet', t('Dopesheet')],
-          ['graph', t('Graph')],
-        ].map(([id, label]) =>
-          h(
-            'button',
-            {
-              class: app.timelineView === id ? 'active' : '',
-              onclick: () => {
-                app.timelineView = id;
-                app.changed();
-              },
-            },
-            label,
-          ),
-        ),
-      ),
-      // The time readout last, where the eye ends up after the tools, with the playback speed
-      // next to it.
-      anim && h('span', { class: 'vsep' }),
-      anim && timeReadout(app, anim),
-      speedSelect(
-        [
-          [0.1, '0.1×'],
-          [0.25, '0.25×'],
-          [0.5, '0.5×'],
-          [1, '1×'],
-          [1.5, '1.5×'],
-          [2, '2×'],
-        ],
-        app.playSpeed ?? 1,
-        (v) => {
-          app.playSpeed = v;
-          app.changed();
-        },
-        { tut: 'timeline:speed' },
-      ),
-    ]
-      .flat()
-      .filter(Boolean),
+            }),
+          }),
+        ]
+      : null,
   );
+
+  const noAnim = app.anim === null;
+  const playback = group(
+    'tl-playback',
+    iconButton('skip-back', {
+      title: withShortcut(t('Go to start'), app.keymap, 'time.start'),
+      onclick: changed(() => {
+        app.time = 0;
+        app.playing = false;
+      }),
+    }),
+    iconButton('chevron-left', { title: withShortcut(t('Previous frame'), app.keymap, 'frame.previous'), onclick: () => app.stepFrame(-1) }),
+    tut(iconButton(app.playing ? 'pause' : 'play', { title: withShortcut(t('Play / pause'), app.keymap, 'play.forward'), disabled: noAnim, active: app.playing, onclick: () => app.togglePlay() }), 'timeline:play'),
+    tut(iconButton('chevron-right', { title: withShortcut(t('Next frame'), app.keymap, 'frame.next'), onclick: () => app.stepFrame(1) }), 'timeline:next'),
+    toggleButton(t('Loop'), app.looping, changed((on) => (app.looping = on)), { icon: 'repeat', title: withShortcut(t('Toggle looping'), app.keymap, 'loop.toggle') }),
+    toggleButton(t('Boomerang'), app.boomerang, changed((on) => (app.boomerang = on)), {
+      icon: 'arrow-left-right',
+      disabled: !app.looping,
+      title: t('Boomerang: with Loop on, plays to the end and back (a preview; exports are unchanged)'),
+    }),
+    fpsSelect(app),
+  );
+
+  const keys = group(
+    'tl-keys',
+    tut(button(t('Key'), { icon: 'diamond', shortcut: 'K', title: t('Key the selection'), disabled: app.mode !== Mode.Animate, onclick: () => edit.keySelection(app) }), 'timeline:key'),
+    iconButton('copy', { title: t('Copy selected keys (Ctrl+C)'), disabled: !app.selectedKeys.size, onclick: () => copySelectedKeys(app) }),
+    iconButton('clipboard-paste', { title: t('Paste keys at the playhead (Ctrl+V)'), disabled: !hasClipboard(), onclick: () => pasteKeys(app) }),
+    iconButton('columns-3', {
+      title: t('Select whole frame columns: drag to select a range, Alt+drag to add another. Click again for key select.'),
+      active: frameSelectActive(),
+      onclick: () => toggleFrameSelect(app),
+    }),
+    iconButton('copy-plus', {
+      title: t('Multi-select: each drag adds another area (keys or columns) without holding Ctrl/Alt. Copy or Escape ends it.'),
+      active: multiAddActive(),
+      onclick: () => toggleMultiAdd(app),
+    }),
+    button(pasteModeLabel(), {
+      kind: 'ghost',
+      title: t('How paste treats existing keys. Click to cycle: Merge → Overwrite (copied tracks) → Overwrite all (whole area). Erased keys show a red cross in the preview.'),
+      onclick: () => cyclePasteMode(app),
+    }),
+    iconButton('move-horizontal', {
+      title: t('Retime (scale the selected keys’ timing): show the drag handles for one use. Or right-click + drag anytime.'),
+      active: retimeArmedActive(),
+      onclick: () => toggleRetime(app),
+    }),
+  );
+  if (pasteModeActive()) keys.querySelector('.ui-btn-ghost').classList.add('active');
+
+  const view = group(
+    'tl-view',
+    segmented(
+      [
+        ['dopesheet', t('Dopesheet')],
+        ['graph', t('Graph')],
+      ],
+      app.timelineView,
+      changed((id) => (app.timelineView = id)),
+      { title: t('Timeline view') },
+    ),
+    // The time readout last, where the eye ends up after the tools, with the playback speed next to it.
+    anim ? timeReadout(app, anim) : null,
+    speedSelect(
+      [
+        [0.1, '0.1×'],
+        [0.25, '0.25×'],
+        [0.5, '0.5×'],
+        [1, '1×'],
+        [1.5, '1.5×'],
+        [2, '2×'],
+      ],
+      app.playSpeed ?? 1,
+      changed((v) => (app.playSpeed = v)),
+      { tut: 'timeline:speed' },
+    ),
+  );
+
+  el.replaceChildren(animation, h('span', { class: 'vsep' }), playback, h('span', { class: 'vsep' }), keys, h('span', { class: 'tl-spacer' }), view);
 }
 
 /** Deletes every selected key. */
@@ -301,7 +243,7 @@ let multiAdd = false; // true makes every selection gesture add to the selection
 // the copied tracks, 'full' clears it in every track the selection spanned (even empty ones).
 let pasteMode = 'none';
 const PASTE_MODES = ['none', 'overwrite', 'full'];
-const PASTE_LABELS = { none: tn('⊟ Merge'), overwrite: tn('⊟ Overwrite'), full: tn('⊟ Overwrite all') };
+const PASTE_LABELS = { none: tn('Merge'), overwrite: tn('Overwrite'), full: tn('Overwrite all') };
 let selectionIsColumns = false; // the current selection came from the ruler (whole columns), not a box
 let retimeArmed = false; // true shows the retiming handles for one use (otherwise hidden)
 // The areas the current selection was built from, each { f0, f1, r0, r1, full } in frames/rows, so the

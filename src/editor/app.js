@@ -53,12 +53,12 @@ export let FPS = 30;
 export const Mode = Object.freeze({ Setup: 'setup', Animate: 'animate' });
 
 export const TOOLS = [
-  { id: 'pose', label: tn('✋ Pose') },
-  { id: 'create', label: tn('🦴 Create') },
-  { id: 'rotate', label: tn('⟳ Rotate') },
-  { id: 'translate', label: tn('✥ Translate') },
-  { id: 'scale', label: tn('⤢ Scale') },
-  { id: 'shear', label: tn('⧄ Shear') },
+  { id: 'pose', label: tn('Pose'), icon: 'hand' },
+  { id: 'create', label: tn('Create'), icon: 'bone' },
+  { id: 'rotate', label: tn('Rotate'), icon: 'rotate-cw' },
+  { id: 'translate', label: tn('Translate'), icon: 'move' },
+  { id: 'scale', label: tn('Scale'), icon: 'maximize-2' },
+  { id: 'shear', label: tn('Shear'), icon: 'shear' },
 ];
 
 

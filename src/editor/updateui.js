@@ -94,8 +94,8 @@ async function offerUpdate(app, update) {
     [h('p', null, t('Rigby2D {version} is available. You have {current}.', { version: update.version, current: VERSION })), notes ? h('p', { class: 'weak' }, notes.replace(/[*_`]/g, '')) : null].filter(Boolean),
     [
       { id: 'later', label: t('Later') },
-      { id: 'notes', label: t("What's new ↗") },
-      inPlace ? { id: 'install', label: t('Install and restart'), primary: true } : { id: 'download', label: t('Download ↗'), primary: true },
+      { id: 'notes', label: t("What's new") },
+      inPlace ? { id: 'install', label: t('Install and restart'), primary: true } : { id: 'download', label: t('Download'), primary: true },
     ],
   );
   if (choice === 'notes') return openExternal(`${LINKS.repo}/releases/tag/v${update.version}`);

@@ -1,7 +1,7 @@
 # Guides
 
 Guides are optional viewport aids: thin overlays while you transform a bone, and Photoshop-style
-rulers with guide lines to align work to. Turn them on with **▦ Guides** in the viewport toolbar;
+rulers with guide lines to align work to. Turn them on with **Guides** in the viewport toolbar;
 the **⚙** button next to it opens the options. Guides are on by default.
 
 ## Options

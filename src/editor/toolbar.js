@@ -9,6 +9,7 @@ import { shortcutLabel, withShortcut } from './keymap.js';
 import { onionPanel } from './onionui.js';
 import { guidesPanel } from './guidesui.js';
 import { dragValue, h } from './widgets.js';
+import { iconButton, segmented, toggleButton, tooltip, uiIcon } from './ui.js';
 import { t, tn } from './i18n.js';
 
 const AXES = [
@@ -66,22 +67,26 @@ const FIELD_SPECS = {
 };
 
 export function render(app, el) {
-  const tools = TOOLS.map((tool) => {
-    const key = shortcutLabel(app.keymap, `tool.${tool.id}`);
-    return h(
+  const set = (fn) => (...args) => {
+    fn(...args);
+    app.changed();
+  };
+  // Tools: icon and name; the name hides when the bar is narrow (the tooltip keeps it).
+  const tools = TOOLS.map((tool) =>
+    h(
       'button',
       {
+        type: 'button',
         class: `tool${app.tool === tool.id ? ' active' : ''}`,
         'data-tut': `tool:${tool.id}`,
-        title: key ? `${t(tool.label).replace(/^\S+ /, '')} (${key})` : t(tool.label),
-        onclick: () => {
-          app.tool = tool.id;
-          app.changed();
-        },
+        'aria-pressed': app.tool === tool.id ? 'true' : 'false',
+        title: tooltip(t(tool.label), shortcutLabel(app.keymap, `tool.${tool.id}`)),
+        onclick: set(() => (app.tool = tool.id)),
       },
-      t(tool.label),
-    );
-  });
+      uiIcon(tool.icon),
+      h('span', { class: 'tool-label' }, t(tool.label)),
+    ),
+  );
 
   // Numeric fields of the active tool for the primary selected bone.
   const fields = [];
@@ -101,126 +106,73 @@ export function render(app, el) {
     });
     if (app.mode === Mode.Animate) {
       const state = edit.channelState(app, b, channel);
-      fields.push(
-        h('button', { class: `keybtn ${state}`, title: t('Key this property'), onclick: () => edit.keyChannels(app, app.selectedBones(), [channel]) }, '◆'),
-      );
+      const key = iconButton('diamond', { title: t('Key this property'), size: 'sm', onclick: () => edit.keyChannels(app, app.selectedBones(), [channel]) });
+      key.classList.add('keybtn', state);
+      fields.push(key);
     }
   } else if (channel) {
-    fields.push(h('span', { class: 'weak' }, t('Select a bone')));
+    fields.push(h('span', { class: 'toolbar-hint' }, t('Select a bone')));
   }
 
-  const axes = h(
-    'span',
-    { class: 'axes', title: t('Axes for the values and the translate tool') },
-    AXES.map(([id, label]) =>
-      h(
-        'button',
-        {
-          class: `axis${app.axis === id ? ' active' : ''}`,
-          onclick: () => {
-            app.axis = id;
-            app.changed();
-          },
-        },
-        t(label),
-      ),
-    ),
+  const axes = segmented(
+    AXES.map(([id, label]) => [id, t(label)]),
+    app.axis,
+    set((id) => (app.axis = id)),
+    { title: t('Axes for the values and the translate tool') },
   );
 
-  const autoKey =
-    app.mode === Mode.Animate
-      ? h(
-          'button',
-          {
-            class: `autokey${app.autoKey ? ' on' : ''}`,
-            'data-tut': 'autokey',
-            title: withShortcut(t('Auto key: every change in Animate mode sets keys right away'), app.keymap, 'autokey.toggle'),
-            onclick: () => {
-              app.autoKey = !app.autoKey;
-              app.changed();
-            },
-          },
-          app.autoKey ? t('● Auto key') : t('○ Auto key'),
-        )
-      : null;
-
-  // Onion skinning: master toggle + quick options panel (Animate mode only).
+  // Toggles with an options button: onion skin (Animate mode) and guides; then auto key.
+  const withOptions = (toggle, title, open) =>
+    h(
+      'span',
+      { class: 'toggle-with-options' },
+      toggle,
+      iconButton('settings-2', {
+        title,
+        size: 'sm',
+        onclick: (e) => {
+          const r = e.currentTarget.getBoundingClientRect();
+          open(r.left, r.bottom);
+        },
+      }),
+    );
   const onion =
     app.mode === Mode.Animate
-      ? h(
-          'span',
-          { class: 'onion-tool', title: t('Onion skin: draw past and future frames in the viewport') },
-          h(
-            'button',
-            {
-              class: `onion-toggle${app.onion.enabled ? ' on' : ''}`,
-              'data-tut': 'onion',
-              onclick: () => {
-                app.onion.enabled = !app.onion.enabled;
-                app.changed();
-              },
-            },
-            app.onion.enabled ? t('◉ Onion') : t('○ Onion'),
-          ),
-          h(
-            'button',
-            {
-              class: 'onion-gear',
-              title: t('Onion-skin options'),
-              onclick: (e) => {
-                const r = e.target.getBoundingClientRect();
-                onionPanel(app, r.left, r.bottom);
-              },
-            },
-            '⚙',
-          ),
+      ? withOptions(
+          toggleButton(t('Onion skin'), app.onion.enabled, set((on) => (app.onion.enabled = on)), { icon: 'layers', title: t('Onion skin: draw past and future frames in the viewport') }),
+          t('Onion-skin options'),
+          (x, y) => onionPanel(app, x, y),
         )
       : null;
-
-  // Guides: master toggle + options popover. Available in both modes (real-time guides apply to any
-  // bone transform, static guides apply always). Drawing is added by later features.
-  const guides = h(
-    'span',
-    { class: 'guides-tool', title: t('Guides: real-time transform guides and static ruler guides') },
-    h(
-      'button',
-      {
-        class: `guides-toggle${app.guides.enabled ? ' on' : ''}`,
-        onclick: () => {
-          app.guides.enabled = !app.guides.enabled;
-          app.changed();
-        },
-      },
-      app.guides.enabled ? t('▦ Guides') : t('▢ Guides'),
-    ),
-    h(
-      'button',
-      {
-        class: 'guides-gear',
-        title: t('Guide options'),
-        onclick: (e) => {
-          const r = e.target.getBoundingClientRect();
-          guidesPanel(app, r.left, r.bottom);
-        },
-      },
-      '⚙',
-    ),
+  if (onion) onion.querySelector('.ui-toggle').dataset.tut = 'onion';
+  const guides = withOptions(
+    toggleButton(t('Guides'), app.guides.enabled, set((on) => (app.guides.enabled = on)), { icon: 'ruler', title: t('Guides: real-time transform guides and static ruler guides') }),
+    t('Guide options'),
+    (x, y) => guidesPanel(app, x, y),
   );
+  const autoKey =
+    app.mode === Mode.Animate
+      ? toggleButton(t('Auto key'), app.autoKey, set((on) => (app.autoKey = on)), {
+          icon: 'circle-dot',
+          title: withShortcut(t('Auto key: every change in Animate mode sets keys right away'), app.keymap, 'autokey.toggle'),
+        })
+      : null;
+  if (autoKey) {
+    autoKey.classList.add('autokey');
+    autoKey.dataset.tut = 'autokey';
+  }
 
   el.replaceChildren(
     ...[
-      h('div', { class: 'toolgroup' }, tools),
+      h('div', { class: 'toolgroup', role: 'toolbar', 'aria-label': t('Tools') }, tools),
       h('span', { class: 'vsep' }),
       h('div', { class: 'toolgroup fields' }, fields),
       h('span', { class: 'vsep' }),
       axes,
-      onion ? h('span', { class: 'vsep' }) : null,
+      h('span', { class: 'toolbar-spacer' }),
       onion,
-      h('span', { class: 'vsep' }),
       guides,
-      autoKey ? h('span', { class: 'vsep' }) : null,
       autoKey,
     ].filter(Boolean),
   );
 }
-

@@ -10,11 +10,11 @@ animations work on any skin and can be layered in games.
 
 | To | Do |
 | --- | --- |
-| Create an animation | **+ New** in the timeline. You switch to Animate mode. |
+| Create an animation | **+** (*New animation*) in the timeline. You switch to Animate mode. |
 | Choose one | The animation menu at the left of the timeline. |
-| Rename it | Edit the name field next to **+ New**. |
+| Rename it | Edit the name field next to **+**. |
 | Set its length | **Length** (seconds). Keys after the end make it longer. |
-| Delete it | The 🗑 button. |
+| Delete it | The *Delete animation* button (the bin). |
 
 The frame rate is a project setting, the **fps** menu in the timeline bar (and *Output ▸ Frame rate* in
 the Film workspace); keys snap to its frames.
@@ -25,7 +25,7 @@ Switch to **Animate mode** (<kbd>Tab</kbd>), move the time cursor, change the po
 
 | Command | Default key | Keys |
 | --- | --- | --- |
-| **◆ Key** (timeline) | | Everything about the selection: all transforms of the selected bones, or a slot's image. |
+| **Key** (timeline) | | Everything about the selection: all transforms of the selected bones, or a slot's image. |
 | *Key changed properties* | <kbd>K</kbd> | Every change you made that is not keyed yet. |
 | *Key the current tool's property* | <kbd>L</kbd> | Rotation with the Rotate tool, position with Translate, and so on. |
 | *Key all transforms of the selection* | <kbd>Ctrl</kbd>+<kbd>L</kbd> | Rotate, translate, scale and shear of the selected bones. |
@@ -79,9 +79,9 @@ draw order and events. Diamonds are keys; their color tells the curve (stepped k
 | Select a key | Click it. <kbd>Ctrl</kbd>+click adds to the selection. |
 | Select several | Drag a box around them. |
 | Move keys | Drag a selected key; the others move with it. |
-| Select whole frames | Turn on **▦ Frames** and drag across the ruler area: every key in those frame columns. |
-| Select several areas | <kbd>Alt</kbd>+drag adds another area, or turn on **＋ Multi** so every drag adds one. |
-| Retime keys | Click **⇔ Retime** and drag an edge of the selection (or right-drag at any time): the keys stretch or squeeze relative to the opposite edge. |
+| Select whole frames | Turn on *Select whole frame columns* (the columns button) and drag across the ruler area: every key in those frame columns. |
+| Select several areas | <kbd>Alt</kbd>+drag adds another area, or turn on *Multi-select* (next to it) so every drag adds one. |
+| Retime keys | Click *Retime* (the double arrow) and drag an edge of the selection (or right-drag at any time): the keys stretch or squeeze relative to the opposite edge. |
 | Change the curve | Right-click a key: *Linear*, *Ease in-out*, *Ease in*, *Ease out* or *Stepped*. |
 | Cut, copy and paste | Right-click a key ▸ *Cut* or *Copy*; once keys are copied, right-click any spot ▸ *Paste here* pastes at that frame. |
 | Zoom the timeline | <kbd>Ctrl</kbd>+wheel zooms time around the cursor, <kbd>Alt</kbd>+wheel pans. Zoom all the way out to see the whole animation again. |
@@ -91,9 +91,9 @@ Keys always land on whole frames.
 
 ### Copy and paste keys
 
-Select keys and press <kbd>Ctrl</kbd>+<kbd>C</kbd> (or **⧉ Copy**, or right-click ▸ *Copy*); <kbd>Ctrl</kbd>+<kbd>X</kbd> cuts them. The copied area stays marked in
+Select keys and press <kbd>Ctrl</kbd>+<kbd>C</kbd> (or the *Copy* button, or right-click ▸ *Copy*); <kbd>Ctrl</kbd>+<kbd>X</kbd> cuts them. The copied area stays marked in
 green and a preview follows the time cursor; move it to where the first key should land and press
-<kbd>Ctrl</kbd>+<kbd>V</kbd> (or **⎘ Paste**). Right-click ▸ *Paste here* pastes at the frame you clicked.
+<kbd>Ctrl</kbd>+<kbd>V</kbd> (or the *Paste* button). Right-click ▸ *Paste here* pastes at the frame you clicked.
 <kbd>Escape</kbd> cancels.
 
 - Keys keep their tracks by name (bone, slot, deformed attachment, IK constraint), so a paste into

@@ -8,6 +8,7 @@ import { t } from './i18n.js';
 import { checkSkeleton } from './migration.js';
 import { openExternal, pickImportFiles } from './platform.js';
 import { h } from './widgets.js';
+import { button } from './ui.js';
 
 const MARK = { ok: '✓', kept: '●', partial: '◐', no: '✕' };
 const LABEL = { ok: 'Plays as in the original', kept: 'Kept and exported', partial: 'Partly supported', no: 'Not supported' };
@@ -38,7 +39,7 @@ export async function openMigrationCheck(app) {
     h(
       'div',
       { class: 'dialog-actions' },
-      h('button', { onclick: () => openExternal('https://rigby2d.com/docs/migrating-from-spine.html') }, t('Migration guide ↗')),
+      button(t('Migration guide'), { icon: 'external-link', onclick: () => openExternal('https://rigby2d.com/docs/migrating-from-spine.html') }),
       report.supported ? h('button', { class: 'primary', onclick: () => (close(), app.openDialog()) }, t('Open a project…')) : null,
     ),
   );

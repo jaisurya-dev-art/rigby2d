@@ -10,6 +10,7 @@ import { VERSION, askChoice } from './helpui.js';
 import { t } from './i18n.js';
 import { icon } from './icons.js';
 import { h } from './widgets.js';
+import { button } from './ui.js';
 import { ADDON_EXTENSIONS, MANIFEST_FILE, addonManifest, compareVersions, disableAddonPy, enableAddonPy, readAddonPackage } from './addons.js';
 import { searchText } from './registry.js';
 
@@ -186,7 +187,7 @@ export function renderAddonsPage(manager, el) {
         h('div', { class: 'weak' }, [m.author && t('by {author}', { author: m.author }), `id ${m.id}`].filter(Boolean).join(' · ')),
         error ? h('div', { class: 'addon-error' }, t('Failed to load: {error} (View ▸ Log)', { error })) : null,
       ),
-      m.url ? h('button', { title: m.url, onclick: () => platform.openExternal(m.url) }, t('Docs ↗')) : null,
+      m.url ? button(t('Docs'), { icon: 'external-link', title: m.url, onclick: () => platform.openExternal(m.url) }) : null,
       h(
         'button',
         {
@@ -223,7 +224,7 @@ export function renderAddonsPage(manager, el) {
           ...(a.tags ?? []).map((tag) => h('span', { class: 'addon-tag' }, tag)),
         ),
       ),
-      a.page || a.repo ? h('button', { title: a.page ?? a.repo, onclick: () => platform.openExternal(a.page ?? a.repo) }, t('Details ↗')) : null,
+      a.page || a.repo ? button(t('Details'), { icon: 'external-link', title: a.page ?? a.repo, onclick: () => platform.openExternal(a.page ?? a.repo) }) : null,
       h(
         'button',
         {

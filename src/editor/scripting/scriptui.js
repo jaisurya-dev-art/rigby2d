@@ -7,12 +7,19 @@ import { makeDraggable, openLogWindow } from '../logwindow.js';
 import { isDesktop, openExternal, pickImportFiles } from '../platform.js';
 import { t } from '../i18n.js';
 import { h, submenuItem } from '../widgets.js';
-import { closeButton } from '../ui.js';
+import { button, closeButton } from '../ui.js';
 import { ScriptHost } from './host.js';
 
 const STORAGE = 'rigby.scripts';
 
-/** What ＋ New script starts with. */
+/** The Run button: disabled while a script runs (it carries data-run). */
+function runButton(label, onclick) {
+  const b = button(label, { kind: 'primary', icon: 'play', shortcut: 'Ctrl+Enter', onclick });
+  b.dataset.run = '';
+  return b;
+}
+
+/** What New script starts with. */
 const NEW_SCRIPT = `import rigby
 
 # Run with Ctrl+Enter. Save to library keeps it and loads it with the editor.
@@ -226,7 +233,7 @@ function scriptEditor(scripts) {
     code.value = drafts.get(n) ?? saved(n)?.source ?? '';
     draw();
   };
-  /** ＋ New script: a new entry in the list, selected, with its name ready to type over. */
+  /** New script: a new entry in the list, selected, with its name ready to type over. */
   const newScript = (source = NEW_SCRIPT) => {
     let n = 'new_script.py';
     for (let i = 2; names().includes(n); i++) n = `new_script_${i}.py`;
@@ -318,7 +325,7 @@ function scriptEditor(scripts) {
         h('span', { class: 'weak' }, tools ? ` ${tools}` : ''),
       );
     };
-    list.replaceChildren(...names().map(item), h('button', { class: 'script-new', onclick: () => newScript() }, t('＋ New script')));
+    list.replaceChildren(...names().map(item), Object.assign(button(t('New script'), { kind: 'ghost', icon: 'plus', onclick: () => newScript() }), { className: 'ui-btn ui-btn-ghost script-new' }));
     if (!state.textContent) state.textContent = { idle: t('Python starts on first run'), loading: t('Starting Python…'), ready: t('Python ready'), failed: t('Python failed to start (see Log)') }[scripts.host.state];
   };
 
@@ -344,7 +351,7 @@ function scriptEditor(scripts) {
         h(
           'div',
           { class: 'script-bar' },
-          h('button', { 'data-run': '', class: 'primary', title: t('Ctrl+Enter'), onclick: () => run(false) }, t('▶ Run')),
+          runButton(t('Run'), () => run(false)),
           h('button', { 'data-run': '', title: t('Keep in the library: it loads with the editor and its tools stay in the Scripts menu'), onclick: () => run(true) }, t('Save to library')),
           h(
             'button',
@@ -357,7 +364,7 @@ function scriptEditor(scripts) {
           ),
           h('span', { class: 'float-spacer' }),
           h('button', { title: t('Show or hide the scripting API'), onclick: () => (reference.hidden = !reference.hidden) }, 'API reference'),
-          h('button', { title: t('The scripting guide on rigby2d.com'), onclick: () => openExternal(GUIDE_URL) }, t('Guide ↗')),
+          button(t('Guide'), { icon: 'external-link', title: t('The scripting guide on rigby2d.com'), onclick: () => openExternal(GUIDE_URL) }),
         ),
       ),
     ),

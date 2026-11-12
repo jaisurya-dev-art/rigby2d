@@ -7,7 +7,7 @@ import { ACTIONS, PRESETS, bindCombo, comboLabel, comboOf, importKeymapFile, key
 import { confirmDialog, fetchBytes, openExternal, pickImportFiles as importFiles, pickSaveTarget as saveTarget } from './platform.js';
 import { t, tn } from './i18n.js';
 import { h } from './widgets.js';
-import { button, dialog as uiDialog } from './ui.js';
+import { button, dialog as uiDialog, uiIcon } from './ui.js';
 import markUrl from '../../branding/rigby2d-mark.svg?url';
 
 /* global __RIGBY_VERSION__ */
@@ -304,7 +304,7 @@ export function openShortcuts(app, { onClose } = {}) {
 /** Help ▸ About Rigby2D. */
 export function openAbout() {
   const { body } = dialog('about-dialog', t('About Rigby2D'), null);
-  const link = (label, url) => h('button', { class: 'link-button', onclick: () => openExternal(url) }, label, h('span', { class: 'ext', 'aria-hidden': 'true' }, '↗'));
+  const link = (label, url) => h('button', { class: 'link-button', onclick: () => openExternal(url) }, label, h('span', { class: 'ext', 'aria-hidden': 'true' }, uiIcon('external-link', 'sm')));
   body.append(
     h(
       'div',
@@ -405,7 +405,7 @@ export async function openSupporters() {
       'div',
       { class: 'sp-footer' },
       h('p', { class: 'weak' }, t('Nothing is locked behind a tier. Support keeps Rigby2D free for everyone.')),
-      h('div', { class: 'buttons' }, h('button', { onclick: () => openExternal(LINKS.fund) }, t('Where the money goes ↗')), h('button', { class: 'primary', onclick: () => openExternal(LINKS.sponsor) }, t('Sponsor on GitHub ↗'))),
+      h('div', { class: 'buttons' }, button(t('Where the money goes'), { icon: 'external-link', onclick: () => openExternal(LINKS.fund) }), button(t('Sponsor on GitHub'), { kind: 'primary', icon: 'external-link', onclick: () => openExternal(LINKS.sponsor) })),
     ),
   ];
   body.append(...parts.filter(Boolean));

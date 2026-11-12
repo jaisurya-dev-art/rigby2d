@@ -52,7 +52,7 @@ Undo (<kbd>Ctrl</kbd>+<kbd>Z</kbd>) puts back anything you did not mean to chang
 
 1. Press <kbd>Tab</kbd> to switch to **Animate mode**. The **ANIMATE** tab at the top glows orange, and
    the timeline appears.
-2. In the timeline, press **+ New** and name the animation `idle`.
+2. In the timeline, press **+** (*New animation*) and name the animation `idle`.
 3. Set its **Length** to `2` seconds.
 4. At frame 0, select the `chest` bone, rotate it a little and press <kbd>K</kbd> to key the
    change. A diamond appears in the dopesheet.

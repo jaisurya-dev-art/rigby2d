@@ -14,7 +14,7 @@ their own windows.
 | 4 | **Viewport** | The character. Select, pose and edit here. |
 | 5 | **Tree** | The skeleton (bones, slots, attachments) and the draw order, skins, constraints, events, animations and images. |
 | 6 | **Inspector** | Properties of the selection (a bone, slot, constraint, skin or event) and, on its **Project** tab, the project settings. Poses and face controls sit at the bottom. |
-| 7 | **Timeline controls** | Animation list, **+ New**, length, playback, loop, speed, the time display and **Key**. |
+| 7 | **Timeline controls** | Animation list, **+** (new animation), length, playback, loop, speed, the time display and **Key**. |
 | 8 | **Dopesheet / Graph** | Keys over time, or their curves. |
 | 9 | **Status bar** | Messages, rig statistics and zoom, and the **Log** button. |
 
@@ -128,10 +128,12 @@ At the bottom, **Poses & face controls** is always there. See [Poses and face co
 
 ## Timeline
 
-The timeline row holds the animation menu, **+ New**, the animation's name and **Length**, a delete
+The timeline row holds the animation menu, **+** (new animation), the animation's name and **Length**, a delete
 button, playback (start, previous frame, play, next frame), **Loop**, **Boomerang**, playback speed,
-the project's **frame rate**, **◆ Key**, the key tools, **Dopesheet** and **Graph** (which switch
+the project's **frame rate**, **Key**, the key tools, **Dopesheet** and **Graph** (which switch
 the view below), and last the time: frame and seconds, or timecode and frame in the Film workspace.
+On a narrow window the timeline row and the viewport toolbar keep every button but hide their labels;
+hover a button for its name and shortcut.
 See [Animating](animating.md) and [Graph editor](graph-editor.md).
 
 ## Workspaces
