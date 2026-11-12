@@ -2,7 +2,7 @@
 // The demo projects (File > Open demo): Rigby2D demo characters, proprietary (see TRADEMARKS.md). The
 // browser editor bundles them; the desktop app downloads them from the website when one is opened,
 // so the signed app contains no character artwork ('@demo-sources' is chosen in vite.config.js).
-// Adding one: its .rigby and a 480x360 thumbnail in branding/, an entry here and in both sources,
+// Adding one: its .rigby and a 960x720 thumbnail in branding/ (the figure inside the middle 16:10 band), an entry here and in both sources,
 // and its files in site/vite.config.js.
 
 import { REMOTE, SOURCES } from '@demo-sources';
