@@ -13,7 +13,7 @@ import { bindMesh, generateFromImage, meshLocks, regionToMesh, setMeshLocks, unb
 import { MESH_DEFAULTS } from '../core/meshgen.js';
 import { eventUi, skinUi } from './skineventui.js';
 import { dragValue, h, select, textField } from './widgets.js';
-import { button, iconButton, section } from './ui.js';
+import { button, hint, iconButton, section } from './ui.js';
 import { FPS_PRESETS, SIZE_PRESETS, formatFps, hexToRgba, rgbaToHex } from './output.js';
 import { posesUi } from './poseui.js';
 import { has } from './workspaces.js';
@@ -40,11 +40,11 @@ export function render(app, el) {
               : [null, null];
   // With something selected, tabs switch between it and the project settings (textures, pixel
   // grid, output...), which would otherwise only show with nothing selected. The Project tab stays
-  // until the selection changes.
+  // until the selection changes. With the Rig panel open, the project settings live there instead.
   const key = JSON.stringify(app.sel ?? null);
-  if (app.projectTab && app.projectTab !== key) app.projectTab = null;
-  const showProject = !selection || app.projectTab === key;
-  const tabs = selection
+  if (app.projectTab && (app.projectTab !== key || app.rigPanel)) app.projectTab = null;
+  const showProject = !app.rigPanel && (!selection || app.projectTab === key);
+  const tabs = selection && !app.rigPanel
     ? h(
         'div',
         { class: 'segmented inspector-tabs' },
@@ -52,7 +52,7 @@ export function render(app, el) {
         h('button', { class: showProject ? 'active' : '', title: t('Project settings: name, textures, pixel grid, output'), onclick: () => ((app.projectTab = key), app.changed()) }, t('Project')),
       )
     : null;
-  const content = showProject ? projectUi(app) : selection();
+  const content = showProject ? projectUi(app) : selection ? selection() : hint(t('Select a bone, slot, skin, constraint or event to edit it. The project settings are in the Rig panel.'));
   // The mesh being edited stays on top while bones are selected for binding or painting.
   const mesh = meshUi(app);
   el.replaceChildren(...[mesh, tabs, content, posesUi(app)].flat(Infinity).filter((c) => c !== null && c !== undefined && c !== false));
@@ -577,7 +577,7 @@ function outputUi(app) {
       ),
       row(
         t('Background'),
-        h('label', null, h('input', { type: 'checkbox', checked: !s.background, onchange: (e) => set({ background: e.target.checked ? null : [0, 0, 0, 1] }) }), ' Transparent'),
+        h('label', null, h('input', { type: 'checkbox', checked: !s.background, onchange: (e) => set({ background: e.target.checked ? null : [0, 0, 0, 1] }) }), ' ', t('Transparent')),
         s.background ? h('input', { type: 'color', value: rgbaToHex(s.background), oninput: (e) => set({ background: hexToRgba(e.target.value) }) }) : null,
       ),
       row(
@@ -586,7 +586,7 @@ function outputUi(app) {
           [
             ['auto', t('Fit the animation')],
             ['fixed', t('Fixed')],
-            ['camera', "Follow the 'camera' bone"],
+            ['camera', t("Follow the 'camera' bone")],
           ],
           s.frame?.camera ? 'camera' : s.frame ? 'fixed' : 'auto',
           (v) => {

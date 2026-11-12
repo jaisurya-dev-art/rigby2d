@@ -439,6 +439,7 @@ export default {
   "Find your way around: the viewport, the timeline, the tree, the inspector and the two modes.": "熟悉界面：视口、时间轴、层级树、检查器和两种模式。",
   "Finish": "完成",
   "Fit the animation": "适配动画",
+  "Follow the 'camera' bone": "跟随 camera 骨骼",
   "Fit the skeleton in view": "使骨骼适合视图",
   "Fixed": "固定",
   "Fixes": "修复",
@@ -1683,4 +1684,5 @@ export default {
   "Turn the selected image into a mesh you can reshape and bind to bones": "将所选图片转换为可调整形状并绑定到骨骼的网格",
   "Select a slot that shows an image (in Setup mode) to make it a mesh": "（在设置模式下）选择一个显示图片的插槽，将其转换为网格",
   "New {type} constraint from the selected bones": "用所选骨骼新建{type}约束",
+  "Select a bone, slot, skin, constraint or event to edit it. The project settings are in the Rig panel.": "选择骨骼、插槽、皮肤、约束或事件即可编辑。项目设置在绑定面板中。",
 };

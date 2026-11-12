@@ -298,12 +298,12 @@ export function eventsSection(app) {
   return section(app, 'events', t('Events'), doc.events.length, events, newEvent);
 }
 
-const CONSTRAINT_ICONS = { ik: '⊸', transform: '⇄', path: '∿', physics: '≋', slider: '⇥' };
+const CONSTRAINT_ICONS = { ik: 'link', transform: 'arrow-left-right', path: 'spline', physics: 'waves', slider: 'move-horizontal' };
 
 /** A row for a constraint; click to edit its settings. */
 function constraintRow(app, c, depth = 0) {
   const known = c.type in CONSTRAINT_LABELS;
-  return row(`${CONSTRAINT_ICONS[c.type] ?? '⊸'} ${c.name}`, {
+  return row(label(CONSTRAINT_ICONS[c.type] ?? 'link', c.name, !known), {
     depth,
     cls: known ? '' : 'weak',
     selected: app.sel?.constraint === c.name,
