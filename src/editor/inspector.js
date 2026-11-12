@@ -25,21 +25,36 @@ export function render(app, el) {
   const b = selBone(app.sel);
   const s = selSlot(app.sel);
   const k = app.sel?.constraint;
-  const content =
+  const [kind, selection] =
     k !== undefined
-      ? constraintUi(app, k)
+      ? [t('Constraint'), () => constraintUi(app, k)]
       : app.sel?.skin !== undefined
-        ? skinUi(app, app.sel.skin)
+        ? [t('Skin'), () => skinUi(app, app.sel.skin)]
         : app.sel?.event !== undefined
-          ? eventUi(app, app.sel.event)
+          ? [t('Event'), () => eventUi(app, app.sel.event)]
           : b !== null
-            ? boneUi(app, b)
+            ? [t('Bone'), () => boneUi(app, b)]
             : s !== null
-              ? slotUi(app, s)
-              : projectUi(app);
+              ? [t('Slot'), () => slotUi(app, s)]
+              : [null, null];
+  // With something selected, tabs switch between it and the project settings (textures, pixel
+  // grid, output...), which would otherwise only show with nothing selected. The Project tab stays
+  // until the selection changes.
+  const key = JSON.stringify(app.sel ?? null);
+  if (app.projectTab && app.projectTab !== key) app.projectTab = null;
+  const showProject = !selection || app.projectTab === key;
+  const tabs = selection
+    ? h(
+        'div',
+        { class: 'segmented inspector-tabs' },
+        h('button', { class: showProject ? '' : 'active', onclick: () => ((app.projectTab = null), app.changed()) }, kind),
+        h('button', { class: showProject ? 'active' : '', title: t('Project settings: name, textures, pixel grid, output'), onclick: () => ((app.projectTab = key), app.changed()) }, t('Project')),
+      )
+    : null;
+  const content = showProject ? projectUi(app) : selection();
   // The mesh being edited stays on top while bones are selected for binding or painting.
   const mesh = meshUi(app);
-  el.replaceChildren(...[mesh, content, posesUi(app)].flat(Infinity).filter((c) => c !== null && c !== undefined && c !== false));
+  el.replaceChildren(...[mesh, tabs, content, posesUi(app)].flat(Infinity).filter((c) => c !== null && c !== undefined && c !== false));
 }
 
 const row = (label, ...content) => [h('label', null, label), h('div', { class: 'cell' }, ...content)];

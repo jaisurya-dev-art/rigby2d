@@ -31,7 +31,7 @@ Rigby2D uses the nine shapes animators use:
 
 ## Generating lip-sync
 
-Select nothing to see the project panel, and press **Lip-sync…** in the audio section. In the
+Open the inspector's **Project** tab (or select nothing), and press **Lip-sync…** in the audio section. In the
 dialog:
 
 1. **Audio**: the track to sync (with its start time).

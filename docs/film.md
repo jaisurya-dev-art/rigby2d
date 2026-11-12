@@ -31,7 +31,7 @@ are never written to skeleton exports, so game files are identical whichever wor
 
 ## Output settings
 
-Select nothing (click an empty area of the viewport) to see the project panel. Its **Output**
+Open the inspector's **Project** tab (or select nothing) to see the project settings. Its **Output**
 section sets:
 
 ![The project panel in the Film workspace: output frame rate, size, background and framing, then the animation's audio track](images/project-film.jpg "NILA's output settings (1080p at 60 fps, following the camera bone) and her voiceover track")

@@ -13,7 +13,7 @@ their own windows.
 | 3 | **Viewport toolbar** | Transform tools, the active tool's values with a key button, axes, onion skin, guides and auto key. |
 | 4 | **Viewport** | The character. Select, pose and edit here. |
 | 5 | **Tree** | The skeleton (bones, slots, attachments) and the draw order, skins, constraints, events, animations and images. |
-| 6 | **Inspector** | Properties of the selection: a bone, slot, constraint, skin or event, or the project when nothing is selected. Poses and face controls sit at the bottom. |
+| 6 | **Inspector** | Properties of the selection (a bone, slot, constraint, skin or event) and, on its **Project** tab, the project settings. Poses and face controls sit at the bottom. |
 | 7 | **Timeline controls** | Animation list, **+ New**, length, playback, loop, speed, the time display and **Key**. |
 | 8 | **Dopesheet / Graph** | Keys over time, or their curves. |
 | 9 | **Status bar** | Messages, rig statistics and zoom, and the **Log** button. |
@@ -118,7 +118,8 @@ The inspector shows what is selected:
 
 - **Nothing**: the **Project**: name, texture filtering (smooth or pixel art), the
   [pixel grid](importing-art.md#pixel-grid), the **Output** section in the Film workspace, rig
-  statistics, images and audio tracks.
+  statistics, images and audio tracks. With something selected, the same settings are on the
+  inspector's **Project** tab (the selection stays; selecting something else goes back to it).
 - **A bone**: name, parent, length, inheritance, and its pose at the current frame.
 - **A slot**: its attachments, color and blending, and the selected attachment's settings.
 - **A constraint, skin or event**: every setting of it.

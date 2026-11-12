@@ -1557,4 +1557,7 @@ export default {
   "Unlocked {count} vertex(es)": "已解锁 {count} 个顶点",
   "Locked {count} vertex(es): generating the mesh again keeps them": "已锁定 {count} 个顶点：再次生成网格时会保留它们",
   "Pixel art: the pixel grid is on ({units} unit(s) per pixel) to keep it sharp; change it in the Project panel": "像素画：已开启像素网格（每像素 {units} 个单位）以保持清晰；可在项目面板中更改",
+  "Constraint": "约束",
+  "Event": "事件",
+  "Project settings: name, textures, pixel grid, output": "项目设置：名称、纹理、像素网格、输出",
 };

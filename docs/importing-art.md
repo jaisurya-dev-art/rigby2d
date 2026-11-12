@@ -69,7 +69,7 @@ To add an image to an existing slot, for example a new mouth shape, select the s
 
 ## Texture filtering and pixel art
 
-Select nothing to see the **Project** panel. Its **Textures** setting decides how images are drawn
+Open the inspector's **Project** tab (or select nothing). Its **Textures** setting decides how images are drawn
 when scaled:
 
 | Setting | Use it for | Effect |
