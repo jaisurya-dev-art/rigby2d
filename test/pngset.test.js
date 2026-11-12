@@ -5,7 +5,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
-import { alphaBounds, backToFront, isLayerSet, layerCenter, layerName } from '../src/editor/pngset.js';
+import { alphaBounds, backToFront, fileName, isLayerSet, layerCenter, layerName, pixelArtScale } from '../src/editor/pngset.js';
 
 test('a layer set is two or more images of one size', () => {
   assert.equal(isLayerSet([{ width: 800, height: 600 }, { width: 800, height: 600 }]), true);
@@ -49,4 +49,48 @@ test('Photoshop exports are numbered from the top layer, so they are drawn in re
   assert.deepEqual(backToFront(['_0001_torso.png', '_0002_legs.png', '_0000_head.png']), [1, 0, 2]);
   // Other names keep the order they were picked in.
   assert.deepEqual(backToFront(['legs.png', 'torso.png', 'head.png']), [0, 1, 2]);
+});
+
+test('desktop paths: names and Photoshop order come from the file name, not the folder', () => {
+  const paths = ['F:\\Application\\Rigby2D_0.5.1_x64_portable\\_0000_Head.png', 'F:\\Application\\Rigby2D_0.5.1_x64_portable\\_0001_Body.png', '/home/me/art/_0002_Legs.png'];
+  const names = paths.map(fileName);
+  assert.deepEqual(names, ['_0000_Head.png', '_0001_Body.png', '_0002_Legs.png']);
+  assert.deepEqual(names.map(layerName), ['Head', 'Body', 'Legs']);
+  // Photoshop numbers from the top layer: back to front is legs, body, head.
+  assert.deepEqual(backToFront(names), [2, 1, 0]);
+});
+
+/** An RGBA image from a function of the pixel: [r, g, b, a]. */
+function rgba(width, height, px, x = 0, y = 0) {
+  const data = new Uint8ClampedArray(width * height * 4);
+  for (let j = 0; j < height; j++) for (let i = 0; i < width; i++) data.set(px(i, j), (j * width + i) * 4);
+  return { width, height, data, x, y };
+}
+const PALETTE = [[20, 30, 90, 255], [230, 220, 240, 255], [240, 150, 170, 255], [0, 0, 0, 0]];
+/** Pixel art: a few palette colors in irregular shapes, drawn at `k` screen pixels per art pixel. */
+const sprite = (k, w = 40, h = 48) => (i, j) => PALETTE[(Math.floor(i / k) * 7 + Math.floor(j / k) * 3 + ((Math.floor(i / k) * Math.floor(j / k)) % 5)) % 4];
+
+test('pixel art is detected, with the scale it was exported at', () => {
+  assert.equal(pixelArtScale([rgba(40, 48, sprite(1))]), 1);
+  assert.equal(pixelArtScale([rgba(80, 96, sprite(2))]), 2);
+  assert.equal(pixelArtScale([rgba(120, 144, sprite(3))]), 3);
+  // Layers of a 2x drawing cropped at odd offsets still line up on the canvas grid.
+  const canvas = sprite(2);
+  assert.equal(pixelArtScale([rgba(30, 30, (i, j) => canvas(i + 13, j + 7), 13, 7), rgba(20, 20, (i, j) => canvas(i + 4, j + 21), 4, 21)]), 2);
+});
+
+test('a few small details keep a flat 2x drawing at 2x, not 4x', () => {
+  // Flat blocks on a 4-pixel grid, with 2x2 details off that grid.
+  const art = rgba(64, 64, (i, j) => (i >= 20 && i < 44 && j >= 4 && j < 60 ? ((i === 22 || i === 23) && (j === 6 || j === 7) ? [17, 17, 17, 255] : [48, 64, 160, 255]) : [0, 0, 0, 0]));
+  assert.equal(pixelArtScale([art]), 2);
+});
+
+test('painted art is not pixel art', () => {
+  // Soft, anti-aliased edges.
+  const disc = rgba(64, 64, (i, j) => [200, 100, 50, Math.max(0, Math.min(255, Math.round((28 - Math.hypot(i - 32, j - 32)) * 128)))]);
+  assert.equal(pixelArtScale([disc]), 0);
+  // Hard edges but a smooth gradient: far more colors than a palette.
+  const gradient = rgba(64, 64, (i, j) => [i * 4, j * 4, (i * j) % 256, 255]);
+  assert.equal(pixelArtScale([gradient]), 0);
+  assert.equal(pixelArtScale([rgba(4, 4, () => [0, 0, 0, 0])]), 0);
 });

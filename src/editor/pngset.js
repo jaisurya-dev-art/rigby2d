@@ -47,6 +47,59 @@ export function layerName(fileName) {
   return stem.replace(PHOTOSHOP, '').replace(/^\d+[\s_.-]+/, '') || stem;
 }
 
+/** The file name of a path (the desktop file picker gives full paths: "F:\art\07_head.png"). */
+export function fileName(path) {
+  return path.split(/[\\/]/).pop();
+}
+
+/**
+ * Whether images are pixel art, and at what scale: the pixel size (1 to 4 source pixels per art
+ * pixel), or 0 when they are not. Pixel art has hard edges (almost no semi-transparent pixels) and
+ * a small palette; art exported at 2x to 4x is made of same-colored blocks. `images` are
+ * { width, height, data (RGBA), x, y } with x, y the image's place on the canvas, so blocks line up
+ * across layers. No DOM: tests run it under Node.
+ */
+export function pixelArtScale(images) {
+  let solid = 0;
+  let soft = 0;
+  const colors = new Set();
+  for (const { width, height, data } of images) {
+    for (let i = 0; i < width * height * 4; i += 4) {
+      const a = data[i + 3];
+      if (a === 0) continue;
+      solid++;
+      if (a < 255) soft++;
+      else if (colors.size <= MAX_PIXEL_COLORS) colors.add((data[i] << 16) | (data[i + 1] << 8) | data[i + 2]);
+    }
+  }
+  if (solid < 16 || soft > solid * 0.01 || colors.size > MAX_PIXEL_COLORS) return 0;
+  // The largest block size every image is made of. Strict (0.1% of stray pixels): a flat area fits
+  // bigger blocks too, and a few small details are exactly what a too-big grid would destroy.
+  for (const k of [4, 3, 2]) {
+    let same = 0;
+    let total = 0;
+    for (const { width, height, data, x: ox = 0, y: oy = 0 } of images) {
+      for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+          const i = (y * width + x) * 4;
+          if (data[i + 3] === 0) continue;
+          // The block's first pixel, in this image (blocks are aligned to the canvas).
+          const bx = Math.max(0, x - ((x + ox) % k));
+          const by = Math.max(0, y - ((y + oy) % k));
+          const j = (by * width + bx) * 4;
+          total++;
+          if (data[i] === data[j] && data[i + 1] === data[j + 1] && data[i + 2] === data[j + 2] && data[i + 3] === data[j + 3]) same++;
+        }
+      }
+    }
+    if (total && same >= total * 0.999) return k;
+  }
+  return 1;
+}
+
+/** More distinct colors than this is painted art, not a pixel-art palette. */
+const MAX_PIXEL_COLORS = 512;
+
 /**
  * The files in drawing order, back to front. Photoshop numbers its exports from the top layer, so a
  * numbered set is reversed; other sets keep the order they were picked in.

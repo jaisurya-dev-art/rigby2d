@@ -77,7 +77,10 @@ when scaled:
 | **Smooth (linear)** | Painted and vector-style art | Smooth scaling. Exported atlases use `filter: Linear, Linear`. |
 | **Pixel art (nearest)** | Pixel art | Every pixel stays sharp in the viewport, in renders and in games: exported atlases use `filter: Nearest, Nearest`, which the runtimes follow. |
 
-Opening a skeleton export picks the setting up from its atlas.
+Opening a skeleton export picks the setting up from its atlas. Importing pixel art (PNGs or a PSD
+with hard edges and a small palette) into a project without images turns the **Pixel grid** below
+on by itself, at the scale the art was exported at (1× to 4×); the status bar says so, and the
+Project panel changes it back.
 
 ### Pixel grid
 

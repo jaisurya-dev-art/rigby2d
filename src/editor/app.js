@@ -914,14 +914,23 @@ export class App {
     }
   }
 
+  /** Turns on the pixel grid for pixel art imported into a project without images; the status note. */
+  pixelArtNote(hadImages, scale) {
+    const grid = io.applyPixelArt(this.doc, hadImages, scale);
+    if (!grid) return '';
+    return '. ' + t('Pixel art: the pixel grid is on ({units} unit(s) per pixel) to keep it sharp; change it in the Project panel', { units: grid });
+  }
+
   async importPsd() {
     const [file] = (await this.guard(() => platform.pickImportFiles(t('Photoshop'), ['psd'], false))) ?? [];
     if (!file) return;
     try {
-      const n = await io.importPsd(file, this.doc, this.images);
+      const had = this.doc.images.length > 0;
+      const info = {};
+      const n = await io.importPsd(file, this.doc, this.images, info);
       this.frameRequest = true;
       track('editor-import-psd');
-      this.setStatus(t('Imported {count} layers from {file}', { count: n, file: file.name }));
+      this.setStatus(t('Imported {count} layers from {file}', { count: n, file: io.basename(file.name) }) + this.pixelArtNote(had, info.pixelScale));
     } catch (e) {
       this.setStatus(`PSD import failed: ${errorText(e)}`);
     }
@@ -986,9 +995,11 @@ export class App {
     const files = (await this.guard(() => platform.pickImportFiles(t('Images'), ['png'], true))) ?? [];
     if (!files.length) return;
     try {
-      const n = await io.importPngs(files, selBone(this.sel) ?? 0, this.doc, this.images);
+      const had = this.doc.images.length > 0;
+      const info = {};
+      const n = await io.importPngs(files, selBone(this.sel) ?? 0, this.doc, this.images, info);
       this.frameRequest = true;
-      this.setStatus(t('Imported {count} images', { count: n }));
+      this.setStatus(t('Imported {count} images', { count: n }) + this.pixelArtNote(had, info.pixelScale));
     } catch (e) {
       this.setStatus(t('Image import failed: {error}', { error: errorText(e) }));
     }

@@ -15,7 +15,7 @@ import { Skeleton, makeAttachment, makeSlot, uniqueName } from '../core/model.js
 import { pack } from './pack.js';
 import { unzip, zip } from './zip.js';
 import { dragonBonesToSkeleton, isDragonBones, isDragonBonesAtlas } from './dragonbones.js';
-import { alphaBounds, backToFront, isLayerSet, layerCenter, layerName } from './pngset.js';
+import { alphaBounds, backToFront, fileName, isLayerSet, layerCenter, layerName, pixelArtScale } from './pngset.js';
 
 const IMAGE_DIR = 'images';
 
@@ -459,6 +459,24 @@ function addImageSlot(doc, images, base, canvas, bone, world, visible) {
   doc.slots.push(slot);
 }
 
+/** A canvas' pixels as { width, height, data (RGBA) }. */
+function rgbaOf(canvas) {
+  const { width, height } = canvas;
+  return { width, height, data: canvas.getContext('2d').getImageData(0, 0, width, height).data };
+}
+
+/**
+ * After importing images into a project that had none: when they are pixel art (see
+ * pixelArtScale), turns on the pixel grid at their scale, so they stay sharp. Returns the pixel
+ * grid set, or 0 when nothing changed.
+ */
+export function applyPixelArt(doc, hadImages, scale) {
+  if (hadImages || !scale || doc.pixelGrid > 0 || doc.textureFilter !== 'linear') return 0;
+  doc.pixelGrid = scale;
+  doc.textureFilter = 'nearest';
+  return scale;
+}
+
 /** Flattens PSD layer groups into pixel layers, bottom-most first. */
 function pixelLayers(children, parentHidden = false, out = []) {
   for (const layer of children ?? []) {
@@ -474,7 +492,7 @@ function pixelLayers(children, parentHidden = false, out = []) {
  * The canvas' bottom-center becomes the origin. Returns the number of layers imported.
  */
 /** `file` is { name, bytes }. */
-export async function importPsd(file, doc, images) {
+export async function importPsd(file, doc, images, info = {}) {
   const { bytes } = file;
   // Loaded on demand: the PSD reader is large and only needed here.
   const { readPsd } = await import('ag-psd');
@@ -485,6 +503,7 @@ export async function importPsd(file, doc, images) {
   const cw = psd.width;
   const ch = psd.height;
   let count = 0;
+  const layers = [];
   // ag-psd lists layers bottom-most first, which matches slot draw order (back to front).
   for (const { layer, hidden } of pixelLayers(psd.children)) {
     const left = layer.left ?? 0;
@@ -503,8 +522,10 @@ export async function importPsd(file, doc, images) {
     const cx = (l + r) * 0.5 - cw * 0.5;
     const cy = ch - (t + b) * 0.5;
     addImageSlot(doc, images, layer.name ?? 'layer', crop, 0, [cx, cy], !hidden);
+    layers.push({ ...rgbaOf(crop), x: l, y: t });
     count++;
   }
+  info.pixelScale = pixelArtScale(layers);
   if (count === 0) throw new Error('no pixel layers found');
   if (doc.name === 'untitled') doc.name = stem(file.name);
   return count;
@@ -551,7 +572,9 @@ export async function importSvg(file, bone, doc, images, { scale = 1 } = {}) {
  * drawn, like a PSD, ready for AutoRig. Other files are laid out side by side above the origin.
  * Returns the number of images imported.
  */
-export async function importPngs(files, bone, doc, images) {
+export async function importPngs(files, bone, doc, images, info = {}) {
+  // Names without their folder: the desktop file picker gives full paths.
+  const names = files.map((f) => fileName(f.name));
   const canvases = [];
   for (const { name, bytes } of files) {
     canvases.push(
@@ -560,10 +583,11 @@ export async function importPngs(files, bone, doc, images) {
       }),
     );
   }
+  info.pixelScale = pixelArtScale(canvases.map(rgbaOf));
   if (isLayerSet(canvases)) {
     const { width: cw, height: ch } = canvases[0];
     let count = 0;
-    for (const i of backToFront(files.map((f) => f.name))) {
+    for (const i of backToFront(names)) {
       const canvas = canvases[i];
       const bounds = alphaBounds(canvas.getContext('2d').getImageData(0, 0, cw, ch).data, cw, ch);
       if (!bounds) continue; // an empty layer
@@ -571,7 +595,7 @@ export async function importPngs(files, bone, doc, images) {
       crop.width = bounds.width;
       crop.height = bounds.height;
       crop.getContext('2d').drawImage(canvas, bounds.x, bounds.y, bounds.width, bounds.height, 0, 0, bounds.width, bounds.height);
-      addImageSlot(doc, images, layerName(files[i].name), crop, bone, layerCenter(bounds, cw, ch), true);
+      addImageSlot(doc, images, layerName(names[i]), crop, bone, layerCenter(bounds, cw, ch), true);
       count++;
     }
     return count;
@@ -579,7 +603,7 @@ export async function importPngs(files, bone, doc, images) {
   let x = 0;
   canvases.forEach((canvas, i) => {
     const { width: w, height: h } = canvas;
-    addImageSlot(doc, images, stem(files[i].name), canvas, bone, [x + w * 0.5, h * 0.5], true);
+    addImageSlot(doc, images, stem(names[i]), canvas, bone, [x + w * 0.5, h * 0.5], true);
     x += w + 10;
   });
   return files.length;
