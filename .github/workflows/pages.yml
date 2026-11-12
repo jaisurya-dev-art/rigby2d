@@ -1,11 +1,21 @@
 # Builds the project website and the browser editor, and publishes them on GitHub Pages:
-# https://rigby2d.com/ (landing page) and /rigby2d/editor/ (the editor).
+# https://rigby2d.com/ (landing page, docs, devlog) and /editor/ (the editor).
+#
+# The website comes from develop on every push. The browser editor comes from the latest published
+# release, so work on develop reaches it on release day, not before. After publishing a release, run
+# this workflow on develop (gh workflow run pages.yml --ref develop) to put the new editor live; a
+# run can also build the editor from another tag (editor_ref). Pages deploys only from develop.
 name: Website
 
 on:
   push:
     branches: [develop]
   workflow_dispatch:
+    inputs:
+      editor_ref:
+        description: Tag to build the browser editor from (empty = the latest published release)
+        required: false
+        default: ''
 
 permissions:
   contents: read
@@ -22,13 +32,29 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: develop
       - uses: actions/setup-node@v7
         with:
           node-version: 24
           cache: npm
       - run: npm ci
       - run: npm test
-      - run: npm run site:build
+      - name: Website
+        run: node runtimes/phaser/build.mjs && npx vite build --config site/vite.config.js
+      - name: Browser editor (latest release)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EDITOR_REF: ${{ inputs.editor_ref }}
+        run: |
+          tag="$EDITOR_REF"
+          if [ -z "$tag" ]; then tag=$(gh release view --repo "$GITHUB_REPOSITORY" --json tagName -q .tagName); fi
+          echo "Browser editor from $tag"
+          git fetch --depth 1 origin "refs/tags/$tag:refs/tags/$tag"
+          git worktree add --detach "$RUNNER_TEMP/editor" "$tag"
+          cd "$RUNNER_TEMP/editor"
+          npm ci
+          npx vite build --base=/editor/ --outDir "$GITHUB_WORKSPACE/_site/editor" --emptyOutDir
       - uses: actions/configure-pages@v6
       - uses: actions/upload-pages-artifact@v5
         with:
