@@ -17,6 +17,7 @@ import { makeBone, makeSlot, uniqueName } from '../core/model.js';
 import { Pose } from '../core/pose.js';
 import { FPS, Mode } from './app.js';
 import { dragValue, h, select, textField } from './widgets.js';
+import { button } from './ui.js';
 import { t, tn } from './i18n.js';
 
 export const CONSTRAINT_LABELS = { ik: 'IK', transform: tn('Transform'), path: tn('Path'), physics: tn('Physics'), slider: tn('Slider') };
@@ -197,18 +198,16 @@ export function constraintUi(app, name) {
   const footer = h(
     'div',
     { class: 'buttons' },
-    h(
-      'button',
-      {
-        disabled: !setupMode,
-        onclick: () => {
-          removeConstraint(doc, c.name);
-          app.sel = null;
-          changed();
-        },
+    button(t('Delete constraint'), {
+      kind: 'danger',
+      icon: 'trash-2',
+      disabled: !setupMode,
+      onclick: () => {
+        removeConstraint(doc, c.name);
+        app.sel = null;
+        changed();
       },
-      t('🗑 Delete constraint'),
-    ),
+    }),
   );
   return [header, body, footer];
 }

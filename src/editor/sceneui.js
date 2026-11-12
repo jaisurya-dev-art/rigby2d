@@ -12,6 +12,7 @@ import { actorOfBone, actors, addActor, removeActor } from './actors.js';
 import { DEMOS } from './demos.js';
 import * as platform from './platform.js';
 import { dragValue, h, popupMenu, select, submenuItem, textField } from './widgets.js';
+import { button, iconButton } from './ui.js';
 import { track as count } from './analytics.js';
 import { t } from './i18n.js';
 
@@ -46,7 +47,7 @@ export async function newScene(app) {
   app.commitHistory(false);
   app.changed();
   count('editor-new-scene');
-  app.setStatus(t('New scene: add characters with ＋ Actor in the Scene section of the tree, and backgrounds with File ▸ Import ▸ PNG images (select the background bone first).'));
+  app.setStatus(t('New scene: add characters with + Actor in the Scene section of the tree, and backgrounds with File ▸ Import ▸ PNG images (select the background bone first).'));
 }
 
 /** Adds an actor from a work file's bytes at the view's center, selects it and keys nothing yet. */
@@ -139,7 +140,7 @@ export function actorUi(app, bone) {
     return h(
       'div',
       { class: 'clip-card', style: { borderLeftColor: actorColor(doc, actor) } },
-      h('div', { class: 'clip-head' }, select(anims, c.animation, set('animation')), h('button', { class: 'small', title: t('Remove this clip'), onclick: () => (clips.splice(i, 1), changed()) }, '✕')),
+      h('div', { class: 'clip-head' }, select(anims, c.animation, set('animation')), iconButton('x', { size: 'sm', title: t('Remove this clip'), onclick: () => (clips.splice(i, 1), changed()) })),
       h(
         'div',
         { class: 'grid' },
@@ -152,7 +153,7 @@ export function actorUi(app, bone) {
     );
   });
   return [
-    h('h2', null, `🎬 ${t('Actor: {name}', { name: actor.name })}`),
+    h('h2', null, t('Actor: {name}', { name: actor.name })),
     h('div', { class: 'small weak' }, (lib ? t('{bones} bones · {animations} animations', { bones: lib.doc.bones.length, animations: lib.doc.animations.length }) : t('character missing')) + (actor.source ? ' · ' + t('from {source}', { source: actor.source }) : '') + '. ' + t('Move, turn and scale it with the transform tools; key it like any bone.')),
     h(
       'div',
@@ -182,9 +183,9 @@ export function actorUi(app, bone) {
     shot ? null : h('div', { class: 'small weak' }, t('Create a shot (an animation of the scene) to place clips on.')),
     ...clipRows,
     shot && anims.length
-      ? h('div', { class: 'buttons' }, select(anims, undefined, (name) => (addClip(app, actor, name, snap(app.time)), changed()), { placeholder: t('＋ Add clip at the playhead…') }))
+      ? h('div', { class: 'buttons' }, select(anims, undefined, (name) => (addClip(app, actor, name, snap(app.time)), changed()), { placeholder: t('Add clip at the playhead…') }))
       : null,
-    h('div', { class: 'buttons' }, h('button', { onclick: () => (removeActor(app, actor), app.deselect(), changed()) }, t('🗑 Remove actor'))),
+    h('div', { class: 'buttons' }, button(t('Remove actor'), { kind: 'danger', icon: 'trash-2', onclick: () => (removeActor(app, actor), app.deselect(), changed()) })),
     h('hr'),
   ];
 }

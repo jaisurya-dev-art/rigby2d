@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: MIT OR Apache-2.0 */
 :root {
   --right: 320px;
-  --tree: 340px;
+  --tree: 42%;
   --bottom: 230px;
   --bg: #1b1b1b;
   --panel: #262626;
@@ -4296,4 +4296,163 @@ body.drop-open::after {
 }
 .ui-fields {
   min-width: 0;
+}
+
+/* ---- Interface 1: inspector and tree ---------------------------------------------------------- */
+
+/* The inspector: a panel title, quiet section labels, consistent field rows. */
+#properties .content {
+  padding: var(--space-2) var(--space-3) var(--space-4);
+  font-size: var(--text-md);
+}
+#properties .content h2 {
+  margin: var(--space-1) 0 var(--space-2);
+  font-size: var(--text-lg);
+  font-weight: 600;
+  color: var(--fg);
+}
+/* With a selection, the tab already says what it is. */
+#properties .inspector-tabs ~ h2 {
+  display: none;
+}
+#properties .content strong,
+#properties .content .section-title {
+  display: block;
+  margin: var(--space-1) 0 var(--space-2);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--fg-muted);
+}
+#properties .content hr {
+  border-top-color: var(--line-soft);
+  margin: var(--space-3) 0;
+}
+#properties .grid {
+  gap: var(--space-2) var(--space-3);
+}
+#properties .grid > label {
+  color: var(--fg-muted);
+  font-size: var(--text-sm);
+}
+#properties .cell {
+  min-height: var(--control-h);
+}
+#properties .buttons {
+  gap: var(--space-2);
+  margin: var(--space-3) 0 var(--space-1);
+}
+#properties .small.weak,
+#properties .weak.small {
+  color: var(--fg-muted);
+  font-size: var(--text-sm);
+  line-height: 1.45;
+}
+#properties .ui-section {
+  margin: var(--space-1) 0 var(--space-3);
+}
+#properties .image-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+#properties .image-list > div {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+#properties .image-list span:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+#properties .pose-save {
+  display: flex;
+  gap: var(--space-2);
+}
+.keybtn.ui-icon-btn {
+  padding: 0;
+}
+
+/* The tree: type icons, chevrons and ghost add buttons. */
+.tree-heading {
+  gap: var(--space-1);
+  padding: var(--space-1) 2px;
+  font-size: var(--text-md);
+  color: var(--fg);
+  border-bottom-color: var(--line-soft);
+}
+.tree-heading .count {
+  color: var(--fg-faint);
+  font-size: var(--text-xs);
+}
+.tree-heading .actions {
+  display: flex;
+  gap: 2px;
+}
+.tree-heading .actions .ui-btn-sm {
+  height: 20px;
+  padding: 0 6px;
+  color: var(--fg-muted);
+  font-size: var(--text-xs);
+}
+.tree-heading .actions .ui-btn-sm:hover:not(:disabled) {
+  color: var(--fg);
+}
+.twisty {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  width: auto;
+  min-width: 14px;
+  color: var(--fg-faint);
+}
+.twisty-count {
+  font-size: var(--text-xs);
+}
+.row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 22px;
+}
+.row .row-icon {
+  display: inline-flex;
+  flex: none;
+  color: var(--fg-muted);
+}
+.row .row-icon.faint {
+  opacity: 0.45;
+}
+.row.selected .row-icon {
+  color: inherit;
+}
+.row .row-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.row .twisty.right {
+  float: none;
+  margin-left: auto;
+}
+.row.slot .slot-shown {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--fg-faint);
+  font-size: var(--text-xs);
+}
+.row .onion-bonebtn,
+.row .onion-marks {
+  display: inline-flex;
+  align-items: center;
+}
+.order-row .ui-icon-btn-sm {
+  width: 20px;
+  height: 20px;
+}
+.section-count {
+  color: var(--fg-faint);
+  font-size: var(--text-xs);
+  white-space: nowrap;
 }

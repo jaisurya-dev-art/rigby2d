@@ -10,6 +10,7 @@ import * as edit from './edit.js';
 import { onionBonePanel, rgbCss } from './onionui.js';
 import { createEvent, createSkin } from './skineventui.js';
 import { h, popupMenu } from './widgets.js';
+import { button, iconButton, uiIcon } from './ui.js';
 import { has } from './workspaces.js';
 import { addActorMenu, sceneRows } from './sceneui.js';
 import { t } from './i18n.js';
@@ -50,7 +51,7 @@ function section(app, id, title, count, children, actions = null) {
           app.changed();
         },
       },
-      h('span', { class: 'twisty' }, open ? '▾' : '▸'),
+      h('span', { class: 'twisty' }, chevron(open)),
       h('span', null, title),
       count !== null ? h('span', { class: 'count' }, String(count)) : null,
       actions ? h('span', { class: 'actions', onclick: (e) => e.stopPropagation() }, actions) : null,
@@ -58,6 +59,15 @@ function section(app, id, title, count, children, actions = null) {
     open ? children : null,
   );
 }
+
+/** A row label: a type icon (dimmed with `faint`) and the name. */
+const label = (iconName, text, faint = false) => [h('span', { class: `row-icon${faint ? ' faint' : ''}` }, uiIcon(iconName, 'sm')), h('span', { class: 'row-name' }, text)];
+
+/** A fold toggle: chevron right (folded) or down (open), with an optional count. */
+const chevron = (open, count = null) => [uiIcon(open ? 'chevron-down' : 'chevron-right', 'sm'), count !== null ? h('span', { class: 'twisty-count' }, String(count)) : null];
+
+/** A section's add button (ghost, with a plus). */
+const addButton = (text, { title, disabled = false, onclick }) => button(text, { kind: 'ghost', size: 'sm', icon: 'plus', title, disabled, onclick });
 
 function row(label, { depth = 0, selected = false, cls = '', onclick, extra = null, title, tut = null, bone = null } = {}) {
   const attrs = { class: `row${selected ? ' selected' : ''}${cls ? ` ${cls}` : ''}`, 'data-tut': tut, style: { paddingLeft: `${depth * 14 + 4}px` }, onclick, title };
@@ -99,7 +109,7 @@ export function render(app, el) {
               app.changed();
             },
           },
-          open ? '▾' : '▸',
+          chevron(open),
         )
       : null;
     // Onion skinning: a per-bone toggle plus marks showing which direction(s) are ghosted.
@@ -111,8 +121,8 @@ export function render(app, el) {
         ? h(
             'span',
             { class: 'onion-marks' },
-            oc.past > 0 ? h('span', { class: 'onion-mark', title: t('Showing {count} past frame(s)', { count: oc.past }), style: { color: rgbCss(oc.pastColor) } }, '◀') : null,
-            oc.future > 0 ? h('span', { class: 'onion-mark', title: t('Showing {count} future frame(s)', { count: oc.future }), style: { color: rgbCss(oc.futureColor) } }, '▶') : null,
+            oc.past > 0 ? h('span', { class: 'onion-mark', title: t('Showing {count} past frame(s)', { count: oc.past }), style: { color: rgbCss(oc.pastColor) } }, uiIcon('chevron-left', 'sm')) : null,
+            oc.future > 0 ? h('span', { class: 'onion-mark', title: t('Showing {count} future frame(s)', { count: oc.future }), style: { color: rgbCss(oc.futureColor) } }, uiIcon('chevron-right', 'sm')) : null,
           )
         : null;
     const onionBtn = animate
@@ -127,11 +137,11 @@ export function render(app, el) {
               onionBonePanel(app, bone, r.left, r.bottom);
             },
           },
-          '◍',
+          uiIcon('layers', 'sm'),
         )
       : null;
     skeleton.push(
-      row(`${doc.bones[bone].length > 0 ? '🦴' : '◉'} ${doc.bones[bone].name}`, {
+      row(label(doc.bones[bone].length > 0 ? 'bone' : 'crosshair', doc.bones[bone].name), {
         tut: `bone:${doc.bones[bone].name}`,
         depth,
         selected: selected.has(bone),
@@ -158,17 +168,18 @@ export function render(app, el) {
                 app.changed();
               },
             },
-            slotOpen ? '▾' : `▸ ${names.size}`,
+            chevron(slotOpen, slotOpen ? null : names.size),
           )
         : null;
       // Folded: the visible attachment's name follows the slot's.
-      const shown = !slotOpen && pose.attachment[i] ? h('span', { class: 'slot-shown', title: t('Visible attachment') }, ` · ${pose.attachment[i]}`) : null;
-      skeleton.push(row(`▣ ${slot.name}`, { tut: `slot:${slot.name}`, depth: depth + 1, cls: 'slot', selected: selSlot(app.sel) === i, onclick: select({ slot: i }), extra: [shown, slotTwisty] }));
+      // (Not when it has the slot's own name, as most single-image slots do.)
+      const shown = !slotOpen && pose.attachment[i] && pose.attachment[i] !== slot.name ? h('span', { class: 'slot-shown', title: t('Visible attachment') }, pose.attachment[i]) : null;
+      skeleton.push(row(label('layers', slot.name), { tut: `slot:${slot.name}`, depth: depth + 1, cls: 'slot', selected: selSlot(app.sel) === i, onclick: select({ slot: i }), extra: [shown, slotTwisty] }));
       if (!slotOpen) continue;
       for (const name of names) {
         const visible = pose.attachment[i] === name;
         skeleton.push(
-          row(`${visible ? '📎' : '·'} ${name}`, {
+          row(label('image', name, !visible), {
             depth: depth + 2,
             cls: `attachment${visible ? ' visible' : ''}`,
             title: visible ? t('Visible attachment') : t('Click to show this attachment (keys it in Animate mode)'),
@@ -183,21 +194,12 @@ export function render(app, el) {
     for (const c of kids) visit(c, depth + 1);
   };
   visit(0, 0);
-  const addBone = h(
-    'button',
-    { class: 'small', disabled: app.mode !== Mode.Setup, title: t('Add a child bone to the selected bone'), onclick: () => edit.addChildBone(app, selBone(app.sel) ?? 0) },
-    t('＋ Bone'),
-  );
-  const addPoint = h(
-    'button',
-    {
-      class: 'small',
-      disabled: app.mode !== Mode.Setup,
-      title: t('Add a point bone (a pivot or anchor) at the tip of the selected bone'),
-      onclick: () => edit.addPointBone(app, selBone(app.sel) ?? 0),
-    },
-    t('＋ Point'),
-  );
+  const addBone = addButton(t('Bone'), { disabled: app.mode !== Mode.Setup, title: t('Add a child bone to the selected bone'), onclick: () => edit.addChildBone(app, selBone(app.sel) ?? 0) });
+  const addPoint = addButton(t('Point'), {
+    disabled: app.mode !== Mode.Setup,
+    title: t('Add a point bone (a pivot or anchor) at the tip of the selected bone'),
+    onclick: () => edit.addPointBone(app, selBone(app.sel) ?? 0),
+  });
 
   // Draw order: front of the list is drawn on top.
   const n = doc.slots.length;
@@ -207,14 +209,14 @@ export function render(app, el) {
   };
   const order = [];
   for (let i = n - 1; i >= 0; i--) {
-    const slotRow = row(`▣ ${doc.slots[i].name}`, { selected: selSlot(app.sel) === i, onclick: select({ slot: i }), title: t('Drag to reorder') });
+    const slotRow = row(label('layers', doc.slots[i].name), { selected: selSlot(app.sel) === i, onclick: select({ slot: i }), title: t('Drag to reorder') });
     dragOrderRow(app, slotRow, i, n);
     order.push(
       h(
         'div',
         { class: 'order-row', 'data-slot': i },
-        h('button', { class: 'small', disabled: i + 1 >= n, onclick: move(i, i + 1), title: t('Draw in front') }, '▲'),
-        h('button', { class: 'small', disabled: i === 0, onclick: move(i, i - 1), title: t('Draw behind') }, '▼'),
+        iconButton('chevron-up', { size: 'sm', disabled: i + 1 >= n, onclick: move(i, i + 1), title: t('Draw in front') }),
+        iconButton('chevron-down', { size: 'sm', disabled: i === 0, onclick: move(i, i - 1), title: t('Draw behind') }),
         slotRow,
       ),
     );
@@ -234,7 +236,7 @@ export function render(app, el) {
     ...doc.skins.map((s) => row(`${doc.skin === s.name ? '●' : '○'} ${s.name}`, { selected: app.sel?.skin === s.name, onclick: pickSkin(s.name) })),
   ];
   const setupOnly = app.mode !== Mode.Setup;
-  const newSkin = h('button', { class: 'small', disabled: setupOnly, title: t('New skin (becomes active)'), onclick: () => createSkin(app) }, t('＋ New'));
+  const newSkin = addButton(t('New'), { disabled: setupOnly, title: t('New skin (becomes active)'), onclick: () => createSkin(app) });
   const events = doc.events.map((e) =>
     row(`⚑ ${e.name}`, {
       selected: app.sel?.event === e.name,
@@ -245,7 +247,7 @@ export function render(app, el) {
       },
     }),
   );
-  const newEvent = h('button', { class: 'small', disabled: setupOnly, title: t('New event'), onclick: () => createEvent(app) }, t('＋ New'));
+  const newEvent = addButton(t('New'), { disabled: setupOnly, title: t('New event'), onclick: () => createEvent(app) });
 
   // Constraints in application order; click to edit their settings.
   const CONSTRAINT_ICONS = { ik: '⊸', transform: '⇄', path: '∿', physics: '≋', slider: '⇥' };
@@ -262,10 +264,7 @@ export function render(app, el) {
       },
     });
   });
-  const newConstraint = h(
-    'button',
-    {
-      class: 'small',
+  const newConstraint = addButton(t('New'), {
       disabled: app.mode !== Mode.Setup,
       title: t('New constraint from the selected bones'),
       onclick: (e) => {
@@ -288,12 +287,10 @@ export function render(app, el) {
           })),
         );
       },
-    },
-    t('＋ New'),
-  );
+  });
 
   const animations = doc.animations.map((a, i) =>
-    row(`${app.anim === i ? '▶' : '·'} ${a.name}`, {
+    row(label('play', a.name, app.anim !== i), {
       selected: app.anim === i,
       onclick: () => {
         app.anim = i;
@@ -310,7 +307,7 @@ export function render(app, el) {
   el.replaceChildren(
     h('div', { class: 'tree-scroll scroll' },
       has(app, 'scene') || doc.scene?.actors.length
-        ? section(app, 'scene', t('Scene'), doc.scene?.actors.length ?? 0, doc.scene?.actors.length ? sceneRows(app, row) : [h('div', { class: 'small weak pad' }, t('Characters acting together: ＋ Actor adds one (File ▸ New ▸ Scene starts a stage with a camera).'))], h('button', { class: 'small', title: t('Add a character to the scene'), onclick: (e) => { const r = e.target.getBoundingClientRect(); addActorMenu(app, r.left, r.bottom); } }, t('＋ Actor')))
+        ? section(app, 'scene', t('Scene'), doc.scene?.actors.length ?? 0, doc.scene?.actors.length ? sceneRows(app, row) : [h('div', { class: 'small weak pad' }, t('Characters acting together: + Actor adds one (File ▸ New ▸ Scene starts a stage with a camera).'))], addButton(t('Actor'), { title: t('Add a character to the scene'), onclick: (e) => { const r = e.currentTarget.getBoundingClientRect(); addActorMenu(app, r.left, r.bottom); } }))
         : null,
       section(app, 'skeleton', doc.name || t('Skeleton'), doc.bones.length, skeleton, [addBone, addPoint]),
       section(app, 'draworder', t('Draw order'), n, orderList),
@@ -318,7 +315,7 @@ export function render(app, el) {
       section(app, 'constraints', t('Constraints'), constraints.length, constraints, newConstraint),
       section(app, 'events', t('Events'), doc.events.length, events, newEvent),
       section(app, 'animations', t('Animations'), doc.animations.length, animations),
-      section(app, 'images', t('Images'), doc.images.length, doc.images.map((i) => row(`🖼 ${i.name}`, { title: `${i.width}×${i.height}` }))),
+      section(app, 'images', t('Images'), doc.images.length, doc.images.map((i) => row(label('image', i.name), { title: `${i.width}×${i.height}` }))),
     ),
   );
   el.querySelector('.tree-scroll').scrollTop = scrolled;

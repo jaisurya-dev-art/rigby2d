@@ -1,13 +1,5 @@
 {
-  "symbols": {
-    "constraintui.js": 1,
-    "inspector.js": 18,
-    "sceneui.js": 3,
-    "skineventui.js": 3,
-    "tree.js": 7,
-    "tutorials/coach.js": 1,
-    "tutorials/lessons.js": 9
-  },
+  "symbols": {},
   "handBuiltDialogs": {},
   "colorsInCode": {
     "draworderdnd.js": 3,

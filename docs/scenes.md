@@ -25,7 +25,7 @@ A scene is an ordinary project used as a **stage**, so every tool you already kn
 
 1. **File ▸ New ▸ Scene (several characters)** starts a Film project set up as a stage: a `camera`
    bone the output frame follows, a `background` layer with depth, and a first shot (`shot 1`, 5 s).
-2. **Add characters**: in the tree's **Scene** section, press **＋ Actor** and choose a `.rigby`
+2. **Add characters**: in the tree's **Scene** section, press **+ Actor** and choose a `.rigby`
    file or one of the demos. The character is copied into the scene, so the scene file is complete on
    its own. It is placed at the center of the view with a first clip at the playhead.
 3. **Add backgrounds**: select a layer bone (such as `background`) and use *File ▸ Import ▸ PNG
@@ -51,8 +51,8 @@ Select an actor (click it in the viewport, or its row in the tree's **Scene** se
 | **Skin** | Which of the character's skins it wears. |
 | **Face the other way (flip)** | Mirrors the actor, so two characters can face each other. |
 | **Ground** | Raises or lowers the character so its feet stand on the anchor bone. Characters are often drawn with their feet above or below their origin; when an actor is added, Rigby2D measures where its feet are (the lowest point of its setup pose) and sets this for you, so every actor stands on the same ground line at any size. **Feet on anchor** measures it again. |
-| **Clips in "shot"** | Its clips in the current shot (below). **＋ Add clip at the playhead…** adds one. |
-| **🗑 Remove actor** | Takes it off the stage with its anchor bone and slot. |
+| **Clips in "shot"** | Its clips in the current shot (below). **Add clip at the playhead…** adds one. |
+| **Remove actor** | Takes it off the stage with its anchor bone and slot. |
 
 The actor's anchor bone and slot are ordinary stage bones and slots, which gives you more for free:
 

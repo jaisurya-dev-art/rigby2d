@@ -7,6 +7,7 @@ import { applyAmount, blendPoses, capturePose } from '../core/poses.js';
 import { Mode } from './app.js';
 import * as edit from './edit.js';
 import { h, select, textField } from './widgets.js';
+import { button, section } from './ui.js';
 import { has } from './workspaces.js';
 import { frameLevels, tracksOf } from './audio.js';
 import { FPS } from './app.js';
@@ -165,15 +166,16 @@ export function posesUi(app) {
   const doc = app.doc;
   const selected = app.selectedBones().length;
   const faces = has(app, 'faceControls');
-  const details = h(
-    'details',
-    { class: 'poses', open: ui.open, ontoggle: (e) => (ui.open = e.target.open) },
-    h('summary', null, h('strong', null, faces ? t('Poses & face controls') : t('Poses')), h('span', { class: 'small weak' }, ' ' + t('{count} pose(s)', { count: doc.poses.length }) + (faces ? ', ' + t('{count} control(s)', { count: doc.controllers.length }) : ''))),
+  const count = t('{count} pose(s)', { count: doc.poses.length }) + (faces ? ', ' + t('{count} control(s)', { count: doc.controllers.length }) : '');
+  const body = [
     h(
       'div',
       { class: 'pose-save' },
       textField(ui.name, (v) => (ui.name = v), { width: '100%' }),
-      h('button', { title: selected ? t('Save the pose of the {count} selected bone(s) and the images of their slots', { count: selected }) : t('Save the pose of every bone'), onclick: () => savePose(app, ui.name || (selected ? 'pose' : 'full pose')) }, selected ? t('Save pose ({count})', { count: selected }) : t('Save pose (all)')),
+      button(selected ? t('Save pose ({count})', { count: selected }) : t('Save pose (all)'), {
+        title: selected ? t('Save the pose of the {count} selected bone(s) and the images of their slots', { count: selected }) : t('Save the pose of every bone'),
+        onclick: () => savePose(app, ui.name || (selected ? 'pose' : 'full pose')),
+      }),
     ),
     doc.poses.length
       ? [
@@ -204,7 +206,7 @@ export function posesUi(app) {
           h(
             'button',
             {
-              title: 'A slider from the setup pose to this pose',
+              title: t('A slider from the setup pose to this pose'),
               onclick: () => {
                 const to = doc.poses.some((p) => p.name === ui.controllerTo) ? ui.controllerTo : doc.poses[0].name;
                 doc.controllers.push({ name: ui.controllerName.trim() || to, from: null, to, value: 0 });
@@ -216,6 +218,6 @@ export function posesUi(app) {
           ),
         )
       : h('div', { class: 'small weak' }, t('Save poses first, then add sliders that blend to them (for example brows up, eyes closed, mouth open).')),
-  );
-  return [h('hr'), details];
+  ];
+  return [h('hr'), section(faces ? t('Poses & face controls') : t('Poses'), body.flat().filter(Boolean), { id: 'poses', open: false, actions: h('span', { class: 'section-count' }, count) })];
 }

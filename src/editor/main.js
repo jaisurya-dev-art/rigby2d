@@ -458,7 +458,9 @@ function splitter(el, cssVar, axis, sign, min, max) {
     el.setPointerCapture(e.pointerId);
     el.classList.add('dragging');
     const start = axis === 'x' ? e.clientX : e.clientY;
-    const size = parseFloat(getComputedStyle(root).getPropertyValue(cssVar));
+    // A default in % (the tree's share of the side column) starts from the panel's measured size.
+    const value = getComputedStyle(root).getPropertyValue(cssVar).trim();
+    const size = value.endsWith('px') ? parseFloat(value) : el.previousElementSibling.getBoundingClientRect()[axis === 'x' ? 'width' : 'height'];
     const move = (ev) => apply(size + sign * ((axis === 'x' ? ev.clientX : ev.clientY) - start));
     const up = () => {
       el.classList.remove('dragging');

@@ -86,13 +86,13 @@ files are kept and exported).
 
 | Type | What it is | Create it with |
 | --- | --- | --- |
-| **Image** (region) | A bitmap placed on the slot's bone. | Import, or **＋ Add image to this slot…** |
-| **Mesh** | An image with vertices that can bend, bound to one or more bones with weights. | **▦ Convert to mesh** on an image. See [Meshes](meshes.md). |
-| **Linked mesh** | Another image sharing a mesh's shape and weights (and optionally its deform keys). | **＋ Linked mesh with image…** on a mesh. |
-| **Bounding box** | A polygon for hit testing in games. | **＋ Add shape… ▸ Bounding box** |
-| **Clipping** | A polygon that masks the slots drawn after it, up to **Clip until**. | **＋ Add shape… ▸ Clipping** |
-| **Path** | A curve other bones can follow with a [path constraint](constraints.md#path). Options: *Closed*, *Constant speed*. | **＋ Add shape… ▸ Path** |
-| **Point** | A position and rotation, for spawning effects or attaching items in a game. | **＋ Add shape… ▸ Point** |
+| **Image** (region) | A bitmap placed on the slot's bone. | Import, or **Add image to this slot…** |
+| **Mesh** | An image with vertices that can bend, bound to one or more bones with weights. | **Convert to mesh** on an image. See [Meshes](meshes.md). |
+| **Linked mesh** | Another image sharing a mesh's shape and weights (and optionally its deform keys). | **Linked mesh with image…** on a mesh. |
+| **Bounding box** | A polygon for hit testing in games. | **Add shape… ▸ Bounding box** |
+| **Clipping** | A polygon that masks the slots drawn after it, up to **Clip until**. | **Add shape… ▸ Clipping** |
+| **Path** | A curve other bones can follow with a [path constraint](constraints.md#path). Options: *Closed*, *Constant speed*. | **Add shape… ▸ Path** |
+| **Point** | A position and rotation, for spawning effects or attaching items in a game. | **Add shape… ▸ Point** |
 
 ### Placing images
 
@@ -106,10 +106,10 @@ can also drag the image with the Translate, Rotate and Scale tools.
 
 ### Editing shapes
 
-For bounding boxes, clipping polygons and paths, **✎ Edit shape** edits the vertices in the
+For bounding boxes, clipping polygons and paths, **Edit shape** edits the vertices in the
 viewport: drag vertices, click near an edge to add one, and press <kbd>Delete</kbd> to remove the
 selected one. Path points have Bézier handles (<kbd>Alt</kbd>+drag moves one handle on its own).
-**✓ Done editing** finishes.
+**Finish editing** finishes.
 
 ## Image sequences
 

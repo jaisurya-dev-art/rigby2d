@@ -5,6 +5,7 @@
 import { listConstraints } from '../core/constraintdata.js';
 import { FPS, Mode } from './app.js';
 import { dragValue, h, textField } from './widgets.js';
+import { button } from './ui.js';
 import { t } from './i18n.js';
 
 const row = (label, ...content) => [h('label', null, label), h('div', { class: 'cell' }, ...content)];
@@ -75,7 +76,7 @@ export function skinUi(app, name) {
     return [
       h('h2', null, t('Skin: default')),
       h('div', { class: 'small weak' }, t('Attachments added while the default skin is active belong to every skin.')),
-      h('div', { class: 'buttons' }, h('button', { onclick: () => createSkin(app) }, t('＋ New skin'))),
+      h('div', { class: 'buttons' }, button(t('New skin'), { icon: 'plus', onclick: () => createSkin(app) })),
     ];
   }
   const skin = doc.skins.find((s) => s.name === name);
@@ -192,7 +193,7 @@ export function skinUi(app, name) {
       'div',
       { class: 'buttons' },
       h('button', { disabled: !setupMode, onclick: () => createSkin(app, skin) }, t('Duplicate')),
-      h('button', { disabled: !setupMode, onclick: () => deleteSkin(app, skin) }, t('🗑 Delete skin')),
+      button(t('Delete skin'), { kind: 'danger', icon: 'trash-2', disabled: !setupMode, onclick: () => deleteSkin(app, skin) }),
     ),
   ];
 }
@@ -303,13 +304,13 @@ export function eventUi(app, name) {
           h(
             'div',
             { class: 'buttons' },
-            h('button', { disabled: app.mode !== Mode.Animate, title: t('Switch to Animate mode to key events'), onclick: () => keyEvent(app, ev) }, '⚑ ' + t('Key at frame {frame}', { frame: Math.round(app.time * FPS) })),
+            button(t('Key at frame {frame}', { frame: Math.round(app.time * FPS) }), { icon: 'flag', disabled: app.mode !== Mode.Animate, title: t('Switch to Animate mode to key events'), onclick: () => keyEvent(app, ev) }),
           ),
           keys.length
             ? h('table', { class: 'props' }, h('tr', null, h('th', null, t('Frame')), h('th', null, t('Int')), h('th', null, t('Float')), h('th', null, t('String')), h('th', null, '')), keys.map(keyRow))
             : h('div', { class: 'small weak' }, t('No keys yet. Each key can override the values above.')),
         ]
       : h('div', { class: 'small weak' }, t('Choose an animation to key this event.')),
-    h('div', { class: 'buttons' }, h('button', { disabled: !setupMode, onclick: () => deleteEvent(app, ev) }, t('🗑 Delete event'))),
+    h('div', { class: 'buttons' }, button(t('Delete event'), { kind: 'danger', icon: 'trash-2', disabled: !setupMode, onclick: () => deleteEvent(app, ev) })),
   ];
 }

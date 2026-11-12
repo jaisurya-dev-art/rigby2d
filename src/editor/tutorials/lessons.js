@@ -52,7 +52,7 @@ export const LESSONS = [
         },
       },
       {
-        text: tn('At the bottom is the <b>timeline</b>. Press <b>▶</b> to play or pause the animation. The <kbd>Space</kbd> key does the same.'),
+        text: tn('At the bottom is the <b>timeline</b>. Press <b>Play</b> (the triangle) to play or pause the animation. The <kbd>Space</kbd> key does the same.'),
         target: 'timeline:play',
         enter: ({ app, mark }) => (mark.playing = app.playing),
         done: ({ app, mark }) => app.playing !== mark.playing,
@@ -65,7 +65,7 @@ export const LESSONS = [
         student: (ctx) => choose(ctx, 'timeline:animations', 'hold'),
       },
       {
-        text: tn('On the right is the <b>tree</b>: the parts of the character. <b>Bones</b> 🦴 are the skeleton, <b>slots</b> ▣ hold the images 📎. Click the <b>head</b> bone 🦴.'),
+        text: tn('On the right is the <b>tree</b>: the parts of the character. <b>Bones</b> are the skeleton and <b>slots</b> hold the images. Click the <b>head</b> bone.'),
         target: 'bone:head',
         done: ({ app }) => selectedBone(app) === 'head',
         student: (ctx) => click(ctx, 'bone:head'),
@@ -264,7 +264,7 @@ export const LESSONS = [
         student: (ctx) => click(ctx, 'coach:action'),
       },
       {
-        text: tn('Click <b>＋ New</b> in the timeline to start an animation. Rigby2D switches to <b>Animate</b> mode for you.'),
+        text: tn('Click <b>+</b> (<i>New animation</i>) in the timeline to start an animation. Rigby2D switches to <b>Animate</b> mode for you.'),
         target: 'timeline:new',
         done: ({ app }) => app.doc.animations.length > 0 && app.mode === 'animate',
         student: (ctx) => click(ctx, 'timeline:new'),
@@ -276,7 +276,7 @@ export const LESSONS = [
         student: (ctx) => click(ctx, 'autokey'),
       },
       {
-        text: tn('Click the <b>head</b> bone 🦴 in the tree, then press <b>◆ Key</b> (or <kbd>K</kbd>) to store the head\'s starting pose at <b>frame 0</b>.'),
+        text: tn('Click the <b>head</b> bone in the tree, then press <b>Key</b> (or <kbd>K</kbd>) to store the head\'s starting pose at <b>frame 0</b>.'),
         target: ({ app }) => (selectedBone(app) === 'head' ? 'timeline:key' : 'bone:head'),
         done: ({ app }) => keyAt(app, 'head', 0),
         student: async (ctx) => {
@@ -285,7 +285,7 @@ export const LESSONS = [
         },
       },
       {
-        text: tn('Move to around <b>frame 15</b>: click <b>▶|</b> (or press <kbd>→</kbd>) until the timeline says frame 15. Anything from 10 to 20 is fine.'),
+        text: tn('Move to around <b>frame 15</b>: click <b>Next frame</b> (the right arrow, or press <kbd>→</kbd>) until the timeline says frame 15. Anything from 10 to 20 is fine.'),
         target: 'timeline:next',
         done: ({ app }) => frame(app) >= 10 && frame(app) <= 20,
         student: async (ctx) => {
@@ -302,7 +302,7 @@ export const LESSONS = [
         },
       },
       {
-        text: tn('Go on to around <b>frame 30</b> with <b>▶|</b> and tilt the head back. Every key shows as a diamond ◆ in the timeline.'),
+        text: tn('Go on to around <b>frame 30</b> with <b>Next frame</b> and tilt the head back. Every key shows as a diamond in the timeline.'),
         target: 'timeline:next',
         enter: ({ app, mark }) => (mark.from = frame(app)),
         done: ({ app, mark }) => frame(app) >= mark.from + 10 && keyAt(app, 'head', frame(app)),
@@ -312,7 +312,7 @@ export const LESSONS = [
         },
       },
       {
-        text: tn('Press <b>▶</b> (or <kbd>Space</kbd>). The character nods: Rigby2D drew every frame between your keys.'),
+        text: tn('Press <b>Play</b> (or <kbd>Space</kbd>). The character nods: Rigby2D drew every frame between your keys.'),
         target: 'timeline:play',
         done: ({ app }) => app.playing,
         student: (ctx) => click(ctx, 'timeline:play'),

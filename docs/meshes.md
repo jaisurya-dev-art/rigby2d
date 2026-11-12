@@ -9,10 +9,10 @@ can also move vertices directly and key the shape (deform keys).
 ## Turning an image into a mesh
 
 1. In Setup mode, select the image's slot.
-2. Press **▦ Convert to mesh** in the inspector. The image is replaced by a mesh with four vertices
+2. Press **Convert to mesh** in the inspector. The image is replaced by a mesh with four vertices
    at its corners, and mesh editing starts.
 3. Click to add vertices: around the visible shape of the image to outline it, and inside where it
-   should bend. **✎ Edit mesh** edits it again later.
+   should bend. **Edit mesh** edits it again later.
 
 AutoRig makes meshes for bending parts by itself.
 
@@ -49,7 +49,7 @@ adding, moving or deleting vertices later never fills the holes in.
 
 Vertices you **lock** stay exactly where they are when the mesh is generated again (position,
 texture and weights); only the rest is recomputed, and **Outline points** counts the rest. Select
-vertices and press **🔒 Lock selected** (again to unlock), or **Unlock all**. Moving a vertex by hand
+vertices and press **Lock selected** (again to unlock), or **Unlock all**. Moving a vertex by hand
 locks it too, so tweaking first and changing an option afterwards is safe. Locked vertices are drawn
 as squares; a locked outline vertex joins the nearest outline. Locks are saved in the `.rigby` file
 and never exported.
@@ -70,7 +70,7 @@ The mesh panel shows the vertex count (outline and inner) and whether it is weig
 triangulates the mesh for you. Put vertices where the image should bend: rows across a joint bend
 smoothly, and few vertices elsewhere keep the mesh light.
 
-**✓ Done** finishes editing.
+**Finish editing** finishes editing.
 
 ## Weights
 
@@ -99,7 +99,7 @@ Drag over the mesh to paint. Colors show the paint bone's weight: red is full we
 
 ## Deforming in Animate mode
 
-In Animate mode, **✎ Deform mesh** lets you move vertices over time:
+In Animate mode, **Deform mesh** lets you move vertices over time:
 
 - Drag vertices to key their positions at the current frame; drag a box (or <kbd>Ctrl</kbd>+click)
   to select several and move them together.
@@ -113,7 +113,7 @@ belly on top of the skeletal animation.
 A linked mesh shows another image with the same vertices, triangles and weights as a mesh. Use it for
 alternate drawings of a bending part, such as a sleeve in another color for a different outfit.
 
-On a mesh, choose an image in **＋ Linked mesh with image…**. *Use the deform keys of the parent mesh*
+On a mesh, choose an image in **Linked mesh with image…**. *Use the deform keys of the parent mesh*
 decides whether it also follows the mesh's deform keys. Edit the parent mesh; the linked ones follow.
 
 ## Image sequences on meshes

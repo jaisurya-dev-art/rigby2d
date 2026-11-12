@@ -65,7 +65,7 @@ when nothing is selected).
   the Translate tool in Setup mode.
 
 To add an image to an existing slot, for example a new mouth shape, select the slot and use
-**＋ Add image to this slot…** in the inspector. See [Attachments](bones-and-slots.md#attachments).
+**Add image to this slot…** in the inspector. See [Attachments](bones-and-slots.md#attachments).
 
 ## Texture filtering and pixel art
 

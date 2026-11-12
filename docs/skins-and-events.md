@@ -17,8 +17,8 @@ skin.
 
 ### Creating and filling a skin
 
-1. In the tree's **Skins** section, press **＋ New**. The new skin becomes active.
-2. Select a slot and add images or shapes (**＋ Add image to skin '…'** in the inspector). They go
+1. In the tree's **Skins** section, press **+ New**. The new skin becomes active.
+2. Select a slot and add images or shapes (**Add image to skin '…'** in the inspector). They go
    into the active skin. Slots show skin attachments with the skin's name in brackets.
 3. Click a skin in the tree to make it active and see what it contains.
 
@@ -63,7 +63,7 @@ In the tree's **Events** section, press **+**. Select it to set its default valu
 ### Keying events
 
 Switch to Animate mode, choose the animation, go to the frame, select the event and press
-**⚑ Key at frame N**. Each key can override the values above. **Keys** lists the event's keys in the current
+**Key at frame N**. Each key can override the values above. **Keys** lists the event's keys in the current
 animation; **Delete this key** removes one. Event keys also appear in the dopesheet.
 
 ### In the runtimes

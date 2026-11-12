@@ -9,6 +9,7 @@
 
 import { makeDraggable } from '../logwindow.js';
 import { h } from '../widgets.js';
+import { closeButton } from '../ui.js';
 import { lintLesson } from './lint.js';
 import { overlaps, resolve } from './targets.js';
 import { t } from '../i18n.js';
@@ -152,7 +153,7 @@ export class Coach {
     } catch {
       ok = false;
     }
-    if (ok) this.go(1, t('✓ Done'));
+    if (ok) this.go(1, t('Step done'));
   }
 
   finish() {
@@ -230,7 +231,8 @@ export class Coach {
   }
 
   build() {
-    const close = h('button', { title: t('Close the lesson (your work stays)'), onclick: () => this.stop() }, '✕');
+    const close = closeButton(() => this.stop());
+    close.title = t('Close the lesson (your work stays)');
     this.header = h('div', { class: 'float-header' }, h('b', { class: 'coach-title' }), h('span', { class: 'float-spacer' }), close);
     this.body = h('div', { class: 'coach-body' });
     this.panel = h('div', { class: 'float-window coach' }, this.header, this.body);
