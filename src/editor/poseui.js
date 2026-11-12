@@ -7,7 +7,7 @@ import { applyAmount, blendPoses, capturePose } from '../core/poses.js';
 import { Mode } from './app.js';
 import * as edit from './edit.js';
 import { h, select, textField } from './widgets.js';
-import { button, section } from './ui.js';
+import { button, iconButton, section } from './ui.js';
 import { has } from './workspaces.js';
 import { frameLevels, tracksOf } from './audio.js';
 import { FPS } from './app.js';
@@ -50,22 +50,16 @@ function poseRow(app, pose, index) {
     'div',
     { class: 'pose-row' },
     h('span', { class: 'pose-name', title: `${Object.keys(pose.bones).length} bones, ${Object.keys(pose.slots).length} slots` }, pose.name),
-    h(
-      'button',
-      {
-        class: 'small',
+    button(t('Apply'), {
+        size: 'sm',
         title: app.mode === Mode.Animate ? t('Key this pose at the current frame') : t('Set the setup pose to this pose'),
         onclick: () => {
           write(app, applyAmount(app.doc, app.pose(), pose, ui.amount));
           app.setStatus(t("Applied pose '{name}'", { name: pose.name }) + (ui.amount < 1 ? t(' at {percent}%', { percent: Math.round(ui.amount * 100) }) : '') + (app.mode === Mode.Animate ? t(' as keys') : ''));
         },
-      },
-      t('Apply'),
-    ),
-    h(
-      'button',
-      {
-        class: 'small',
+    }),
+    button(t('Update'), {
+        size: 'sm',
         title: t('Replace with the current pose of the same bones'),
         onclick: () => {
           const bones = Object.keys(pose.bones).map((n) => app.doc.bones.findIndex((b) => b.name === n)).filter((i) => i >= 0);
@@ -73,22 +67,16 @@ function poseRow(app, pose, index) {
           app.doc.poses[index] = capturePose(app.doc, app.pose(), pose.name, bones, slots);
           app.setStatus(t("Updated pose '{name}'", { name: pose.name }));
         },
-      },
-      t('Update'),
-    ),
-    h(
-      'button',
-      {
-        class: 'small',
+    }),
+    iconButton('trash-2', {
+        size: 'sm',
         title: t('Delete this pose'),
         onclick: () => {
           app.doc.poses.splice(index, 1);
           app.doc.controllers = app.doc.controllers.filter((c) => c.to !== pose.name && c.from !== pose.name);
           app.changed();
         },
-      },
-      '✕',
-    ),
+    }),
   );
 }
 
@@ -130,7 +118,7 @@ function controllerRow(app, c, index) {
   return h(
     'div',
     { class: 'controller' },
-    h('div', { class: 'controller-head' }, h('strong', null, c.name), h('span', { class: 'small weak' }, ` ${Math.round(c.value * 100)}%`), h('button', { class: 'small', title: t('Key this control from the loudness of the animation\'s audio (mouth open on speech)'), onclick: () => lipSync(app, c) }, t('Lip-sync')), h('button', { class: 'small', title: t('Delete this controller'), onclick: () => (app.doc.controllers.splice(index, 1), app.changed()) }, '✕')),
+    h('div', { class: 'controller-head' }, h('strong', null, c.name), h('span', { class: 'small weak' }, ` ${Math.round(c.value * 100)}%`), button(t('Lip-sync'), { size: 'sm', title: t('Key this control from the loudness of the animation\'s audio (mouth open on speech)'), onclick: () => lipSync(app, c) }), iconButton('trash-2', { size: 'sm', title: t('Delete this controller'), onclick: () => (app.doc.controllers.splice(index, 1), app.changed()) })),
     slider,
     h(
       'div',

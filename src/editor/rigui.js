@@ -12,7 +12,7 @@ import * as log from './log.js';
 import * as platform from './platform.js';
 import { h, popupMenu } from './widgets.js';
 import { button, checkbox, dialog, fieldRow, fields, hint } from './ui.js';
-import { t } from './i18n.js';
+import { t, tn } from './i18n.js';
 
 /** Replaces the dialog's content; empty parts (null) are left out. */
 const fillWith = (body) => (...children) => body.replaceChildren(...children.filter(Boolean));
@@ -32,6 +32,9 @@ function alphaOf(app) {
     return { width: s.canvas.width, height: s.canvas.height, data: s.alpha };
   };
 }
+
+/** AutoRig's own messages (core/autorig.js), listed so they are translated. */
+tn('AutoRig works on unrigged artwork: this project already has bones. Start from a new project with the imported layers.');
 
 const ROLE_LABELS = { upperarm: 'upper arm', forearm: 'forearm', arm: 'arm (whole)', thigh: 'thigh', shin: 'shin', leg: 'leg (whole)', extra: 'other (nearest bone)' };
 
@@ -86,7 +89,8 @@ export function openAutoRig(app) {
     try {
       parts = app.doc.slots.length ? findParts(app.doc, alphaOf(app), choice) : null;
     } catch (e) {
-      problem = log.errorMessage(e);
+      // Messages from core/autorig.js (no translations there) are translated here.
+      problem = t(log.errorMessage(e));
     }
     const rows = parts?.map((p) =>
       h(

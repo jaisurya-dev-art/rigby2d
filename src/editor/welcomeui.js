@@ -59,7 +59,7 @@ export function openWelcome(app, { tutorials, whatsNew, onClose } = {}) {
     card({ art: { icon: 'gamepad-2' }, tone: 'blue', tag: t('Template'), title: t('Game character'), text: t('An empty project for a game character: bones, meshes, skins and animations for the runtimes.'), fn: () => app.newDocument('game') }),
     card({ art: { icon: 'clapperboard' }, tone: 'rose', tag: t('Template'), title: t('Film shot'), text: t('An empty film project: 4K output, a camera, audio and lip-sync, rendered to video.'), fn: () => app.newDocument('film') }),
     card({ art: { icon: 'users' }, tone: 'violet', tag: t('Template'), title: t('Scene'), text: t('Several characters on one stage, with clips, parallax and a camera.'), fn: () => newScene(app) }),
-    ...DEMOS.map((d) => card({ img: d.thumbnail, tag: t('Demo'), title: d.name, text: d.description, fn: () => app.openDemo(d.id) })),
+    ...DEMOS.map((d) => card({ img: d.thumbnail, tag: t('Demo'), title: d.name, text: t(d.description), fn: () => app.openDemo(d.id) })),
     ...STARTERS.map((s) =>
       card({
         art: { engine: s.id },

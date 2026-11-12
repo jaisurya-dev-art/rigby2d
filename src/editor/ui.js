@@ -182,18 +182,30 @@ export function closeButton(onclick) {
  */
 export function dialog({ title, subtitle = null, className = '', onClose = null, footer = null, closeOnBackdrop = true, backdropClass = '', role = 'dialog', bare = false } = {}) {
   const overlay = h('div', { class: `modal-backdrop ${backdropClass}`.trim() });
+  // Keyboard: focus moves into the dialog, Tab stays inside it, and closing gives focus back.
+  const returnTo = document.activeElement;
   const close = () => {
     if (!overlay.isConnected) return;
     overlay.remove();
     document.removeEventListener('keydown', onKey, true);
+    if (returnTo?.isConnected && typeof returnTo.focus === 'function') returnTo.focus();
     onClose?.();
   };
+  const focusable = () => [...el.querySelectorAll('button, [href], input, select, textarea, summary, [tabindex]:not([tabindex="-1"])')].filter((x) => !x.disabled && x.offsetParent !== null);
   const onKey = (e) => {
-    if (e.key !== 'Escape') return;
     const backdrops = document.querySelectorAll('.modal-backdrop');
     if (backdrops[backdrops.length - 1] !== overlay) return;
-    e.stopImmediatePropagation();
-    close();
+    if (e.key === 'Escape') {
+      e.stopImmediatePropagation();
+      close();
+    } else if (e.key === 'Tab') {
+      const list = focusable();
+      if (!list.length) return;
+      const i = list.indexOf(document.activeElement);
+      const next = e.shiftKey ? (i <= 0 ? list.length - 1 : i - 1) : i === -1 || i === list.length - 1 ? 0 : i + 1;
+      e.preventDefault();
+      list[next].focus();
+    }
   };
   const body = h('div', { class: 'dialog-body' });
   const foot = h('footer', { class: 'dialog-foot' });
@@ -220,5 +232,10 @@ export function dialog({ title, subtitle = null, className = '', onClose = null,
   overlay.append(el);
   document.addEventListener('keydown', onKey, true);
   document.body.append(overlay);
+  // Start on the primary action when there is one (callers may move focus, e.g. to a text field).
+  requestAnimationFrame(() => {
+    if (el.contains(document.activeElement)) return;
+    (el.querySelector('.dialog-foot .ui-btn-primary:not(:disabled)') ?? focusable()[0])?.focus({ preventScroll: true });
+  });
   return { el, body, footer: foot, close, setFooter };
 }

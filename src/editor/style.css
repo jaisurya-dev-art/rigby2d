@@ -345,7 +345,7 @@ body {
   fill: currentColor;
 }
 /* Narrow viewports: tools and toggles show only their icons (names stay in the tooltips). */
-@container (max-width: 980px) {
+@container (max-width: 1240px) {
   #viewbar .tool-label,
   #viewbar .ui-toggle span {
     display: none;
@@ -4455,4 +4455,12 @@ body.drop-open::after {
   color: var(--fg-faint);
   font-size: var(--text-xs);
   white-space: nowrap;
+}
+
+/* Keyboard focus: text fields show the same ring as buttons (their :focus rules drop the outline). */
+input[type]:focus-visible,
+textarea:focus-visible,
+.dialog-search:focus-visible {
+  outline: 2px solid var(--ui-accent);
+  outline-offset: 1px;
 }

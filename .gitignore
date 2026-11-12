@@ -15,3 +15,6 @@ src-tauri/gen/schemas/
 *.msi
 *.dmg
 _site/
+
+# Interface check screenshots (npm run ui:check)
+test/ui/shots/
