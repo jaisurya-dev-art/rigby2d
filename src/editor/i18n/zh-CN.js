@@ -1560,4 +1560,5 @@ export default {
   "Constraint": "约束",
   "Event": "事件",
   "Project settings: name, textures, pixel grid, output": "项目设置：名称、纹理、像素网格、输出",
+  "Learn more": "了解更多",
 };

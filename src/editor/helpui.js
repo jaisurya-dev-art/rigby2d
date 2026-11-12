@@ -7,6 +7,7 @@ import { ACTIONS, PRESETS, bindCombo, comboLabel, comboOf, importKeymapFile, key
 import { confirmDialog, fetchBytes, openExternal, pickImportFiles as importFiles, pickSaveTarget as saveTarget } from './platform.js';
 import { t, tn } from './i18n.js';
 import { h } from './widgets.js';
+import { button, dialog as uiDialog } from './ui.js';
 import markUrl from '../../branding/rigby2d-mark.svg?url';
 
 /* global __RIGBY_VERSION__ */
@@ -26,60 +27,31 @@ export const LINKS = {
 };
 
 /**
- * A modal dialog; returns { body, close }. Escape and a click outside close it; `onClose` runs
- * however it closes.
+ * A modal dialog; returns { body, close, footer, setFooter }. Escape and a click outside close it;
+ * `onClose` runs however it closes. Built by ui.js dialog(), the shared dialog.
  */
-export function dialog(className, title, subtitle, { onClose } = {}) {
-  const overlay = h('div', { class: 'modal-backdrop' });
-  const close = () => {
-    if (!overlay.isConnected) return;
-    overlay.remove();
-    document.removeEventListener('keydown', onKey, true);
-    onClose?.();
-  };
-  const onKey = (e) => {
-    if (e.key !== 'Escape') return;
-    // With a dialog opened from another (Preferences ▸ Customize…), Escape closes only the top one.
-    const backdrops = document.querySelectorAll('.modal-backdrop');
-    if (backdrops[backdrops.length - 1] !== overlay) return;
-    e.stopImmediatePropagation();
-    close();
-  };
-  const body = h('div', { class: 'dialog-body' });
-  overlay.addEventListener('pointerdown', (e) => e.target === overlay && close());
-  overlay.append(
-    h(
-      'div',
-      { class: `modal dialog ${className}`, role: 'dialog', 'aria-label': title },
-      h(
-        'header',
-        { class: 'dialog-head' },
-        h('div', null, h('h3', null, title), subtitle ? h('p', { class: 'dialog-sub' }, subtitle) : null),
-        h('button', { class: 'dialog-close', title: t('Close (Esc)'), 'aria-label': t('Close'), onclick: close }, '✕'),
-      ),
-      body,
-    ),
-  );
-  document.addEventListener('keydown', onKey, true);
-  document.body.append(overlay);
-  return { body, close };
+export function dialog(className, title, subtitle, { onClose, footer } = {}) {
+  return uiDialog({ className, title, subtitle, onClose, footer });
 }
 
 /**
- * Asks a question with buttons [{ id, label, primary }]; resolves with the chosen id, or null when
- * the dialog is dismissed (Escape, a click outside).
+ * Asks a question with buttons [{ id, label, primary }] (listed secondary first, primary last);
+ * resolves with the chosen id, or null when the dialog is dismissed (Escape, a click outside).
  */
 export function askChoice(title, message, buttons) {
   return new Promise((resolve) => {
     let answer = null;
-    const { body, close } = dialog('choice-dialog', title, null, { onClose: () => resolve(answer) });
-    const row = h('div', { class: 'dialog-actions' });
-    for (const b of buttons) {
-      const button = h('button', { class: b.primary ? 'primary' : '', onclick: () => ((answer = b.id), close()) }, b.label);
-      row.append(button);
-    }
-    body.append(...(Array.isArray(message) ? message : [h('p', null, message)]), row);
-    row.querySelector('.primary')?.focus();
+    const pick = (id) => () => {
+      answer = id;
+      close();
+    };
+    const ordered = [...buttons.filter((b) => !b.primary), ...buttons.filter((b) => b.primary)];
+    const { body, close, footer } = dialog('choice-dialog', title, null, {
+      onClose: () => resolve(answer),
+      footer: ordered.map((b) => button(b.label, { kind: b.primary ? 'primary' : 'secondary', onclick: pick(b.id) })),
+    });
+    body.append(...(Array.isArray(message) ? message : [h('p', null, message)]));
+    footer.querySelector('.ui-btn-primary')?.focus();
   });
 }
 

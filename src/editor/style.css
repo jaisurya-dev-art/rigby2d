@@ -15,6 +15,63 @@
   color-scheme: dark;
 }
 
+/*
+ * Design tokens (Rigby2D Interface 1). New and migrated interface code uses only these; the older
+ * variables above stay until every surface has moved over. See ui.js for the shared components.
+ */
+:root {
+  /* Surfaces, darkest first: canvas, app, panels, controls. */
+  --surface-0: #141516;
+  --surface-1: #1b1c1e;
+  --surface-2: #232427;
+  --surface-3: #2c2d31;
+  --surface-hover: #35373b;
+  --line: #36383c;
+  --line-soft: rgba(255, 255, 255, 0.07);
+  /* Text: normal, secondary, faint (placeholders, disabled). */
+  --fg: #e4e4e4;
+  --fg-muted: #9a9ea5;
+  --fg-faint: #6d7178;
+  /* State. The accent is the editor's blue; the others carry meaning only. */
+  --ui-accent: #5a8fd6;
+  --ui-accent-hover: #6d9de0;
+  --ui-accent-soft: rgba(90, 143, 214, 0.2);
+  --ui-selected: #2d4f7c;
+  --success: #5fbf86;
+  --warning: #d9a03f;
+  --danger: #d9655c;
+  /* Type: five sizes, three weights. */
+  --font-ui: system-ui, 'Segoe UI', sans-serif;
+  --font-mono: ui-monospace, 'JetBrains Mono', Consolas, monospace;
+  --text-xs: 11px;
+  --text-sm: 12px;
+  --text-md: 13px;
+  --text-lg: 15px;
+  --text-xl: 20px;
+  /* Space (4 px steps), radius, sizes. */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+  --radius-full: 999px;
+  --control-h: 26px;
+  --button-h: 28px;
+  /* Depth: popovers and menus, dialogs, the full-screen tour. */
+  --shadow-popover: 0 10px 28px rgba(0, 0, 0, 0.45);
+  --shadow-dialog: 0 24px 64px rgba(0, 0, 0, 0.55);
+  --shadow-tour: 0 40px 120px rgba(0, 0, 0, 0.6);
+  /* Layers, lowest first. */
+  --z-panel: 100;
+  --z-dialog: 200;
+  --z-popover: 1000;
+  --z-toast: 3000;
+  --z-tour: 4000;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -3875,3 +3932,248 @@ body.drop-open::after {
 
 /* The physics constraint's playback hint (constraintui.js), first in its section. */
 .physics-hint { margin: 2px 0 10px; padding: 8px 10px; border-left: 3px solid #7ba7c7; border-radius: 4px; background: rgba(123, 167, 199, 0.1); color: #d6e3ee; line-height: 1.4; }
+
+/* ---- Interface 1: shared components (ui.js), styled only from the design tokens ---------------- */
+
+.ui-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  height: var(--button-h);
+  padding: 0 var(--space-3);
+  font: inherit;
+  font-size: var(--text-md);
+  line-height: 1;
+  white-space: nowrap;
+  color: var(--fg);
+  background: var(--surface-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+}
+.ui-btn:hover:not(:disabled) {
+  background: var(--surface-hover);
+}
+.ui-btn-primary {
+  color: #fff;
+  font-weight: 500;
+  background: var(--ui-accent);
+  border-color: var(--ui-accent);
+}
+.ui-btn-primary:hover:not(:disabled) {
+  background: var(--ui-accent-hover);
+}
+.ui-btn-ghost {
+  background: transparent;
+  border-color: transparent;
+}
+.ui-btn-danger {
+  color: var(--danger);
+}
+.ui-btn-danger:hover:not(:disabled) {
+  color: #fff;
+  background: var(--danger);
+  border-color: var(--danger);
+}
+.ui-btn-sm {
+  height: 22px;
+  padding: 0 var(--space-2);
+  font-size: var(--text-sm);
+}
+.ui-icon-btn {
+  display: inline-grid;
+  place-items: center;
+  width: var(--button-h);
+  height: var(--button-h);
+  padding: 0;
+  color: var(--fg-muted);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+}
+.ui-icon-btn:hover:not(:disabled) {
+  color: var(--fg);
+  background: var(--surface-hover);
+}
+.ui-icon-btn.active {
+  color: var(--fg);
+  background: var(--ui-accent-soft);
+}
+.ui-icon-btn-sm {
+  width: 22px;
+  height: 22px;
+}
+.ui-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  height: var(--button-h);
+  padding: 0 var(--space-2);
+  color: var(--fg-muted);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+}
+.ui-toggle:hover:not(:disabled) {
+  color: var(--fg);
+  background: var(--surface-hover);
+}
+.ui-toggle.on {
+  color: var(--fg);
+  background: var(--ui-accent-soft);
+  border-color: var(--ui-accent);
+}
+.ui-check {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--fg);
+  cursor: pointer;
+}
+.ui-check input {
+  margin: 0;
+  accent-color: var(--ui-accent);
+}
+.ui-segmented {
+  display: inline-flex;
+  padding: 2px;
+  gap: 2px;
+  background: var(--surface-1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+}
+.ui-segmented button {
+  height: calc(var(--button-h) - 6px);
+  padding: 0 var(--space-3);
+  color: var(--fg-muted);
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-sm);
+}
+.ui-segmented button:hover:not(.active) {
+  color: var(--fg);
+  background: var(--surface-hover);
+}
+.ui-segmented button.active {
+  color: #fff;
+  background: var(--ui-selected);
+}
+.ui-fields {
+  display: grid;
+  grid-template-columns: minmax(84px, max-content) minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+}
+.ui-field-label {
+  color: var(--fg-muted);
+  font-size: var(--text-sm);
+}
+.ui-field-value {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+  min-height: var(--control-h);
+}
+.ui-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.ui-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  min-height: 22px;
+}
+.ui-section-title,
+.ui-section-toggle {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--fg-muted);
+}
+.ui-section-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 0;
+  background: transparent;
+  border: 0;
+}
+.ui-section-toggle:hover:not(:disabled) {
+  color: var(--fg);
+  background: transparent;
+}
+.ui-section-toggle svg {
+  transition: transform 0.12s ease-out;
+}
+.ui-section.folded .ui-section-toggle svg {
+  transform: rotate(-90deg);
+}
+.ui-section.folded .ui-section-body {
+  display: none;
+}
+.ui-section-actions {
+  display: flex;
+  gap: var(--space-1);
+}
+.ui-hint {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-2);
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: 1.45;
+  color: var(--fg-muted);
+}
+.ui-hint svg {
+  flex: none;
+  align-self: center;
+}
+.ui-hint a {
+  color: var(--ui-accent);
+  text-decoration: none;
+}
+.ui-hint a:hover {
+  text-decoration: underline;
+}
+.ui-hint-warning {
+  color: var(--warning);
+}
+.ui-hint-danger {
+  color: var(--danger);
+}
+
+/* The shared dialog (ui.js dialog(), also behind helpui.js dialog()). */
+.modal.dialog {
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-dialog);
+}
+.dialog-head h3 {
+  font-size: var(--text-lg);
+  font-weight: 600;
+  color: var(--fg);
+}
+.dialog-sub {
+  font-size: var(--text-sm);
+  color: var(--fg-muted);
+}
+.dialog-close {
+  display: grid;
+  place-items: center;
+  color: var(--fg-muted);
+}
+.dialog-foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  padding: var(--space-3) 18px;
+  border-top: 1px solid var(--line-soft);
+}
+.dialog-foot[hidden] {
+  display: none;
+}

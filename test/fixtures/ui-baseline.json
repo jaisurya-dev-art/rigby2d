@@ -1,0 +1,57 @@
+{
+  "symbols": {
+    "addonui.js": 3,
+    "aiconnect.js": 4,
+    "app.js": 8,
+    "constraintui.js": 1,
+    "demoui.js": 2,
+    "helpui.js": 2,
+    "inspector.js": 25,
+    "layoutui.js": 2,
+    "main.js": 2,
+    "migrationui.js": 1,
+    "nudgeui.js": 2,
+    "prefsui.js": 2,
+    "recoveryui.js": 5,
+    "rigui.js": 1,
+    "sceneui.js": 5,
+    "scripting/scriptui.js": 4,
+    "skineventui.js": 3,
+    "timeline.js": 4,
+    "toolbar.js": 1,
+    "tree.js": 9,
+    "tutorials/coach.js": 1,
+    "tutorials/index.js": 1,
+    "tutorials/lessons.js": 13,
+    "updateui.js": 2
+  },
+  "handBuiltDialogs": {
+    "aiconnect.js": 1,
+    "demoui.js": 1,
+    "layoutui.js": 1,
+    "lipsyncui.js": 1,
+    "renderui.js": 1,
+    "resultui.js": 4,
+    "rigui.js": 1,
+    "shareui.js": 1,
+    "spritesheetui.js": 1,
+    "timeline.js": 1,
+    "tutorials/index.js": 1,
+    "welcomeui.js": 1
+  },
+  "colorsInCode": {
+    "draworderdnd.js": 3,
+    "graph.js": 23,
+    "icetext.js": 14,
+    "inspector.js": 1,
+    "meshtool.js": 7,
+    "sceneui.js": 12,
+    "shapetool.js": 3,
+    "timeline.js": 33,
+    "viewport.js": 31
+  },
+  "css": {
+    "colorLiterals": 287,
+    "fontSizesOutsideScale": 8
+  }
+}

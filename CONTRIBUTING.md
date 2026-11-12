@@ -51,6 +51,11 @@ quick UI work. File dialogs and disk access only work in the desktop app (`npm r
 - Add or update tests in `test/` for changes to `src/core` or the pure editor helpers
   (`pack.js`, `sample.js`). Run `npm test` before pushing.
 - For UI changes, include a screenshot or short clip in the pull request.
+- Build interface from the shared components in `src/editor/ui.js` (dialog, buttons, toggles,
+  field rows, sections, hints) and style it with the design tokens at the top of
+  `src/editor/style.css`. Use `uiIcon()` for icons, never emoji or symbol characters in interface
+  text. `test/ui-lint.test.js` keeps the older patterns from growing; when your change lowers one
+  of its counts, record it with `UPDATE_UI_BASELINE=1 node --test test/ui-lint.test.js`.
 
 ## Branches
 
