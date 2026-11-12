@@ -9,7 +9,7 @@ import { renameBoneRefs, renameSlotRefs } from '../core/constraintdata.js';
 import { inferSequence, sequenceFrameName } from '../core/sequence.js';
 import { constraintUi } from './constraintui.js';
 import { actorUi, depthUi } from './sceneui.js';
-import { bindMesh, generateFromImage, regionToMesh, unbindMesh } from './meshtool.js';
+import { bindMesh, generateFromImage, meshLocks, regionToMesh, setMeshLocks, unbindMesh } from './meshtool.js';
 import { MESH_DEFAULTS } from '../core/meshgen.js';
 import { eventUi, skinUi } from './skineventui.js';
 import { dragValue, h, select, textField } from './widgets.js';
@@ -646,9 +646,27 @@ const generateOptions = { ...MESH_DEFAULTS };
 function generateUi(app, e, att) {
   const o = generateOptions;
   const run = () => {
-    const r = generateFromImage(app, e.slot, att, o);
-    if (!r) app.setStatus(t('Generate mesh: the image has no pixels above the alpha threshold'));
-    else app.setStatus(t('Generated {vertices} vertices ({hull} on the outline), {triangles} triangles', { vertices: r.points.length, hull: r.hull, triangles: r.triangles.length / 3 }) + (r.islands > 1 ? '; ' + t('used the largest of {count} separate shapes', { count: r.islands }) : '') + (r.removed ? '; ' + t('removed {count} deform timeline(s)', { count: r.removed }) : ''));
+    const r = generateFromImage(app, e.slot, att, o, e.made ?? []);
+    if (!r) {
+      app.setStatus(t('Generate mesh: the image has no pixels above the alpha threshold'));
+      app.changed();
+      return;
+    }
+    e.made = r.made;
+    // The slot may have moved down when earlier extra meshes were removed.
+    e.slot = app.doc.slots.findIndex((s) => s.attachments.includes(att) || s.attachment === att.name);
+    const shapes =
+      r.islands < 2 ? ''
+      : o.islands === 'split' ? '; ' + t('{count} shapes, one mesh each', { count: (r.meshes ?? [r]).length })
+      : o.islands === 'merge' ? '; ' + t('{count} shapes in one mesh', { count: r.shapes })
+      : '; ' + t('used the largest of {count} separate shapes', { count: r.islands });
+    const locked = Object.keys(r.locked ?? {}).length;
+    app.setStatus(
+      t('Generated {vertices} vertices ({hull} on the outline), {triangles} triangles', { vertices: r.points.length, hull: r.hull, triangles: r.triangles.length / 3 }) +
+        shapes +
+        (locked ? '; ' + t('kept {count} locked vertex(es)', { count: locked }) : '') +
+        (r.removed ? '; ' + t('removed {count} deform timeline(s)', { count: r.removed }) : ''),
+    );
     app.changed();
   };
   // After the first generate, changing a setting regenerates (live preview); before it, nothing changes.
@@ -666,7 +684,11 @@ function generateUi(app, e, att) {
       row(t('Expand'), dragValue(o.expand, live('expand', Math.round), { min: -30, max: 30, decimals: 0, speed: 0.2, suffix: ' px' })),
       row(t('Smoothing'), dragValue(o.smoothing, live('smoothing', Math.round), { min: 0, max: 6, decimals: 0, speed: 0.1 })),
       row(t('Interior'), select([['none', t('None')], ['low', t('Low')], ['medium', t('Medium')], ['high', t('High')]], o.interior, live('interior'))),
+      row(t('Min. angle'), dragValue(o.minAngle, live('minAngle', (v) => Math.round(v)), { min: 0, max: 30, decimals: 0, speed: 0.2, suffix: '°' })),
+      row(t('Shapes'), select([['largest', t('Largest only')], ['merge', t('All, one mesh')], ['split', t('All, one mesh each')]], o.islands, live('islands'))),
+      row('', h('label', { class: 'check', title: t('Trace inner contours and leave transparent holes out of the mesh') }, h('input', { type: 'checkbox', checked: !!o.holes, onchange: (ev) => live('holes')(ev.target.checked) }), ' ' + t('Detect holes'))),
     ),
+    h('div', { class: 'small weak' }, t('Min. angle 0 = off; above it, interior points are added until no triangle is thinner. Locked vertices (squares) and vertices you moved stay where they are.')),
     h(
       'div',
       { class: 'buttons' },
@@ -710,6 +732,17 @@ function meshUi(app) {
   ];
   if (e.mode === 'vertices') {
     out.push(h('div', { class: 'small weak' }, t('Click inside to add a vertex, near or outside the outline to extend it. Drag vertices to move them over the image. Ctrl+click or Ctrl+drag a box to select several; Delete removes the selection.')));
+    const locks = meshLocks(doc, e.slot, e.name);
+    const picked = [...(e.selection ?? [])];
+    const allLocked = picked.length > 0 && picked.every((i) => locks.has(i));
+    out.push(
+      h(
+        'div',
+        { class: 'buttons' },
+        h('button', { disabled: !picked.length, title: t('Locked vertices keep their place when the mesh is generated again (moving a vertex locks it too)'), onclick: () => app.viewport?.meshTool.toggleLockSelected() }, allLocked ? t('🔓 Unlock selected') : t('🔒 Lock selected')),
+        h('button', { disabled: !locks.size, title: t('Unlock every vertex of this mesh'), onclick: () => (setMeshLocks(doc, e.slot, e.name, []), app.changed()) }, t('Unlock all ({count})', { count: locks.size })),
+      ),
+    );
     out.push(...generateUi(app, e, att));
   } else {
     const bindLabel = selectedBones.length ? selectedBones.length === 1 ? t('Bind to 1 selected bone') : t('Bind to {count} selected bones', { count: selectedBones.length }) : t('Select bones to bind (Ctrl+click in the tree)');

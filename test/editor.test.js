@@ -68,3 +68,15 @@ test('point bones: a length 0 bone poses, parents and round-trips through JSON a
   const bin = readSkeletonJson(readSkeletonBinary(writeSkeletonBinary(writeSkeletonJson(doc, { version: '4.3', binary: true }).json))).skeleton;
   assert.equal(bin.bones[bin.boneIndex('pivot')].length, 0);
 });
+
+test('locked mesh vertices are saved in work files and undo, never in exports', async () => {
+  const { writeSkeletonJson } = await import('../src/core/interop.js');
+  const doc = robot({ insertRgba: () => {} });
+  doc.meshLocks = { 'body/body': [3, 1, 1, -2, 'x'] };
+  const again = Skeleton.fromObject(JSON.parse(doc.toSnapshot()));
+  assert.deepEqual(again.meshLocks, { 'body/body': [1, 3] });
+  assert.ok(!JSON.stringify(writeSkeletonJson(doc, { version: '4.3' }).json).includes('meshLocks'));
+  // No locks: nothing is written.
+  doc.meshLocks = {};
+  assert.ok(!doc.toSnapshot().includes('meshLocks'));
+});

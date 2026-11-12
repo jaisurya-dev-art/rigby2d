@@ -4,8 +4,9 @@
 // in the slot bone's space (unweighted) or each bone's space (weighted).
 
 import { toAffine } from '../core/math.js';
-import { autoWeights, deformLayout, paintWeights, triangulateMesh, uvAt, weightsAt } from '../core/meshgeom.js';
+import { autoWeights, deformLayout, edgeRings, paintWeights, triangulateMesh, triangulateRings, uvAt, weightsAt } from '../core/meshgeom.js';
 import { generateMesh } from '../core/meshgen.js';
+import { makeSlot } from '../core/model.js';
 import { Pose } from '../core/pose.js';
 import { setKey } from '../core/animation.js';
 import { FPS, Mode } from './app.js';
@@ -66,7 +67,74 @@ export function regionToMesh(doc, slot, att) {
   return mesh;
 }
 
-/** The mesh as editable world-space data: { points, uvs, weights (or null), hull }. */
+// ---- locked vertices and outline edges ---------------------------------------------------------
+
+/** The key of a mesh in `doc.meshLocks`. */
+function lockKey(doc, slot, name) {
+  return `${doc.slots[slot].name}/${name}`;
+}
+
+/** The locked vertex indices of a mesh (a new Set). */
+export function meshLocks(doc, slot, name) {
+  return new Set(doc.meshLocks[lockKey(doc, slot, name)] ?? []);
+}
+
+/** Stores the locked vertex indices of a mesh (an empty set removes the entry). */
+export function setMeshLocks(doc, slot, name, locks) {
+  const key = lockKey(doc, slot, name);
+  const list = [...locks].filter((i) => Number.isInteger(i) && i >= 0).sort((a, b) => a - b);
+  if (list.length) doc.meshLocks[key] = list;
+  else delete doc.meshLocks[key];
+}
+
+/** Indices after inserting a vertex at `at` (later ones move up by one). */
+function shiftUp(list, at) {
+  return list.map((i) => (i >= at ? i + 1 : i));
+}
+
+/**
+ * Mesh edges (Spine's form, indices times 2) after inserting vertex `at` on the edge from
+ * `a` to `b` (indices before the insert); null edges stay null.
+ */
+function edgesAfterInsert(edges, at, a, b) {
+  if (!edges) return null;
+  const up = (i) => (i >= at ? i + 1 : i);
+  const out = edges.map((e) => up(e / 2) * 2);
+  const [na, nb] = [up(a), up(b)];
+  for (let i = 0; i + 1 < out.length; i += 2) {
+    const [p, q] = [out[i] / 2, out[i + 1] / 2];
+    if ((p === na && q === nb) || (p === nb && q === na)) {
+      out.splice(i, 2, p * 2, at * 2, at * 2, q * 2);
+      break;
+    }
+  }
+  return out;
+}
+
+/** Mesh edges after removing vertex `v`: its two outline neighbours are joined. */
+function edgesAfterRemove(edges, v) {
+  if (!edges) return null;
+  const pairs = [];
+  const around = [];
+  for (let i = 0; i + 1 < edges.length; i += 2) {
+    const [p, q] = [edges[i] / 2, edges[i + 1] / 2];
+    if (p === v) around.push(q);
+    else if (q === v) around.push(p);
+    else pairs.push([p, q]);
+  }
+  if (around.length === 2 && around[0] !== around[1]) pairs.push(around);
+  const down = (i) => (i > v ? i - 1 : i);
+  return pairs.flatMap(([p, q]) => [down(p) * 2, down(q) * 2]);
+}
+
+/** Triangles for a mesh: its outlines from `edges` when it has holes or several shapes. */
+function triangulate(points, hull, edges) {
+  const rings = edgeRings(edges, points.length);
+  if (rings.length > 1) return triangulateRings(points, rings).triangles;
+  return triangulateMesh(points, hull);
+}
+
+/** The mesh as editable world-space data: { points, uvs, weights (or null), hull, triangles, edges }. */
 export function meshState(doc, slot, att) {
   const pose = new Pose(doc);
   const flat = pose.worldVertices(doc, slot, att);
@@ -75,7 +143,7 @@ export function meshState(doc, slot, att) {
   const uvs = [];
   for (let i = 0; i + 1 < att.uvs.length; i += 2) uvs.push([att.uvs[i], att.uvs[i + 1]]);
   const weights = att.weights ? att.weights.map((v) => v.map((w) => ({ bone: w.bone, weight: w.weight }))) : null;
-  return { points, uvs, weights, hull: att.hull ?? points.length, triangles: att.triangles.slice() };
+  return { points, uvs, weights, hull: att.hull ?? points.length, triangles: att.triangles.slice(), edges: att.edges ? att.edges.slice() : null };
 }
 
 /**
@@ -89,8 +157,12 @@ export function writeMesh(doc, slot, att, state, { topology = true } = {}) {
   att.uvs = state.uvs.flat();
   att.hull = state.hull;
   if (topology) {
-    att.triangles = triangulateMesh(state.points, state.hull);
-    delete att.edges;
+    // Meshes with holes or several shapes keep their outlines as edges; others drop edges, as
+    // before (they described the old triangles).
+    const keep = edgeRings(state.edges, state.points.length).length > 1;
+    att.triangles = triangulate(state.points, state.hull, keep ? state.edges : null);
+    if (keep) att.edges = state.edges.slice();
+    else delete att.edges;
   }
   if (state.weights) {
     att.weights = state.points.map((p, i) =>
@@ -131,29 +203,78 @@ export function unbindMesh(doc, slot, att) {
 /**
  * Replaces the mesh with one generated from its image's alpha (see core/meshgen.js), keeping it
  * where it is: image pixels map to the world through the mesh's current texture mapping, and a
- * weighted mesh keeps its weights (interpolated at the new vertices). Returns the generator's
- * result ({ hull, points, islands, ... } plus removed deform keys), or null when the image is
- * missing or has no pixels above the threshold.
+ * weighted mesh keeps its weights (interpolated at the new vertices). Locked vertices stay exactly
+ * as they are (position, texture coordinates and weights) and stay locked. With `islands: 'split'`
+ * every other shape becomes a mesh of its own, in a new slot just above this one (those made by an
+ * earlier run, listed in `made`, are replaced). Returns the generator's result ({ hull, points,
+ * islands, ... } plus removed deform keys and `made`: the new slots' names), or null when the
+ * image is missing or has no pixels above the threshold.
  */
-export function generateFromImage(app, slot, att, options) {
+export function generateFromImage(app, slot, att, options, made = []) {
   const image = att.image ?? att.name;
   const canvas = app.images.get(image);
   if (!canvas || app.images.alphaAt(image, 0, 0) === null) return null;
-  const alpha = { width: canvas.width, height: canvas.height, data: app.images.map.get(image).alpha };
-  const gen = generateMesh(alpha, options);
-  if (!gen) return null;
   const doc = app.doc;
+  const W = canvas.width;
+  const H = canvas.height;
+  const alpha = { width: W, height: H, data: app.images.map.get(image).alpha };
   const state = meshState(doc, slot, att);
+  const outlineVerts = new Set([...Array(state.hull).keys(), ...edgeRings(state.edges, state.points.length).flat()]);
+  const lockedIds = [...meshLocks(doc, slot, att.name)].filter((i) => i < state.points.length);
+  const locked = lockedIds.map((i) => ({ x: state.uvs[i][0] * W, y: state.uvs[i][1] * H, outline: outlineVerts.has(i) }));
+  const gen = generateMesh(alpha, { ...options, locked });
+  if (!gen) return null;
   const toWorld = fitAffine(state.uvs, state.points);
-  const uvs = [];
-  for (let i = 0; i < gen.uvs.length; i += 2) uvs.push([gen.uvs[i], gen.uvs[i + 1]]);
-  const points = uvs.map(toWorld);
-  const weights = state.weights ? points.map((p) => {
+  const weightsFor = (p) => {
     const w = weightsAt(p, state.points, state.weights, state.triangles);
     return w.length ? w : state.weights[0];
-  }) : null;
-  const removed = writeMesh(doc, slot, att, { points, uvs, weights, hull: gen.hull });
-  return { ...gen, removed };
+  };
+  /** World-space mesh data for one generated mesh; locked vertices copied from the old mesh. */
+  const stateOf = (m) => {
+    const uvs = [];
+    for (let i = 0; i < m.uvs.length; i += 2) uvs.push([m.uvs[i], m.uvs[i + 1]]);
+    const points = uvs.map(toWorld);
+    const weights = state.weights ? points.map(weightsFor) : null;
+    const locks = new Set();
+    for (const [k, i] of Object.entries(m.locked ?? {})) {
+      const from = lockedIds[k];
+      points[i] = state.points[from].slice();
+      uvs[i] = state.uvs[from].slice();
+      if (weights) weights[i] = state.weights[from].map((w) => ({ ...w }));
+      locks.add(i);
+    }
+    return { points, uvs, weights, hull: m.hull, edges: m.edges, locks };
+  };
+
+  // Slots an earlier "one mesh per shape" run made are replaced.
+  for (const name of made) {
+    const i = doc.slotIndex(name);
+    if (i !== null && i !== slot) {
+      delete doc.meshLocks[lockKey(doc, i, doc.slots[i].attachment ?? '')];
+      doc.removeSlot(i);
+      if (i < slot) slot--;
+    }
+  }
+  const first = stateOf(gen);
+  const removed = writeMesh(doc, slot, att, first);
+  setMeshLocks(doc, slot, att.name, first.locks);
+  const names = [];
+  (gen.meshes ?? []).slice(1).forEach((m, k) => {
+    const s = stateOf(m);
+    const slotName = doc.uniqueSlotName(`${doc.slots[slot].name}_${k + 2}`);
+    const mesh = { name: `${att.name}_${k + 2}`, type: 'mesh', image, color: (att.color ?? [1, 1, 1, 1]).slice(), uvs: [], triangles: [], hull: 0, vertices: [], width: att.width, height: att.height };
+    const base = doc.slots[slot];
+    const neu = makeSlot(slotName, base.bone, mesh);
+    if (base.color) neu.color = base.color.slice();
+    doc.slots.push(neu);
+    const at = doc.slots.length - 1;
+    writeMesh(doc, at, mesh, s);
+    setMeshLocks(doc, at, mesh.name, s.locks);
+    // Just above the original in draw order.
+    doc.moveSlot(at, slot + 1 + k);
+    names.push(slotName);
+  });
+  return { ...gen, removed, made: names };
 }
 
 /**
@@ -335,6 +456,9 @@ export class MeshTool {
     let index;
     if (edge.d <= EDGE_HIT || !pointInPolygon(world, outline)) {
       index = edge.index + 1;
+      state.edges = edgesAfterInsert(state.edges, index, edge.index, (edge.index + 1) % state.hull);
+      const doc = this.app.doc;
+      setMeshLocks(doc, tgt.slot, tgt.att.name, shiftUp([...meshLocks(doc, tgt.slot, tgt.att.name)], index));
       state.points.splice(index, 0, world);
       state.uvs.splice(index, 0, uv);
       if (weights) state.weights.splice(index, 0, weights.length ? weights : state.weights[edge.index].map((w) => ({ ...w })));
@@ -371,6 +495,14 @@ export class MeshTool {
     if (d.kind === 'deform') {
       deformVertices(this.app, t.slot, t.att, d.indices.map((i) => [i, [d.shown[i][0] + delta[0], d.shown[i][1] + delta[1]]]));
       return;
+    }
+    // Moved by hand: locked, so generating the mesh again keeps them where they are.
+    if (!d.locked) {
+      d.locked = true;
+      const doc = this.app.doc;
+      const locks = meshLocks(doc, t.slot, t.att.name);
+      for (const i of d.indices) locks.add(i);
+      setMeshLocks(doc, t.slot, t.att.name, locks);
     }
     // Move the vertices over the image: their texture coordinates follow their positions.
     const start = d.start;
@@ -421,17 +553,38 @@ export class MeshTool {
       this.app.setStatus('A mesh outline needs at least 3 vertices');
       return true;
     }
+    const doc = this.app.doc;
+    let locks = [...meshLocks(doc, t.slot, t.att.name)];
     for (const i of sel) {
       if (i >= state.points.length) continue;
+      state.edges = edgesAfterRemove(state.edges, i);
+      locks = locks.filter((k) => k !== i).map((k) => (k > i ? k - 1 : k));
       state.points.splice(i, 1);
       state.uvs.splice(i, 1);
       if (state.weights) state.weights.splice(i, 1);
       if (i < state.hull) state.hull--;
     }
+    setMeshLocks(doc, t.slot, t.att.name, locks);
     t.edit.selection = new Set();
     t.edit.selected = null;
     this.commit(t, state);
     return true;
+  }
+
+  /** Locks the selected vertices, or unlocks them when all are locked. Returns the count, or 0. */
+  toggleLockSelected() {
+    const tgt = this.target();
+    if (!tgt || tgt.mode === 'deform') return 0;
+    const sel = [...this.selection(tgt)];
+    if (!sel.length) return 0;
+    const doc = this.app.doc;
+    const locks = meshLocks(doc, tgt.slot, tgt.att.name);
+    const unlock = sel.every((i) => locks.has(i));
+    for (const i of sel) unlock ? locks.delete(i) : locks.add(i);
+    setMeshLocks(doc, tgt.slot, tgt.att.name, locks);
+    this.app.setStatus(unlock ? t('Unlocked {count} vertex(es)', { count: sel.length }) : t('Locked {count} vertex(es): generating the mesh again keeps them', { count: sel.length }));
+    this.app.changed();
+    return sel.length;
   }
 
   draw(ctx) {
@@ -464,12 +617,27 @@ export class MeshTool {
     for (let i = 0; i < state.hull; i++) (i ? ctx.lineTo : ctx.moveTo).call(ctx, pts[i][0], pts[i][1]);
     ctx.closePath();
     ctx.stroke();
+    // Every outline (holes and other shapes too, from the mesh's edges).
+    const rings = edgeRings(state.edges, pts.length);
+    if (rings.length > 1) {
+      ctx.lineWidth = 1.5;
+      for (const ring of rings.slice(1)) {
+        ctx.beginPath();
+        ring.forEach((v, n) => (n ? ctx.lineTo(pts[v][0], pts[v][1]) : ctx.moveTo(pts[v][0], pts[v][1])));
+        ctx.closePath();
+        ctx.stroke();
+      }
+    }
     const sel = this.selection(t);
+    const locks = meshLocks(this.app.doc, t.slot, t.att.name);
+    const onRing = new Set(rings.flat());
     pts.forEach((p, i) => {
       const picked = sel.has(i);
       ctx.beginPath();
-      ctx.arc(p[0], p[1], picked ? 5 : 3.5, 0, Math.PI * 2);
-      ctx.fillStyle = weightsMode ? heat(weightOf(i)).replace(/[\d.]+\)$/, '1)') : picked ? 'white' : i < state.hull ? 'rgb(255,170,40)' : 'rgb(120,200,255)';
+      // Locked vertices are squares.
+      if (locks.has(i)) ctx.rect(p[0] - (picked ? 5 : 4), p[1] - (picked ? 5 : 4), picked ? 10 : 8, picked ? 10 : 8);
+      else ctx.arc(p[0], p[1], picked ? 5 : 3.5, 0, Math.PI * 2);
+      ctx.fillStyle = weightsMode ? heat(weightOf(i)).replace(/[\d.]+\)$/, '1)') : picked ? 'white' : i < state.hull || onRing.has(i) ? 'rgb(255,170,40)' : 'rgb(120,200,255)';
       ctx.fill();
       ctx.strokeStyle = picked ? 'rgb(255,170,40)' : 'black';
       ctx.lineWidth = picked ? 2 : 1;

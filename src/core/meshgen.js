@@ -4,18 +4,29 @@
 // optionally add interior points, and triangulate. Works in image pixels; the caller maps the
 // result onto its attachment.
 
-import { triangulateMesh } from './meshgeom.js';
+import { ringEdges, triangulateMesh, triangulateRings } from './meshgeom.js';
 
-export const MESH_DEFAULTS = Object.freeze({ points: 24, threshold: 32, expand: 2, smoothing: 1, interior: 'low' });
+export const MESH_DEFAULTS = Object.freeze({ points: 24, threshold: 32, expand: 2, smoothing: 1, interior: 'low', islands: 'largest', holes: false, minAngle: 0 });
 /** Interior points per density: roughly this many cells across the shape's area. */
 const DENSITY = { none: 0, low: 8, medium: 20, high: 45 };
+/** Shapes and holes smaller than this share of the largest shape (or 8 px) are specks: ignored. */
+const SPECK = 0.002;
 
 /**
- * Generates a mesh from `alpha` ({ width, height, data: one byte per pixel }). Options: points
- * (outline vertices, 3 or more), threshold (alpha 0-255 counted as solid), expand (pixels, negative
- * shrinks), smoothing (passes), interior ('none' | 'low' | 'medium' | 'high'). Returns
- * { points ([x, y] image pixels, outline first), hull, uvs (flat, 0..1), triangles (flat),
- * islands (shapes found), area (solid pixels used) }, or null when nothing is solid.
+ * Generates a mesh from `alpha` ({ width, height, data: one byte per pixel }). Options:
+ * - points: outline vertices (3 or more), shared by every outline and hole by their length;
+ * - threshold: alpha 0-255 counted as solid; expand: pixels (negative shrinks); smoothing: passes;
+ * - interior: 'none' | 'low' | 'medium' | 'high';
+ * - islands: 'largest' (only the biggest shape), 'merge' (every shape in one mesh) or 'split'
+ *   (one mesh per shape: the result has `meshes`, one entry per shape, biggest first);
+ * - holes: trace inner contours and leave transparent holes out of the mesh;
+ * - minAngle: degrees (0 = off): add interior points until no triangle is thinner;
+ * - locked: [{ x, y, outline }] image pixels of vertices to keep exactly; outline ones join the
+ *   nearest outline, the others stay inside. `points` counts the outline without them.
+ * Returns { points ([x, y] image pixels, outline first), hull, uvs (flat, 0..1), triangles (flat),
+ * edges (Spine form, only when there is more than one outline: holes or merged shapes, so later
+ * edits keep them), locked (output index of each locked input), islands (shapes found), area
+ * (solid pixels used) }, or null when nothing is solid.
  */
 export function generateMesh(alpha, options = {}) {
   const o = { ...MESH_DEFAULTS, ...options };
@@ -35,25 +46,176 @@ export function generateMesh(alpha, options = {}) {
   if (!count) return null;
   let best = 1;
   for (let k = 2; k <= count; k++) if (sizes[k] > sizes[best]) best = k;
-  let outline = trace(label, best, GW, GH);
-  if (outline.length < 3) return null;
-  // Smoothing rounds off pixel steps only: on a 1 px resampling, a pass moves points by under a
-  // pixel, so corners stay where they are (on the corners-only ring it would cut them off).
-  if (o.smoothing > 0) outline = resample(outline, 1);
-  for (let s = 0; s < o.smoothing; s++) outline = smooth(outline);
-  const target = Math.max(3, Math.round(o.points));
-  // Fewer points than the outline has: simplify, then push edges out so the art stays inside.
-  let ring = outline.length > target ? contain(outline, simplify(outline, target)) : refine(outline, target);
-  // Back to image pixels (the grid was padded); clockwise in image space, like a drawn outline.
-  ring = ring.map(([x, y]) => [x - pad, y - pad]);
-  if (signedArea(ring) < 0) ring.reverse();
+  const speck = Math.max(8, sizes[best] * SPECK);
+  // The shapes to mesh, biggest first.
+  const shapes = o.islands === 'largest' ? [best] : [...Array(count).keys()].map((k) => k + 1).filter((k) => sizes[k] >= speck).sort((a, b) => sizes[b] - sizes[a]);
+  const holes = o.holes ? findHoles(grid, label, GW, GH, speck) : new Map();
+  const locked = (o.locked ?? []).map((p) => ({ x: p.x + pad, y: p.y + pad, outline: !!p.outline }));
 
-  const interior = interiorPoints(ring, sizes[best], DENSITY[o.interior] ?? 0);
-  const points = [...ring, ...interior];
-  const hull = ring.length;
-  const triangles = triangulateMesh(points, hull);
-  const uvs = points.flatMap(([x, y]) => [x / W, y / H]);
-  return { points, hull, uvs, triangles, islands: count, area: sizes[best] };
+  const build = (ks, lockedHere) => {
+    // Raw outlines: each shape's outer boundary, then its holes (reversed, so "outward" for the
+    // simplifier is into the hole and the art stays covered).
+    const raw = [];
+    for (const k of ks) {
+      raw.push({ ring: trace(label, k, GW, GH), hole: false });
+      for (const h of holes.get(k) ?? []) raw.push({ ring: trace(h.label, h.id, GW, GH).reverse(), hole: true });
+    }
+    const outlines = raw.filter((r) => r.ring.length >= 3);
+    if (!outlines.length) return null;
+    const smoothed = outlines.map(({ ring, hole }) => {
+      // Smoothing rounds off pixel steps only: on a 1 px resampling, a pass moves points by under
+      // a pixel, so corners stay where they are (on the corners-only ring it would cut them off).
+      let r = o.smoothing > 0 ? resample(ring, 1) : ring;
+      for (let s = 0; s < o.smoothing; s++) r = smooth(r);
+      return { ring: r, hole };
+    });
+    // Share the outline points by length (at least 3 per outline).
+    const total = Math.max(3, Math.round(o.points));
+    const lengths = smoothed.map(({ ring }) => perimeter(ring));
+    const sum = lengths.reduce((a, b) => a + b, 0) || 1;
+    const budget = lengths.map((l) => Math.max(3, Math.round((total * l) / sum)));
+    if (smoothed.length === 1) budget[0] = total;
+    const rings = smoothed.map(({ ring }, i) => {
+      const target = budget[i];
+      // Fewer points than the outline has: simplify, then push edges out so the art stays inside.
+      return ring.length > target ? contain(ring, simplify(ring, target)) : refine(ring, target);
+    });
+    // Locked outline vertices join the nearest outline edge; locked interior ones stay inside.
+    const lockedOut = new Map(); // locked index -> [ring, position]
+    lockedHere.forEach((k) => {
+      const p = locked[k];
+      if (!p.outline) return;
+      let bestRing = 0;
+      let bestEdge = 0;
+      let bestD = Infinity;
+      rings.forEach((ring, r) => {
+        for (let i = 0; i < ring.length; i++) {
+          const d = segmentDistance([p.x, p.y], ring[i], ring[(i + 1) % ring.length]);
+          if (d < bestD) [bestD, bestRing, bestEdge] = [d, r, i];
+        }
+      });
+      rings[bestRing].splice(bestEdge + 1, 0, [p.x, p.y]);
+      rings[bestRing][bestEdge + 1].locked = k;
+    });
+    // Back to image pixels; outer outlines clockwise in image space, like a drawn outline.
+    const imageRings = rings.map((ring, i) => {
+      const r = ring.map((p) => Object.assign([p[0] - pad, p[1] - pad], p.locked !== undefined ? { locked: p.locked } : {}));
+      if (!smoothed[i].hole && signedArea(r) < 0) r.reverse();
+      return r;
+    });
+    const area = ks.reduce((s, k) => s + sizes[k], 0);
+    const lockedInside = lockedHere.filter((k) => !locked[k].outline).map((k) => Object.assign([locked[k].x - pad, locked[k].y - pad], { locked: k }));
+    const step = (DENSITY[o.interior] ?? 0) ? Math.sqrt(area / DENSITY[o.interior]) : 0;
+    const interior = interiorPoints(imageRings, area, DENSITY[o.interior] ?? 0).filter((p) => lockedInside.every((q) => Math.hypot(p[0] - q[0], p[1] - q[1]) > step * 0.45));
+    const points = [...imageRings.flat(), ...lockedInside, ...interior];
+    const hull = imageRings[0].length;
+    const ringIndices = [];
+    let at = 0;
+    for (const r of imageRings) {
+      ringIndices.push(r.map((_, i) => at + i));
+      at += r.length;
+    }
+    let triangles;
+    let edges = null;
+    let all = points;
+    if (imageRings.length > 1 || o.minAngle > 0) {
+      const tr = triangulateRings(points, ringIndices, { minAngle: o.minAngle, maxExtra: Math.max(16, points.length) });
+      all = tr.points;
+      triangles = tr.triangles;
+      if (imageRings.length > 1) edges = ringEdges(ringIndices);
+    } else {
+      triangles = triangulateMesh(points, hull);
+    }
+    const lockedIndex = {};
+    points.forEach((p, i) => {
+      if (p.locked !== undefined) lockedIndex[p.locked] = i;
+    });
+    const plain = all.map((p) => [p[0], p[1]]);
+    return { points: plain, hull, uvs: plain.flatMap(([x, y]) => [x / W, y / H]), triangles, edges, locked: lockedIndex, islands: count, area, outlines: imageRings.length, shapes: ks.length };
+  };
+
+  const all = locked.map((_, k) => k);
+  if (o.islands !== 'split' || shapes.length < 2) return build(shapes, all);
+  // One mesh per shape: each locked vertex goes to the shape nearest to it.
+  const owner = locked.map((p) => {
+    let bestK = shapes[0];
+    let bestD = Infinity;
+    for (const k of shapes) {
+      const d = pixelDistance(label, k, GW, GH, p.x, p.y);
+      if (d < bestD) [bestD, bestK] = [d, k];
+    }
+    return bestK;
+  });
+  const meshes = shapes.map((k) => build([k], all.filter((i) => owner[i] === k))).filter(Boolean);
+  if (!meshes.length) return null;
+  return { ...meshes[0], meshes };
+}
+
+/** Distance from (x, y) to the nearest pixel of component `k` (grid pixels; 0 inside). */
+function pixelDistance(label, k, W, H, x, y) {
+  let best = Infinity;
+  for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) if (label[j * W + i] === k) best = Math.min(best, Math.hypot(i + 0.5 - x, j + 0.5 - y));
+  return best;
+}
+
+/**
+ * Holes: empty regions (4-connected, the complement of 8-connected shapes) that don't reach the
+ * grid's border, at least `speck` pixels. Returns shape label -> [{ label, id }] (a label grid
+ * and the hole's id in it, for `trace`).
+ */
+function findHoles(grid, label, W, H, speck) {
+  const empty = new Int32Array(grid.length);
+  const out = new Map();
+  let id = 0;
+  const stack = [];
+  for (let s = 0; s < grid.length; s++) {
+    if (grid[s] || empty[s]) continue;
+    id++;
+    const pixels = [];
+    let border = false;
+    let owner = 0;
+    empty[s] = id;
+    stack.push(s);
+    while (stack.length) {
+      const i = stack.pop();
+      pixels.push(i);
+      const x = i % W;
+      const y = (i - x) / W;
+      if (x === 0 || y === 0 || x === W - 1 || y === H - 1) border = true;
+      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+        const nx = x + dx;
+        const ny = y + dy;
+        if (nx < 0 || ny < 0 || nx >= W || ny >= H) continue;
+        const j = ny * W + nx;
+        if (grid[j]) owner ||= label[j];
+        else if (!empty[j]) {
+          empty[j] = id;
+          stack.push(j);
+        }
+      }
+    }
+    if (border || !owner || pixels.length < speck) continue;
+    if (!out.has(owner)) out.set(owner, []);
+    out.get(owner).push({ label: empty, id });
+  }
+  return out;
+}
+
+function perimeter(ring) {
+  let s = 0;
+  for (let i = 0; i < ring.length; i++) {
+    const a = ring[i];
+    const b = ring[(i + 1) % ring.length];
+    s += Math.hypot(b[0] - a[0], b[1] - a[1]);
+  }
+  return s;
+}
+
+function segmentDistance(p, a, b) {
+  const dx = b[0] - a[0];
+  const dy = b[1] - a[1];
+  const t = Math.max(0, Math.min(1, ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / (dx * dx + dy * dy || 1)));
+  return Math.hypot(p[0] - (a[0] + t * dx), p[1] - (a[1] + t * dy));
 }
 
 /** One pass of dilation (grow) or erosion (shrink) with a 3x3 cross. */
@@ -274,22 +436,26 @@ function refine(ring, target) {
   return out;
 }
 
-/** Interior points on a staggered grid inside the outline, kept clear of its edges. */
-function interiorPoints(ring, area, cells) {
+/** Interior points on a staggered grid inside the outlines (even-odd, so holes stay empty), kept
+ *  clear of their edges. */
+function interiorPoints(rings, area, cells) {
   if (!cells) return [];
   const step = Math.sqrt(area / cells);
   let [x0, y0, x1, y1] = [Infinity, Infinity, -Infinity, -Infinity];
-  for (const [x, y] of ring) {
-    x0 = Math.min(x0, x);
-    y0 = Math.min(y0, y);
-    x1 = Math.max(x1, x);
-    y1 = Math.max(y1, y);
+  for (const ring of rings) {
+    for (const [x, y] of ring) {
+      x0 = Math.min(x0, x);
+      y0 = Math.min(y0, y);
+      x1 = Math.max(x1, x);
+      y1 = Math.max(y1, y);
+    }
   }
   const out = [];
   let row = 0;
   for (let y = y0 + step / 2; y < y1; y += step * 0.866, row++) {
     for (let x = x0 + step / 2 + (row % 2 ? step / 2 : 0); x < x1; x += step) {
-      if (inside(ring, x, y) && edgeDistance(ring, x, y) > step * 0.45) out.push([x, y]);
+      const isIn = rings.reduce((c, ring) => (inside(ring, x, y) ? !c : c), false);
+      if (isIn && rings.every((ring) => edgeDistance(ring, x, y) > step * 0.45)) out.push([x, y]);
     }
   }
   return out;

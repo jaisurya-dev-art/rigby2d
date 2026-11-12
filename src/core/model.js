@@ -125,6 +125,11 @@ export class Skeleton {
      * stay on the art's pixel grid (viewport and renders).
      */
     this.pixelGrid = 0;
+    /**
+     * Mesh vertices locked in the editor, kept when the mesh is generated again from its image:
+     * { 'slot name/attachment name': [vertex indices] }. Editor data, saved in work files only.
+     */
+    this.meshLocks = {};
     /** Pose library: { name, bones: { bone name: local transform }, slots: { slot name: attachment } }. */
     this.poses = [];
     /** Facial controllers: { name, from (pose name or null = setup pose), to (pose name), value }. */
@@ -694,6 +699,7 @@ function readSkeleton(o) {
   sk.settingsInFile = o.settings !== undefined;
   sk.textureFilter = oneOf(o.textureFilter, TEXTURE_FILTERS, 'linear');
   sk.pixelGrid = Number.isFinite(o.pixelGrid) && o.pixelGrid > 0 ? o.pixelGrid : 0;
+  sk.meshLocks = readMeshLocks(o.meshLocks);
   sk.poses = readPoses(o.poses);
   sk.controllers = readControllers(o.controllers);
   sk.workspace = oneOf(o.workspace, ['game', 'film'], null);
@@ -702,6 +708,18 @@ function readSkeleton(o) {
     .filter((t) => t && typeof t.sound === 'string' && typeof t.animation === 'string')
     .map((t) => ({ sound: t.sound, animation: t.animation, offset: Number.isFinite(t.offset) ? t.offset : 0, volume: Number.isFinite(t.volume) ? Math.max(0, t.volume) : 1 }));
   return sk;
+}
+
+/** Locked mesh vertices: non-empty lists of distinct vertex indices, by 'slot/attachment'. */
+function readMeshLocks(o) {
+  const out = {};
+  if (!o || typeof o !== 'object' || Array.isArray(o)) return out;
+  for (const [key, list] of Object.entries(o)) {
+    if (!Array.isArray(list)) continue;
+    const ids = [...new Set(list.filter((i) => Number.isInteger(i) && i >= 0))].sort((a, b) => a - b);
+    if (ids.length) out[key] = ids;
+  }
+  return out;
 }
 
 /** Output settings with defaults for missing or invalid values. */
@@ -806,6 +824,7 @@ function writeSkeleton(sk) {
   // Only when not the default, so files saved before the option existed are unchanged.
   if (sk.textureFilter !== 'linear') out.textureFilter = sk.textureFilter;
   if (sk.pixelGrid > 0) out.pixelGrid = sk.pixelGrid;
+  if (Object.keys(sk.meshLocks).length) out.meshLocks = raw(sk.meshLocks);
   if (sk.poses.length) out.poses = raw(sk.poses);
   if (sk.controllers.length) out.controllers = raw(sk.controllers);
   if (sk.workspace) out.workspace = sk.workspace;

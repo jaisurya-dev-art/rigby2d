@@ -87,3 +87,110 @@ test('smoothing rounds pixel steps but keeps corners, so blocky shapes stay cove
     assert.ok(Math.max(...ring.map((p) => p[0])) > 98, 'the bar keeps its far end');
   }
 });
+
+/** Share (0..1) of the image's solid pixels whose centre is inside a mesh triangle. */
+function meshCoverage(img, m, solidWanted = true) {
+  let total = 0;
+  let hit = 0;
+  for (let y = 0; y < img.height; y++) {
+    for (let x = 0; x < img.width; x++) {
+      if ((img.data[y * img.width + x] > 0) !== solidWanted) continue;
+      total++;
+      const p = [x + 0.5, y + 0.5];
+      for (let t = 0; t < m.triangles.length; t += 3) {
+        const [a, b, c] = [m.points[m.triangles[t]], m.points[m.triangles[t + 1]], m.points[m.triangles[t + 2]]];
+        const s = (u, v) => (v[0] - u[0]) * (p[1] - u[1]) - (v[1] - u[1]) * (p[0] - u[0]);
+        const [d1, d2, d3] = [s(a, b), s(b, c), s(c, a)];
+        if ((d1 >= 0 && d2 >= 0 && d3 >= 0) || (d1 <= 0 && d2 <= 0 && d3 <= 0)) {
+          hit++;
+          break;
+        }
+      }
+    }
+  }
+  return total ? hit / total : 1;
+}
+
+const ring = image(100, 100, (x, y) => Math.hypot(x - 50, y - 50) < 40 && Math.hypot(x - 50, y - 50) > 18);
+
+test('holes: the inner contour is traced and the hole stays out of the mesh', () => {
+  const filled = generateMesh(ring, { points: 32, interior: 'none' });
+  assert.equal(filled.edges, null);
+  const holed = generateMesh(ring, { points: 32, interior: 'none', holes: true });
+  assert.equal(holed.outlines, 2);
+  // Every outline edge is kept as a mesh edge (Spine's form: index pairs times 2).
+  assert.equal(holed.edges.length, holed.points.length * 2);
+  assert.ok(holed.edges.every((e) => e % 2 === 0));
+  // The outline points are shared by the two outlines, by length.
+  assert.equal(holed.points.length, 32);
+  assert.ok(meshCoverage(ring, holed) > 0.995, 'the art is covered');
+  const hole = image(100, 100, (x, y) => Math.hypot(x - 50, y - 50) < 14);
+  assert.ok(meshCoverage(hole, holed) < 0.05, 'the hole is empty');
+  assert.ok(meshCoverage(hole, filled) > 0.95, 'without holes, it is filled');
+});
+
+const pair = image(100, 50, (x, y) => Math.hypot(x - 25, y - 25) < 20 || Math.hypot(x - 75, y - 25) < 15);
+
+test('islands: merge meshes every shape, split gives one mesh per shape', () => {
+  const merged = generateMesh(pair, { points: 30, interior: 'low', islands: 'merge' });
+  assert.equal(merged.outlines, 2);
+  assert.ok(meshCoverage(pair, merged) > 0.99);
+  // The gap between the shapes is not meshed.
+  const gap = image(100, 50, (x, y) => x > 47 && x < 58 && y > 20 && y < 30);
+  assert.ok(meshCoverage(gap, merged) < 0.05);
+  const split = generateMesh(pair, { points: 20, interior: 'none', islands: 'split' });
+  assert.equal(split.meshes.length, 2);
+  for (const m of split.meshes) {
+    assert.equal(m.hull, 20);
+    assert.equal(m.edges, null);
+  }
+  // Biggest first.
+  assert.ok(Math.max(...split.meshes[0].points.map((p) => p[0])) < 50);
+  assert.ok(Math.min(...split.meshes[1].points.map((p) => p[0])) > 50);
+});
+
+test('specks are ignored when meshing every shape', () => {
+  const dotted = image(100, 50, (x, y) => Math.hypot(x - 25, y - 25) < 20 || (x > 80 && x < 81.5 && y > 10 && y < 11.5));
+  const m = generateMesh(dotted, { points: 16, expand: 0, interior: 'none', islands: 'split' });
+  assert.equal(m.meshes, undefined);
+  assert.equal(m.hull, 16);
+});
+
+test('locked vertices stay exactly where they are; the point count is for the rest', () => {
+  const locked = [
+    { x: 50, y: 7, outline: true },
+    { x: 47.5, y: 52.25, outline: false },
+  ];
+  const m = generateMesh(circle, { points: 20, interior: 'low', locked });
+  assert.equal(m.hull, 21);
+  assert.deepEqual(m.points[m.locked[0]], [50, 7]);
+  assert.ok(m.locked[0] < m.hull, 'the outline one is on the outline');
+  assert.deepEqual(m.points[m.locked[1]], [47.5, 52.25]);
+  assert.ok(m.locked[1] >= m.hull, 'the inside one stays inside');
+  // No generated interior point crowds the locked one.
+  const close = m.points.filter((p, i) => i !== m.locked[1] && i >= m.hull && Math.hypot(p[0] - 47.5, p[1] - 52.25) < 5);
+  assert.equal(close.length, 0);
+  assert.ok(new Set(m.triangles).size === m.points.length);
+});
+
+test('minimum angle adds interior points until triangles are not thin', () => {
+  const minAngle = (m) => {
+    let worst = 180;
+    for (let t = 0; t < m.triangles.length; t += 3) {
+      const v = [0, 1, 2].map((k) => m.points[m.triangles[t + k]]);
+      for (let k = 0; k < 3; k++) {
+        const [a, b, c] = [v[k], v[(k + 1) % 3], v[(k + 2) % 3]];
+        const u = [b[0] - a[0], b[1] - a[1]];
+        const w = [c[0] - a[0], c[1] - a[1]];
+        worst = Math.min(worst, (Math.acos((u[0] * w[0] + u[1] * w[1]) / (Math.hypot(...u) * Math.hypot(...w))) * 180) / Math.PI);
+      }
+    }
+    return worst;
+  };
+  const plain = generateMesh(circle, { points: 48, interior: 'medium' });
+  const better = generateMesh(circle, { points: 48, interior: 'medium', minAngle: 25 });
+  assert.equal(better.hull, plain.hull, 'the outline keeps its exact points');
+  assert.ok(better.points.length > plain.points.length);
+  assert.ok(minAngle(better) > minAngle(plain), `${minAngle(plain)} -> ${minAngle(better)}`);
+  assert.ok(meshCoverage(circle, better) > 0.995);
+});

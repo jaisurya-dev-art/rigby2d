@@ -23,19 +23,34 @@ set the options under **Generate from image** in the mesh panel and press **✦ 
 
 | Option | What it does |
 | --- | --- |
-| Outline points | Exactly how many vertices the outline gets. Fewer for props, more where the art bends. |
+| Outline points | Exactly how many vertices the outline gets (holes and other shapes share them, by length). Fewer for props, more where the art bends. |
 | Alpha threshold | How opaque a pixel must be (1 to 254) to count as part of the shape. |
 | Expand | Grows (or, negative, shrinks) the shape by whole pixels before tracing, to leave a margin. |
 | Smoothing | Rounds off pixel steps in the outline before it is simplified. |
 | Interior | Adds evenly spaced inner vertices (None, Low, Medium, High) so the mesh bends smoothly. |
+| Min. angle | 0 is off. Above it, inner vertices are added until no triangle has a smaller angle, so weights are easier to tune around bends. The outline keeps its exact points. |
+| Shapes | When the image has separate shapes: **Largest only**, **All, one mesh** (every shape in this mesh) or **All, one mesh each** (every other shape becomes a mesh of its own, in a new slot just above this one). |
+| Detect holes | Traces inner contours too, so transparent holes (a ring, a handle) are left out of the mesh. |
 
 The outline always contains every pixel above the threshold: when it uses few points, its edges are
 pushed out so they never cut into the art. After the first generate, changing an option regenerates
 the mesh right away, so you can watch the vertex count change. The status bar shows the vertex and
 triangle counts. A weighted mesh keeps its bones: the new vertices take the weights of the old mesh
 where they are. The settings are remembered, so the next part can use the same ones, and **Reset**
-returns to the defaults. When an image has several separate shapes, the mesh traces the largest
-and the status bar says how many there are.
+returns to the defaults. Tiny specks of stray pixels are ignored.
+
+With **All, one mesh each**, generating again replaces the meshes it made before instead of adding
+more. A mesh with holes or several shapes keeps every outline as an edge (Spine's mesh edges), so
+adding, moving or deleting vertices later never fills the holes in.
+
+### Keeping vertices you placed
+
+Vertices you **lock** stay exactly where they are when the mesh is generated again (position,
+texture and weights); only the rest is recomputed, and **Outline points** counts the rest. Select
+vertices and press **🔒 Lock selected** (again to unlock), or **Unlock all**. Moving a vertex by hand
+locks it too, so tweaking first and changing an option afterwards is safe. Locked vertices are drawn
+as squares; a locked outline vertex joins the nearest outline. Locks are saved in the `.rigby` file
+and never exported.
 
 ## Editing vertices
 
