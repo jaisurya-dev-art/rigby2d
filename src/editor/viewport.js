@@ -519,6 +519,25 @@ export class Viewport {
       const len = Math.hypot(dir[0], dir[1]);
       // Hover gets a touch more presence than the selection glow, while staying tight.
       const glowOpts = hovered ? { blur: 9, width: 2.5 } : undefined;
+      if (isPointBone(b)) {
+        // A point bone: a ring with a crosshair, the same size at any zoom, and a tick along its
+        // X axis so its rotation reads. Selected, it gets a handle to turn it.
+        const ax = this.pointAxis(pose, i);
+        if (glow) this.glowOutline(() => this.arcPath(o, 7), glow, glowOpts);
+        this.circle(o, 7, rgba(color, selected ? 0.45 : 0.25), color, 1.5);
+        this.line([o[0] - 3, o[1]], [o[0] + 3, o[1]], color, 1);
+        this.line([o[0], o[1] - 3], [o[0], o[1] + 3], color, 1);
+        this.line([o[0] + ax[0] * 7, o[1] + ax[1] * 7], [o[0] + ax[0] * 13, o[1] + ax[1] * 13], color, 2);
+        if (selected && selection.size === 1) {
+          const k = this.pointKnob(pose, i);
+          this.ctx.save();
+          this.ctx.setLineDash([2, 3]);
+          this.line([o[0] + ax[0] * 13, o[1] + ax[1] * 13], k, color, 1);
+          this.ctx.restore();
+          this.circle(k, 4.5, rgba(color, 0.6), color, 1.5);
+        }
+        return;
+      }
       if (len < 4) {
         if (glow) this.glowOutline(() => this.arcPath(o, 6), glow, glowOpts);
         this.circle(o, 6, rgba(color, 0.35), color, 1.5);
@@ -532,6 +551,31 @@ export class Viewport {
       this.polygon(shape, rgba(color, selected ? 0.55 : 0.3), color, 1.5);
       this.circle(o, w * 0.55, 'rgb(30,30,30)', color, 1.5);
     });
+  }
+
+  /** Screen-space unit vector along a bone's X axis (its rotation as drawn). */
+  pointAxis(pose, i) {
+    const o = this.toScreen(pose.world[i].apply([0, 0]));
+    const x = this.toScreen(pose.world[i].apply([1, 0]));
+    const d = Math.hypot(x[0] - o[0], x[1] - o[1]);
+    return d > 1e-9 ? [(x[0] - o[0]) / d, (x[1] - o[1]) / d] : [1, 0];
+  }
+
+  /** The rotate handle of a selected point bone, a fixed distance out along its X axis. */
+  pointKnob(pose, i) {
+    const o = this.toScreen(pose.world[i].apply([0, 0]));
+    const ax = this.pointAxis(pose, i);
+    return [o[0] + ax[0] * POINT_KNOB, o[1] + ax[1] * POINT_KNOB];
+  }
+
+  /** The selected point bone whose rotate handle is under a screen position, or null. */
+  hitPointKnob(pose, pos) {
+    const app = this.app;
+    if (!app.showBones || app.hideOverlays) return null;
+    const sel = app.selectedBones();
+    if (sel.length !== 1 || !isPointBone(app.doc.bones[sel[0]]) || !pose.world[sel[0]]) return null;
+    const k = this.pointKnob(pose, sel[0]);
+    return Math.hypot(pos[0] - k[0], pos[1] - k[1]) <= 8 ? sel[0] : null;
   }
 
   polyPath(pts) {
@@ -932,7 +976,7 @@ export class Viewport {
       const t = this.toScreen(m.apply([b.length, 0]));
       const d = distToSegment(pos, o, t);
       const len = Math.hypot(t[0] - o[0], t[1] - o[1]);
-      const reach = len < 4 ? 8 : Math.min(12, Math.max(5, len * 0.1));
+      const reach = len < 4 ? (isPointBone(b) ? 9 : 8) : Math.min(12, Math.max(5, len * 0.1));
       if (d <= reach && (best === null || d < best.d)) best = { d, i };
     });
     return best ? best.i : null;
@@ -1106,6 +1150,18 @@ export class Viewport {
   click(pos, add) {
     const app = this.app;
     const hit = this.hitTest(app.pose(), pos);
+    // Create tool: a click on empty space adds a point bone (dragging draws a regular bone).
+    if (app.tool === 'create' && !hit && !add) {
+      if (app.mode === Mode.Animate) {
+        app.setStatus(t('Bones can only be created in Setup mode (Tab)'));
+        return;
+      }
+      const parent = selBone(app.sel) ?? 0;
+      const i = edit.addPointBone(app, parent, this.toWorld(pos));
+      app.setStatus(t('Created point bone {name}: drag to draw a regular bone', { name: app.doc.bones[i].name }));
+      app.changed();
+      return;
+    }
     if (hit) app.select(hit, add);
     else if (!add) app.deselect();
     app.selectedKeys.clear();
@@ -1117,7 +1173,11 @@ export class Viewport {
     const start = this.toWorld(press);
     const add = this.press?.add;
     let drag = null;
-    if (app.tool === 'create') {
+    // A selected point bone's handle turns it, whatever the tool (it has no tip to drag).
+    const knob = app.tool === 'create' ? null : this.hitPointKnob(app.pose(), press);
+    if (knob !== null) {
+      drag = { kind: 'poseAim', index: knob };
+    } else if (app.tool === 'create') {
       if (app.mode === Mode.Animate) app.setStatus(t('Bones can only be created in Setup mode (Tab)'));
       else drag = { kind: 'create', index: selBone(app.sel) ?? 0 };
     } else if (add) {
@@ -1575,6 +1635,14 @@ export class Viewport {
 }
 
 const BLEND_OPS = { normal: 'source-over', additive: 'lighter', multiply: 'multiply', screen: 'screen' };
+
+/** Screen distance of a point bone's rotate handle from its origin. */
+const POINT_KNOB = 28;
+
+/** A point bone: length 0, a pivot or anchor drawn as a point. */
+function isPointBone(b) {
+  return !(b.length > 0);
+}
 
 function pointInTriangle(p, a, b, c) {
   if (!a || !b || !c) return false;

@@ -100,7 +100,8 @@ The tree has collapsible sections:
 - **Skeleton**: bones in their hierarchy, each with its slots. A slot shows its visible attachment
   next to its name; click **▸** (with the number of attachments) to list them all, and click one to
   show it (in Animate mode, that sets an image-swap key). **+ Bone** adds a child to the selected
-  bone, as long as its parent.
+  bone, as long as its parent, and **+ Point** a [point bone](bones-and-slots.md#point-bones) at its
+  tip.
 - **Draw order**: slots back to front; *Draw in front* and *Draw behind* move the selected slot, or
   drag a row to drop it anywhere (a side preview shows its image between its new neighbours as you
   drag). See [Draw order](bones-and-slots.md#draw-order).

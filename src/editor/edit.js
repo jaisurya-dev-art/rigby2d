@@ -217,6 +217,24 @@ export function addChildBone(app, parent) {
   return i;
 }
 
+/**
+ * Adds a point bone (length 0: a pivot or anchor) under `parent`, at the parent's tip or, with
+ * `world`, at that point of the setup pose. Point bones transform, parent and weight like any bone.
+ */
+export function addPointBone(app, parent, world = null) {
+  const name = app.doc.uniqueBoneName('point');
+  let setup;
+  if (world) {
+    const p = new Pose(app.doc).world[parent].inverse().apply(world);
+    setup = transform(p[0], p[1], 0);
+  } else {
+    setup = transform(app.doc.bones[parent].length, 0, 0);
+  }
+  const i = app.doc.addBone(makeBone(name, parent, setup, 0));
+  app.select({ bone: i });
+  return i;
+}
+
 /** Reparents a bone while keeping it where it is in the world (setup pose). */
 export function reparentBoneKeepWorld(app, bone, newParent) {
   if (bone === 0 || app.doc.isDescendant(newParent, bone)) {

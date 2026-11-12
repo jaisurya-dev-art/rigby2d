@@ -44,3 +44,27 @@ test('unzip reads what zip writes', async () => {
   assert.equal(new TextDecoder().decode(files.get('project.json')), '{"a":1}');
   assert.deepEqual([...files.get('images/a b/c.png')], [1, 2, 3]);
 });
+
+test('point bones: a length 0 bone poses, parents and round-trips through JSON and .skel', async () => {
+  const { makeBone } = await import('../src/core/model.js');
+  const { transform } = await import('../src/core/math.js');
+  const { Pose } = await import('../src/core/pose.js');
+  const { writeSkeletonJson, readSkeletonJson } = await import('../src/core/interop.js');
+  const { writeSkeletonBinary, readSkeletonBinary } = await import('../src/core/binary.js');
+  const doc = robot({ insertRgba: () => {} });
+  const at = doc.addBone(makeBone('pivot', 0, transform(37, -12, 30), 0));
+  const child = doc.addBone(makeBone('arm', at, transform(0, 0, 0), 50));
+  const pose = new Pose(doc);
+  const tip = pose.world[child].apply([50, 0]);
+  const root = pose.world[0];
+  const o = root.apply([37, -12]);
+  const r = (30 * Math.PI) / 180;
+  const want = root.apply([37 + 50 * Math.cos(r), -12 + 50 * Math.sin(r)]);
+  assert.ok(Math.hypot(pose.world[at].apply([0, 0])[0] - o[0], pose.world[at].apply([0, 0])[1] - o[1]) < 1e-6);
+  assert.ok(Math.hypot(tip[0] - want[0], tip[1] - want[1]) < 1e-6);
+  const json = readSkeletonJson(writeSkeletonJson(doc, { version: '4.3' }).json).skeleton;
+  assert.equal(json.bones[json.boneIndex('pivot')].length, 0);
+  assert.equal(json.bones[json.boneIndex('arm')].parent, json.boneIndex('pivot'));
+  const bin = readSkeletonJson(readSkeletonBinary(writeSkeletonBinary(writeSkeletonJson(doc, { version: '4.3', binary: true }).json))).skeleton;
+  assert.equal(bin.bones[bin.boneIndex('pivot')].length, 0);
+});

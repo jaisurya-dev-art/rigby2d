@@ -15,10 +15,23 @@ Bones are created in **Setup mode**:
 - Pick the **Create** tool (<kbd>N</kbd>) and drag in the viewport: the bone starts where you press
   and points where you release. It becomes a child of the selected bone (the root when nothing is
   selected), and is selected itself, so the next drag continues the chain.
-- **+ Bone** in the tree adds a child to the selected bone.
+- **Click** without dragging to add a **point bone** there (see below).
+- **+ Bone** in the tree adds a child to the selected bone, and **+ Point** a point bone at its tip.
 
 Every project has a `root` bone at the origin. <kbd>Delete</kbd> removes the selected bone together
 with its children.
+
+### Point bones
+
+A point bone has a length of 0: a pivot or anchor, such as a shoulder joint, a hip origin, a prop
+attachment point or a common parent for several limbs. It has a position, rotation and scale like any
+bone, can be the parent of regular bones and can bind mesh vertices. In the viewport it is a small
+ring with a crosshair, the same size at any zoom, and a tick showing its rotation; the bone tree marks
+it with ◉.
+
+To turn a selected point bone, drag the round handle at the end of its dotted line (it works with any
+transform tool), or use the Rotate tool. Setting a bone's **Length** to 0 turns it into a point bone,
+and a length above 0 turns it back; children don't move, since length is visual only.
 
 ### Bone settings
 
@@ -26,7 +39,7 @@ with its children.
 | --- | --- |
 | **Name** | Unique name. Animations and runtimes refer to bones by name. |
 | **Parent** | The bone it hangs from. Changing it keeps the bone where it is in the world. |
-| **Length** | Visual length, and the reach used by IK and some constraints. |
+| **Length** | Visual length, and the reach used by IK and some constraints. 0 makes a [point bone](#point-bones). |
 | **Color** | The bone's color in the viewport, to tell limbs or sides apart (applies to every selected bone; **×** goes back to the default). Saved in the skeleton file, as in Spine. |
 | **Inherit** | What it takes from its parent: `normal` (everything), `onlyTranslation`, `noRotationOrReflection`, `noScale` or `noScaleOrReflection`. Use `noScale` for parts that should not stretch when the parent does. |
 | **Setup pose** / **Pose at current frame** | Position, rotation, scale and shear relative to the parent: the setup pose in Setup mode, the animated pose (with key buttons) in Animate mode. |

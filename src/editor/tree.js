@@ -131,7 +131,7 @@ export function render(app, el) {
         )
       : null;
     skeleton.push(
-      row(`🦴 ${doc.bones[bone].name}`, {
+      row(`${doc.bones[bone].length > 0 ? '🦴' : '◉'} ${doc.bones[bone].name}`, {
         tut: `bone:${doc.bones[bone].name}`,
         depth,
         selected: selected.has(bone),
@@ -187,6 +187,16 @@ export function render(app, el) {
     'button',
     { class: 'small', disabled: app.mode !== Mode.Setup, title: t('Add a child bone to the selected bone'), onclick: () => edit.addChildBone(app, selBone(app.sel) ?? 0) },
     t('＋ Bone'),
+  );
+  const addPoint = h(
+    'button',
+    {
+      class: 'small',
+      disabled: app.mode !== Mode.Setup,
+      title: t('Add a point bone (a pivot or anchor) at the tip of the selected bone'),
+      onclick: () => edit.addPointBone(app, selBone(app.sel) ?? 0),
+    },
+    t('＋ Point'),
   );
 
   // Draw order: front of the list is drawn on top.
@@ -302,7 +312,7 @@ export function render(app, el) {
       has(app, 'scene') || doc.scene?.actors.length
         ? section(app, 'scene', t('Scene'), doc.scene?.actors.length ?? 0, doc.scene?.actors.length ? sceneRows(app, row) : [h('div', { class: 'small weak pad' }, t('Characters acting together: ＋ Actor adds one (File ▸ New ▸ Scene starts a stage with a camera).'))], h('button', { class: 'small', title: t('Add a character to the scene'), onclick: (e) => { const r = e.target.getBoundingClientRect(); addActorMenu(app, r.left, r.bottom); } }, t('＋ Actor')))
         : null,
-      section(app, 'skeleton', doc.name || t('Skeleton'), doc.bones.length, skeleton, addBone),
+      section(app, 'skeleton', doc.name || t('Skeleton'), doc.bones.length, skeleton, [addBone, addPoint]),
       section(app, 'draworder', t('Draw order'), n, orderList),
       section(app, 'skins', t('Skins'), doc.skins.length + 1, skins, newSkin),
       section(app, 'constraints', t('Constraints'), constraints.length, constraints, newConstraint),
