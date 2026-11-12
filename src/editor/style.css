@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: MIT OR Apache-2.0 */
 :root {
+  --left: 300px;
   --right: 320px;
-  --tree: 42%;
   --bottom: 230px;
   --bg: #1b1b1b;
   --panel: #262626;
@@ -88,48 +88,45 @@ body {
 }
 
 #app {
+  --left-col: var(--left);
+  --sl-col: 4px;
+  --right-col: var(--right);
+  --sr-col: 4px;
+  --bottom-row: var(--bottom);
+  --sb-row: 4px;
   display: grid;
   height: 100vh;
-  grid-template-columns: minmax(300px, 1fr) 4px var(--right);
-  grid-template-rows: auto minmax(0, 1fr) 4px var(--bottom) auto;
+  grid-template-columns: var(--left-col) var(--sl-col) minmax(300px, 1fr) var(--sr-col) var(--right-col);
+  grid-template-rows: auto minmax(0, 1fr) var(--sb-row) var(--bottom-row) auto;
   grid-template-areas:
-    'menu menu menu'
-    'center sr side'
-    'sb sb sb'
-    'time time time'
-    'status status status';
+    'menu menu menu menu menu'
+    'left sl center sr right'
+    'sb sb sb sb sb'
+    'time time time time time'
+    'status status status status status';
 }
 
-/* A panel popped out into its own window: the editor reclaims that panel's space. */
-#app.detached-timeline,
-#app.setup-hides-timeline {
-  grid-template-rows: auto minmax(0, 1fr) 0 0 auto;
+/* A dock region with no panel to show (none placed there, or all popped out or hidden) takes no
+   room, and its splitter goes with it. See dockui.js. */
+#app.dock-no-left {
+  --left-col: 0px;
+  --sl-col: 0px;
 }
-#app.detached-timeline #timeline,
-#app.detached-timeline #split-bottom,
-#app.setup-hides-timeline #timeline,
-#app.setup-hides-timeline #split-bottom {
+#app.dock-no-right {
+  --right-col: 0px;
+  --sr-col: 0px;
+}
+#app.dock-no-bottom {
+  --bottom-row: 0px;
+  --sb-row: 0px;
+}
+#app.dock-no-left #dock-left,
+#app.dock-no-left #split-left,
+#app.dock-no-right #dock-right,
+#app.dock-no-right #split-right,
+#app.dock-no-bottom #dock-bottom,
+#app.dock-no-bottom #split-bottom {
   display: none;
-}
-/* The side panels (tree, inspector) detach independently; the other fills the side column. */
-#app.detached-tree #tree,
-#app.detached-inspector #properties,
-#app.detached-tree #split-tree,
-#app.detached-inspector #split-tree,
-#app.detached-tree .panel-detach-btn[data-panel='tree'],
-#app.detached-inspector .panel-detach-btn[data-panel='inspector'] {
-  display: none;
-}
-#app.detached-inspector #tree {
-  flex: 1 1 0;
-}
-/* Both side panels out: collapse the side column entirely. */
-#app.detached-tree.detached-inspector #side,
-#app.detached-tree.detached-inspector #split-right {
-  display: none;
-}
-#app.detached-tree.detached-inspector {
-  grid-template-columns: minmax(300px, 1fr) 0 0;
 }
 
 /* A detached panel window (panel.html): the panel fills the window, with a status bar. */
@@ -160,10 +157,8 @@ body {
   min-height: 0;
 }
 
-/* The ⧉ / ⤓ detach-dock button sits at the top-right of its panel. #properties must be positioned
-   too, or the inspector's button falls back to #side and lands on top of the tree's button. */
+/* The ⤓ dock-back button sits at the top-right of a detached panel window. */
 #timeline,
-#side,
 #properties {
   position: relative;
 }
@@ -202,22 +197,23 @@ body {
   min-width: 0;
   min-height: 0;
 }
+#split-left {
+  grid-area: sl;
+}
 #split-right {
   grid-area: sr;
 }
-#side {
-  grid-area: side;
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-  min-width: 0;
+#dock-left {
+  grid-area: left;
+}
+#dock-right {
+  grid-area: right;
+}
+#dock-bottom {
+  grid-area: time;
 }
 #tree {
-  flex: 0 0 var(--tree);
   padding: 4px 0;
-}
-#properties {
-  flex: 1 1 0;
 }
 #properties .content {
   flex: 1;
@@ -364,7 +360,6 @@ body {
   grid-area: sb;
 }
 #timeline {
-  grid-area: time;
   display: flex;
   flex-direction: column;
   min-height: 0;
@@ -1006,6 +1001,20 @@ input[type='color'] {
   }
   #controls select {
     width: 110px;
+  }
+}
+/* A timeline docked into a narrow space (beside another panel, or at a side): the controls wrap onto
+   more rows instead of scrolling out of sight. */
+#timeline {
+  container: timeline / inline-size;
+}
+@container timeline (max-width: 1180px) {
+  #controls {
+    flex-wrap: wrap;
+    row-gap: var(--space-1);
+  }
+  #controls .tl-spacer {
+    display: none;
   }
 }
 .dopesheet-wrap {
@@ -2240,33 +2249,25 @@ a:focus-visible {
   font-size: 11px;
 }
 
-/* Splitters: a hairline that lights up when grabbed, with a wider hit area. */
+/* Splitters: a hairline that lights up when grabbed. The whole gutter is the grab area, and nothing
+   reaches past it, so a splitter never draws over (or takes the clicks of) a panel's edge. */
 .split-v,
 .split-h {
-  position: relative;
-  z-index: 3;
-  background: var(--border);
+  flex: none;
+  background: var(--line);
   transition: background 0.12s;
-}
-.split-v::after,
-.split-h::after {
-  content: '';
-  position: absolute;
-}
-.split-v::after {
-  inset: 0 -3px;
-}
-.split-h::after {
-  inset: -3px 0;
 }
 .split-v:hover,
 .split-h:hover,
 .split-v.dragging,
 .split-h.dragging {
-  background: var(--accent);
+  background: var(--ui-accent);
 }
-#split-tree {
-  flex: 0 0 4px;
+.dock-split.split-h {
+  height: 4px;
+}
+.dock-split.split-v {
+  width: 4px;
 }
 
 /* Detach buttons stay out of the way until the panel is hovered. */
@@ -2277,8 +2278,7 @@ a:focus-visible {
   opacity: 0.55;
   transition: opacity 0.12s, background 0.12s;
 }
-#timeline:hover > .panel-detach-btn,
-#side:hover .panel-detach-btn,
+#app.panel-only:hover .panel-detach-btn,
 .panel-detach-btn:focus-visible {
   opacity: 1;
 }
@@ -4531,4 +4531,118 @@ textarea:focus-visible,
 /* The inspector scrolls flush to the panel edge, like the tree and timeline. */
 #properties.panel {
   padding: 0;
+}
+
+/* The dock (dockui.js): regions around the viewport, each a stack of tab groups. */
+.dock-region {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--surface-2);
+}
+#dock-bottom {
+  flex-direction: row;
+}
+#dock-parking {
+  display: none;
+}
+.dock-group {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+.dock-tabs {
+  display: flex;
+  flex: none;
+  align-items: stretch;
+  gap: 2px;
+  height: 28px;
+  padding: 0 var(--space-1) 0 var(--space-1);
+  background: var(--surface-1);
+  border-bottom: 1px solid var(--line);
+}
+.dock-tab {
+  display: inline-flex;
+  align-items: center;
+  max-width: 160px;
+  margin-top: var(--space-1);
+  padding: 0 var(--space-3);
+  overflow: hidden;
+  font-size: var(--text-sm);
+  color: var(--fg-muted);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  background: transparent;
+  border: 1px solid transparent;
+  border-bottom: none;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  cursor: grab;
+  touch-action: none;
+}
+.dock-tab:hover {
+  color: var(--fg);
+  background: var(--surface-hover);
+}
+.dock-tab.active {
+  color: var(--fg);
+  background: var(--surface-2);
+  border-color: var(--line);
+  box-shadow: inset 0 2px 0 var(--ui-accent);
+}
+.dock-tab:focus-visible {
+  outline: 2px solid var(--ui-accent);
+  outline-offset: -2px;
+}
+.dock-tabs-fill {
+  flex: 1 1 0;
+}
+.dock-tabs .ui-icon-btn {
+  align-self: center;
+}
+.dock-body {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+.dock-body > * {
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 0;
+}
+.dock-body > .dock-inactive {
+  display: none;
+}
+/* While a tab is dragged: the panel name follows the pointer and the drop spot is outlined. */
+#app.dock-dragging,
+#app.dock-dragging * {
+  cursor: grabbing !important;
+}
+.dock-ghost {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: var(--z-popover);
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--text-sm);
+  color: var(--fg);
+  pointer-events: none;
+  background: var(--surface-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-popover);
+}
+.dock-marker {
+  position: fixed;
+  z-index: var(--z-popover);
+  pointer-events: none;
+  background: var(--ui-accent-soft);
+  border: 2px solid var(--ui-accent);
+  border-radius: var(--radius-sm);
 }

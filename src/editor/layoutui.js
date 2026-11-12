@@ -53,7 +53,7 @@ export function windowLayoutsMenuItem(ctx) {
 }
 
 function loadLayout(ctx, layout) {
-  ctx.sync.applyLayout(layout.panels, layout.id);
+  ctx.sync.applyLayout(layout.panels, layout.id, layout.dock);
   ctx.app.setStatus(t('Window layout: {name}', { name: layout.name }));
 }
 
@@ -66,7 +66,7 @@ function openSaveLayout(ctx) {
     onclick: async () => {
       save.disabled = true;
       const panels = await ctx.sync.captureLayout();
-      const layout = { id: newLayoutId(), name: name.trim() || t('Layout {number}', { number: existing.length + 1 }), hotkey, panels };
+      const layout = { id: newLayoutId(), name: name.trim() || t('Layout {number}', { number: existing.length + 1 }), hotkey, panels, dock: ctx.sync.captureDock() };
       saveLayouts(upsertLayout(loadLayouts(), layout));
       ctx.sync.setActiveLayout(layout.id); // the saved layout is now the active, clean one
       ctx.app.setStatus(t('Saved window layout "{name}"', { name: layout.name }) + (hotkey !== null ? ` (${hotkeyLabel(hotkey)})` : ''));
@@ -128,7 +128,7 @@ function openManageLayouts(ctx) {
                   onclick: async (e) => {
                     e.currentTarget.disabled = true;
                     const panels = await ctx.sync.captureLayout();
-                    saveLayouts(updatePanels(loadLayouts(), l.id, panels));
+                    saveLayouts(updatePanels(loadLayouts(), l.id, panels, ctx.sync.captureDock()));
                     ctx.sync.setActiveLayout(l.id);
                     ctx.app.setStatus(t('Updated "{name}" to the current arrangement', { name: l.name }));
                     render();

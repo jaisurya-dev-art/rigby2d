@@ -29,9 +29,10 @@ const geomKey = (id) => `rigby.panel.${id}.geom`;
  * Wires up panel detaching and sync for the editor window. `appEl` is the editor's #app element
  * (toggles a `detached-<id>` class per panel). `runForwardedAction(action)` runs a shortcut a
  * detached window forwarded, on the authoritative editor App. Returns the API main.js and the
- * window-layouts UI use.
+ * window-layouts UI use. `dock` (dockui.js) is where the panels sit inside the editor window, which
+ * a saved window layout also keeps.
  */
-export function installPanelSync(app, { inTauri, appEl, runForwardedAction }) {
+export function installPanelSync(app, { inTauri, appEl, dock = null, runForwardedAction }) {
   // Open detached panel windows, by id (see dock.js PANELS). A change here broadcasts to every
   // open window, and each window forwards its shortcuts back.
   const detachedWindows = new Map();
@@ -142,11 +143,16 @@ export function installPanelSync(app, { inTauri, appEl, runForwardedAction }) {
     return panels;
   }
 
+  /** Where the panels sit inside the editor window (the dock layout), for a saved window layout. */
+  const captureDock = () => dock?.get() ?? null;
+
   /** Arranges the windows to match a saved layout: docks the panels it leaves out, opens the ones it
    *  wants (at their saved spot), and moves any that are already open. `id` records which layout is
-   *  now in effect, so the UI can show it as current (and flag later changes as unsaved). */
-  function applyLayout(panels, id = null) {
+   *  now in effect, so the UI can show it as current (and flag later changes as unsaved). `dockLayout`
+   *  (saved with the layout, absent in older ones) arranges the panels inside the editor window. */
+  function applyLayout(panels, id = null, dockLayout = null) {
     if (!inTauri) return;
+    if (dockLayout && dock) dock.set(dockLayout);
     applyingLayout = true;
     const want = panels ?? {};
     for (const pid of [...detachedWindows.keys()]) if (!want[pid]) dockPanel(pid);
@@ -166,7 +172,7 @@ export function installPanelSync(app, { inTauri, appEl, runForwardedAction }) {
   function triggerHotkey(digit) {
     const layout = byHotkey(loadLayouts(), digit);
     if (!layout) return false;
-    applyLayout(layout.panels, layout.id);
+    applyLayout(layout.panels, layout.id, layout.dock);
     app.setStatus(t('Window layout: {name}', { name: layout.name }));
     return true;
   }
@@ -249,7 +255,7 @@ export function installPanelSync(app, { inTauri, appEl, runForwardedAction }) {
     for (const [, win] of detachedWindows) win?.destroy().catch(() => {});
   }
 
-  return { syncPanels, detachPanel, dockPanel, detachedIds, captureLayout, applyLayout, activeLayout, setActiveLayout, closePanels };
+  return { syncPanels, detachPanel, dockPanel, detachedIds, captureLayout, captureDock, applyLayout, activeLayout, setActiveLayout, closePanels };
 }
 
 /** A detached panel window positions itself when the editor sends EV_PLACE (loading a layout). */

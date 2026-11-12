@@ -34,6 +34,7 @@ import { createTutorials } from './tutorials/index.js';
 import { openAiConnect } from './aiconnect.js';
 import { installPanelSync } from './panelsync.js';
 import { windowLayoutsMenuItem } from './layoutui.js';
+import { installDock } from './dockui.js';
 import { openDemoPicker } from './demoui.js';
 import { DEMOS } from './demos.js';
 import { newScene } from './sceneui.js';
@@ -242,6 +243,7 @@ function menus() {
         },
       },
       { label: logOpen() ? t('Hide log') : t('Log'), action: () => toggleLogWindow() },
+      { label: t('Reset layout'), title: t('Put the panels back in their default places and sizes'), action: () => resetLayout() },
       // Save and recall where the detached panels sit (desktop only; panels pop out only there).
       ...(inTauri && sync ? [windowLayoutsMenuItem({ app, sync })] : []),
       'separator',
@@ -477,20 +479,37 @@ function splitter(el, cssVar, axis, sign, min, max) {
     el.addEventListener('pointerup', up);
     el.addEventListener('pointercancel', up);
   });
-  el.addEventListener('dblclick', () => {
+  const reset = () => {
     root.style.setProperty(cssVar, fallback);
     try {
       localStorage.removeItem(key);
     } catch {
       // Nothing stored.
     }
-  });
+  };
+  el.addEventListener('dblclick', reset);
   el.title = t('Drag to resize · double-click to reset');
+  return reset;
 }
 
-splitter($('#split-right'), '--right', 'x', -1, 220, () => window.innerWidth - 360);
-splitter($('#split-tree'), '--tree', 'y', 1, 80, () => $('#side').clientHeight - 120);
-splitter($('#split-bottom'), '--bottom', 'y', -1, 120, () => window.innerHeight - 220);
+const SPLITTERS = [
+  [$('#split-left'), '--left', 'x', 1, 200, () => window.innerWidth - $('#dock-right').clientWidth - 360],
+  [$('#split-right'), '--right', 'x', -1, 220, () => window.innerWidth - $('#dock-left').clientWidth - 360],
+  [$('#split-bottom'), '--bottom', 'y', -1, 120, () => window.innerHeight - 220],
+];
+const resetSplitters = SPLITTERS.map((args) => splitter(...args));
+
+// Where the panels sit (dockui.js): tab groups to the left, right and bottom of the viewport. A
+// panel's tab drags it to another group or region; its pop-out button opens it in its own window.
+const dock = installDock({ appEl: $('#app'), onPopOut: inTauri ? (id) => sync?.detachPanel(id) : null });
+
+/** View ▸ Reset layout: today's arrangement and region sizes. */
+function resetLayout() {
+  dock.reset();
+  for (const reset of resetSplitters) reset();
+  window.dispatchEvent(new Event('resize'));
+  app.setStatus(t('Panels back in their default places'));
+}
 
 // ---- main loop --------------------------------------------------------------------------------
 
@@ -501,6 +520,7 @@ app.viewport = viewport;
 sync = installPanelSync(app, {
   inTauri,
   appEl: $('#app'),
+  dock,
   runForwardedAction: (action) => runAction(app, action, { viewport, zoomActual, deleteSelectedKeys, closeMenu }),
 });
 const dopesheet = new Dopesheet(app, $('#dopesheet'), $('#dopesheet canvas'));
@@ -728,7 +748,7 @@ if (!isDesktop) {
 }
 
 // Development builds expose the editor for debugging from the console.
-if (import.meta.env.DEV) window.rigby = { app, memoryFs, dopesheet, graph, viewport, scripts, log, tutorials, recovery, addons };
+if (import.meta.env.DEV) window.rigby = { app, dock, memoryFs, dopesheet, graph, viewport, scripts, log, tutorials, recovery, addons };
 
 // Scripts in the library load in the background, adding their tools to the Scripts menu.
 // Enabled add-ons too (Edit ▸ Preferences ▸ Add-ons).
@@ -743,8 +763,3 @@ $('#status-version').addEventListener('click', () => openAbout());
 $('#status-log').addEventListener('click', () => toggleLogWindow());
 $('#status-community').addEventListener('click', () => openExternal(COMMUNITY_URL));
 
-// Each panel pops out into its own window from the ⧉ button at its top-right (desktop only).
-for (const btn of document.querySelectorAll('.panel-detach-btn')) {
-  btn.hidden = !inTauri;
-  btn.addEventListener('click', () => sync.detachPanel(btn.dataset.panel));
-}

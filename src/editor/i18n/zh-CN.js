@@ -1664,8 +1664,14 @@ export default {
   "File ▸ Recover has {count} more auto-save(s).": "文件 ▸ 恢复 中还有 {count} 个自动保存。",
   "The language of the whole editor.": "整个编辑器的语言。",
   "Copied {count} key(s): move the playhead and paste (Ctrl+V), or press Escape to cancel": "已复制 {count} 个关键帧：移动播放头后粘贴（Ctrl+V），按 Esc 取消",
-  "AutoRig works on unrigged artwork: this project already has bones. Start from a new project with the imported layers.": "AutoRig 用于尚未绑定的美术素材：此项目已有骨骼。请在新项目中导入图层后再开始。",
+  "AutoRig works on unrigged artwork: this project already has bones. Start from a new project with the imported layers.": "AutoRig 用于尚未绑定的美术素材：此项目已有骨骼。请在新项目中导入图层后再开始。",
+
   "Pose name": "姿势名称",
   "Control name": "控制名称",
   "How far Apply moves toward the pose": "“应用”向该姿势移动的程度",
+  "Drag to move or group with another panel": "拖动以移动，或与其他面板合为标签页",
+  "Pop out {name} into its own window": "将{name}弹出到独立窗口",
+  "Reset layout": "重置布局",
+  "Put the panels back in their default places and sizes": "将面板恢复到默认位置和大小",
+  "Panels back in their default places": "面板已恢复到默认位置",
 };

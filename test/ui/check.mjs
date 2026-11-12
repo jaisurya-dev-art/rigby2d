@@ -59,6 +59,24 @@ const CASES = [
     r.app.setWorkspace?.('film');
     r.app.deselect();
   }],
+  // The dock: tree and inspector sharing one space as tabs, then panels moved to other regions.
+  ['main-dock-tabbed', async (r) => {
+    r.app.setWorkspace?.('game');
+    r.app.mode = 'animate';
+    r.dock.reset();
+    r.dock.set((await import('/src/editor/docklayout.js')).movePanel(r.dock.get(), 'inspector', { region: 'right', group: 0, where: 'tab' }));
+  }],
+  ['main-dock-moved', async (r) => {
+    const { movePanel } = await import('/src/editor/docklayout.js');
+    let l = r.dock.get();
+    l = movePanel(l, 'tree', { region: 'left', where: 'new' });
+    l = movePanel(l, 'inspector', { region: 'bottom', group: 0, where: 'after' });
+    r.dock.set(l);
+  }],
+  ['main-dock-reset', async (r) => {
+    r.dock.reset();
+    r.app.mode = 'setup';
+  }],
   ['dialog-preferences', async () => (await import('/src/editor/prefsui.js')).openPreferences?.(window.rigby.app)],
   ['dialog-shortcuts', async (r) => (await import('/src/editor/helpui.js')).openShortcuts(r.app)],
   ['dialog-about', async () => (await import('/src/editor/helpui.js')).openAbout()],
