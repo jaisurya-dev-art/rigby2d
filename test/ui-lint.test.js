@@ -26,8 +26,11 @@ function editorFiles(dir = editor, out = []) {
 }
 const rel = (p) => path.relative(editor, p).split(path.sep).join('/');
 
-/** Emoji and symbol characters used as icons inside interface text (t() and tn() strings). */
-const SYMBOL = /\p{Extended_Pictographic}|[＋✓✕✦◉◍▾▸⧉↻⟲⟳⏵⏸⏹⏮⏭↗]/gu;
+/**
+ * Emoji and symbol characters used as icons inside interface text (t() and tn() strings). The ▸ of
+ * menu paths ("File ▸ Save") is punctuation, as in the docs, so it is allowed.
+ */
+const SYMBOL = /\p{Extended_Pictographic}|[＋✓✕✦◉◍▾⧉↻⟲⟳⏵⏸⏹⏮⏭↗]/gu;
 
 function measure() {
   const m = { symbols: {}, handBuiltDialogs: {}, colorsInCode: {}, css: {} };

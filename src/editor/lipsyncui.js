@@ -12,27 +12,8 @@ import { frameLevels, sounds, tracksOf } from './audio.js';
 import * as platform from './platform.js';
 import { transcribe } from './whisper.js';
 import { h } from './widgets.js';
+import { button, dialog, hint } from './ui.js';
 import { t, tn } from './i18n.js';
-
-/** A modal dialog; returns { body, close }. Escape closes it. */
-function modal() {
-  const overlay = h('div', { class: 'modal-backdrop' });
-  const body = h('div', { class: 'modal modal-wide lipsync' });
-  overlay.append(body);
-  const onKey = (e) => {
-    if (e.key === 'Escape') {
-      e.stopPropagation();
-      close();
-    }
-  };
-  const close = () => {
-    overlay.remove();
-    document.removeEventListener('keydown', onKey, true);
-  };
-  document.addEventListener('keydown', onKey, true);
-  document.body.append(overlay);
-  return { body, close };
-}
 
 const select = (options, value, onchange) =>
   h(
@@ -88,7 +69,11 @@ export function openLipSync(app) {
     lead: 2,
     minHold: Math.max(2, Math.round(FPS * 0.05)),
   };
-  const { body, close } = modal();
+  const { body, close, setFooter } = dialog({
+    title: t('Lip-sync'),
+    subtitle: t('Keys mouth shapes (visemes) on a mouth slot from speech timing: each sound gets its mouth, a little before it is heard.'),
+    className: 'modal-wide lipsync',
+  });
   let note = null; // the line that shows transcription progress
 
   /** Whisper listens to the chosen track and times its words. */
@@ -183,8 +168,6 @@ export function openLipSync(app) {
         : `${state.fileName}: ${state.timing.cues.length} mouth cues (${state.timing.kind})`
       : t('ElevenLabs timestamps or Whisper JSON (word timings), Rhubarb Lip Sync (.tsv or .json), Papagayo (.dat).');
     const parts = [
-      h('h3', null, t('Lip-sync')),
-      h('p', { class: 'small weak' }, t('Keys mouth shapes (visemes) on a mouth slot from speech timing: each sound gets its mouth, a little before it is heard.')),
       h(
         'div',
         { class: 'lipsync-grid' },
@@ -195,7 +178,7 @@ export function openLipSync(app) {
           [
             ['auto', t('Transcribe the audio automatically (Whisper)')],
             ['text', t('The words spoken (timed by the audio)')],
-            ['file', 'A timing file'],
+            ['file', t('A timing file')],
           ],
           state.source,
           (v) => ((state.source = v), (state.error = ''), draw()),
@@ -207,7 +190,7 @@ export function openLipSync(app) {
         ? h(
             'div',
             { class: 'lipsync-file' },
-            h('button', { onclick: listen, disabled: !!state.busy }, state.heard ? t('Transcribe again') : t('Transcribe')),
+            button(state.heard ? t('Transcribe again') : t('Transcribe'), { onclick: listen, disabled: !!state.busy }),
             (note = h(
               'span',
               { class: 'small weak' },
@@ -219,8 +202,8 @@ export function openLipSync(app) {
           )
         : state.source === 'text'
         ? h('textarea', { class: 'lipsync-text', rows: 3, placeholder: t('Type what is said in the track, e.g. "Hi! I\'m Nila, and I\'m made of layers."'), oninput: (e) => (state.text = e.target.value) }, state.text)
-        : h('div', { class: 'lipsync-file' }, h('button', { onclick: pickFile }, t('Choose timing file…')), h('span', { class: 'small weak' }, timingNote)),
-      state.error ? h('div', { class: 'lipsync-error' }, state.error) : null,
+        : h('div', { class: 'lipsync-file' }, button(t('Choose timing file…'), { onclick: pickFile }), h('span', { class: 'small weak' }, timingNote)),
+      state.error ? hint(state.error, { tone: 'danger' }) : null,
       h(
         'div',
         { class: 'lipsync-grid' },
@@ -253,13 +236,15 @@ export function openLipSync(app) {
         { class: 'lipsync-grid' },
         h('label', { title: t('Mouths land this many frames before their sound, as animators time them') }, t('Lead (frames)')),
         h('input', { type: 'number', min: 0, max: 6, value: state.lead, class: 'frame-input', onchange: (e) => (state.lead = Math.max(0, Math.min(6, Math.round(+e.target.value || 0)))) }),
-        h('label', { title: 'A mouth shape is held at least this many frames, so the mouth never flickers' }, t('Hold at least (frames)')),
+        h('label', { title: t('A mouth shape is held at least this many frames, so the mouth never flickers') }, t('Hold at least (frames)')),
         h('input', { type: 'number', min: 1, max: 8, value: state.minHold, class: 'frame-input', onchange: (e) => (state.minHold = Math.max(1, Math.min(8, Math.round(+e.target.value || 1)))) }),
       ),
-      h('div', { class: 'small weak' }, t('Replaces the mouth keys over the length of the audio track. Undo reverts it.')),
-      h('div', { class: 'modal-buttons' }, h('button', { onclick: close }, t('Cancel')), h('button', { class: 'primary', 'data-tut': 'lipsync:generate', disabled: !!state.busy, onclick: generate }, t('Generate lip-sync'))),
+      hint(t('Replaces the mouth keys over the length of the audio track. Undo reverts it.'), { docs: 'lip-sync' }),
     ];
     body.replaceChildren(...parts.filter(Boolean));
+    const generateButton = button(t('Generate lip-sync'), { kind: 'primary', disabled: !!state.busy, onclick: generate });
+    generateButton.dataset.tut = 'lipsync:generate';
+    setFooter([button(t('Cancel'), { onclick: () => close() }), generateButton]);
   };
   draw();
 }

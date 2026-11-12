@@ -3,6 +3,7 @@
 
 import { LEVELS, clear, entries, formatEntries, markRead, stamp, subscribe } from './log.js';
 import { h } from './widgets.js';
+import { closeButton } from './ui.js';
 import { t } from './i18n.js';
 
 let win = null;
@@ -88,7 +89,7 @@ export function openLogWindow() {
     { class: 'float-header' },
     h('b', null, t('Log')),
     h('span', { class: 'float-spacer' }),
-    h('button', { title: t('Close'), onclick: () => closeLogWindow() }, '✕'),
+    closeButton(() => closeLogWindow()),
   );
   const toolbar = h(
     'div',

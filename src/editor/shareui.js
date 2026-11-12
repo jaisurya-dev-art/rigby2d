@@ -4,13 +4,13 @@
 
 import { track } from './analytics.js';
 import { t } from './i18n.js';
-import { engineIcon } from './icons.js';
 import { COMMUNITY_URL } from './news.js';
 import { hexToRgba } from './output.js';
 import * as platform from './platform.js';
 import { canEncodeVideo, frameRange, renderGif, renderJob } from './render/offline.js';
 import { RATES, SHARE_BACKGROUND, SIZES, shareSettings, shareTitle, submitUrl } from './share.js';
 import { h, select } from './widgets.js';
+import { button, checkbox, dialog, fieldRow, fields, hint } from './ui.js';
 
 const safe = (s) => s.replace(/[\\/:*?"<>|\s]+/g, '_').replace(/^_+|_+$/g, '') || 'rigby2d';
 const toHex = (c) => `#${c.slice(0, 3).map((v) => Math.round(v * 255).toString(16).padStart(2, '0')).join('')}`;
@@ -40,21 +40,16 @@ export function openShareDialog(app) {
   let running = null;
   let done = null;
 
-  const overlay = h('div', { class: 'modal-backdrop' });
-  const body = h('div', { class: 'modal share-dialog' });
-  overlay.append(body);
-  const close = () => {
-    if (running) running.cancelled = true;
-    overlay.remove();
-    document.removeEventListener('keydown', onKey, true);
-  };
-  const onKey = (e) => {
-    if (e.key === 'Escape' && !running) {
-      e.stopPropagation();
-      close();
-    }
-  };
-  document.addEventListener('keydown', onKey, true);
+  // Closing while rendering cancels the render.
+  const { body, close, setFooter } = dialog({
+    title: t('Share to Discord'),
+    subtitle: t('Render a clip, then post it to the community.'),
+    className: 'share-dialog',
+    closeOnBackdrop: false,
+    onClose: () => {
+      if (running) running.cancelled = true;
+    },
+  });
 
   const anim = () => doc.animations[choice.animation];
   const title = () => choice.title || shareTitle(doc.name, anim().name);
@@ -68,10 +63,8 @@ export function openShareDialog(app) {
     const out = settings();
     const r = range();
     const seconds = (r.end - r.start + 1) / choice.fps;
-    const row = (label, ...control) => [h('label', null, label), h('div', { class: 'cell' }, ...control)];
-    const parts = [
-      h('div', { class: 'share-head' }, h('span', { class: 'share-mark' }, engineIcon('discord', 22)), h('div', null, h('h3', null, t('Share to Discord')), h('div', { class: 'small weak' }, t('Render a clip, then post it to the community.')))),
-    ];
+    const row = fieldRow;
+    const parts = [];
     if (done) {
       parts.push(
         h(
@@ -81,21 +74,17 @@ export function openShareDialog(app) {
           h('li', null, t('#showcase is open in Discord: start a post and drop the file in.')),
           h('li', null, t('Pick the Showcase flair, then post.')),
         ),
-        h(
-          'div',
-          { class: 'modal-buttons' },
-          h('button', { onclick: () => platform.openExternal(COMMUNITY_URL) }, t('Open the Discord')),
-          h('button', { onclick: () => platform.openExternal(submitUrl(title())) }, t('Open #showcase again')),
-          h('button', { class: 'primary', onclick: close }, t('Done')),
-        ),
       );
       body.replaceChildren(...parts);
+      setFooter([
+        button(t('Open the Discord'), { kind: 'ghost', icon: 'external-link', onclick: () => platform.openExternal(COMMUNITY_URL) }),
+        button(t('Open #showcase again'), { icon: 'external-link', onclick: () => platform.openExternal(submitUrl(title())) }),
+        button(t('Close'), { kind: 'primary', onclick: () => close() }),
+      ]);
       return;
     }
     parts.push(
-      h(
-        'div',
-        { class: 'grid' },
+      fields(
         ...row(
           t('Animation'),
           select(
@@ -122,7 +111,7 @@ export function openShareDialog(app) {
             String(choice.size),
             (v) => ((choice.size = Number(v)), draw()),
           ),
-          h('span', { class: 'small weak' }, ` ${out.width}×${out.height}`),
+          h('span', { class: 'ui-field-label' }, `${out.width}×${out.height}`),
         ),
         ...(s.frame
           ? row(
@@ -148,16 +137,19 @@ export function openShareDialog(app) {
         ...row(
           t('Background'),
           h('input', { type: 'color', value: choice.background, disabled: choice.format === 'gif' && choice.transparent, oninput: (e) => (choice.background = e.target.value) }),
-          choice.format === 'gif' ? h('label', { class: 'small' }, h('input', { type: 'checkbox', checked: choice.transparent, onchange: (e) => ((choice.transparent = e.target.checked), draw()) }), ` ${t('Transparent')}`) : null,
+          choice.format === 'gif' ? checkbox(t('Transparent'), choice.transparent, (on) => ((choice.transparent = on), draw())) : null,
         ),
         ...row(t('Post title'), h('input', { type: 'text', class: 'share-title', value: title(), maxlength: 300, oninput: (e) => (choice.title = e.target.value) })),
       ),
-      h('div', { class: 'small weak' }, t('{seconds} s, {frames} frames.', { seconds: seconds.toFixed(1), frames: r.end - r.start + 1 }), r.end < r.last ? ` ${t('Longer animations are cut at {max} seconds.', { max: MAX_SECONDS })}` : ''),
+      hint(t('{seconds} s, {frames} frames.', { seconds: seconds.toFixed(1), frames: r.end - r.start + 1 }) + (r.end < r.last ? ` ${t('Longer animations are cut at {max} seconds.', { max: MAX_SECONDS })}` : '')),
       running ? h('div', { class: 'progress' }, h('div', { class: 'bar', style: { width: `${Math.round(running.fraction * 100)}%` } })) : null,
-      running ? h('div', { class: 'small' }, running.text) : null,
-      h('div', { class: 'modal-buttons' }, h('button', { onclick: close }, running ? t('Cancel') : t('Close')), h('button', { class: 'primary', disabled: !!running, onclick: start }, t('Render and share…'))),
+      running ? hint(running.text) : null,
     );
     body.replaceChildren(...parts.filter(Boolean));
+    setFooter([
+      button(running ? t('Cancel') : t('Close'), { onclick: () => (running ? (running.cancelled = true) : close()) }),
+      button(t('Render and share…'), { kind: 'primary', disabled: !!running, onclick: start }),
+    ]);
   }
 
   async function start() {
@@ -204,5 +196,4 @@ export function openShareDialog(app) {
   }
 
   draw();
-  document.body.append(overlay);
 }

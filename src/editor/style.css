@@ -815,18 +815,20 @@ input[type='color'] {
   min-width: 80px;
 }
 .layout-dot {
-  width: 12px;
-  color: transparent;
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
 }
 .layout-row.active .layout-dot {
-  color: var(--accent);
+  background: var(--ui-accent);
 }
 .layout-row.dirty .layout-dot {
-  color: #e6a23c;
+  background: var(--warning);
 }
 .layout-badge {
-  color: #e6a23c;
-  font-size: 11px;
+  color: var(--warning);
+  font-size: var(--text-xs);
   white-space: nowrap;
 }
 .layout-actions {
@@ -3889,11 +3891,8 @@ kbd {
 }
 
 /* Export / render result dialog (resultui.js). */
-.result-dialog { max-width: 520px; background: #1d2024; box-shadow: 0 18px 60px rgba(0, 0, 0, 0.55); }
-.result-dialog h3 { margin: 0 0 8px; }
-.result-dialog p { margin: 0 0 8px; line-height: 1.45; }
-.result-ok { color: #6fcf8f; }
-.result-failed { color: #f07b7b; }
+.result-dialog { max-width: 520px; }
+.result-dialog p { margin: 0; line-height: 1.45; }
 .result-path { word-break: break-all; opacity: 0.8; user-select: text; }
 .result-backdrop { z-index: 2100; }
 .modal .small.warn { color: #e8b04a; }
@@ -4176,4 +4175,70 @@ body.drop-open::after {
 }
 .dialog-foot[hidden] {
   display: none;
+}
+
+/* Dialogs on the shared components (step 2 of the interface migration). */
+.checklist .ui-check {
+  display: flex;
+  padding: 2px 0;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.checklist .ui-check span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.checklist-actions {
+  display: flex;
+  gap: var(--space-1);
+  margin-top: var(--space-1);
+}
+.dialog-body .checks {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: var(--space-2) 0 0;
+}
+.dialog-body .modal-columns {
+  gap: var(--space-4);
+}
+.autorig-imports {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.choice-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+.choice-stack .ui-btn {
+  justify-content: flex-start;
+}
+.result-dialog .dialog-head h3 {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.result-dialog.result-ok .dialog-head h3 svg {
+  color: var(--success);
+}
+.result-dialog.result-failed .dialog-head h3 svg {
+  color: var(--danger);
+}
+.ai-row .ui-btn {
+  flex: none;
+  text-decoration: none;
+}
+.demo-license .ui-btn {
+  flex: none;
+}
+.ui-field-value > select,
+.ui-field-value > input[type='text'] {
+  min-width: 0;
+  max-width: 100%;
+  text-overflow: ellipsis;
+}
+.ui-fields {
+  min-width: 0;
 }

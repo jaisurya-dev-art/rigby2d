@@ -165,14 +165,23 @@ export function hint(text, { docs = null, tone = 'muted' } = {}) {
   );
 }
 
+/** The close button of a dialog or window (the ✕ in its header). */
+export function closeButton(onclick) {
+  return h('button', { type: 'button', class: 'dialog-close', title: tooltip(t('Close'), 'Esc'), 'aria-label': t('Close'), onclick }, uiIcon('x'));
+}
+
 /**
  * A modal dialog: header (title, optional one-line subtitle, close button), body, optional footer.
  * Escape, the close button and a click outside close it; with several open, Escape closes the top
  * one. `footer` is a list of buttons, laid out on the right (secondary first, primary last).
+ * `backdropClass: 'result-backdrop'` stacks it above other dialogs (results and questions that
+ * come up while a dialog is open).
+ * `bare: true` leaves out the header, body and footer, for a screen with its own layout (the
+ * welcome screen): put its content in `el`, and its own close button calls `close`.
  * Returns { el, body, footer, close, setFooter }.
  */
-export function dialog({ title, subtitle = null, className = '', onClose = null, footer = null, closeOnBackdrop = true } = {}) {
-  const overlay = h('div', { class: 'modal-backdrop' });
+export function dialog({ title, subtitle = null, className = '', onClose = null, footer = null, closeOnBackdrop = true, backdropClass = '', role = 'dialog', bare = false } = {}) {
+  const overlay = h('div', { class: `modal-backdrop ${backdropClass}`.trim() });
   const close = () => {
     if (!overlay.isConnected) return;
     overlay.remove();
@@ -193,18 +202,20 @@ export function dialog({ title, subtitle = null, className = '', onClose = null,
     foot.hidden = !foot.childElementCount;
   };
   setFooter(footer);
-  const el = h(
-    'div',
-    { class: `modal dialog ${className}`.trim(), role: 'dialog', 'aria-modal': 'true', 'aria-label': title },
-    h(
-      'header',
-      { class: 'dialog-head' },
-      h('div', { class: 'dialog-titles' }, h('h3', null, title), subtitle ? h('p', { class: 'dialog-sub' }, subtitle) : null),
-      h('button', { type: 'button', class: 'dialog-close', title: tooltip(t('Close'), 'Esc'), 'aria-label': t('Close'), onclick: close }, uiIcon('x')),
-    ),
-    body,
-    foot,
-  );
+  const el = bare
+    ? h('div', { class: `modal ${className}`.trim(), role, 'aria-modal': 'true', 'aria-label': title })
+    : h(
+        'div',
+        { class: `modal dialog ${className}`.trim(), role, 'aria-modal': 'true', 'aria-label': title },
+        h(
+          'header',
+          { class: 'dialog-head' },
+          h('div', { class: 'dialog-titles' }, h('h3', null, title), subtitle ? h('p', { class: 'dialog-sub' }, subtitle) : null),
+          closeButton(close),
+        ),
+        body,
+        foot,
+      );
   if (closeOnBackdrop) overlay.addEventListener('pointerdown', (e) => e.target === overlay && close());
   overlay.append(el);
   document.addEventListener('keydown', onKey, true);

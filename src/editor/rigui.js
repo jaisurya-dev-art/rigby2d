@@ -10,29 +10,9 @@ import { Images } from './images.js';
 import * as io from './io.js';
 import * as log from './log.js';
 import * as platform from './platform.js';
-import { h } from './widgets.js';
+import { h, popupMenu } from './widgets.js';
+import { button, checkbox, dialog, fieldRow, fields, hint } from './ui.js';
 import { t } from './i18n.js';
-
-/** A modal dialog; returns { body, close }. Escape closes it. */
-function modal(title, wide = false) {
-  const overlay = h('div', { class: 'modal-backdrop' });
-  const body = h('div', { class: `modal${wide ? ' modal-wide' : ''}` });
-  overlay.append(body);
-  const onKey = (e) => {
-    if (e.key === 'Escape') {
-      e.stopPropagation();
-      close();
-    }
-  };
-  const close = () => {
-    overlay.remove();
-    document.removeEventListener('keydown', onKey, true);
-  };
-  document.addEventListener('keydown', onKey, true);
-  document.body.append(overlay);
-  body.dataset.title = title;
-  return { body, close };
-}
 
 /** Replaces the dialog's content; empty parts (null) are left out. */
 const fillWith = (body) => (...children) => body.replaceChildren(...children.filter(Boolean));
@@ -59,7 +39,11 @@ const ROLE_LABELS = { upperarm: 'upper arm', forearm: 'forearm', arm: 'arm (whol
 
 /** File ▸ AutoRig: identify the layers of imported artwork and build the rig. */
 export function openAutoRig(app) {
-  const { body, close } = modal(t('AutoRig'), true);
+  const { body, close, setFooter } = dialog({
+    title: t('AutoRig'),
+    subtitle: t('Builds bones, meshes and IK from layers named or placed like body parts. Everything stays editable, and Undo reverts it.'),
+    className: 'modal-wide autorig-dialog',
+  });
   const fill = fillWith(body);
   const choice = { roles: {}, sides: {}, meshes: 'deforming', ik: true };
 
@@ -104,11 +88,6 @@ export function openAutoRig(app) {
     } catch (e) {
       problem = log.errorMessage(e);
     }
-    const intro = h(
-      'p',
-      { class: 'weak' },
-      t('AutoRig identifies each layer from its name (head, torso, arm_l, upperarm_r, hand, leg, eye, tail…) or its position, places joints where the parts meet, and builds bones, meshes and IK. Check the roles below, then generate. Everything it makes stays editable, and Undo reverts it.'),
-    );
     const rows = parts?.map((p) =>
       h(
         'tr',
@@ -132,8 +111,8 @@ export function openAutoRig(app) {
           select(
             [
               ['', '—'],
-              ['l', 'left'],
-              ['r', 'right'],
+              ['l', t('left')],
+              ['r', t('right')],
             ],
             (p.name in choice.sides ? choice.sides[p.name] : p.side) ?? '',
             (v) => {
@@ -142,49 +121,58 @@ export function openAutoRig(app) {
             },
           ),
         ),
-        h('td', { class: 'weak' }, { name: 'name', position: 'position', manual: 'you' }[p.from] ?? '?'),
+        h('td', { class: 'weak' }, { name: t('name'), position: t('position'), manual: t('you') }[p.from] ?? '?'),
       ),
     );
+    const imports = (again) => [
+      ['psd', again ? t('Start over from a PSD…') : t('Import PSD…')],
+      ['svg', again ? t('Start over from an SVG…') : t('Import SVG…')],
+      ['png', again ? t('Start over from PNGs…') : t('Import PNGs…')],
+    ];
+    const ready = !!parts?.length;
     fill(
-      h('h3', null, t('AutoRig')),
-      intro,
-      problem
-        ? h('p', null, problem)
-        : !parts?.length
-          ? h('p', null, t('Import layered artwork first: a PSD or SVG with one layer per body part, or one PNG per part, all exported at the same canvas size so each lands where it was drawn.'))
-          : h('div', { class: 'autorig-table', 'data-tut': 'autorig:parts' }, h('table', null, h('thead', null, h('tr', null, h('th', null, t('Layer')), h('th', null, t('Part')), h('th', null, t('Side')), h('th', null, t('Found by')))), h('tbody', null, rows))),
-      parts?.length
-        ? h(
-            'div',
-            { class: 'modal-columns' },
-            h(
-              'label',
-              null,
-              t('Meshes '),
+      problem ? hint(problem, { tone: 'danger' }) : null,
+      !problem && !ready ? hint(t('Import layered artwork first: a PSD or SVG with one layer per body part, or one PNG per part, all exported at the same canvas size so each lands where it was drawn.'), { docs: 'autorig' }) : null,
+      !problem && !ready ? h('div', { class: 'autorig-imports' }, imports(false).map(([kind, label]) => button(label, { onclick: importArt(kind) }))) : null,
+      ready
+        ? h('div', { class: 'autorig-table', 'data-tut': 'autorig:parts' }, h('table', null, h('thead', null, h('tr', null, h('th', null, t('Layer')), h('th', null, t('Part')), h('th', null, t('Side')), h('th', null, t('Found by')))), h('tbody', null, rows)))
+        : null,
+      ready
+        ? fields(
+            ...fieldRow(
+              t('Meshes'),
               select(
                 [
-                  ['deforming', 'for bending parts'],
-                  ['all', 'for every part'],
-                  ['none', 'none'],
+                  ['deforming', t('For bending parts')],
+                  ['all', t('For every part')],
+                  ['none', t('None')],
                 ],
                 choice.meshes,
                 (v) => (choice.meshes = v),
               ),
             ),
-            h('label', null, h('input', { type: 'checkbox', checked: choice.ik, onchange: (e) => (choice.ik = e.target.checked) }), ' IK for arms and legs'),
+            ...fieldRow('', checkbox(t('IK for arms and legs'), choice.ik, (on) => (choice.ik = on))),
           )
         : null,
-      h(
-        'div',
-        { class: 'modal-buttons' },
-        h('button', { onclick: importArt('psd') }, parts?.length || problem ? t('Start over from a PSD…') : t('Import PSD…')),
-        h('button', { onclick: importArt('svg') }, parts?.length || problem ? t('Start over from an SVG…') : t('Import SVG…')),
-        h('button', { onclick: importArt('png') }, parts?.length || problem ? t('Start over from PNGs…') : t('Import PNGs…')),
-        h('span', { class: 'float-spacer' }),
-        h('button', { onclick: close }, t('Cancel')),
-        h('button', { class: 'primary', 'data-tut': 'autorig:generate', disabled: !parts?.length, onclick: generate }, t('Generate rig')),
-      ),
+      ready ? hint(t('Check the part and side of each layer, then generate.'), { docs: 'autorig' }) : null,
     );
+    const generateButton = button(t('Generate rig'), { kind: 'primary', disabled: !ready, onclick: generate });
+    generateButton.dataset.tut = 'autorig:generate';
+    setFooter([
+      ready || problem
+        ? button(t('Start over'), {
+            kind: 'ghost',
+            icon: 'chevron-down',
+            onclick: (e) => {
+              const r = e.currentTarget.getBoundingClientRect();
+              popupMenu(r.left, r.bottom + 4, imports(true).map(([kind, label]) => ({ label, action: importArt(kind) })));
+            },
+          })
+        : null,
+      h('span', { class: 'float-spacer' }),
+      button(t('Cancel'), { onclick: () => close() }),
+      generateButton,
+    ]);
   };
   draw();
 }
@@ -206,7 +194,11 @@ export async function openRetarget(app) {
     app.setStatus(`${picked.path} has no animations to retarget`);
     return;
   }
-  const { body, close } = modal(t('Retarget'), true);
+  const { body, close, setFooter } = dialog({
+    title: t('Retarget from {file}', { file: picked.path.split(/[\\/]/).pop() }),
+    subtitle: t('Bones are matched by name, then by body part, and movement is scaled to this character.'),
+    className: 'modal-wide retarget-dialog',
+  });
   const fill = fillWith(body);
   const choice = { animations: new Set([source.animations[0].name]), mode: 'relative', scale: null, mapping: {}, replace: false };
   const target = app.doc;
@@ -256,62 +248,44 @@ export async function openRetarget(app) {
               draw();
             }),
           ),
-          h('td', { class: 'weak' }, p ? p.how : 'not matched'),
+          h('td', { class: 'weak' }, p ? p.how : t('not matched')),
         );
       });
     const clash = [...choice.animations].filter((n) => target.animations.some((a) => a.name === n));
     fill(
-      h('h3', null, t('Retarget from {file}', { file: picked.path.split(/[\\/]/).pop() })),
-      h('p', { class: 'weak' }, t('Bones are matched by name, then by body part. Movement is scaled to this character\'s size. Check the matches of the animated bones below.')),
       h(
         'div',
         { class: 'modal-columns' },
         h(
           'div',
           null,
-          h('strong', null, t('Animations')),
+          h('div', { class: 'ui-field-label' }, t('Animations')),
           h(
             'div',
             { class: 'checklist' },
             source.animations.map((a) =>
-              h(
-                'label',
-                null,
-                h('input', {
-                  type: 'checkbox',
-                  checked: choice.animations.has(a.name),
-                  onchange: (e) => {
-                    if (e.target.checked) choice.animations.add(a.name);
-                    else choice.animations.delete(a.name);
-                    draw();
-                  },
-                }),
-                ` ${a.name}`,
-              ),
+              checkbox(a.name, choice.animations.has(a.name), (on) => {
+                if (on) choice.animations.add(a.name);
+                else choice.animations.delete(a.name);
+                draw();
+              }),
             ),
           ),
         ),
-        h(
-          'div',
-          null,
-          h('strong', null, t('Options')),
-          h(
-            'p',
-            null,
-            t('Rotations '),
+        fields(
+          ...fieldRow(
+            t('Rotations'),
             select(
               [
-                ['relative', 'relative to each rest pose'],
-                ['world', 'match world directions'],
+                ['relative', t('Relative to each rest pose')],
+                ['world', t('Match world directions')],
               ],
               choice.mode,
               (v) => (choice.mode = v),
             ),
           ),
-          h(
-            'p',
-            null,
-            t('Movement scale '),
+          ...fieldRow(
+            t('Movement scale'),
             h('input', {
               type: 'number',
               step: '0.05',
@@ -320,20 +294,18 @@ export async function openRetarget(app) {
               value: (choice.scale ?? auto).toFixed(2),
               onchange: (e) => (choice.scale = Number(e.target.value) > 0 ? Number(e.target.value) : null),
             }),
-            h('span', { class: 'weak' }, ` (auto ${auto.toFixed(2)})`),
+            h('span', { class: 'ui-field-label' }, t('auto {scale}', { scale: auto.toFixed(2) })),
           ),
-          clash.length ? h('label', null, h('input', { type: 'checkbox', checked: choice.replace, onchange: (e) => (choice.replace = e.target.checked) }), ' ' + t('Replace {names}', { names: clash.join(', ') })) : null,
+          ...(clash.length ? fieldRow('', checkbox(t('Replace {names}', { names: clash.join(', ') }), choice.replace, (on) => ((choice.replace = on), draw()))) : []),
         ),
       ),
       h('div', { class: 'autorig-table' }, h('table', null, h('thead', null, h('tr', null, h('th', null, t('Source bone')), h('th', null, t('This character')), h('th', null, t('Matched by')))), h('tbody', null, rows))),
-      unmapped.some((i) => keyed.has(i)) ? h('p', { class: 'weak' }, t('Keys of unmatched bones are left out.')) : null,
-      h(
-        'div',
-        { class: 'modal-buttons' },
-        h('button', { onclick: close }, t('Cancel')),
-        h('button', { class: 'primary', disabled: !choice.animations.size || (clash.length > 0 && !choice.replace), onclick: run }, t('Retarget')),
-      ),
+      unmapped.some((i) => keyed.has(i)) ? hint(t('Keys of unmatched bones are left out.')) : null,
     );
+    setFooter([
+      button(t('Cancel'), { onclick: () => close() }),
+      button(t('Retarget'), { kind: 'primary', disabled: !choice.animations.size || (clash.length > 0 && !choice.replace), onclick: run }),
+    ]);
   };
   draw();
 }

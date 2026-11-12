@@ -8,6 +8,7 @@ import { describeOutput } from './output.js';
 import * as platform from './platform.js';
 import { FORMATS, canEncodeVideo, frameRange, renderJob, renderMerged } from './render/offline.js';
 import { h, select } from './widgets.js';
+import { button, checkbox, dialog, fieldRow, fields, hint } from './ui.js';
 import { pausePlayback, showResult } from './resultui.js';
 import { mixWav } from './audio.js';
 import { clipTracks } from './actors.js';
@@ -44,49 +45,34 @@ export function openRenderDialog(app) {
   };
   let running = null;
 
-  const overlay = h('div', { class: 'modal-backdrop' });
-  const body = h('div', { class: 'modal' });
-  overlay.append(body);
-  const close = () => {
-    if (running) running.cancelled = true;
-    overlay.remove();
-    document.removeEventListener('keydown', onKey, true);
-  };
-  const onKey = (e) => {
-    if (e.key === 'Escape' && !running) {
-      e.stopPropagation();
-      close();
-    }
-  };
-  document.addEventListener('keydown', onKey, true);
+  // Closing while rendering cancels the render.
+  const { body, close, setFooter } = dialog({
+    title: t('Render animation'),
+    subtitle: `${describeOutput(s)} · ${s.background ? t('background color') : t('transparent background')} · ${s.frame ? t('fixed framing') : t('framing fits each animation')}`,
+    className: 'render-dialog',
+    closeOnBackdrop: false,
+    onClose: () => {
+      if (running) running.cancelled = true;
+    },
+  });
 
   const checkList = (items, set, label) =>
     h(
       'div',
       { class: 'checklist' },
       items.map(([value, text]) =>
-        h(
-          'label',
-          null,
-          h('input', {
-            type: 'checkbox',
-            checked: set.has(value),
-            onchange: (e) => {
-              if (e.target.checked) set.add(value);
-              else set.delete(value);
-              draw();
-            },
-          }),
-          ` ${text}`,
-        ),
+        checkbox(text, set.has(value), (on) => {
+          if (on) set.add(value);
+          else set.delete(value);
+          draw();
+        }),
       ),
       items.length > 1
         ? h(
             'div',
-            { class: 'small' },
-            h('a', { href: '#', onclick: (e) => (e.preventDefault(), items.forEach(([v]) => set.add(v)), draw()) }, t('All {items}', { items: label })),
-            ' · ',
-            h('a', { href: '#', onclick: (e) => (e.preventDefault(), set.clear(), draw()) }, t('None')),
+            { class: 'checklist-actions' },
+            button(t('All {items}', { items: label }), { kind: 'ghost', size: 'sm', onclick: () => (items.forEach(([v]) => set.add(v)), draw()) }),
+            button(t('None'), { kind: 'ghost', size: 'sm', onclick: () => (set.clear(), draw()) }),
           )
         : null,
     );
@@ -113,16 +99,11 @@ export function openRenderDialog(app) {
     const range = single ? frameRange(doc, single.animation, s.fps, single.start, single.end) : null;
     const video = choice.format !== 'png';
     const parts = [
-      h('h3', null, t('Render animation')),
-      h('div', { class: 'small weak' }, `${describeOutput(s)} · ${s.background ? t('background color') : t('transparent background')} · ${s.frame ? t('fixed framing') : t('framing fits each animation')}. ${t("Change these in the project's Output settings.")}`),
-      h('div', { class: 'modal-columns' }, h('div', null, h('strong', null, t('Animations')), checkList(doc.animations.map((a, i) => [i, a.name]), choice.animations, 'animations')), doc.skins.length ? h('div', null, h('strong', null, t('Skins')), checkList([['', 'default'], ...doc.skins.map((k) => [k.name, k.name])], choice.skins, 'skins')) : null),
-      h(
-        'div',
-        { class: 'grid' },
-        h('label', null, t('Format')),
-        h(
-          'div',
-          { class: 'cell' },
+      hint(t("Change these in the project's Output settings.")),
+      h('div', { class: 'modal-columns' }, h('div', null, h('div', { class: 'ui-field-label' }, t('Animations')), checkList(doc.animations.map((a, i) => [i, a.name]), choice.animations, 'animations')), doc.skins.length ? h('div', null, h('div', { class: 'ui-field-label' }, t('Skins')), checkList([['', 'default'], ...doc.skins.map((k) => [k.name, k.name])], choice.skins, 'skins')) : null),
+      fields(
+        ...fieldRow(
+          t('Format'),
           select(
             FORMATS.map(([v, label]) => [v, v !== 'png' && !canEncodeVideo() ? t('{format} (not available here)', { format: t(label) }) : t(label)]),
             choice.format,
@@ -132,51 +113,41 @@ export function openRenderDialog(app) {
             },
           ),
         ),
-        video ? h('label', null, t('Quality')) : null,
-        video
-          ? h(
-              'div',
-              { class: 'cell' },
+        ...(video
+          ? fieldRow(
+              t('Quality'),
               select(QUALITIES.map(([id, label]) => [id, t(label)]), choice.quality, (v) => {
                 choice.quality = v;
                 draw();
               }),
             )
-          : null,
-        single ? h('label', null, t('Frames')) : null,
-        single
-          ? h(
-              'div',
-              { class: 'cell' },
+          : []),
+        ...(single
+          ? fieldRow(
+              t('Frames'),
               numberInput(range.start, 0, range.last, (v) => ((choice.start = v), draw())),
-              ' to ',
+              h('span', { class: 'ui-field-label' }, t('to')),
               numberInput(range.end, 0, range.last, (v) => ((choice.end = v), draw())),
-              h('span', { class: 'small weak' }, ` of 0–${range.last}`),
+              h('span', { class: 'ui-field-label' }, `0–${range.last}`),
             )
-          : null,
+          : []),
       ),
       video && list.length > 1
-        ? h(
-            'label',
-            { class: 'small' },
-            h('input', {
-              type: 'checkbox',
-              checked: choice.merge,
-              onchange: (e) => {
-                choice.merge = e.target.checked;
-                draw();
-              },
-            }),
-            ' ' + t('Merge into one video (the {count} renders back to back)', { count: list.length }),
-          )
+        ? checkbox(t('Merge into one video (the {count} renders back to back)', { count: list.length }), choice.merge, (on) => {
+            choice.merge = on;
+            draw();
+          })
         : null,
-      choice.format === 'mp4' && !s.background ? h('div', { class: 'small weak' }, t('MP4 has no transparency: the background is black. Pick a background color in Output, or render WebM or PNG for transparency.')) : null,
-      h('div', { class: 'small' }, list.length ? (merged(list) ? t('1 video') : t('{count} render(s)', { count: list.length })) + ', ' + t('{count} frame(s) in all.', { count: frames }) : t('Pick at least one animation and skin.')),
+      choice.format === 'mp4' && !s.background ? hint(t('MP4 has no transparency: the background is black. Pick a background color in Output, or render WebM or PNG for transparency.'), { tone: 'warning' }) : null,
+      hint(list.length ? (merged(list) ? t('1 video') : t('{count} render(s)', { count: list.length })) + ', ' + t('{count} frame(s) in all.', { count: frames }) : t('Pick at least one animation and skin.')),
       running ? h('div', { class: 'progress' }, h('div', { class: 'bar', style: { width: `${Math.round(running.fraction * 100)}%` } })) : null,
-      running ? h('div', { class: 'small' }, running.text) : null,
-      h('div', { class: 'modal-buttons' }, h('button', { onclick: close }, running ? t('Cancel') : t('Close')), h('button', { class: 'primary', disabled: !list.length || !!running, onclick: () => start(list) }, t('Render…'))),
+      running ? hint(running.text) : null,
     ];
     body.replaceChildren(...parts.filter(Boolean));
+    setFooter([
+      button(running ? t('Cancel') : t('Close'), { onclick: () => (running ? (running.cancelled = true) : close()) }),
+      button(t('Render…'), { kind: 'primary', disabled: !list.length || !!running, onclick: () => start(list) }),
+    ]);
   }
 
   /** Several video renders merged into one file. */
@@ -294,7 +265,6 @@ export function openRenderDialog(app) {
   }
 
   draw();
-  document.body.append(overlay);
 }
 
 function numberInput(value, min, max, onChange) {

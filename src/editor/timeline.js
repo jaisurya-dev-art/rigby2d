@@ -11,6 +11,7 @@ import { FPS, Mode, selBone, selSlot, snap } from './app.js';
 import * as edit from './edit.js';
 import { clearSpan, findTrack, makeClipboard, pasteClipboard, planPaste, previewKeys, trackRef } from './keyclip.js';
 import { dragValue, h, popupMenu, select, textField } from './widgets.js';
+import { button, dialog } from './ui.js';
 // The dopesheet's row order and key-selection-by-index live in keyorder.js (core-only, so the
 // selection round trip can be tested in Node). Re-exported here so the windows import them as before.
 import { tracks, trackKeys } from './keyorder.js';
@@ -609,39 +610,22 @@ function applyPaste(app, anim, pasteTime, opts) {
 
 /** Asks how to handle a paste that overflows the animation: extend, paste what fits, or cancel. */
 function overflowDialog(extraFrames, actions) {
-  const overlay = h('div', { class: 'modal-backdrop' });
-  const onKey = (e) => {
-    if (e.key === 'Escape') {
-      e.stopPropagation();
-      close();
-      actions.cancel();
-    }
-  };
-  const close = () => {
-    overlay.remove();
-    document.removeEventListener('keydown', onKey, true);
-  };
+  let chosen = actions.cancel;
   const choose = (fn) => () => {
+    chosen = fn;
     close();
-    fn();
   };
-  overlay.append(
-    h(
-      'div',
-      { class: 'modal' },
-      h('h3', null, t('Paste runs past the end')),
-      h('p', null, t("The pasted keys extend {count} frame(s) beyond the animation's length.", { count: extraFrames })),
-      h(
-        'div',
-        { class: 'modal-buttons' },
-        h('button', { onclick: choose(actions.cancel) }, t('Cancel')),
-        h('button', { onclick: choose(actions.clip) }, t('Paste what fits')),
-        h('button', { class: 'primary', onclick: choose(actions.expand) }, t('Extend by {count} frame(s)', { count: extraFrames })),
-      ),
-    ),
-  );
-  document.addEventListener('keydown', onKey, true);
-  document.body.append(overlay);
+  const { body, close } = dialog({
+    title: t('Paste runs past the end'),
+    className: 'choice-dialog',
+    onClose: () => chosen(),
+    footer: [
+      button(t('Cancel'), { onclick: choose(actions.cancel) }),
+      button(t('Paste what fits'), { onclick: choose(actions.clip) }),
+      button(t('Extend by {count} frame(s)', { count: extraFrames }), { kind: 'primary', onclick: choose(actions.expand) }),
+    ],
+  });
+  body.append(h('p', null, t("The pasted keys extend {count} frame(s) beyond the animation's length.", { count: extraFrames })));
 }
 
 function keyFill(selected, curve) {

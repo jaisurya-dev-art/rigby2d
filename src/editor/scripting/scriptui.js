@@ -7,6 +7,7 @@ import { makeDraggable, openLogWindow } from '../logwindow.js';
 import { isDesktop, openExternal, pickImportFiles } from '../platform.js';
 import { t } from '../i18n.js';
 import { h, submenuItem } from '../widgets.js';
+import { closeButton } from '../ui.js';
 import { ScriptHost } from './host.js';
 
 const STORAGE = 'rigby.scripts';
@@ -325,7 +326,7 @@ function scriptEditor(scripts) {
     el.remove();
     scripts.window = null;
   };
-  const header = h('div', { class: 'float-header' }, h('b', null, t('Script editor')), h('span', { class: 'float-spacer' }), h('button', { title: t('Close'), onclick: close }, '✕'));
+  const header = h('div', { class: 'float-header' }, h('b', null, t('Script editor')), h('span', { class: 'float-spacer' }), closeButton(close));
   const el = h(
     'div',
     { class: 'float-window script-window' },

@@ -11,6 +11,7 @@ import { newScene } from './sceneui.js';
 import { engineIcon, icon } from './icons.js';
 import { COMMUNITY_URL, DEVLOG_URL, cachedNews, fetchNews, isNew, markSeen } from './news.js';
 import { h } from './widgets.js';
+import { checkbox, closeButton, dialog } from './ui.js';
 import markUrl from '../../branding/rigby2d-mark.svg?url';
 
 /** Game starters, made by the website build (site/vite.config.js) from runtimes/phaser/starter. */
@@ -25,18 +26,7 @@ export const STARTERS = [
 ];
 
 export function openWelcome(app, { tutorials, whatsNew, onClose } = {}) {
-  const overlay = h('div', { class: 'modal-backdrop welcome-backdrop' });
-  const close = () => {
-    overlay.remove();
-    document.removeEventListener('keydown', onKey, true);
-    onClose?.();
-  };
-  const onKey = (e) => {
-    if (e.key === 'Escape') {
-      e.stopPropagation();
-      close();
-    }
-  };
+  const { el, close } = dialog({ title: t('Welcome to Rigby2D'), className: 'welcome', backdropClass: 'welcome-backdrop', bare: true, onClose });
   const run = (fn) => async () => {
     close();
     await fn();
@@ -114,13 +104,9 @@ export function openWelcome(app, { tutorials, whatsNew, onClose } = {}) {
     markSeen(news?.updated);
   });
 
-  const show = h('input', { type: 'checkbox', checked: app.prefs.get('general.welcome'), onchange: (e) => app.prefs.set('general.welcome', e.target.checked) });
+  const show = checkbox(t('Show this at startup'), app.prefs.get('general.welcome'), (on) => app.prefs.set('general.welcome', on));
 
-  overlay.addEventListener('pointerdown', (e) => e.target === overlay && close());
-  overlay.append(
-    h(
-      'div',
-      { class: 'modal welcome', role: 'dialog', 'aria-label': t('Welcome to Rigby2D') },
+  el.append(
       h(
         'aside',
         { class: 'welcome-side' },
@@ -140,7 +126,7 @@ export function openWelcome(app, { tutorials, whatsNew, onClose } = {}) {
       h(
         'main',
         { class: 'welcome-main' },
-        h('header', { class: 'welcome-head' }, h('h2', null, t('Welcome to Rigby2D')), h('button', { class: 'dialog-close', 'aria-label': t('Close'), title: t('Close (Esc)'), onclick: close }, '✕')),
+        h('header', { class: 'welcome-head' }, h('h2', null, t('Welcome to Rigby2D')), closeButton(close)),
         h(
           'button',
           { class: 'welcome-community', onclick: () => openExternal(COMMUNITY_URL) },
@@ -153,12 +139,9 @@ export function openWelcome(app, { tutorials, whatsNew, onClose } = {}) {
         h('div', { class: 'welcome-recents' }, ...recentList),
         h('h4', null, t('Starter projects')),
         h('div', { class: 'welcome-cards' }, ...starters),
-        h('footer', { class: 'welcome-foot' }, h('label', null, show, ` ${t('Show this at startup')}`), isDesktop ? null : h('small', { class: 'weak' }, t('Tip: the desktop app adds backups, detachable panels and auto-update.'))),
+        h('footer', { class: 'welcome-foot' }, show, isDesktop ? null : h('small', { class: 'weak' }, t('Tip: the desktop app adds backups, detachable panels and auto-update.'))),
       ),
-    ),
   );
-  document.addEventListener('keydown', onKey, true);
-  document.body.append(overlay);
-  overlay.querySelector('.welcome-action')?.focus();
+  el.querySelector('.welcome-action')?.focus();
   return close;
 }

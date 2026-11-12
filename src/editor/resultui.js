@@ -4,42 +4,37 @@
 
 import * as platform from './platform.js';
 import { h } from './widgets.js';
+import { button, dialog, uiIcon } from './ui.js';
 import { t } from './i18n.js';
 
 /**
  * Shows the outcome of an export or render. `ok`: whether it worked; `title`: e.g. 'Sprite sheet
- * exported'; `detail`: one or two sentences; `path`: the file or folder written, if any.
+ * exported'; `detail`: one or two sentences; `path`: the file or folder written, if any. Enter or
+ * Escape closes it.
  */
 export function showResult(app, { ok, title, detail = '', path = null }) {
   app.setStatus(`${title}${detail ? `: ${detail}` : ''}`);
-  const overlay = h('div', { class: 'modal-backdrop result-backdrop' });
-  const close = () => {
-    overlay.remove();
-    document.removeEventListener('keydown', onKey, true);
-  };
   const onKey = (e) => {
-    if (e.key === 'Escape' || e.key === 'Enter') {
-      e.preventDefault();
-      e.stopPropagation();
-      close();
-    }
+    if (e.key !== 'Enter') return;
+    e.preventDefault();
+    close();
   };
-  const reveal = ok && path && platform.isDesktop
-    ? h('button', { onclick: () => platform.revealPath(path).catch((e) => app.setStatus(t('Could not open the folder: {error}', { error: e?.message ?? e }))) }, t('Show in folder'))
-    : null;
-  overlay.append(
-    h(
-      'div',
-      { class: 'modal result-dialog', role: 'alertdialog', 'aria-labelledby': 'result-title' },
-      h('h3', { id: 'result-title', class: ok ? 'result-ok' : 'result-failed' }, ok ? '✓ ' : '✕ ', title),
-      detail ? h('p', null, detail) : null,
-      path ? h('p', { class: 'small result-path' }, path) : null,
-      h('div', { class: 'modal-buttons' }, reveal, h('button', { class: 'primary', onclick: close }, 'OK')),
-    ),
-  );
-  document.body.append(overlay);
+  const reveal =
+    ok && path && platform.isDesktop
+      ? button(t('Show in folder'), { icon: 'folder-open', onclick: () => platform.revealPath(path).catch((e) => app.setStatus(t('Could not open the folder: {error}', { error: e?.message ?? e }))) })
+      : null;
+  const { el, body, footer, close } = dialog({
+    title,
+    className: `result-dialog ${ok ? 'result-ok' : 'result-failed'}`,
+    backdropClass: 'result-backdrop',
+    role: 'alertdialog',
+    footer: [reveal, button(t('Close'), { kind: 'primary', onclick: () => close() })],
+    onClose: () => document.removeEventListener('keydown', onKey, true),
+  });
+  el.querySelector('.dialog-head h3').prepend(uiIcon(ok ? 'check' : 'triangle-alert'));
+  body.append(...[detail ? h('p', null, detail) : null, path ? h('p', { class: 'small result-path' }, path) : null].filter(Boolean));
   document.addEventListener('keydown', onKey, true);
-  overlay.querySelector('button.primary')?.focus();
+  footer.querySelector('.ui-btn-primary')?.focus();
 }
 
 /**
@@ -48,33 +43,30 @@ export function showResult(app, { ok, title, detail = '', path = null }) {
  */
 export function askChoice({ title, detail = '', list = [], choices }) {
   return new Promise((resolve) => {
-    const overlay = h('div', { class: 'modal-backdrop result-backdrop' });
-    const done = (value) => {
-      overlay.remove();
-      document.removeEventListener('keydown', onKey, true);
-      resolve(value);
+    let answer = null;
+    const pick = (value) => () => {
+      answer = value;
+      close();
     };
-    const onKey = (e) => {
-      if (e.key === 'Escape') {
-        e.preventDefault();
-        e.stopPropagation();
-        done(null);
-      }
-    };
-    overlay.append(
-      h(
-        'div',
-        { class: 'modal result-dialog', role: 'dialog', 'aria-labelledby': 'choice-title' },
-        h('h3', { id: 'choice-title' }, title),
+    // More than two answers stack as a list in the body (labels stay on one line); two sit in the footer.
+    const stacked = choices.length > 2;
+    const ordered = stacked ? choices : [...choices.filter((c) => !c.primary), ...choices.filter((c) => c.primary)];
+    const buttons = ordered.map((c) => button(c.label, { kind: c.primary ? 'primary' : 'secondary', onclick: pick(c.value) }));
+    const { body, close } = dialog({
+      title,
+      className: 'result-dialog',
+      backdropClass: 'result-backdrop',
+      footer: stacked ? null : buttons,
+      onClose: () => resolve(answer),
+    });
+    body.append(
+      ...[
         detail ? h('p', null, detail) : null,
         list.length ? h('ul', { class: 'small result-list' }, list.map((item) => h('li', null, item))) : null,
-        // More than two answers stack as a list (labels stay on one line).
-        h('div', { class: choices.length > 2 ? 'modal-buttons choice-stack' : 'modal-buttons' }, choices.map((c) => h('button', { class: c.primary ? 'primary' : null, onclick: () => done(c.value) }, c.label))),
-      ),
+        stacked ? h('div', { class: 'choice-stack' }, buttons) : null,
+      ].filter(Boolean),
     );
-    document.body.append(overlay);
-    document.addEventListener('keydown', onKey, true);
-    overlay.querySelector('button.primary')?.focus();
+    buttons.find((b) => b.classList.contains('ui-btn-primary'))?.focus();
   });
 }
 
@@ -84,35 +76,25 @@ export function askChoice({ title, detail = '', list = [], choices }) {
  */
 export function askText({ title, detail = '', value = '', okLabel = 'OK' }) {
   return new Promise((resolve) => {
-    const overlay = h('div', { class: 'modal-backdrop result-backdrop' });
+    let answer = null;
     const input = h('input', { type: 'text', value, spellcheck: false, style: { width: '100%' } });
-    const done = (result) => {
-      overlay.remove();
-      document.removeEventListener('keydown', onKey, true);
-      resolve(result);
+    const submit = () => {
+      answer = input.value.trim();
+      close();
     };
-    const onKey = (e) => {
-      if (e.key === 'Escape') {
-        e.preventDefault();
-        e.stopPropagation();
-        done(null);
-      } else if (e.key === 'Enter') {
-        e.preventDefault();
-        done(input.value.trim());
-      }
-    };
-    overlay.append(
-      h(
-        'div',
-        { class: 'modal result-dialog', role: 'dialog', 'aria-labelledby': 'text-title' },
-        h('h3', { id: 'text-title' }, title),
-        detail ? h('p', null, detail) : null,
-        input,
-        h('div', { class: 'modal-buttons' }, h('button', { onclick: () => done(null) }, t('Cancel')), h('button', { class: 'primary', onclick: () => done(input.value.trim()) }, t(okLabel))),
-      ),
-    );
-    document.body.append(overlay);
-    document.addEventListener('keydown', onKey, true);
+    input.addEventListener('keydown', (e) => {
+      if (e.key !== 'Enter') return;
+      e.preventDefault();
+      submit();
+    });
+    const { body, close } = dialog({
+      title,
+      className: 'result-dialog',
+      backdropClass: 'result-backdrop',
+      footer: [button(t('Cancel'), { onclick: () => close() }), button(t(okLabel), { kind: 'primary', onclick: submit })],
+      onClose: () => resolve(answer),
+    });
+    body.append(...[detail ? h('p', null, detail) : null, input].filter(Boolean));
     input.focus();
     input.select();
   });
@@ -126,17 +108,15 @@ export function askText({ title, detail = '', value = '', okLabel = 'OK' }) {
 export function askOption({ title, detail = '', options, value, okLabel = 'OK' }) {
   return new Promise((resolve) => {
     let selected = options.some((o) => o.value === value) ? value : options[0]?.value;
-    const overlay = h('div', { class: 'modal-backdrop result-backdrop' });
-    const done = (v) => {
-      overlay.remove();
-      document.removeEventListener('keydown', onKey, true);
-      resolve(v);
+    let answer = null;
+    const confirm = (v) => {
+      answer = v;
+      close();
     };
     const onKey = (e) => {
-      if (e.key === 'Escape' || e.key === 'Enter') {
+      if (e.key === 'Enter') {
         e.preventDefault();
-        e.stopPropagation();
-        done(e.key === 'Enter' ? selected : null);
+        confirm(selected);
       } else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
         e.preventDefault();
         const i = options.findIndex((o) => o.value === selected) + (e.key === 'ArrowDown' ? 1 : -1);
@@ -146,7 +126,7 @@ export function askOption({ title, detail = '', options, value, okLabel = 'OK' }
     const rows = options.map((o) =>
       h(
         'button',
-        { class: 'option-row', role: 'radio', onclick: () => select(o.value), ondblclick: () => done(o.value) },
+        { class: 'option-row', role: 'radio', onclick: () => select(o.value), ondblclick: () => confirm(o.value) },
         h('span', { class: 'option-dot' }),
         o.label,
       ),
@@ -158,20 +138,20 @@ export function askOption({ title, detail = '', options, value, okLabel = 'OK' }
         rows[i].setAttribute('aria-checked', String(o.value === v));
       });
     };
-    overlay.append(
-      h(
-        'div',
-        { class: 'modal result-dialog', role: 'dialog', 'aria-labelledby': 'option-title' },
-        h('h3', { id: 'option-title' }, title),
-        detail ? h('p', null, detail) : null,
-        h('div', { class: 'option-list', role: 'radiogroup' }, rows),
-        h('div', { class: 'modal-buttons' }, h('button', { onclick: () => done(null) }, t('Cancel')), h('button', { class: 'primary', onclick: () => done(selected) }, okLabel)),
-      ),
-    );
+    const { body, footer, close } = dialog({
+      title,
+      className: 'result-dialog',
+      backdropClass: 'result-backdrop',
+      footer: [button(t('Cancel'), { onclick: () => close() }), button(t(okLabel), { kind: 'primary', onclick: () => confirm(selected) })],
+      onClose: () => {
+        document.removeEventListener('keydown', onKey, true);
+        resolve(answer);
+      },
+    });
+    body.append(...[detail ? h('p', null, detail) : null, h('div', { class: 'option-list', role: 'radiogroup' }, rows)].filter(Boolean));
     select(selected);
-    document.body.append(overlay);
     document.addEventListener('keydown', onKey, true);
-    overlay.querySelector('button.primary')?.focus();
+    footer.querySelector('.ui-btn-primary')?.focus();
   });
 }
 

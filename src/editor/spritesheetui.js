@@ -8,6 +8,7 @@ import { dirname, joinPath } from './io.js';
 import * as platform from './platform.js';
 import { FORMATS, estimateSheet, frameCount } from './spritesheet.js';
 import { h, select } from './widgets.js';
+import { button, checkbox, dialog, fieldRow, fields, hint, section } from './ui.js';
 import { pausePlayback, showResult } from './resultui.js';
 import { t, tn } from './i18n.js';
 
@@ -45,128 +46,102 @@ export function openSpriteSheetDialog(app) {
   const choice = { ...last, animations: new Set(doc.animations.map((a) => a.name)), skin: doc.skin ?? '', name: safe(doc.name || 'sprites') };
   let running = null;
 
-  const overlay = h('div', { class: 'modal-backdrop' });
-  const body = h('div', { class: 'modal' });
-  overlay.append(body);
-  const close = () => {
-    running?.worker.terminate();
-    running = null;
-    overlay.remove();
-    document.removeEventListener('keydown', onKey, true);
-  };
-  const onKey = (e) => {
-    if (e.key === 'Escape') {
-      e.stopPropagation();
-      close();
-    }
-  };
-  document.addEventListener('keydown', onKey, true);
+  const { el, body, close, setFooter } = dialog({
+    title: t('Export sprite sheet'),
+    subtitle: t('Each animation rendered frame by frame, for engines and tools that play frames instead of bones.'),
+    className: 'spritesheet-dialog',
+    onClose: () => {
+      running?.worker.terminate();
+      running = null;
+    },
+  });
 
   const set = (key) => (v) => {
     choice[key] = v;
     draw();
   };
-  const check = (key, text) =>
-    h(
-      'label',
-      { class: 'small' },
-      h('input', {
-        type: 'checkbox',
-        checked: choice[key],
-        onchange: (e) => set(key)(e.target.checked),
-      }),
-      ` ${text}`,
-    );
+  const check = (key, text) => checkbox(text, choice[key], set(key));
 
   function draw() {
     const names = doc.animations.filter((a) => choice.animations.has(a.name));
     const frames = names.reduce((n, a) => n + frameCount(a.duration, choice.fps, choice.loop), 0);
     const sheet = choice.format === 'json';
     const pixelArt = doc.textureFilter === 'nearest' || doc.pixelGrid > 0;
-    const parts = [
-      h('h3', null, t('Export sprite sheet')),
-      h('div', { class: 'small weak' }, t('Each animation rendered frame by frame, for engines and tools that play frames instead of bones. Physics settles into loops first, so a loop joins up.')),
+    const animations = h(
+      'div',
+      null,
+      h('div', { class: 'ui-field-label' }, t('Animations')),
       h(
         'div',
-        { class: 'modal-columns' },
-        h(
-          'div',
-          null,
-          h('strong', null, t('Animations')),
-          h(
-            'div',
-            { class: 'checklist' },
-            doc.animations.map((a) =>
-              h(
-                'label',
-                null,
-                h('input', {
-                  type: 'checkbox',
-                  checked: choice.animations.has(a.name),
-                  onchange: (e) => {
-                    if (e.target.checked) choice.animations.add(a.name);
-                    else choice.animations.delete(a.name);
-                    draw();
-                  },
-                }),
-                ` ${a.name}`,
-              ),
-            ),
-            doc.animations.length > 1
-              ? h(
-                  'div',
-                  { class: 'small' },
-                  h('a', { href: '#', onclick: (e) => (e.preventDefault(), doc.animations.forEach((a) => choice.animations.add(a.name)), draw()) }, t('All animations')),
-                  ' · ',
-                  h('a', { href: '#', onclick: (e) => (e.preventDefault(), choice.animations.clear(), draw()) }, t('None')),
-                )
-              : null,
-          ),
-        ),
-        h(
-          'div',
-          { class: 'grid' },
-          h('label', null, t('Format')),
-          h('div', { class: 'cell' }, select(FORMATS.map(([id, label]) => [id, t(label)]), choice.format, set('format'))),
-          h('label', null, t('Frame rate')),
-          h('div', { class: 'cell' }, select(FPS.map((f) => [f, `${f} fps`]), choice.fps, (v) => set('fps')(Number(v)))),
-          h('label', null, t('Size')),
-          h('div', { class: 'cell' }, select(SCALES, choice.scale, (v) => set('scale')(Number(v)))),
-          doc.skins.length ? h('label', null, t('Skin')) : null,
-          doc.skins.length ? h('div', { class: 'cell' }, select([['', 'default'], ...doc.skins.map((k) => [k.name, k.name])], choice.skin, set('skin'))) : null,
-          sheet ? h('label', null, t('Layout')) : null,
-          sheet ? h('div', { class: 'cell' }, select(LAYOUTS.map(([id, label]) => [id, t(label)]), choice.layout, set('layout'))) : null,
-          sheet ? h('label', { title: t('The largest side of each sheet. Frames that do not fit go on more sheets.') }, t('Max sheet size')) : null,
-          sheet ? h('div', { class: 'cell' }, select(SIZES, choice.maxWidth, (v) => set('maxWidth')(Number(v)))) : null,
-          sheet ? h('label', null, t('Padding')) : null,
-          sheet
-            ? h(
-                'div',
-                { class: 'cell' },
-                h('input', {
-                  type: 'number',
-                  class: 'frame-input',
-                  min: 0,
-                  max: 32,
-                  value: choice.padding,
-                  onkeydown: (e) => e.stopPropagation(),
-                  onchange: (e) => set('padding')(Math.max(0, Math.min(32, Math.round(Number(e.target.value) || 0)))),
-                }),
-                h('span', { class: 'small weak' }, ' px'),
-              )
-            : null,
+        { class: 'checklist' },
+        doc.animations.map((a) =>
+          checkbox(a.name, choice.animations.has(a.name), (on) => {
+            if (on) choice.animations.add(a.name);
+            else choice.animations.delete(a.name);
+            draw();
+          }),
         ),
       ),
-      h('div', { class: 'checks' }, check('loop', t('Loops (leave out the last frame, which repeats the first)')), sheet ? check('trim', t('Trim empty space around each frame')) : null, sheet ? check('dedupe', t('Store identical frames once')) : null, sheet ? check('pot', t('Power-of-two sheet sizes (for engines and GPUs that need them)')) : null),
-      pixelArt ? h('div', { class: 'small weak' }, t('Pixel art: textures are set to Nearest, so frames are sampled crisp, without smoothing.')) : null,
-      choice.format === 'defold' ? h('div', { class: 'small weak' }, t('Put the {name} folder and {name}.atlas at the root of your Defold project (the atlas lists the frames as /{name}/…), or edit the paths in the atlas.', { name: choice.name })) : null,
-      h('div', { class: 'small' }, names.length ? t('{animations} animation(s), {frames} frame(s).', { animations: names.length, frames }) : t('Pick at least one animation.')),
+      doc.animations.length > 1
+        ? h(
+            'div',
+            { class: 'checklist-actions' },
+            button(t('All animations'), { kind: 'ghost', size: 'sm', onclick: () => (doc.animations.forEach((a) => choice.animations.add(a.name)), draw()) }),
+            button(t('None'), { kind: 'ghost', size: 'sm', onclick: () => (choice.animations.clear(), draw()) }),
+          )
+        : null,
+    );
+    const main = fields(
+      ...fieldRow(t('Format'), select(FORMATS.map(([id, label]) => [id, t(label)]), choice.format, set('format'))),
+      ...fieldRow(t('Frame rate'), select(FPS.map((f) => [f, `${f} fps`]), choice.fps, (v) => set('fps')(Number(v)))),
+      ...fieldRow(t('Size'), select(SCALES, choice.scale, (v) => set('scale')(Number(v)))),
+      ...(doc.skins.length ? fieldRow(t('Skin'), select([['', 'default'], ...doc.skins.map((k) => [k.name, k.name])], choice.skin, set('skin'))) : []),
+    );
+    const padding = h('input', {
+      type: 'number',
+      class: 'frame-input',
+      min: 0,
+      max: 32,
+      value: choice.padding,
+      onkeydown: (e) => e.stopPropagation(),
+      onchange: (e) => set('padding')(Math.max(0, Math.min(32, Math.round(Number(e.target.value) || 0)))),
+    });
+    const more = section(
+      t('More options'),
+      [
+        sheet
+          ? fields(
+              ...fieldRow(t('Layout'), select(LAYOUTS.map(([id, label]) => [id, t(label)]), choice.layout, set('layout'))),
+              ...fieldRow(t('Max sheet size'), select(SIZES, choice.maxWidth, (v) => set('maxWidth')(Number(v)))),
+              ...fieldRow(t('Padding'), padding, h('span', { class: 'ui-field-label' }, 'px')),
+            )
+          : null,
+        h(
+          'div',
+          { class: 'checks' },
+          check('loop', t('Loops (leave out the last frame, which repeats the first)')),
+          sheet ? check('trim', t('Trim empty space around each frame')) : null,
+          sheet ? check('dedupe', t('Store identical frames once')) : null,
+          sheet ? check('pot', t('Power-of-two sheet sizes (for engines and GPUs that need them)')) : null,
+        ),
+      ],
+      { id: 'spritesheet-more', open: false },
+    );
+    const parts = [
+      h('div', { class: 'modal-columns' }, animations, main),
+      more,
+      pixelArt ? hint(t('Pixel art: textures are set to Nearest, so frames are sampled crisp, without smoothing.')) : null,
+      choice.format === 'defold' ? hint(t('Put the {name} folder and {name}.atlas at the root of your Defold project (the atlas lists the frames as /{name}/…), or edit the paths in the atlas.', { name: choice.name })) : null,
+      hint(names.length ? t('{animations} animation(s), {frames} frame(s).', { animations: names.length, frames }) : t('Pick at least one animation.')),
       names.length ? estimateLine(names) : null,
       running ? h('div', { class: 'progress' }, h('div', { class: 'bar', style: { width: `${Math.round(running.fraction * 100)}%` } })) : null,
-      running ? h('div', { class: 'small' }, running.text) : null,
-      h('div', { class: 'modal-buttons' }, h('button', { onclick: close }, running ? t('Cancel') : t('Close')), h('button', { class: 'primary', disabled: !names.length || !!running, onclick: () => start().catch(fail) }, t('Export…'))),
+      running ? hint(running.text) : null,
     ];
     body.replaceChildren(...parts.filter(Boolean));
+    setFooter([
+      button(running ? t('Cancel') : t('Close'), { onclick: () => close() }),
+      button(t('Export…'), { kind: 'primary', icon: 'download', disabled: !names.length || !!running, onclick: () => start().catch(fail) }),
+    ]);
   }
 
   /**
@@ -189,21 +164,18 @@ export function openSpriteSheetDialog(app) {
       }
     }
     const e = estimated.value;
-    if (!e) return h('div', { class: 'small weak' }, t('Nothing is drawn in these animations.'));
+    if (!e) return hint(t('Nothing is drawn in these animations.'));
     const px = (w, hh) => `${w}×${hh} px`;
-    if (e.tooBig) return h('div', { class: 'small warn' }, t('Each frame would be {size}, larger than one image can be. Lower the size.', { size: px(e.frameWidth, e.frameHeight) }));
-    if (choice.format !== 'json') return h('div', { class: 'small weak' }, t('{count} PNG files of {size}.', { count: e.frames, size: px(e.frameWidth, e.frameHeight) }));
+    if (e.tooBig) return hint(t('Each frame would be {size}, larger than one image can be. Lower the size.', { size: px(e.frameWidth, e.frameHeight) }), { tone: 'danger' });
+    if (choice.format !== 'json') return hint(t('{count} PNG files of {size}.', { count: e.frames, size: px(e.frameWidth, e.frameHeight) }));
     const text =
       e.sheets === 1
         ? t('Frames of {size}: one sheet of at most {max}.', { size: px(e.frameWidth, e.frameHeight), max: px(e.width, e.height) })
-        : t("Frames of {size}: up to {count} sheets of at most {max}, fewer after trimming. Phaser loads them with load.multiatlas, PixiJS through the first sheet's JSON.", { size: px(e.frameWidth, e.frameHeight), count: e.sheets, max: px(e.width, e.height) });
+        : t('Frames of {size}: up to {count} sheets of at most {max}, fewer after trimming.', { size: px(e.frameWidth, e.frameHeight), count: e.sheets, max: px(e.width, e.height) });
     const fit = e.sheets > 1 && e.fitsOne && e.fitsOne !== choice.scale ? e.fitsOne : null;
-    return h(
-      'div',
-      { class: e.sheets > 1 ? 'small warn' : 'small weak' },
-      text,
-      fit ? h('span', null, ' ', h('a', { href: '#', onclick: (ev) => (ev.preventDefault(), set('scale')(fit)) }, t('Use {scale} for one sheet', { scale: SCALES.find(([v]) => v === fit)[1] }))) : null,
-    );
+    const line = hint(text, { tone: e.sheets > 1 ? 'warning' : 'muted', docs: e.sheets > 1 ? 'export#sprite-sheets' : null });
+    if (fit) line.append(button(t('Use {scale} for one sheet', { scale: SCALES.find(([v]) => v === fit)[1] }), { kind: 'ghost', size: 'sm', onclick: () => set('scale')(fit) }));
+    return line;
   }
 
   /** The project's images as RGBA, for the worker. */
@@ -221,7 +193,7 @@ export function openSpriteSheetDialog(app) {
   function fail(e) {
     running?.worker?.terminate();
     running = null;
-    if (overlay.isConnected) draw();
+    if (el.isConnected) draw();
     showResult(app, { ok: false, title: t('Sprite sheet export failed'), detail: String(e?.message ?? e) });
   }
 
@@ -311,5 +283,4 @@ export function openSpriteSheetDialog(app) {
   }
 
   draw();
-  document.body.append(overlay);
 }
