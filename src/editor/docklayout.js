@@ -31,7 +31,7 @@ export function defaultDock() {
   };
 }
 
-/** The "Rig on the left" preset: the Rig panel (skins, constraints, meshes, events, project) left
+/** The "Rig on the left" preset: the Rig panel (skins, constraints, meshes, events) left
  *  of the viewport, so the tree on the right keeps only the bone hierarchy and the lists. */
 export function rigLeftDock() {
   const l = defaultDock();

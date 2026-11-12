@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 // The Rig panel: what a rig is built from besides its bones, gathered in one place. Skins,
-// constraints by type, meshes and events (each with its add button), then the project settings.
+// constraints by type, meshes and events, each with its add button.
 // It is optional (View ▸ Panel layout): while it is open, the tree lists only the bone hierarchy,
-// draw order, animations and images. The sections are the tree's own (tree.js), moved here, and the
-// project settings are the inspector's (inspector.js), so nothing is built twice.
+// draw order, animations and images. The sections are the tree's own (tree.js), moved here, so
+// nothing is built twice. The project settings stay in the inspector.
 
 import { Mode, selSlot } from './app.js';
 import { t } from './i18n.js';
-import { projectUi, startMeshEdit } from './inspector.js';
+import { startMeshEdit } from './inspector.js';
 import { regionToMesh } from './meshtool.js';
 import { addButton, constraintsSection, eventsSection, label, row, section, skinsSection } from './tree.js';
 import { h } from './widgets.js';
@@ -66,7 +66,6 @@ export function render(app, el) {
       constraintsSection(app, { byType: true }),
       meshSection(app),
       eventsSection(app),
-      section(app, 'project', t('Project'), null, h('div', { class: 'rig-project' }, projectUi(app))),
     ),
   );
   el.querySelector('.tree-scroll').scrollTop = scrolled;

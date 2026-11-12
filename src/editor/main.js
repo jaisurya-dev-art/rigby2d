@@ -246,10 +246,10 @@ function menus() {
       },
       { label: logOpen() ? t('Hide log') : t('Log'), action: () => toggleLogWindow() },
       submenuItem(t('Panel layout'), () => [
-        { label: t('Rig on the left'), title: t('Skins, constraints, meshes, events and project settings in a Rig panel left of the viewport'), action: () => applyPreset(rigLeftDock(), t('Rig on the left')) },
+        { label: t('Rig on the left'), title: t('Skins, constraints, meshes and events in a Rig panel left of the viewport'), action: () => applyPreset(rigLeftDock(), t('Rig on the left')) },
         {
           label: `${dock.has('rig') ? '● ' : '○ '}${t('Rig panel')}`,
-          title: t('Skins, constraints, meshes, events and project settings in their own panel'),
+          title: t('Skins, constraints, meshes and events in their own panel'),
           action: () => (dock.has('rig') ? dock.close('rig') : dock.open('rig')),
         },
         'separator',

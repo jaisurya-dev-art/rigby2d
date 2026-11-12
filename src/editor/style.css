@@ -4348,13 +4348,11 @@ body.drop-open::after {
 /* ---- Interface 1: inspector and tree ---------------------------------------------------------- */
 
 /* The inspector: a panel title, quiet section labels, consistent field rows. */
-#properties .content,
-#rig .rig-project {
+#properties .content {
   padding: var(--space-2) var(--space-3) var(--space-4);
   font-size: var(--text-md);
 }
-#properties .content h2,
-#rig .rig-project h2 {
+#properties .content h2 {
   margin: var(--space-1) 0 var(--space-2);
   font-size: var(--text-lg);
   font-weight: 600;
@@ -4365,9 +4363,7 @@ body.drop-open::after {
   display: none;
 }
 #properties .content strong,
-#rig .rig-project strong,
-#properties .content .section-title,
-#rig .rig-project .section-title {
+#properties .content .section-title {
   display: block;
   margin: var(--space-1) 0 var(--space-2);
   font-size: var(--text-xs);
@@ -4376,61 +4372,49 @@ body.drop-open::after {
   text-transform: uppercase;
   color: var(--fg-muted);
 }
-#properties .content hr,
-#rig .rig-project hr {
+#properties .content hr {
   border-top-color: var(--line-soft);
   margin: var(--space-3) 0;
 }
-#properties .grid,
-#rig .rig-project .grid {
+#properties .grid {
   gap: var(--space-2) var(--space-3);
 }
-#properties .grid > label,
-#rig .rig-project .grid > label {
+#properties .grid > label {
   color: var(--fg-muted);
   font-size: var(--text-sm);
 }
-#properties .cell,
-#rig .rig-project .cell {
+#properties .cell {
   min-height: var(--control-h);
 }
-#properties .buttons,
-#rig .rig-project .buttons {
+#properties .buttons {
   gap: var(--space-2);
   margin: var(--space-3) 0 var(--space-1);
 }
 #properties .small.weak,
-#rig .rig-project .small.weak,
-#properties .weak.small,
-#rig .rig-project .weak.small {
+#properties .weak.small {
   color: var(--fg-muted);
   font-size: var(--text-sm);
   line-height: 1.45;
 }
-#properties .ui-section,
-#rig .rig-project .ui-section {
+#properties .ui-section {
   margin: var(--space-1) 0 var(--space-3);
 }
-#properties .image-list,
-#rig .rig-project .image-list {
+#properties .image-list {
   display: flex;
   flex-direction: column;
   gap: 2px;
 }
-#properties .image-list > div,
-#rig .rig-project .image-list > div {
+#properties .image-list > div {
   display: flex;
   justify-content: space-between;
   gap: var(--space-2);
 }
-#properties .image-list span:first-child,
-#rig .rig-project .image-list span:first-child {
+#properties .image-list span:first-child {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-#properties .pose-save,
-#rig .rig-project .pose-save {
+#properties .pose-save {
   display: flex;
   gap: var(--space-2);
 }
@@ -4665,7 +4649,7 @@ textarea:focus-visible,
   border-radius: var(--radius-sm);
 }
 
-/* The Rig panel (rigpanel.js): tree sections, constraints grouped by type, then the project settings. */
+/* The Rig panel (rigpanel.js): tree sections, with constraints grouped by type. */
 #rig {
   padding: 4px 0;
 }
@@ -4690,14 +4674,6 @@ textarea:focus-visible,
   padding: 0 6px;
   color: var(--fg-muted);
   font-size: var(--text-xs);
-}
-#rig .rig-project {
-  padding: var(--space-1) var(--space-2) var(--space-3) var(--space-1);
-  font-size: var(--text-md);
-}
-/* The section heading already says Project. */
-#rig .rig-project > h2 {
-  display: none;
 }
 
 /* Tree rows indent by depth (set on the row as --depth). A narrow tree packs its rows tighter and

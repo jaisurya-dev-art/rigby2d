@@ -13,7 +13,7 @@ import { bindMesh, generateFromImage, meshLocks, regionToMesh, setMeshLocks, unb
 import { MESH_DEFAULTS } from '../core/meshgen.js';
 import { eventUi, skinUi } from './skineventui.js';
 import { dragValue, h, select, textField } from './widgets.js';
-import { button, hint, iconButton, section } from './ui.js';
+import { button, iconButton, section } from './ui.js';
 import { FPS_PRESETS, SIZE_PRESETS, formatFps, hexToRgba, rgbaToHex } from './output.js';
 import { posesUi } from './poseui.js';
 import { has } from './workspaces.js';
@@ -40,11 +40,11 @@ export function render(app, el) {
               : [null, null];
   // With something selected, tabs switch between it and the project settings (textures, pixel
   // grid, output...), which would otherwise only show with nothing selected. The Project tab stays
-  // until the selection changes. With the Rig panel open, the project settings live there instead.
+  // until the selection changes.
   const key = JSON.stringify(app.sel ?? null);
-  if (app.projectTab && (app.projectTab !== key || app.rigPanel)) app.projectTab = null;
-  const showProject = !app.rigPanel && (!selection || app.projectTab === key);
-  const tabs = selection && !app.rigPanel
+  if (app.projectTab && app.projectTab !== key) app.projectTab = null;
+  const showProject = !selection || app.projectTab === key;
+  const tabs = selection
     ? h(
         'div',
         { class: 'segmented inspector-tabs' },
@@ -52,7 +52,7 @@ export function render(app, el) {
         h('button', { class: showProject ? 'active' : '', title: t('Project settings: name, textures, pixel grid, output'), onclick: () => ((app.projectTab = key), app.changed()) }, t('Project')),
       )
     : null;
-  const content = showProject ? projectUi(app) : selection ? selection() : hint(t('Select a bone, slot, skin, constraint or event to edit it. The project settings are in the Rig panel.'));
+  const content = showProject ? projectUi(app) : selection();
   // The mesh being edited stays on top while bones are selected for binding or painting.
   const mesh = meshUi(app);
   el.replaceChildren(...[mesh, tabs, content, posesUi(app)].flat(Infinity).filter((c) => c !== null && c !== undefined && c !== false));
@@ -423,8 +423,7 @@ function slotUi(app, s) {
   return out;
 }
 
-/** The Project settings (also shown in the Rig panel, rigpanel.js). */
-export function projectUi(app) {
+function projectUi(app) {
   return [
     h('h2', null, t('Project')),
     h(
