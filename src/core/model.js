@@ -136,6 +136,9 @@ export class Skeleton {
      * (a bone, an animation, a slider) is ordinary data; this is how to rebuild it. Work files only.
      */
     this.turns = [];
+    /** Warp deformers (editor/warp.js) and the deform keys meshes had before warps added theirs. Work files only. */
+    this.warps = [];
+    this.warpBase = {};
     /** Pose library: { name, bones: { bone name: local transform }, slots: { slot name: attachment } }. */
     this.poses = [];
     /** Facial controllers: { name, from (pose name or null = setup pose), to (pose name), value }. */
@@ -706,6 +709,8 @@ function readSkeleton(o) {
   sk.textureFilter = oneOf(o.textureFilter, TEXTURE_FILTERS, 'linear');
   sk.pixelGrid = Number.isFinite(o.pixelGrid) && o.pixelGrid > 0 ? o.pixelGrid : 0;
   sk.meshLocks = readMeshLocks(o.meshLocks);
+  sk.warps = Array.isArray(o.warps) ? o.warps.filter((w) => w && typeof w.name === 'string' && w.rect && Number.isInteger(w.cols) && Number.isInteger(w.rows)) : [];
+  sk.warpBase = o.warpBase && typeof o.warpBase === 'object' && !Array.isArray(o.warpBase) ? o.warpBase : {};
   sk.turns = Array.isArray(o.turns) ? o.turns.filter((x) => x && typeof x.name === 'string' && typeof x.bone === 'string' && Array.isArray(x.parts)) : [];
   sk.poses = readPoses(o.poses);
   sk.controllers = readControllers(o.controllers);
@@ -833,6 +838,8 @@ function writeSkeleton(sk) {
   if (sk.pixelGrid > 0) out.pixelGrid = sk.pixelGrid;
   if (Object.keys(sk.meshLocks).length) out.meshLocks = raw(sk.meshLocks);
   if (sk.turns.length) out.turns = raw(sk.turns);
+  if (sk.warps.length) out.warps = raw(sk.warps);
+  if (Object.keys(sk.warpBase).length) out.warpBase = raw(sk.warpBase);
   if (sk.poses.length) out.poses = raw(sk.poses);
   if (sk.controllers.length) out.controllers = raw(sk.controllers);
   if (sk.workspace) out.workspace = sk.workspace;
