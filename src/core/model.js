@@ -130,6 +130,12 @@ export class Skeleton {
      * { 'slot name/attachment name': [vertex indices] }. Editor data, saved in work files only.
      */
     this.meshLocks = {};
+    /**
+     * 2.5D turns (editor/turn.js): { name, bone, angle, bulge, reach, center, top, radius, parts:
+     * [{ slot, attachment, depth }], control, animation, constraint }. The skeleton data they build
+     * (a bone, an animation, a slider) is ordinary data; this is how to rebuild it. Work files only.
+     */
+    this.turns = [];
     /** Pose library: { name, bones: { bone name: local transform }, slots: { slot name: attachment } }. */
     this.poses = [];
     /** Facial controllers: { name, from (pose name or null = setup pose), to (pose name), value }. */
@@ -700,6 +706,7 @@ function readSkeleton(o) {
   sk.textureFilter = oneOf(o.textureFilter, TEXTURE_FILTERS, 'linear');
   sk.pixelGrid = Number.isFinite(o.pixelGrid) && o.pixelGrid > 0 ? o.pixelGrid : 0;
   sk.meshLocks = readMeshLocks(o.meshLocks);
+  sk.turns = Array.isArray(o.turns) ? o.turns.filter((x) => x && typeof x.name === 'string' && typeof x.bone === 'string' && Array.isArray(x.parts)) : [];
   sk.poses = readPoses(o.poses);
   sk.controllers = readControllers(o.controllers);
   sk.workspace = oneOf(o.workspace, ['game', 'film'], null);
@@ -825,6 +832,7 @@ function writeSkeleton(sk) {
   if (sk.textureFilter !== 'linear') out.textureFilter = sk.textureFilter;
   if (sk.pixelGrid > 0) out.pixelGrid = sk.pixelGrid;
   if (Object.keys(sk.meshLocks).length) out.meshLocks = raw(sk.meshLocks);
+  if (sk.turns.length) out.turns = raw(sk.turns);
   if (sk.poses.length) out.poses = raw(sk.poses);
   if (sk.controllers.length) out.controllers = raw(sk.controllers);
   if (sk.workspace) out.workspace = sk.workspace;

@@ -16,6 +16,7 @@ import { dragValue, h, select, textField } from './widgets.js';
 import { button, iconButton, section, toggleButton } from './ui.js';
 import { FPS_PRESETS, SIZE_PRESETS, formatFps, hexToRgba, rgbaToHex } from './output.js';
 import { posesUi } from './poseui.js';
+import { turnUi } from './turnui.js';
 import { has } from './workspaces.js';
 import { sounds } from './audio.js';
 import { renameOnionBone } from './onion.js';
@@ -173,6 +174,7 @@ function boneUi(app, b) {
       setupMode ? button(t('Child bone'), { icon: 'plus', onclick: () => edit.addChildBone(app, b) }) : null,
       setupMode && b !== 0 ? button(t('Delete'), { kind: 'danger', icon: 'trash-2', onclick: () => edit.deleteSelection(app) }) : null,
     ),
+    turnUi(app, b),
   ];
 }
 

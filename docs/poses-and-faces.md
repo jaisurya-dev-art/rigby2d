@@ -55,6 +55,38 @@ Each control has a **Lip-sync** button: it keys the control on every frame from 
 animation's first audio track. A *Mouth open* control then opens on speech and closes in silence.
 For mouth shapes per sound, use [viseme lip-sync](lip-sync.md) instead.
 
+## 2.5D turn
+
+A head (or a body) can turn left and right as if it were 3D, with one control. Select the bone the
+parts hang from (the head) and, in the inspector's **2.5D turn** section, press **Make turnable**.
+Every picture on that bone and the bones below it turns together:
+
+- Each part gets a **depth** from the draw order: front hair and the nose near, the face in the
+  middle, ears and back hair far. Near parts move more when the head turns; parts behind move the
+  other way.
+- The parts sit on a **curved surface** across their width, so the side turning away foreshortens
+  and the side turning in widens.
+- Image parts become grid meshes, so they can bend.
+
+Drag the new **control bone** (`head-turn-control`, placed above the head) left and right, or use
+the **Turn** slider in the section. In Animate mode the slider keys the control bone; key it like any
+bone to make a character look around.
+
+| Setting | Meaning |
+| --- | --- |
+| **Angle** | The largest turn, at the control's full reach (25° by default). |
+| **Roundness** | How curved the surface is: 0 flat (parts only slide), 1 a full cylinder. |
+| **Depth of each part** | How near each part is: higher moves more. |
+
+**Rebuild** measures the parts again after you change the pictures or bones; **Remove** takes the
+turn out (the meshes stay). Changing the angle, roundness or a depth rebuilds it at once, and keys on
+the control bone are kept.
+
+The turn is ordinary skeleton data, so every runtime plays it: an animation (`head-turn`) of mesh
+deform keys from full left to full right, and a slider constraint that plays it from the control
+bone's x. In a game, move the control bone to make the character look at something. While the turn
+applies, it replaces other deform keys on those meshes. Turning up and down is coming next.
+
 ## Poses in exports
 
 Poses and face controls are editing tools: they are saved in the `.rigby` file but not in skeleton
