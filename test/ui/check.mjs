@@ -54,6 +54,24 @@ const CASES = [
     r.app.select({ slot: s });
     r.app.meshEdit = { slot: s, name: r.app.doc.slots[s].attachment, mode: 'vertices', radius: 40, strength: 0.5, subtract: false, selected: null };
   }],
+  // Weights with a test pose: the IK target moved and the paint bone wiggling.
+  ['main-nila-weights', async (r) => {
+    const d = r.app.doc;
+    const s = d.slots.findIndex((x, i) => d.attachment(i, x.attachment)?.weights);
+    r.app.meshEdit = { slot: s, name: d.slots[s].attachment, mode: 'weights', radius: 40, strength: 0.5, subtract: false, selected: null };
+    const target = d.boneIndex('ik_foot_r');
+    if (target !== null && target >= 0) r.app.testPose.set(target, { ...d.bones[target].setup, x: d.bones[target].setup.x + 120 });
+    r.app.wiggle.on = true;
+  }],
+  // A transform constraint just made from two bones: driver, driven and the offsets panel.
+  ['main-nila-transform', async (r) => {
+    r.app.meshEdit = null;
+    r.app.mode = 'setup';
+    const d = r.app.doc;
+    r.app.select({ bone: d.boneIndex('neck') });
+    r.app.select({ bone: d.boneIndex('chest') }, true);
+    (await import('/src/editor/tree.js')).newConstraint(r.app, 'transform');
+  }],
   ['main-nila-film', async (r) => {
     r.app.meshEdit = null;
     r.app.setWorkspace?.('film');

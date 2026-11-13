@@ -653,6 +653,8 @@ function frame(now) {
   }
 
   viewport.draw();
+  // Picking a bone for a field: a crosshair over the viewport and the tree.
+  if ($('#app').classList.contains('picking') !== !!app.pick) $('#app').classList.toggle('picking', !!app.pick);
   // Setup mode hides the timeline (keys are made in Animate), unless kept on or a lesson runs.
   const hideTimeline = app.mode === Mode.Setup && !app.timelineInSetup && !tutorials.coach?.running;
   if ($('#app').classList.contains('setup-hides-timeline') !== hideTimeline) {

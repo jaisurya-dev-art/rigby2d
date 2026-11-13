@@ -363,8 +363,8 @@ function sourceValues(pose, c) {
   };
 }
 
-/** Target property values after the property mapping and offsets. */
-function targetValues(pose, c) {
+/** Target property values after the property mapping and offsets (exported for editors). */
+export function targetValues(pose, c) {
   const src = sourceValues(pose, c);
   const reflected = !c.localSource && pose.world[c.source].determinant() < 0;
   const out = {};

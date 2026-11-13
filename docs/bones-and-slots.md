@@ -42,7 +42,7 @@ and a length above 0 turns it back; children don't move, since length is visual 
 | Setting | Meaning |
 | --- | --- |
 | **Name** | Unique name. Animations and runtimes refer to bones by name. |
-| **Parent** | The bone it hangs from. Changing it keeps the bone where it is in the world. |
+| **Parent** | The bone it hangs from. Changing it keeps the bone where it is in the world. You can also drag the bone's row in the tree onto its new parent (or onto the skeleton's title for the root). |
 | **Length** | Visual length, and the reach used by IK and some constraints. 0 makes a [point bone](#point-bones). |
 | **Color** | The bone's color in the viewport, to tell limbs or sides apart (applies to every selected bone; **×** goes back to the default). Saved in the skeleton file, as in Spine. |
 | **Inherit** | What it takes from its parent: `normal` (everything), `onlyTranslation`, `noRotationOrReflection`, `noScale` or `noScaleOrReflection`. Use `noScale` for parts that should not stretch when the parent does. |

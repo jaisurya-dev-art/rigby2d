@@ -4703,3 +4703,69 @@ textarea:focus-visible,
     margin-left: var(--space-1);
   }
 }
+
+/* Tree: find box, matches, and dragging a bone onto a new parent. */
+.tree-search {
+  width: calc(100% - var(--space-2));
+  height: var(--control-h);
+  margin: var(--space-1) 0 var(--space-2);
+  padding: 0 var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--fg);
+  background: var(--surface-1);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius-sm);
+}
+.tree-search::placeholder {
+  color: var(--fg-faint);
+}
+.row.match .row-name {
+  color: var(--ui-accent);
+}
+.row.dragging {
+  opacity: 0.5;
+}
+.row.drop-target,
+.tree-heading.drop-target {
+  outline: 1px solid var(--ui-accent);
+  outline-offset: -1px;
+  background: var(--ui-accent-soft);
+}
+body.bone-dragging,
+body.bone-dragging * {
+  cursor: grabbing !important;
+}
+
+/* Picking a bone for a field: the viewport and the tree's bones answer the next click. */
+#app.picking #viewport,
+#app.picking .row[data-bone] {
+  cursor: crosshair;
+}
+
+/* Transform constraint panel. */
+.driven-list {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+#properties .props-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin: var(--space-3) 0 var(--space-1);
+}
+#properties .props-head strong {
+  margin: 0;
+}
+#properties .props-head .segmented button {
+  font-size: var(--text-xs);
+}
+
+/* Weights: the test pose controls. */
+.test-pose .ui-drag,
+.test-pose input {
+  width: 56px;
+}

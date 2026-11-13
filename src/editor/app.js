@@ -142,6 +142,15 @@ export class App {
     this.imageGlow = null;
     /** Mesh being edited: { slot, name, mode: 'vertices' | 'weights', bone, radius, strength, subtract, selected }. */
     this.meshEdit = null;
+    /**
+     * Test pose while painting weights (Setup mode): local transforms by bone that override the
+     * setup pose for display only, so a bone can be turned to see the weights work. Never saved;
+     * cleared when weight painting ends. `wiggle` swings the paint bone back and forth.
+     */
+    this.testPose = new Map();
+    this.wiggle = { on: false, angle: 20, speed: 0.8 };
+    /** Picking a bone for a field: { prompt, done(bone) }; the next bone clicked goes to `done`. */
+    this.pick = null;
     /** Shape being edited (bounding box, clipping or path): { slot, name, selected }. */
     this.shapeEdit = null;
     /** Whether the Rig panel is open (rigpanel.js): the tree then leaves skins, constraints and events to it. */
@@ -335,8 +344,61 @@ export class App {
   }
 
   /** Pose shown in the viewport: setup pose, or the current animation frame in animate mode. */
+  /** Whether bone edits go to the test pose: painting weights in Setup mode. */
+  get testPosing() {
+    return this.mode === Mode.Setup && this.meshEdit?.mode === 'weights';
+  }
+
+  /** The bone weights are painted for (the wiggle swings it): the chosen one, else the first bound. */
+  paintBone() {
+    const e = this.meshEdit;
+    if (!e) return null;
+    if (e.bone !== undefined && e.bone !== null) return e.bone;
+    return this.doc.attachment(e.slot, e.name)?.weights?.[0]?.[0]?.bone ?? null;
+  }
+
+  /** Puts the test pose back to the setup pose (and stops the wiggle). */
+  resetTestPose() {
+    this.testPose.clear();
+    this.wiggle.on = false;
+    this.changed();
+  }
+
+  /** Starts picking a bone: the next bone clicked in the viewport or tree goes to `done`. */
+  startPick(prompt, done) {
+    this.pick = { prompt, done };
+    this.setStatus(t('{prompt} (Esc cancels)', { prompt }));
+    this.changed();
+  }
+
+  /** Ends picking with `bone` (or cancels with null). */
+  finishPick(bone) {
+    const p = this.pick;
+    this.pick = null;
+    if (p && bone !== null && bone !== undefined) p.done(bone);
+    else if (p) this.setStatus(t('Picking cancelled'));
+    this.changed();
+  }
+
   pose() {
     const pose = new Pose(this.doc);
+    if (this.testPose.size || this.wiggle.on) {
+      if (!this.testPosing) {
+        this.testPose.clear();
+        this.wiggle.on = false;
+      } else {
+        for (const [bone, local] of this.testPose) if (pose.local[bone]) Object.assign(pose.local[bone], local);
+        const b = this.wiggle.on ? this.paintBone() : null;
+        if (b !== null && pose.local[b]) {
+          const swing = Math.sin((performance.now() / 1000) * this.wiggle.speed * 2 * Math.PI);
+          // A bone in an IK chain follows its target: swing the target instead (up and down).
+          const ik = this.doc.ik.find((k) => k.bones.includes(b));
+          if (ik && pose.local[ik.target]) pose.local[ik.target].y += swing * (this.doc.bones[b].length || 100) * (this.wiggle.angle / 90);
+          else pose.local[b].rotation += this.wiggle.angle * swing;
+        }
+        pose.updateWorld(this.doc);
+      }
+    }
     const anim = this.currentAnimation();
     if (this.mode === Mode.Animate && anim) {
       // Physics simulates while playing (state kept across frames) and rests otherwise.

@@ -13,7 +13,7 @@ import { bindMesh, generateFromImage, meshLocks, regionToMesh, setMeshLocks, unb
 import { MESH_DEFAULTS } from '../core/meshgen.js';
 import { eventUi, skinUi } from './skineventui.js';
 import { dragValue, h, select, textField } from './widgets.js';
-import { button, iconButton, section } from './ui.js';
+import { button, iconButton, section, toggleButton } from './ui.js';
 import { FPS_PRESETS, SIZE_PRESETS, formatFps, hexToRgba, rgbaToHex } from './output.js';
 import { posesUi } from './poseui.js';
 import { has } from './workspaces.js';
@@ -790,6 +790,15 @@ function meshUi(app) {
           ),
         ),
         h('div', { class: 'small weak' }, t('Drag over the mesh to paint (Shift subtracts). Colors show the paint bone: red = full weight, blue = none. ● marks bones the mesh uses.')),
+        h('div', { class: 'section-title' }, t('Test pose')),
+        h(
+          'div',
+          { class: 'buttons test-pose' },
+          toggleButton(t('Wiggle'), app.wiggle.on, (on) => ((app.wiggle.on = on), app.changed()), { icon: 'waves', title: t('Swing the paint bone back and forth while you paint') }),
+          dragValue(app.wiggle.angle, (v) => ((app.wiggle.angle = v), app.changed()), { speed: 0.5, min: 1, max: 90, suffix: '°', decimals: 0 }),
+          button(t('Reset'), { icon: 'rotate-cw', disabled: !app.testPose.size && !app.wiggle.on, title: t('Back to the setup pose'), onclick: () => app.resetTestPose() }),
+        ),
+        h('div', { class: 'small weak' }, t('Alt+drag a bone to try a pose while you paint: the mesh bends as it will in animation. The setup pose does not change.')),
       );
     }
   }

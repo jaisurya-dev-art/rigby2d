@@ -93,9 +93,22 @@ add up to 1.
 Drag over the mesh to paint. Colors show the paint bone's weight: red is full weight, blue none.
 **Unbind** removes the weights; the mesh then follows its slot's bone only.
 
+### Testing weights while you paint
+
+You don't need a test animation to see what the weights do. While painting:
+
+- **Alt+drag a bone** to try a pose: near the bone's start it moves the bone, elsewhere on it the bone
+  turns toward the cursor. The mesh bends exactly as it will in animation, and the brush and colors
+  follow the posed mesh, so you can keep painting on it. Bones moved by IK follow their target:
+  Alt+drag the target.
+- **Wiggle** swings the paint bone back and forth (by the angle next to it) while you paint, so every
+  stroke shows its effect at once. For a bone in an IK chain it swings the chain's target.
+- **Reset** puts every bone back. The setup pose never changes: the test pose is for looking only, is
+  not saved, and ends when you leave weight painting.
+
 > [!TIP]
-> Check weights by rotating the bones in Animate mode, then undo. A crease at a joint means the
-> weights change too suddenly across it: paint a softer blend over two or three rows of vertices.
+> A crease at a joint means the weights change too suddenly across it: wiggle the bone and paint a
+> softer blend over two or three rows of vertices.
 
 ## Deforming in Animate mode
 

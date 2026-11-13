@@ -16,8 +16,9 @@ import { identityTransform } from '../core/math.js';
 import { makeBone, makeSlot, uniqueName } from '../core/model.js';
 import { Pose } from '../core/pose.js';
 import { FPS, Mode } from './app.js';
+import { keepPoseOffsets } from './constraintoffsets.js';
 import { dragValue, h, select, textField } from './widgets.js';
-import { button } from './ui.js';
+import { button, iconButton } from './ui.js';
 import { t, tn } from './i18n.js';
 
 export const CONSTRAINT_LABELS = { ik: 'IK', transform: tn('Transform'), path: tn('Path'), physics: tn('Physics'), slider: tn('Slider') };
@@ -72,17 +73,8 @@ export function createConstraint(app, type) {
     return name;
   }
   if (type === 'transform') {
-    if (bones.length < 2) return t('!Select the bones to constrain, then the source bone last');
-    const source = bones.at(-1);
-    const name = uniqueConstraintName(doc, `${boneName(doc, bones[0])}-transform`);
-    addConstraint(doc, {
-      type: 'transform',
-      name,
-      bones: bones.slice(0, -1).map((b) => boneName(doc, b)),
-      source: boneName(doc, source),
-      properties: Object.fromEntries(PROPERTIES.map((p) => [p, { to: { [p]: {} } }])),
-    });
-    return name;
+    if (bones.length < 2) return t('!Select the bones that should follow, then the driver bone last');
+    return createTransform(app, bones.slice(0, -1), bones.at(-1))[0];
   }
   if (type === 'path') {
     if (!bones.length) return t('!Select the bones to place along the path first');
@@ -113,6 +105,30 @@ export function createConstraint(app, type) {
     return name;
   }
   return t('!Unknown constraint type');
+}
+
+/**
+ * Transform constraints that make each `driven` bone follow `driver`, one per driven bone so each
+ * keeps its own pose (a constraint's offsets are shared by its bones). Nothing moves when they are
+ * created. Returns their names.
+ */
+export function createTransform(app, driven, driver) {
+  const doc = app.doc;
+  const names = [];
+  for (const b of driven) {
+    if (b === driver) continue;
+    const name = uniqueConstraintName(doc, `${boneName(doc, b)}-transform`);
+    const d = addConstraint(doc, {
+      type: 'transform',
+      name,
+      bones: [boneName(doc, b)],
+      source: boneName(doc, driver),
+      properties: Object.fromEntries(PROPERTIES.map((p) => [p, { to: { [p]: {} } }])),
+    });
+    keepPoseOffsets(doc, d);
+    names.push(name);
+  }
+  return names;
 }
 
 /** An open path attachment through world points, with handles a third of the way to neighbors. */
@@ -297,7 +313,7 @@ function ikUi(app, ik, boneChoices) {
       'div',
       { class: 'grid' },
       row(t('Bones'), h('span', null, ik.bones.map((b) => doc.bones[b].name).join(' → '))),
-      row(t('Target'), select(boneChoices, ik.target, (v) => set('target', Number(v)))),
+      row(t('Target'), select(boneChoices, ik.target, (v) => set('target', Number(v))), pickButton(app, t('Click the IK target bone'), (b) => set('target', b))),
       row(t('Mix'), num(ik.mix, (v) => set('mix', v), { min: 0, max: 1 })),
       row(t('Softness'), num(ik.softness, (v) => set('softness', v), { min: 0, speed: 0.5, decimals: 2 })),
       row(
@@ -353,26 +369,110 @@ function setter(app, data) {
   };
 }
 
+/** A button that picks a bone in the viewport or tree for a field; `done(boneIndex)`. */
+export function pickButton(app, prompt, done) {
+  return iconButton('crosshair', { size: 'sm', title: t('Pick a bone in the viewport or tree'), active: app.pick?.prompt === prompt, onclick: () => (app.pick?.prompt === prompt ? app.finishPick(null) : app.startPick(prompt, done)) });
+}
+
+/** How transform constraint X/Y offsets are typed: along the driver's axes, or the world's. */
+let offsetAxes = 'driver';
+
 const TYPE_UI = {
   transform(app, d, boneNames) {
     const set = setter(app, d);
+    const doc = app.doc;
     d.properties ??= Object.fromEntries(PROPERTIES.map((p) => [p, { to: { [p]: {} } }]));
     const mapped = new Set(Object.values(d.properties).flatMap((e) => Object.keys(e.to ?? {})));
     const x = d.mixX ?? 1;
     const sx = d.mixScaleX ?? 1;
     const mixDefault = { mixRotate: 1, mixX: 1, mixY: x, mixScaleX: 1, mixScaleY: sx, mixShearY: 1 };
+    const sourceKey = d.source !== undefined || d.target === undefined ? 'source' : 'target';
+    const driver = d[sourceKey];
+    // Changing who drives or who follows keeps the driven bone where it is.
+    const keep = () => {
+      keepPoseOffsets(doc, d);
+      app.changed();
+    };
+    const setDriver = (name) => {
+      d[sourceKey] = name;
+      keep();
+    };
+    const driven = d.bones ?? [];
+    const swap = () => {
+      d.bones = [driver];
+      d[sourceKey] = driven[0];
+      keep();
+      app.setStatus(t('{driven} now follows {driver}', { driven: driver, driver: driven[0] }));
+    };
+    // World X/Y offsets are a point in the driver's space; World axes type them along the screen.
+    const pointOffsets = !(d.localSource ?? d.local);
+    const si = doc.boneIndex(driver) ?? -1;
+    const s = pointOffsets && si >= 0 ? new Pose(doc).world[si] : null;
+    const worldAxes = offsetAxes === 'world' && s;
+    const worldOffset = worldAxes ? s.applyVector([d.x ?? 0, d.y ?? 0]) : null;
+    const setWorldOffset = (axis, v) => {
+      const w = [...worldOffset];
+      w[axis === 'x' ? 0 : 1] = v;
+      const [ox, oy] = s.inverse().applyVector(w);
+      set('x', Math.round(ox * 1e4) / 1e4, 0);
+      set('y', Math.round(oy * 1e4) / 1e4, 0);
+    };
+    const offsetField = (p) =>
+      worldAxes && (p === 'x' || p === 'y')
+        ? num(worldOffset[p === 'x' ? 0 : 1], (v) => setWorldOffset(p, v), { speed: 0.5, decimals: 2 })
+        : num(d[OFFSET_KEYS[p]] ?? 0, (v) => set(OFFSET_KEYS[p], v, 0), { speed: p.startsWith('scale') ? 0.01 : 0.5, decimals: 2 });
     return [
+      h('div', { class: 'small weak' }, t('The driven bones follow the driver. Move or turn a driven bone in Setup mode to change its offset.')),
       h(
         'div',
         { class: 'grid' },
-        boneListUi(app, d),
-        row(t('Source'), select(boneNames, d.source ?? d.target, (v) => set(d.source !== undefined || d.target === undefined ? 'source' : 'target', v))),
+        row(
+          t('Driver'),
+          select(boneNames, driver, setDriver),
+          pickButton(app, t('Click the driver bone'), (b) => setDriver(doc.bones[b].name)),
+        ),
+        row(
+          t('Driven'),
+          h('span', { class: 'driven-list' }, driven.join(', ') || t('(none)')),
+          h(
+            'button',
+            {
+              class: 'small',
+              title: t('Make the selected bones the driven bones'),
+              onclick: () => {
+                const names = app.selectedBones().map((b) => doc.bones[b].name).filter((n) => n !== driver);
+                if (!names.length) return app.setStatus(t('Select bones first'));
+                d.bones = names;
+                keep();
+              },
+            },
+            t('Use selected'),
+          ),
+          pickButton(app, t('Click the bone that should follow'), (b) => {
+            if (doc.bones[b].name === driver) return app.setStatus(t('A bone cannot drive itself'));
+            d.bones = [doc.bones[b].name];
+            keep();
+          }),
+          driven.length === 1 ? iconButton('arrow-left-right', { size: 'sm', title: t('Swap driver and driven'), onclick: swap }) : null,
+        ),
         row('', checkbox(d.localSource ?? d.local, (v) => set('localSource', v, false), t('Local source'), t('Read the source bone in its parent space'))),
         row('', checkbox(d.localTarget ?? d.local, (v) => set('localTarget', v, false), t('Local target'), t('Change the constrained bones in their parent space'))),
         row('', checkbox(d.additive ?? d.relative, (v) => set('additive', v, false), t('Additive'), t('Add the source values instead of matching them'))),
         row('', checkbox(d.clamp, (v) => set('clamp', v, false), t('Clamp'), t('Limit mapped values to each mapping range'))),
       ),
-      h('strong', null, t('Properties')),
+      h(
+        'div',
+        { class: 'props-head' },
+        h('strong', null, t('Properties')),
+        pointOffsets
+          ? h(
+              'span',
+              { class: 'segmented', title: t('Which axes the X and Y offsets follow') },
+              h('button', { class: worldAxes ? '' : 'active', onclick: () => ((offsetAxes = 'driver'), app.changed()) }, t('Driver axes')),
+              h('button', { class: worldAxes ? 'active' : '', onclick: () => ((offsetAxes = 'world'), app.changed()) }, t('World axes')),
+            )
+          : null,
+      ),
       h(
         'table',
         { class: 'props' },
@@ -382,7 +482,7 @@ const TYPE_UI = {
             'tr',
             { class: mapped.has(p) ? '' : 'weak' },
             h('td', null, checkbox(mapped.has(p), (on) => toggleProperty(app, d, p, on), t(PROPERTY_LABELS[p]))),
-            h('td', null, num(d[OFFSET_KEYS[p]] ?? 0, (v) => set(OFFSET_KEYS[p], v, 0), { speed: p.startsWith('scale') ? 0.01 : 0.5, decimals: 2 })),
+            h('td', null, offsetField(p)),
             h('td', null, mixField(d[MIX_KEYS[p]] ?? mixDefault[MIX_KEYS[p]], (v) => set(MIX_KEYS[p], v, 1))),
           ),
         ),
@@ -391,11 +491,13 @@ const TYPE_UI = {
       h(
         'div',
         { class: 'buttons' },
-        h(
-          'button',
-          { title: t('Set offsets so the constrained bone keeps its current setup pose'), onclick: () => matchOffsets(app, d) },
-          t('Offsets from current pose'),
-        ),
+        button(t('Offsets from current pose'), {
+          title: t('Set the offsets so the driven bone stays where it is now'),
+          onclick: () => {
+            if (keepPoseOffsets(doc, d)) app.setStatus(t('Offsets set: {bone} stays where it is', { bone: driven[0] }));
+            app.changed();
+          },
+        }),
       ),
     ];
   },
@@ -434,7 +536,7 @@ const TYPE_UI = {
       h(
         'div',
         { class: 'grid' },
-        row(t('Bone'), select(boneNames, d.bone, (v) => set('bone', v))),
+        row(t('Bone'), select(boneNames, d.bone, (v) => set('bone', v)), pickButton(app, t('Click the bone that moves with physics'), (b) => set('bone', app.doc.bones[b].name))),
         row(t('Translate X'), mixField(d.x ?? 0, (v) => set('x', v, 0))),
         row(t('Translate Y'), mixField(d.y ?? 0, (v) => set('y', v, 0))),
         row(t('Rotate'), mixField(d.rotate ?? 0, (v) => set('rotate', v, 0))),
@@ -530,21 +632,3 @@ function mappingUi(app, d) {
   );
 }
 
-/** Offsets that keep the first constrained bone where it is in the setup pose. */
-function matchOffsets(app, d) {
-  const doc = app.doc;
-  const pose = new Pose(doc);
-  const bone = doc.bones.findIndex((b) => b.name === d.bones?.[0]);
-  const source = doc.bones.findIndex((b) => b.name === (d.source ?? d.target));
-  if (bone < 0 || source < 0) return;
-  const m = pose.world[bone];
-  const s = pose.world[source];
-  const [ox, oy] = s.inverse().apply([m.tx, m.ty]);
-  const angle = (a) => (Math.atan2(a.b, a.a) * 180) / Math.PI;
-  d.rotation = angle(m) - angle(s);
-  d.x = ox;
-  d.y = oy;
-  for (const key of ['rotation', 'x', 'y']) if (Math.abs(d[key]) < 1e-6) delete d[key];
-  app.setStatus(t('Offsets set from the current setup pose'));
-  app.changed();
-}

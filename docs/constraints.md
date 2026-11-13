@@ -13,9 +13,15 @@ runtime:
 
 ## Creating a constraint
 
-1. In Setup mode, select the bones as the constraint needs them (below).
-2. In the tree's **Constraints** section, press **+** and choose the kind.
+1. In Setup mode, select the bones as the constraint needs them (below). The tree's **Find** box
+   (top of the skeleton) narrows it to the bones and slots whose names match, so you don't have to
+   dig through a deep hierarchy.
+2. In the tree's **Constraints** section (or the Rig panel), press **+ New** and choose the kind.
 3. Adjust the settings in the inspector.
+
+Every bone field of a constraint (the transform **Driver** and **Driven** bones, the IK **Target**,
+the physics **Bone**) has a pick button: press it, then click the bone in the viewport or the tree.
+Esc cancels.
 
 Every constraint has a **Name**, a **Mix** (how much it applies, 0 to 1), an **Order** (*Apply
 earlier* / *Apply later*: constraints apply one after another) and **Skin required** (active only when
@@ -50,20 +56,34 @@ and the chain follows.
 
 ## Transform
 
-Select the bones to constrain, then the **source** bone last.
+A transform constraint makes **driven** bones follow a **driver** bone. To create one:
+
+- Select the bones that should follow, then the driver last (Ctrl+click), and press **+ New**; or
+- Select just the bone that should follow, press **+ New**, then click the driver in the viewport or
+  the tree.
+
+**Nothing moves when the constraint is created**: its offsets are set so every driven bone keeps its
+current pose. With several driven bones, each gets its own constraint (offsets are shared by a
+constraint's bones, so one constraint could only keep one of them in place). The status bar says who
+follows whom.
+
+To change where a driven bone sits relative to its driver, **move or turn it in Setup mode** with the
+transform tools, as you would any bone: the move sets the constraint's offsets, and the bone stays
+where you put it. Moving the driver moves the driven bones along. This is the classic two-way control
+setup for weight binding, without typing numbers.
 
 | Setting | Meaning |
 | --- | --- |
-| **Bones**, **Source** | The constrained bones and the bone they read from. |
+| **Driver**, **Driven** | The bone read from and the bones it moves. Each has a pick button; **Use selected** takes the selection as the driven bones, and the swap button swaps driver and driven when there is one driven bone. Changing either keeps the driven bone where it is. |
 | **Local source** | Read the source bone in its parent's space. |
 | **Local target** | Change the constrained bones in their parent's space. |
 | **Additive** | Add the source's values instead of matching them. |
 | **Clamp** | Limit mapped values to each mapping's range. |
-| **Properties** | Which of *Rotate*, *X*, *Y*, *Scale X*, *Scale Y* and *Shear Y* are copied, each with an **Offset** and a **Mix**. |
+| **Properties** | Which of *Rotate*, *X*, *Y*, *Scale X*, *Scale Y* and *Shear Y* are copied, each with an **Offset** and a **Mix**. **Driver axes** / **World axes** chooses how the *X* and *Y* offsets are typed: along the driver bone's axes (as stored), or along the screen's, so that a larger *X* always moves the bone right. |
 | **Property mapping** | Advanced: let one source property drive another target property (*Source → target*) with an **Offset**, **Scale** and **Max**. For example, the source's rotation can move the target along X. |
 
-**Offsets from current pose** sets the offsets so the constrained bone stays where it is now in the
-setup pose.
+**Offsets from current pose** sets the offsets so the (first) driven bone stays where it is now in
+the setup pose, at any mix.
 
 ## Path
 

@@ -4,8 +4,10 @@
 
 import { listConstraints } from '../core/constraintdata.js';
 import { Mode, selBone, selSlot } from './app.js';
-import { CONSTRAINT_LABELS, PHYSICS_HINT, createConstraint } from './constraintui.js';
+import { CONSTRAINT_LABELS, PHYSICS_HINT, createConstraint, createTransform } from './constraintui.js';
+import { dragBoneRow, rootDropTarget } from './bonednd.js';
 import { dragOrderRow } from './draworderdnd.js';
+import { treeMatches } from './treefind.js';
 import * as edit from './edit.js';
 import { onionBonePanel, rgbCss } from './onionui.js';
 import { createEvent, createSkin } from './skineventui.js';
@@ -17,6 +19,8 @@ import { t } from './i18n.js';
 
 /** Collapsed sections and bones (kept for the session). */
 const collapsed = new Set(['images', 'events']);
+/** The Find box's text (kept for the session). */
+let query = '';
 // Slots whose attachments are listed (by slot name). Slots start folded, showing only the visible
 // attachment on their row, so rigs with many images stay readable.
 const openSlots = new Set();
@@ -89,14 +93,20 @@ export function render(app, el) {
   const select = (item) => (e) => app.select(item, e.ctrlKey || e.metaKey);
   const pose = app.pose();
 
+  // Find: only the bones and slots whose names match, with the bones above them, all unfolded.
+  const q = query.trim().toLowerCase();
+  const named = (x) => x.name.toLowerCase().includes(q);
+  const keep = treeMatches(doc, query);
+
   // Skeleton: bones nested by parent, each bone's slots, each slot's attachments.
   const skeleton = [];
   const visit = (bone, depth) => {
+    if (keep && !keep.has(bone)) return;
     const kids = doc.children(bone);
-    const slots = doc.slots.map((s, i) => [s, i]).filter(([s]) => s.bone === bone);
+    const slots = doc.slots.map((s, i) => [s, i]).filter(([s]) => s.bone === bone && (!keep || named(s) || named(doc.bones[bone])));
     const key = `bone:${bone}`;
     const hasChildren = kids.length || slots.length;
-    const open = !collapsed.has(key);
+    const open = keep ? true : !collapsed.has(key);
     const twisty = hasChildren
       ? h(
           'span',
@@ -141,16 +151,18 @@ export function render(app, el) {
           uiIcon('layers', 'sm'),
         )
       : null;
-    skeleton.push(
-      row(label(doc.bones[bone].length > 0 ? 'bone' : 'crosshair', doc.bones[bone].name), {
-        tut: `bone:${doc.bones[bone].name}`,
-        depth,
-        selected: selected.has(bone),
-        onclick: select({ bone }),
-        extra: [marks, onionBtn, twisty],
-        bone,
-      }),
-    );
+    const boneRow = row(label(doc.bones[bone].length > 0 ? 'bone' : 'crosshair', doc.bones[bone].name), {
+      tut: `bone:${doc.bones[bone].name}`,
+      depth,
+      cls: q && named(doc.bones[bone]) ? 'match' : '',
+      selected: selected.has(bone),
+      // Picking a bone for a field: a click on its row answers it.
+      onclick: (e) => (app.pick ? app.finishPick(bone) : select({ bone })(e)),
+      extra: [marks, onionBtn, twisty],
+      bone,
+    });
+    if (bone !== 0 && app.mode === Mode.Setup) dragBoneRow(app, boneRow, bone);
+    skeleton.push(boneRow);
     if (!open) return;
     for (const [slot, i] of slots) {
       const names = new Set(slot.attachments.map((a) => a.name));
@@ -237,6 +249,33 @@ export function render(app, el) {
     }),
   );
 
+  const search = h('input', {
+    type: 'search',
+    class: 'tree-search',
+    value: query,
+    placeholder: t('Find a bone or slot'),
+    'aria-label': t('Find a bone or slot'),
+    spellcheck: false,
+    // The tree is not rebuilt while typing in it, so the filter rebuilds it here and keeps the caret.
+    oninput: (e) => {
+      query = e.target.value;
+      const caret = e.target.selectionStart;
+      render(app, el);
+      const next = el.querySelector('.tree-search');
+      next?.focus();
+      next?.setSelectionRange(caret, caret);
+    },
+    onkeydown: (e) => {
+      e.stopPropagation();
+      if (e.key === 'Escape' && query) {
+        query = '';
+        render(app, el);
+        el.querySelector('.tree-search')?.focus();
+      }
+    },
+  });
+  const skeletonBody = [search, keep && !keep.size ? h('div', { class: 'small weak pad' }, t('No bone or slot matches “{query}”.', { query: query.trim() })) : null, ...skeleton];
+
   // The tree is rebuilt on every change: keep where the user had scrolled to.
   const scrolled = el.querySelector('.tree-scroll')?.scrollTop ?? 0;
   el.replaceChildren(
@@ -244,7 +283,7 @@ export function render(app, el) {
       has(app, 'scene') || doc.scene?.actors.length
         ? section(app, 'scene', t('Scene'), doc.scene?.actors.length ?? 0, doc.scene?.actors.length ? sceneRows(app, row) : [h('div', { class: 'small weak pad' }, t('Characters acting together: + Actor adds one (File ▸ New ▸ Scene starts a stage with a camera).'))], addButton(t('Actor'), { title: t('Add a character to the scene'), onclick: (e) => { const r = e.currentTarget.getBoundingClientRect(); addActorMenu(app, r.left, r.bottom); } }))
         : null,
-      section(app, 'skeleton', doc.name || t('Skeleton'), doc.bones.length, skeleton, [addBone, addPoint]),
+      rootDropTarget(section(app, 'skeleton', doc.name || t('Skeleton'), doc.bones.length, skeletonBody, [addBone, addPoint])),
       section(app, 'draworder', t('Draw order'), n, orderList),
       // With the Rig panel open (rigpanel.js), skins, constraints and events are listed there instead.
       app.rigPanel ? null : skinsSection(app),
@@ -319,6 +358,20 @@ function constraintRow(app, c, depth = 0) {
 /** Makes a constraint of `type` from the selected bones and selects it. */
 export function newConstraint(app, type) {
   const label = CONSTRAINT_LABELS[type];
+  // Transform: the selected bones follow a driver, the last one selected, or picked next.
+  if (type === 'transform') {
+    const bones = app.selectedBones();
+    if (!bones.length) return app.setStatus(t('Select the bones that should follow (Ctrl+click for several), then add the constraint'));
+    const finish = (driven, driver) => {
+      const names = createTransform(app, driven, driver);
+      if (!names.length) return app.setStatus(t('A bone cannot drive itself'));
+      app.sel = { constraint: names[0] };
+      app.multi.clear();
+      app.setStatus(t('{driven} now follow(s) {driver}. Nothing moved: offsets keep the current pose.', { driven: driven.filter((b) => b !== driver).map((b) => app.doc.bones[b].name).join(', '), driver: app.doc.bones[driver].name }));
+    };
+    if (bones.length === 1) return app.startPick(t('Click the bone that drives {bone}', { bone: app.doc.bones[bones[0]].name }), (driver) => finish(bones, driver));
+    return finish(bones.slice(0, -1), bones.at(-1));
+  }
   const result = createConstraint(app, type);
   if (result.startsWith('!')) app.setStatus(result.slice(1));
   else {

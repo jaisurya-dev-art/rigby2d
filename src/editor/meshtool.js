@@ -353,7 +353,9 @@ export class MeshTool {
 
   /** Vertex positions as shown: the setup pose, or the animated pose when deforming. */
   shownPoints(t) {
-    if (t.mode !== 'deform') return meshState(this.app.doc, t.slot, t.att).points;
+    // Painting weights on a test pose: the brush and the colors follow the posed mesh.
+    const posed = t.mode === 'weights' && t.att.weights && (this.app.testPose.size || this.app.wiggle.on);
+    if (t.mode !== 'deform' && !posed) return meshState(this.app.doc, t.slot, t.att).points;
     const flat = this.app.pose().worldVertices(this.app.doc, t.slot, t.att);
     const pts = [];
     for (let i = 0; i + 1 < flat.length; i += 2) pts.push([flat[i], flat[i + 1]]);
@@ -537,7 +539,7 @@ export class MeshTool {
     const state = meshState(app.doc, t.slot, t.att);
     const bone = t.edit.bone ?? state.weights[0]?.[0]?.bone ?? 0;
     const radius = (t.edit.radius ?? 40) / app.view.zoom;
-    const changed = paintWeights(state.points, state.weights, bone, this.viewport.toWorld(pos), radius, (t.edit.strength ?? 0.5) * 0.25, this.drag.subtract);
+    const changed = paintWeights(this.shownPoints(t), state.weights, bone, this.viewport.toWorld(pos), radius, (t.edit.strength ?? 0.5) * 0.25, this.drag.subtract);
     if (changed.length) this.commit(t, state, { topology: false });
   }
 

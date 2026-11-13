@@ -101,7 +101,9 @@ The tree has collapsible sections:
   next to its name; click **▸** (with the number of attachments) to list them all, and click one to
   show it (in Animate mode, that sets an image-swap key). **+ Bone** adds a child to the selected
   bone, as long as its parent, and **+ Point** a [point bone](bones-and-slots.md#point-bones) at its
-  tip.
+  tip. The **Find** box at the top shows only the bones and slots whose names contain what you type
+  (with the bones above them), and Esc clears it. In Setup mode, drag a bone's row onto another bone
+  to make that its parent, or onto the skeleton's title for the root; the bone keeps its place.
 - **Draw order**: slots back to front; *Draw in front* and *Draw behind* move the selected slot, or
   drag a row to drop it anywhere (a side preview shows its image between its new neighbours as you
   drag). See [Draw order](bones-and-slots.md#draw-order).

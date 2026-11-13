@@ -9,6 +9,7 @@ import { makeBone, moveAttachment } from '../core/model.js';
 import { Pose } from '../core/pose.js';
 import { FPS, Mode, selBone, selSlot, snap } from './app.js';
 import { CHANNEL_FIELDS, TRANSFORM_CHANNELS as CHANNELS } from './channels.js';
+import { constraintsKeeping, keepPoseOffsets } from './constraintoffsets.js';
 import { t } from './i18n.js';
 
 /** Makes sure an animation exists and is selected, creating one if needed. Returns its index. */
@@ -74,8 +75,14 @@ export function keyBoneTransform(app, bone, t) {
  * auto key is on; otherwise the change is kept as an unkeyed change until it is keyed.
  */
 export function setBoneLocal(app, bone, t) {
-  if (app.mode === Mode.Setup) {
+  if (app.testPosing) {
+    // Painting weights: the bone moves for a look only; the setup pose stays as it is.
+    app.testPose.set(bone, { ...t });
+  } else if (app.mode === Mode.Setup) {
     app.doc.bones[bone].setup = t;
+    // A bone driven by a transform constraint stays where it is moved: the move sets the offsets.
+    const name = app.doc.bones[bone].name;
+    for (const d of constraintsKeeping(app.doc, name)) keepPoseOffsets(app.doc, d, name);
   } else {
     const current = app.pose().local[bone];
     const changed = CHANNELS.filter((ch) => differs(t, current, CHANNEL_FIELDS[ch]));
@@ -238,7 +245,7 @@ export function addPointBone(app, parent, world = null) {
 /** Reparents a bone while keeping it where it is in the world (setup pose). */
 export function reparentBoneKeepWorld(app, bone, newParent) {
   if (bone === 0 || app.doc.isDescendant(newParent, bone)) {
-    app.setStatus('A bone cannot be parented to itself or its children');
+    app.setStatus(t('A bone cannot be parented to itself or its children'));
     return;
   }
   const setup = new Pose(app.doc);

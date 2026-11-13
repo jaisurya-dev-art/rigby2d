@@ -1072,7 +1072,11 @@ export class Viewport {
       return;
     }
     const editTool = this.meshTool.active ? this.meshTool : this.shapeTool.active ? this.shapeTool : null;
-    if (e.button === 0 && editTool) {
+    // Painting weights: Alt+drag a bone to try a pose (the test pose; the setup pose stays).
+    if (e.button === 0 && e.altKey && this.app.testPosing) {
+      e.preventDefault();
+      this.press = { pos, started: false, add: false, testPose: true };
+    } else if (e.button === 0 && editTool) {
       this.meshPress = editTool;
       editTool.down(pos, e);
     } else if (e.button === 0) {
@@ -1149,6 +1153,13 @@ export class Viewport {
   /** Click: select what is under the cursor; Ctrl adds or removes bones; empty space deselects. */
   click(pos, add) {
     const app = this.app;
+    if (this.press?.testPose) return;
+    // Picking a bone for a field (a constraint's driver, an IK target...): the click answers it.
+    if (app.pick) {
+      const b = this.hitBone(app.pose(), pos);
+      if (b !== null && b !== undefined) app.finishPick(b);
+      return;
+    }
     const hit = this.hitTest(app.pose(), pos);
     // Create tool: a click on empty space adds a point bone (dragging draws a regular bone).
     if (app.tool === 'create' && !hit && !add) {
@@ -1174,8 +1185,18 @@ export class Viewport {
     const add = this.press?.add;
     let drag = null;
     // A selected point bone's handle turns it, whatever the tool (it has no tip to drag).
-    const knob = app.tool === 'create' ? null : this.hitPointKnob(app.pose(), press);
-    if (knob !== null) {
+    const knob = app.tool === 'create' || this.press?.testPose ? null : this.hitPointKnob(app.pose(), press);
+    if (app.pick) {
+      drag = null;
+    } else if (this.press?.testPose) {
+      // Test pose: near a bone's origin moves it, elsewhere on it turns it toward the cursor.
+      const pose = app.pose();
+      const b = this.hitBone(pose, press);
+      if (b !== null && b !== undefined) {
+        const origin = this.toScreen(pose.world[b].apply([0, 0]));
+        drag = { kind: Math.hypot(press[0] - origin[0], press[1] - origin[1]) < 10 ? 'poseTranslate' : 'poseAim', index: b };
+      }
+    } else if (knob !== null) {
       drag = { kind: 'poseAim', index: knob };
     } else if (app.tool === 'create') {
       if (app.mode === Mode.Animate) app.setStatus(t('Bones can only be created in Setup mode (Tab)'));
