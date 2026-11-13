@@ -385,7 +385,7 @@ export function asepriteParts(ase, stem = 'animation') {
       }
       skipped.add(tn('blend modes of hidden layers (imported as normal)'));
     }
-    slots.push({ index, name: layer.name || `layer ${index + 1}`, hidden: layer.hidden, blend: SLOT_BLEND[layer.blend] ?? 'normal', pictures: [], keys: new Map(), shown: [] });
+    slots.push({ index, name: layer.name.trim() || `layer ${index + 1}`, hidden: layer.hidden, blend: SLOT_BLEND[layer.blend] ?? 'normal', pictures: [], keys: new Map(), shown: [] });
   });
   for (const frame of ase.frames) {
     const pics = new Map();
