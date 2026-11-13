@@ -40,6 +40,8 @@
   --success: #5fbf86;
   --warning: #d9a03f;
   --danger: #d9655c;
+  /* The shared bone hover (viewport glow, tree, timeline). */
+  --bone-hover: rgba(255, 70, 205, 0.9);
   /* Type: five sizes, three weights. */
   --font-ui: system-ui, 'Segoe UI', sans-serif;
   --font-mono: ui-monospace, 'JetBrains Mono', Consolas, monospace;
@@ -4781,4 +4783,38 @@ body.bone-dragging * {
 .test-pose .ui-drag,
 .test-pose input {
   width: 56px;
+}
+
+/* Press feedback: every shared control answers the press itself, before the action lands. */
+.ui-btn:active:not(:disabled),
+.ui-icon-btn:active:not(:disabled),
+.ui-toggle:active:not(:disabled),
+.ui-segmented button:active,
+#menubar .menu-title:active,
+.row:active {
+  filter: brightness(0.85);
+}
+.ui-btn:active:not(:disabled),
+.ui-icon-btn:active:not(:disabled) {
+  transform: translateY(0.5px);
+}
+
+/* Tree: a hovered bone that is also selected keeps its selected fill; the hover shows as a bar. */
+.row.selected.bone-hover {
+  background: var(--selected);
+  box-shadow: inset 3px 0 0 var(--bone-hover);
+}
+/* The tree takes the arrow keys: no box around it, the selected row shows the focus instead. */
+.tree-scroll:focus {
+  outline: none;
+}
+.tree-scroll:focus-visible .row.selected {
+  outline: 1px solid var(--ui-accent);
+  outline-offset: -1px;
+}
+#status-text {
+  transition: color 0.4s;
+}
+#status-text.stale {
+  color: var(--fg-faint);
 }

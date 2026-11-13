@@ -86,9 +86,71 @@ export function row(label, { depth = 0, selected = false, cls = '', onclick, ext
   return h('div', attrs, label, extra);
 }
 
+/** The selection the tree last showed, so a new one (from the viewport, say) is revealed once. */
+let shownSel = '';
+
+/** Unfolds the bones above the selected bone or slot, so its row is in the tree. */
+function revealSelection(app) {
+  const doc = app.doc;
+  const slot = selSlot(app.sel);
+  let b = slot !== null ? doc.slots[slot]?.bone : selBone(app.sel);
+  if (b === null || b === undefined || !doc.bones[b]) return;
+  if (slot === null) b = doc.bones[b].parent;
+  while (b !== null && b !== undefined && doc.bones[b]) {
+    collapsed.delete(`bone:${b}`);
+    b = doc.bones[b].parent;
+  }
+  collapsed.delete('skeleton');
+}
+
+/** Rows the arrow keys move through: bones and slots of the skeleton, top to bottom. */
+const navRows = (el) => [...el.querySelectorAll('.tree-section .row[data-bone], .tree-section .row[data-slot]')].filter((r) => r.closest('.order-list') === null);
+
+/** Arrow keys in the tree: up/down move the selection, left folds (or goes to the parent), right unfolds. */
+function treeKeys(app, el, e) {
+  if (!['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key) || e.ctrlKey || e.metaKey || e.altKey) return;
+  const rows = navRows(el);
+  if (!rows.length) return;
+  e.preventDefault();
+  e.stopPropagation();
+  const at = rows.findIndex((r) => r.classList.contains('selected'));
+  const pick = (r) => {
+    if (!r) return;
+    if (r.dataset.slot !== undefined) app.select({ slot: Number(r.dataset.slot) });
+    else app.select({ bone: Number(r.dataset.bone) });
+  };
+  if (e.key === 'ArrowUp') return pick(rows[at < 0 ? 0 : Math.max(0, at - 1)]);
+  if (e.key === 'ArrowDown') return pick(rows[at < 0 ? 0 : Math.min(rows.length - 1, at + 1)]);
+  const bone = selBone(app.sel);
+  if (bone === null) {
+    // A slot: left goes to its bone.
+    const slot = selSlot(app.sel);
+    if (e.key === 'ArrowLeft' && slot !== null) app.select({ bone: app.doc.slots[slot].bone });
+    return;
+  }
+  const key = `bone:${bone}`;
+  if (e.key === 'ArrowRight') {
+    if (collapsed.has(key)) {
+      collapsed.delete(key);
+      app.changed();
+    }
+  } else if (!collapsed.has(key) && (app.doc.children(bone).length || app.doc.slots.some((s) => s.bone === bone))) {
+    collapsed.add(key);
+    app.changed();
+  } else if (app.doc.bones[bone].parent !== null) {
+    app.select({ bone: app.doc.bones[bone].parent });
+  }
+}
+
 export function render(app, el) {
   treeApp = app;
   const doc = app.doc;
+  const selKey = JSON.stringify(app.sel ?? null);
+  const revealing = selKey !== shownSel;
+  if (revealing) {
+    shownSel = selKey;
+    revealSelection(app);
+  }
   const selected = new Set(app.selectedBones());
   const select = (item) => (e) => app.select(item, e.ctrlKey || e.metaKey);
   const pose = app.pose();
@@ -100,10 +162,21 @@ export function render(app, el) {
 
   // Skeleton: bones nested by parent, each bone's slots, each slot's attachments.
   const skeleton = [];
+  const slotsOf = new Map();
+  doc.slots.forEach((s, i) => {
+    if (!slotsOf.has(s.bone)) slotsOf.set(s.bone, []);
+    slotsOf.get(s.bone).push([s, i]);
+  });
+  const childrenOf = new Map();
+  doc.bones.forEach((b, i) => {
+    if (b.parent === null) return;
+    if (!childrenOf.has(b.parent)) childrenOf.set(b.parent, []);
+    childrenOf.get(b.parent).push(i);
+  });
   const visit = (bone, depth) => {
     if (keep && !keep.has(bone)) return;
-    const kids = doc.children(bone);
-    const slots = doc.slots.map((s, i) => [s, i]).filter(([s]) => s.bone === bone && (!keep || named(s) || named(doc.bones[bone])));
+    const kids = childrenOf.get(bone) ?? [];
+    const slots = (slotsOf.get(bone) ?? []).filter(([s]) => !keep || named(s) || named(doc.bones[bone]));
     const key = `bone:${bone}`;
     const hasChildren = kids.length || slots.length;
     const open = keep ? true : !collapsed.has(key);
@@ -187,7 +260,9 @@ export function render(app, el) {
       // Folded: the visible attachment's name follows the slot's.
       // (Not when it has the slot's own name, as most single-image slots do.)
       const shown = !slotOpen && pose.attachment[i] && pose.attachment[i] !== slot.name ? h('span', { class: 'slot-shown', title: t('Visible attachment') }, pose.attachment[i]) : null;
-      skeleton.push(row(label('layers', slot.name), { tut: `slot:${slot.name}`, depth: depth + 1, cls: 'slot', selected: selSlot(app.sel) === i, onclick: select({ slot: i }), extra: [shown, slotTwisty] }));
+      const slotRow = row(label('layers', slot.name), { tut: `slot:${slot.name}`, depth: depth + 1, cls: 'slot', selected: selSlot(app.sel) === i, onclick: select({ slot: i }), extra: [shown, slotTwisty] });
+      slotRow.dataset.slot = String(i);
+      skeleton.push(slotRow);
       if (!slotOpen) continue;
       for (const name of names) {
         const visible = pose.attachment[i] === name;
@@ -278,8 +353,18 @@ export function render(app, el) {
 
   // The tree is rebuilt on every change: keep where the user had scrolled to.
   const scrolled = el.querySelector('.tree-scroll')?.scrollTop ?? 0;
+  const focused = document.activeElement?.classList?.contains('tree-scroll') && el.contains(document.activeElement);
   el.replaceChildren(
-    h('div', { class: 'tree-scroll scroll' },
+    h('div', {
+      class: 'tree-scroll scroll',
+      tabindex: '0',
+      'aria-label': t('Tree'),
+      onkeydown: (e) => treeKeys(app, el, e),
+      // A click on a row leaves the keyboard in the tree, so the arrow keys move from there.
+      onpointerdown: (e) => {
+        if (!e.target.closest('input, button, select, textarea')) e.currentTarget.focus({ preventScroll: true });
+      },
+    },
       has(app, 'scene') || doc.scene?.actors.length
         ? section(app, 'scene', t('Scene'), doc.scene?.actors.length ?? 0, doc.scene?.actors.length ? sceneRows(app, row) : [h('div', { class: 'small weak pad' }, t('Characters acting together: + Actor adds one (File ▸ New ▸ Scene starts a stage with a camera).'))], addButton(t('Actor'), { title: t('Add a character to the scene'), onclick: (e) => { const r = e.currentTarget.getBoundingClientRect(); addActorMenu(app, r.left, r.bottom); } }))
         : null,
@@ -293,7 +378,11 @@ export function render(app, el) {
       section(app, 'images', t('Images'), doc.images.length, doc.images.map((i) => row(label('image', i.name), { title: `${i.width}×${i.height}` }))),
     ),
   );
-  el.querySelector('.tree-scroll').scrollTop = scrolled;
+  const scroller = el.querySelector('.tree-scroll');
+  scroller.scrollTop = scrolled;
+  if (focused) scroller.focus({ preventScroll: true });
+  // A new selection (from the viewport, the timeline, the keys) scrolls its row into view.
+  if (revealing) scroller.querySelector('.tree-section .row.selected[data-bone], .tree-section .row.selected[data-slot]')?.scrollIntoView({ block: 'nearest' });
   // Keep hover alive across the rebuild and keep the callback pointing at this fresh DOM.
   treeRoot = el;
   app.onHoverChange = applyBoneHover;

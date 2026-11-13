@@ -94,7 +94,7 @@ export function setBoneLocal(app, bone, t) {
       app.pending.set(bone, pending);
     }
   }
-  app.changed();
+  app.changed({ pose: true });
 }
 
 /** Key button state of a bone channel: 'changed' (unkeyed change), 'keyed' (key at this frame) or 'none'. */

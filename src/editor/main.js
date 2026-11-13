@@ -3,6 +3,7 @@
 // Copyright (c) 2026 jaisurya-dev-art and Rigby2D contributors
 
 import { WORKSPACES, has } from './workspaces.js';
+import { emit } from '@tauri-apps/api/event';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 
 import './style.css';
@@ -455,7 +456,8 @@ function buildMenuBar() {
 // Drag a splitter to resize the panels on either side; double-click restores the default size.
 // Sizes are remembered on this machine. `max()` keeps room for the panel on the other side.
 function splitter(el, cssVar, axis, sign, min, max) {
-  const root = document.documentElement;
+  // Set on the editor grid, not the document root: a drag then restyles the grid, not every element.
+  const root = $('#app');
   const key = `rigby.layout${cssVar}`;
   const fallback = getComputedStyle(root).getPropertyValue(cssVar).trim();
   const apply = (px) => root.style.setProperty(cssVar, `${Math.round(Math.max(min, Math.min(max(), px)))}px`);
@@ -598,11 +600,14 @@ window.addEventListener('blur', () => (pointersDown = 0));
 /**
  * Panels are rebuilt when the app changes. While playing, the time moves every frame: panels that
  * show it (`every`: at most every that many ms) follow it; the others wait for a real change.
+ * `structural`: rebuilt only when more than bone transforms changed (the tree shows no transform
+ * values, so a drag doesn't rebuild it). `poseEvery`: while only transforms change (a drag), rebuilt
+ * at most every that many ms; the last value always lands once the drag stops.
  */
 const panels = [
-  { el: $('#tree'), render: tree.render, built: -1 },
+  { el: $('#tree'), render: tree.render, built: -1, structural: true },
   { el: $('#rig'), render: rigPanel.render, built: -1 },
-  { el: $('#properties .content'), render: inspector.render, built: -1, every: 200 },
+  { el: $('#properties .content'), render: inspector.render, built: -1, every: 200, poseEvery: 66 },
   { el: $('#viewbar'), render: toolbar.render, built: -1 },
   { el: $('#controls'), render: renderControls, built: -1, every: 66 },
 ];
@@ -619,11 +624,14 @@ let lastTitle = '';
 
 let lastTime = 0;
 let lastAnim = null;
+let lastStatus = '';
+let statusAt = 0;
 
 /** Redraws everything at once (the tutorial arena uses it; the frame loop normally does this). */
 function renderNow() {
   for (const p of panels) {
     p.built = app.version;
+    p.builtStructure = app.structureVersion;
     p.builtTime = app.timeVersion;
     p.render(app, p.el);
   }
@@ -671,17 +679,27 @@ function frame(now) {
     dopesheet.draw();
   }
   for (const p of panels) {
-    const changed = p.built !== app.version;
+    const structureChanged = p.builtStructure !== app.structureVersion;
+    const poseOnly = !structureChanged && p.built !== app.version;
+    const changed = p.structural ? structureChanged : structureChanged || (poseOnly && (!p.poseEvery || now - (p.builtAt ?? 0) >= p.poseEvery));
     const timeMoved = p.every && p.builtTime !== app.timeVersion && now - (p.builtAt ?? 0) >= p.every;
     if ((changed || timeMoved) && !editingIn(p.el)) {
       p.built = app.version;
+      p.builtStructure = app.structureVersion;
       p.builtTime = app.timeVersion;
       p.builtAt = now;
       p.render(app, p.el);
     }
   }
   renderMenuBar();
+  // A message dims once it is old, so advice about an earlier action doesn't read as current.
+  if (app.status !== lastStatus) {
+    lastStatus = app.status;
+    statusAt = now;
+  }
   setText($('#status-text'), app.status);
+  const stale = now - statusAt > 8000;
+  if ($('#status-text').classList.contains('stale') !== stale) $('#status-text').classList.toggle('stale', stale);
   const errors = log.unreadErrors;
   const badge = $('#status-log');
   setText(badge, errors ? `⚠ ${t('{count} error(s)', { count: errors })}` : t('Log'));
@@ -700,6 +718,18 @@ function frame(now) {
 }
 
 requestAnimationFrame(frame);
+
+// Desktop: the splash screen shows this window once the panels are built, so it never opens blank.
+// (Built here, not in the frame loop: a hidden window may not get animation frames.)
+if (inTauri) {
+  setTimeout(() => {
+    try {
+      renderNow();
+    } finally {
+      emit('editor-ready').catch(() => {});
+    }
+  }, 0);
+}
 
 // The editor starts with an empty project (demos are under File > Open demo); new users are
 // offered the tour once. A link such as editor/?demo=nila (the website's Demos page) opens that

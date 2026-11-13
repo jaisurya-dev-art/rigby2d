@@ -55,8 +55,8 @@ export const Mode = Object.freeze({ Setup: 'setup', Animate: 'animate' });
 export const TOOLS = [
   { id: 'pose', label: tn('Pose'), icon: 'hand' },
   { id: 'create', label: tn('Create'), icon: 'bone' },
-  { id: 'rotate', label: tn('Rotate'), icon: 'rotate-cw' },
   { id: 'translate', label: tn('Translate'), icon: 'move' },
+  { id: 'rotate', label: tn('Rotate'), icon: 'rotate-cw' },
   { id: 'scale', label: tn('Scale'), icon: 'maximize-2' },
   { id: 'shear', label: tn('Shear'), icon: 'shear' },
 ];
@@ -178,8 +178,8 @@ export class App {
       this.keymap = loadPreset();
       this.changed();
     });
-    /** Animate mode: key every edit immediately (on), or keep edits as unkeyed changes (off). */
-    this.autoKey = false;
+    /** Animate mode: key every edit immediately (on, the default), or keep edits as unkeyed changes (off). */
+    this._autoKey = loadSetting('rigby.animate.autoKey', '1') === '1';
     /** Unkeyed changes in animate mode: bone index -> { channel -> partial local transform }. */
     this.pending = new Map();
     /** Axes for numeric transform values: 'local', 'parent' or 'world'. */
@@ -266,6 +266,9 @@ export class App {
     this.frameRequest = false;
     /** Bumped on every state change so panels know to refresh. */
     this.version = 0;
+    /** Bumps on every change except pose-only ones (a bone moved, rotated, scaled): panels that show
+     *  no transform values (the tree) rebuild on this instead of on `version`. */
+    this.structureVersion = 0;
     /** Bumped when playback moves the time: only time-dependent views need to follow it. */
     this.timeVersion = 0;
     this.history = { undo: [], redo: [] };
@@ -283,10 +286,23 @@ export class App {
     this.timelineClipStamp = 0;
   }
 
-  changed() {
+  /** Auto key (Animate mode): remembered between sessions. */
+  get autoKey() {
+    return this._autoKey;
+  }
+
+  set autoKey(on) {
+    if (this._autoKey === !!on) return;
+    this._autoKey = !!on;
+    saveSetting('rigby.animate.autoKey', on ? '1' : '0');
+  }
+
+  /** Marks the app changed. `pose`: only bone transforms changed (a drag), not structure or selection. */
+  changed({ pose = false } = {}) {
     invalidateConstraints(this.doc);
     FPS = this.doc.settings?.fps ?? 30;
     this.version++;
+    if (!pose) this.structureVersion++;
   }
 
   setStatus(text) {

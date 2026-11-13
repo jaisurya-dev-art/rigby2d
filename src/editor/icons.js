@@ -93,8 +93,21 @@ const ENGINES = {
 
 const NS = 'http://www.w3.org/2000/svg';
 
+/** Built icons by name, size and stroke: panels rebuild often, so each icon is parsed once and copied. */
+const built = new Map();
+
 /** An interface icon as an <svg> element (`name`: a key of LUCIDE). */
 export function icon(name, size = 18, stroke = 2) {
+  const key = `${name}|${size}|${stroke}`;
+  let svg = built.get(key);
+  if (!svg) {
+    svg = buildIcon(name, size, stroke);
+    built.set(key, svg);
+  }
+  return svg.cloneNode(true);
+}
+
+function buildIcon(name, size, stroke) {
   const svg = document.createElementNS(NS, 'svg');
   svg.setAttribute('viewBox', '0 0 24 24');
   svg.setAttribute('width', size);

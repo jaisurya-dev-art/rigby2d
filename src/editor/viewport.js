@@ -1155,6 +1155,18 @@ export class Viewport {
     }
   }
 
+  /**
+   * In Animate mode an image under the cursor stands for the bone that carries it: images are placed
+   * in the setup pose and move over time with their bones, so a click or drag on one picks its bone.
+   * (The tree still selects the slot itself, for its attachment and color keys.)
+   */
+  animateHit(hit) {
+    const app = this.app;
+    if (!hit || app.mode !== Mode.Animate || selBone(hit) !== null) return hit;
+    const slot = selSlot(hit);
+    return slot === null ? hit : { bone: app.doc.slots[slot].bone };
+  }
+
   /** Click: select what is under the cursor; Ctrl adds or removes bones; empty space deselects. */
   click(pos, add) {
     const app = this.app;
@@ -1165,7 +1177,7 @@ export class Viewport {
       if (b !== null && b !== undefined) app.finishPick(b);
       return;
     }
-    const hit = this.hitTest(app.pose(), pos);
+    const hit = this.animateHit(this.hitTest(app.pose(), pos));
     // Create tool: a click on empty space adds a point bone (dragging draws a regular bone).
     if (app.tool === 'create' && !hit && !add) {
       if (app.mode === Mode.Animate) {
@@ -1210,7 +1222,7 @@ export class Viewport {
       drag = { kind: 'box', from: press, to: press };
     } else {
       const pose = app.pose();
-      const hit = this.hitTest(pose, press);
+      const hit = this.animateHit(this.hitTest(pose, press));
       const bones = app.selectedBones();
       if (hit && selBone(hit) !== null) {
         if (!bones.includes(selBone(hit))) app.select(hit);
@@ -1227,6 +1239,10 @@ export class Viewport {
         drag = { kind: 'slot', index: selSlot(hit) };
       } else if (bones.length && app.tool !== 'pose') {
         // Dragging empty space transforms the current selection.
+        drag = { kind: 'bones' };
+      } else if (selSlot(app.sel) !== null && app.tool !== 'pose' && app.mode === Mode.Animate) {
+        // Animate mode keys bones, not image placement: the selected image's bone moves instead.
+        app.select({ bone: app.doc.slots[selSlot(app.sel)].bone });
         drag = { kind: 'bones' };
       } else if (selSlot(app.sel) !== null && app.tool !== 'pose') {
         drag = { kind: 'slot', index: selSlot(app.sel) };
