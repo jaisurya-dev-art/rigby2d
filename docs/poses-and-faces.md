@@ -75,8 +75,8 @@ it like any bone to make a character look around.
 
 | Setting | Meaning |
 | --- | --- |
-| **Angle** | The largest turn, at the control's full reach (25° by default). |
-| **Tilt angle** | The largest tilt up or down (15° by default). |
+| **Angle** | The largest turn, at the control's full reach (20° by default). |
+| **Tilt angle** | The largest tilt up or down (12° by default). |
 | **Roundness** | How curved the surface is: 0 flat (parts only slide), 1 a full cylinder. |
 | **Depth of each part** | How near each part is: higher moves more. |
 

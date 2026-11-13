@@ -22,7 +22,9 @@ export const TURN_SAMPLES = 9;
  * Defaults: the largest turn and tilt (degrees), the surface's roundness (0 flat, 1 round), the
  * control's travel for a full turn or tilt.
  */
-export const TURN_DEFAULTS = { angle: 25, tilt: 15, bulge: 0.6, reach: 100 };
+export const TURN_DEFAULTS = { angle: 20, tilt: 12, bulge: 0.4, reach: 100 };
+/** Parts narrower than this share of the surface's radius move as one piece (features, not the face). */
+const RIGID = 0.7;
 
 /** Bones in `root`'s branch (itself and every bone below it). */
 function branch(doc, root) {
@@ -137,11 +139,24 @@ export function turnDeltas(doc, pose, turn, slot, att, depth, t, axis = 'x') {
   const r = tilt ? turn.radiusY ?? Math.max(1, turn.top - turn.center[1]) : turn.radius;
   const pts = worldPoints(doc, pose, slot, att);
   // How far each vertex moves along the axis: rotated around the centre in 3D, drawn flat again.
-  const moves = [];
-  for (let i = 0; i < pts.length; i += 2) {
-    const u = pts[i + (tilt ? 1 : 0)] - c;
-    const z = depth + turn.bulge * Math.sqrt(Math.max(0, r * r - u * u));
-    moves.push(u * cos + z * sin - u);
+  const along = [];
+  for (let i = 0; i < pts.length; i += 2) along.push(pts[i + (tilt ? 1 : 0)] - c);
+  const height = (u) => turn.bulge * Math.sqrt(Math.max(0, r * r - u * u));
+  const project = (u) => u * cos + (depth + height(u)) * sin - u;
+  const lo = Math.min(...along);
+  const hi = Math.max(...along);
+  let moves;
+  if (hi - lo < r * RIGID) {
+    // A small part (an eye, a nose, a mouth) moves as one piece, like a drawing on the surface: it
+    // slides with its centre and squashes by the surface's slope there, but does not bend.
+    const uc = (lo + hi) / 2;
+    const root = Math.sqrt(Math.max(1e-6, r * r - uc * uc));
+    const slope = cos - ((turn.bulge * uc) / root) * sin;
+    const mc = project(uc);
+    moves = along.map((u) => mc + (u - uc) * (slope - 1));
+  } else {
+    // A big part (the face, the hair) follows the curved surface.
+    moves = along.map(project);
   }
   // Into the space deform keys use: the slot's bone, or each weight's bone (weights sum to 1).
   const local = (bone, d) => {
