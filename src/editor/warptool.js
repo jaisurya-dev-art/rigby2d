@@ -31,21 +31,37 @@ export class WarpTool {
     return this.warp() !== null;
   }
 
-  /** The animation keys are written to (Animate mode), or null. */
+  /**
+   * The animation keys are written to: the side of a turn being shaped (warpEdit.anim), else the
+   * current animation in Animate mode; null in Setup mode (where a drag reshapes for good).
+   */
   animName() {
+    if (this.app.warpEdit?.anim) return this.app.warpEdit.anim;
     return this.app.mode === Mode.Animate ? (this.app.currentAnimation()?.name ?? null) : null;
+  }
+
+  /** The time keys are written at (the side being shaped, else the playhead). */
+  time() {
+    return this.app.warpEdit?.time ?? this.app.time;
   }
 
   /** This warp's own offsets now (a copy; zeros in Setup mode or without keys). */
   ownOffsets(w) {
     const name = this.animName();
-    return (name && warpOffsetsAt(w, name, this.app.time)) || new Array(pointsOf(w) * 2).fill(0);
+    return (name && warpOffsetsAt(w, name, this.time())) || new Array(pointsOf(w) * 2).fill(0);
+  }
+
+  /** The picked points (a Set of indices). */
+  picked() {
+    const e = this.app.warpEdit;
+    if (!(e.picked instanceof Set)) e.picked = new Set();
+    return e.picked;
   }
 
   /** The lattice points as drawn, in screen space. */
   screenPoints(w) {
     const app = this.app;
-    const offsets = chainOffsetsAt(app.doc, w, this.animName(), app.time);
+    const offsets = chainOffsetsAt(app.doc, w, this.animName(), this.time());
     if (this.drag) offsets.set(w.name, this.drag.offsets);
     const pose = app.pose();
     // While a Setup drag reshapes the meshes, the handle follows the cursor.
@@ -65,19 +81,59 @@ export class WarpTool {
     return best;
   }
 
-  down(pos) {
+  /** Is a screen position inside the lattice (its outline as drawn)? */
+  inside(w, pos) {
+    const pts = this.screenPoints(w);
+    const ring = [];
+    for (let i = 0; i <= w.cols; i++) ring.push(pts[i]);
+    for (let j = 1; j <= w.rows; j++) ring.push(pts[j * (w.cols + 1) + w.cols]);
+    for (let i = w.cols - 1; i >= 0; i--) ring.push(pts[w.rows * (w.cols + 1) + i]);
+    for (let j = w.rows - 1; j >= 1; j--) ring.push(pts[j * (w.cols + 1)]);
+    let hit = false;
+    for (let i = 0, k = ring.length - 1; i < ring.length; k = i++) {
+      const [xi, yi] = ring[i];
+      const [xk, yk] = ring[k];
+      if (yi > pos[1] !== yk > pos[1] && pos[0] < ((xk - xi) * (pos[1] - yi)) / (yk - yi) + xi) hit = !hit;
+    }
+    return hit;
+  }
+
+  /**
+   * A press: on a point, picks it (Shift adds or removes it) and drags the picked points; inside
+   * the lattice, drags every point (moves the whole shape).
+   */
+  down(pos, e = {}) {
     const w = this.warp();
     if (!w) return;
-    const index = this.pointAt(w, pos);
-    if (index < 0) return;
     if (this.app.mode === Mode.Animate && !this.animName()) {
       this.app.setStatus(t('Choose an animation to key the warp'));
       return;
     }
+    const picked = this.picked();
+    const index = this.pointAt(w, pos);
+    let moving;
+    if (index >= 0) {
+      if (e.shiftKey) {
+        if (picked.has(index)) picked.delete(index);
+        else picked.add(index);
+        this.app.changed();
+        return;
+      }
+      if (!picked.has(index)) {
+        picked.clear();
+        picked.add(index);
+      }
+      moving = [...picked];
+    } else if (this.inside(w, pos)) {
+      moving = Array.from({ length: pointsOf(w) }, (_, i) => i);
+    } else {
+      picked.clear();
+      this.app.changed();
+      return;
+    }
     const bone = this.app.doc.boneIndex(w.bone);
     const inv = this.app.pose().world[bone].inverse();
-    this.drag = { index, from: this.viewport.toWorld(pos), base: this.ownOffsets(w), offsets: this.ownOffsets(w), applied: [0, 0], inv };
-    this.app.warpEdit.selected = index;
+    this.drag = { moving, from: this.viewport.toWorld(pos), base: this.ownOffsets(w), offsets: this.ownOffsets(w), applied: [0, 0], inv };
   }
 
   move(pos) {
@@ -92,16 +148,20 @@ export class WarpTool {
     const bx = d.inv.a * wx + d.inv.c * wy;
     const by = d.inv.b * wx + d.inv.d * wy;
     d.offsets = d.base.slice();
-    d.offsets[2 * d.index] += bx;
-    d.offsets[2 * d.index + 1] += by;
-    if (app.mode === Mode.Animate) {
-      keyWarp(w, this.animName(), Math.round(app.time * 1e4) / 1e4, d.offsets);
+    for (const i of d.moving) {
+      d.offsets[2 * i] += bx;
+      d.offsets[2 * i + 1] += by;
+    }
+    if (this.animName()) {
+      keyWarp(w, this.animName(), Math.round(this.time() * 1e4) / 1e4, d.offsets);
       bakeWarps(app.doc);
     } else {
-      // Setup: reshape the meshes by what the point moved since the last step.
+      // Setup: reshape the meshes by what the points moved since the last step.
       const step = new Array(pointsOf(w) * 2).fill(0);
-      step[2 * d.index] = bx - d.applied[0];
-      step[2 * d.index + 1] = by - d.applied[1];
+      for (const i of d.moving) {
+        step[2 * i] = bx - d.applied[0];
+        step[2 * i + 1] = by - d.applied[1];
+      }
       applyToSetup(app.doc, w, step);
       d.applied = [bx, by];
     }
@@ -139,11 +199,11 @@ export class WarpTool {
       }
     }
     ctx.stroke();
-    const selected = this.app.warpEdit?.selected;
+    const picked = this.picked();
     pts.forEach(([x, y], i) => {
       ctx.beginPath();
-      ctx.arc(x, y, i === selected ? 5 : 4, 0, Math.PI * 2);
-      ctx.fillStyle = i === selected ? line : fill;
+      ctx.arc(x, y, picked.has(i) ? 5 : 4, 0, Math.PI * 2);
+      ctx.fillStyle = picked.has(i) ? line : fill;
       ctx.fill();
       ctx.strokeStyle = line;
       ctx.stroke();

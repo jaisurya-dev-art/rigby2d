@@ -401,7 +401,8 @@ export class App {
   pose() {
     const pose = new Pose(this.doc);
     if (this.testPose.size || this.wiggle.on) {
-      if (!this.testPosing) {
+      // Kept while painting weights, or while shaping one side of a 2.5D turn (warpEdit.preview).
+      if (!this.testPosing && !this.warpEdit?.preview) {
         this.testPose.clear();
         this.wiggle.on = false;
       } else {

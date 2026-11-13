@@ -80,8 +80,24 @@ it like any bone to make a character look around.
 | **Roundness** | How curved the surface is: 0 flat (parts only slide), 1 a full cylinder. |
 | **Depth of each part** | How near each part is: higher moves more. |
 
-**Rebuild** measures the parts again after you change the pictures or bones; **Remove** takes the
-turn out (the meshes stay). Changing the angle, roundness or a depth rebuilds it at once, and keys on
+### Shaping a side by hand
+
+The automatic turn is a first draft. To make a side look exactly right (a cheek that should hide, a
+nose that should poke out further), shape it by hand:
+
+1. Under **Shape a side by hand**, press **Left**, **Right**, **Up** or **Down** (in Setup mode).
+   The head turns fully that way in the viewport and an orange grid appears over it.
+2. Drag the orange points until that view looks right. Shift-click picks several points; dragging
+   inside the grid moves them all.
+3. Press **Done**. The head goes back to straight ahead.
+
+Every angle in between blends from straight ahead to the shape you drew, so you only fix the far
+sides. A shaped side shows a check mark; press it again to change it, or **Reset this side** to go
+back to the automatic turn. The shaping is a [warp deformer](meshes.md#warp-deformers) named
+`head-turn-shape`, baked into the turn animations, so it exports with them.
+
+**Rebuild** measures the parts again after you change the pictures or bones (shaped sides are kept);
+**Remove** takes the turn out (the meshes stay). Changing the angle, roundness or a depth rebuilds it at once, and keys on
 the control bone are kept.
 
 The turn is ordinary skeleton data, so every runtime plays it: two animations of mesh deform keys

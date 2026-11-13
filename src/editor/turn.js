@@ -15,6 +15,7 @@ import { invalidateConstraints } from '../core/constraints.js';
 import { toAffine, transform } from '../core/math.js';
 import { makeBone, uniqueName } from '../core/model.js';
 import { Pose } from '../core/pose.js';
+import { bakeWarps, createWarp, keyWarp, pointsOf, removeWarp } from './warp.js';
 
 /** Keys of the turn animation, from full left to full right (odd, so straight ahead is one). */
 export const TURN_SAMPLES = 9;
@@ -317,6 +318,8 @@ export function buildTurn(doc, turn) {
     rest: [made.x.rest, made.y.rest],
   };
   doc.turns.push(stored);
+  // Sides shaped by hand (shapeSide) are baked again into the new turn animations.
+  if (doc.warps?.length) bakeWarps(doc);
   return stored;
 }
 
@@ -326,7 +329,44 @@ export function removeTurn(doc, name) {
   if (i < 0) return false;
   clearTurn(doc, doc.turns[i]);
   doc.turns.splice(i, 1);
+  if (removeWarp(doc, `${name}-shape`)) bakeWarps(doc);
   return true;
+}
+
+/** Where each side of a turn is: its animation and time, and where the control goes to show it. */
+export const SIDES = { left: ['x', 0, -1], right: ['x', 1, 1], down: ['y', 0, -1], up: ['y', 1, 1] };
+
+/**
+ * Gets a side of `turn` ready to shape by hand: a lattice over the turned parts (one per turn,
+ * "<turn>-shape"), with a key at straight ahead that changes nothing (so other angles stay as they
+ * are) and one at the side. Dragging the lattice's points then keys that side, and every angle in
+ * between blends to it. Returns { warp, anim, time, axis, sign }.
+ */
+export function shapeSide(doc, turn, side) {
+  const [axis, time, sign] = SIDES[side];
+  const name = `${turn.name}-shape`;
+  let warp = doc.warps.find((w) => w.name === name);
+  if (!warp) {
+    const taken = new Set(doc.warps.flatMap((w) => w.targets.map((x) => `${x.slot}/${x.attachment}`)));
+    const slots = turn.parts.map((p) => doc.slots.findIndex((s) => s.name === p.slot)).filter((s) => s >= 0 && !taken.has(`${doc.slots[s].name}/${doc.slots[s].attachment}`));
+    warp = createWarp(doc, { name, bone: doc.boneIndex(turn.bone), slots, cols: 4, rows: 4, parent: null });
+    if (!warp) return null;
+  }
+  const anim = axis === 'x' ? turn.animation : turn.tiltAnimation;
+  const zeros = new Array(pointsOf(warp) * 2).fill(0);
+  const has = (t) => warp.keys?.[anim]?.some((k) => Math.abs(k.time - t) < 1e-4);
+  if (!has(0.5)) keyWarp(warp, anim, 0.5, zeros);
+  if (!has(time)) keyWarp(warp, anim, time, zeros);
+  return { warp, anim, time, axis, sign };
+}
+
+/** Has the side been shaped (any point moved)? */
+export function sideShaped(doc, turn, side) {
+  const [axis, time] = SIDES[side];
+  const warp = doc.warps.find((w) => w.name === `${turn.name}-shape`);
+  const anim = axis === 'x' ? turn.animation : turn.tiltAnimation;
+  const key = warp?.keys?.[anim]?.find((k) => Math.abs(k.time - time) < 1e-4);
+  return !!key && key.offsets.some((v) => Math.abs(v) > 1e-6);
 }
 
 /** The turn of `bone` (by name), or null. */

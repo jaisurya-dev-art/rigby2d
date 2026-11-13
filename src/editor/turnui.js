@@ -5,7 +5,8 @@
 import { Mode } from './app.js';
 import * as edit from './edit.js';
 import { t } from './i18n.js';
-import { buildTurn, planTurn, removeTurn, turnOf, turnSlots } from './turn.js';
+import { SIDES, buildTurn, planTurn, removeTurn, shapeSide, sideShaped, turnOf, turnSlots } from './turn.js';
+import { bakeWarps, keyWarp, pointsOf } from './warp.js';
 import { button, hint, section } from './ui.js';
 import { dragValue, h } from './widgets.js';
 
@@ -17,6 +18,79 @@ function rebuild(app, turn, changes) {
     app.setStatus(`${t('Could not rebuild the turn')}: ${e.message}`);
   }
   app.changed();
+}
+
+const SIDE_LABELS = { left: 'Left', right: 'Right', up: 'Up', down: 'Down' };
+
+/** Starts shaping one side: the head shown turned that way, its lattice ready to drag. */
+function startShaping(app, turn, side) {
+  const doc = app.doc;
+  const r = shapeSide(doc, turn, side);
+  if (!r) return app.setStatus(t('Nothing to shape: the turned parts are not meshes'));
+  const control = doc.boneIndex(turn.control);
+  const rest = turn.rest ?? [0, 0];
+  const local = { ...doc.bones[control].setup };
+  local[r.axis] = rest[r.axis === 'x' ? 0 : 1] + r.sign * turn.reach;
+  app.testPose.clear();
+  app.testPose.set(control, local);
+  app.meshEdit = null;
+  app.warpEdit = { name: r.warp.name, anim: r.anim, time: r.time, preview: true, side, turn: turn.name, picked: new Set() };
+  bakeWarps(doc);
+  app.setStatus(t('Shaping {side}: drag the orange points until it looks right. Shift+click picks several; drag inside the grid to move them all.', { side: t(SIDE_LABELS[side]) }));
+  app.changed();
+}
+
+/** Ends shaping: the head back to straight ahead. */
+function stopShaping(app) {
+  app.testPose.clear();
+  app.warpEdit = null;
+  app.changed();
+}
+
+/** The "Shape a side" row, or the bar shown while a side is being shaped. */
+function shapeUi(app, turn) {
+  const doc = app.doc;
+  const shaping = app.warpEdit?.preview && app.warpEdit.turn === turn.name ? app.warpEdit.side : null;
+  if (shaping) {
+    return h(
+      'div',
+      { class: 'turn-shaping' },
+      h('strong', null, t('Shaping {side}', { side: t(SIDE_LABELS[shaping]) })),
+      hint(t('Drag the orange points over the head until this side looks right; every angle in between blends to it.')),
+      h(
+        'div',
+        { class: 'buttons' },
+        button(t('Reset this side'), {
+          icon: 'rotate-cw',
+          onclick: () => {
+            const w = doc.warps.find((x) => x.name === app.warpEdit.name);
+            if (w) keyWarp(w, app.warpEdit.anim, app.warpEdit.time, new Array(pointsOf(w) * 2).fill(0));
+            bakeWarps(doc);
+            app.changed();
+          },
+        }),
+        button(t('Done'), { kind: 'primary', icon: 'check', onclick: () => stopShaping(app) }),
+      ),
+    );
+  }
+  const setup = app.mode === Mode.Setup;
+  return [
+    h('div', { class: 'section-title' }, t('Shape a side by hand')),
+    hint(t('The turn is a first draft. Pick a side to fix it by hand: the head turns that way and you drag its shape.')),
+    h(
+      'div',
+      { class: 'turn-sides' },
+      Object.keys(SIDES).map((side) =>
+        button(t(SIDE_LABELS[side]), {
+          size: 'sm',
+          disabled: !setup,
+          title: setup ? (sideShaped(doc, turn, side) ? t('Shaped by hand: click to change it') : t('Shape this side by hand')) : t('In Setup mode'),
+          icon: sideShaped(doc, turn, side) ? 'check' : null,
+          onclick: () => startShaping(app, turn, side),
+        }),
+      ),
+    ),
+  ];
 }
 
 const row = (label, ...content) => [h('label', null, label), h('div', { class: 'cell' }, ...content)];
@@ -81,6 +155,7 @@ export function turnUi(app, b) {
         row(t('Tilt angle'), dragValue(turn.tilt ?? 15, (v) => rebuild(app, turn, { tilt: v }), { min: 0, max: 60, speed: 0.5, decimals: 0, suffix: '°', disabled: !setup })),
         row(t('Roundness'), dragValue(turn.bulge, (v) => rebuild(app, turn, { bulge: v }), { min: 0, max: 1.5, speed: 0.01, decimals: 2, disabled: !setup })),
       ),
+      shapeUi(app, turn),
       h('div', { class: 'section-title' }, t('Depth of each part')),
       hint(t('Nearer parts (higher) move more when the head turns; parts behind move the other way.')),
       h('div', { class: 'grid' }, parts),
@@ -95,6 +170,7 @@ export function turnUi(app, b) {
           disabled: !setup,
           title: t('Removes the control bone, the turn animation and its slider; the meshes stay'),
           onclick: () => {
+            if (app.warpEdit?.turn === turn.name) stopShaping(app);
             removeTurn(doc, turn.name);
             app.changed();
           },

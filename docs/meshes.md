@@ -140,6 +140,9 @@ and they add up.
   detail where you need it.
 - **Inside** puts the lattice inside another one, and **Child warp** adds a lattice over one of a
   warp's meshes, inside it.
+- **Moving points:** drag a point to move it; Shift-click picks several points, then drag any of
+  them to move them together; drag inside the lattice (not on a point) to move the whole shape.
+  Click outside to clear the picks.
 
 Warps are editing tools: they are baked into ordinary mesh deform keys, added to any keys the mesh
 has of its own (a [2.5D turn](poses-and-faces.md#25d-turn) included), so exports and every runtime

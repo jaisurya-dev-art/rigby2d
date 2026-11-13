@@ -64,7 +64,7 @@ function warpRow(app, w) {
         kind: editing ? 'primary' : 'secondary',
         title: editing ? t('Stop editing the lattice (Esc)') : app.mode === Mode.Animate ? t('Drag lattice points to key the warp at this frame') : t('Drag lattice points to reshape the meshes'),
         onclick: () => {
-          app.warpEdit = editing ? null : { name: w.name, selected: null };
+          app.warpEdit = editing ? null : { name: w.name, picked: new Set() };
           if (app.warpEdit) app.meshEdit = null;
           app.changed();
         },
@@ -107,7 +107,7 @@ function warpRow(app, w) {
                   // The mesh moves to the child, which sits inside this warp.
                   w.targets = w.targets.filter((x) => x.slot !== slotName);
                   const child = createWarp(doc, { name: uniqueWarpName(doc, `${slotName}-warp`), bone: doc.slots[s].bone, slots: [s], cols: 2, rows: 2, parent: w.name });
-                  if (child) app.warpEdit = { name: child.name, selected: null };
+                  if (child) app.warpEdit = { name: child.name, picked: new Set() };
                   done(app);
                 },
               ),
@@ -141,7 +141,7 @@ export function warpUi(app, b) {
               onclick: () => {
                 const slots = meshSlots(doc, b).filter((s) => !warped(doc, s));
                 const w = createWarp(doc, { name: uniqueWarpName(doc, `${doc.bones[b].name}-warp`), bone: b, slots, cols: 3, rows: 3, parent: null });
-                if (w) app.warpEdit = { name: w.name, selected: null };
+                if (w) app.warpEdit = { name: w.name, picked: new Set() };
                 done(app);
               },
             }),

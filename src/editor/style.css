@@ -4844,3 +4844,18 @@ body.bone-dragging * {
   white-space: nowrap;
   font-weight: 600;
 }
+
+/* 2.5D turn: shaping a side by hand. */
+.turn-sides {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-1);
+  margin-bottom: var(--space-2);
+}
+.turn-shaping {
+  padding: var(--space-2) var(--space-3);
+  margin: var(--space-2) 0;
+  border: 1px solid var(--warning);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--warning) 10%, transparent);
+}

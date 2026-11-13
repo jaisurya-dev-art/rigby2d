@@ -5,7 +5,8 @@ import { invalidateConstraints } from '../src/core/constraints.js';
 import { VERSION_FIELD as V, readSkeletonJson, writeSkeletonJson } from '../src/core/interop.js';
 import { Skeleton } from '../src/core/model.js';
 import { Pose } from '../src/core/pose.js';
-import { TURN_SAMPLES, buildTurn, planTurn, regionToGrid, removeTurn, turnOf, turnSlots } from '../src/editor/turn.js';
+import { TURN_SAMPLES, buildTurn, planTurn, regionToGrid, removeTurn, shapeSide, sideShaped, turnOf, turnSlots } from '../src/editor/turn.js';
+import { bakeWarps, keyWarp, pointsOf } from '../src/editor/warp.js';
 
 // A head: back hair, face and front hair (back to front) on a "head" bone, and a body below.
 const rig = () => {
@@ -147,4 +148,32 @@ test('at rest nothing moves, even when the control does not sit at 0', () => {
   for (const c of sk.extra.constraints) c.data.mix = 0;
   const before = ['hair back', 'face', 'hair front'].map((n) => centreXY(sk, n));
   after.forEach((p, i) => assert.ok(Math.hypot(p[0] - before[i][0], p[1] - before[i][1]) < 1e-6, `part ${i} moved at rest: ${p} vs ${before[i]}`));
+});
+
+test('a side shaped by hand shows at that side and blends in between', () => {
+  const sk = rig();
+  const turn = buildTurn(sk, planTurn(sk, sk.boneIndex('head')));
+  const at = (x) => {
+    setControl(sk, turn, turn.rest[0] + x);
+    return centre(sk, 'face');
+  };
+  const plain = { half: at(turn.reach / 2), full: at(turn.reach), left: at(-turn.reach) };
+  const r = shapeSide(sk, turn, 'right');
+  assert.equal(r.anim, turn.animation);
+  assert.equal(sideShaped(sk, turn, 'right'), false, 'nothing moved yet');
+  // Drag every lattice point 10 to the right at the right side.
+  const offsets = new Array(pointsOf(r.warp) * 2).fill(0).map((_, i) => (i % 2 ? 0 : 10));
+  keyWarp(r.warp, r.anim, r.time, offsets);
+  bakeWarps(sk);
+  assert.equal(sideShaped(sk, turn, 'right'), true);
+  assert.equal(sideShaped(sk, turn, 'left'), false);
+  assert.ok(Math.abs(at(turn.reach) - plain.full - 10) < 1e-6, 'the full right turn shows the shaping');
+  assert.ok(Math.abs(at(turn.reach / 2) - plain.half - 5) < 1e-6, 'half way blends half of it');
+  assert.ok(Math.abs(at(0)) < 1e-6, 'straight ahead is untouched');
+  assert.ok(Math.abs(at(-turn.reach) - plain.left) < 1e-6, 'the left side is untouched');
+  // A rebuild keeps the shaping; removing the turn removes it.
+  buildTurn(sk, { ...turn });
+  assert.equal(sideShaped(sk, turn, 'right'), true);
+  removeTurn(sk, turn.name);
+  assert.equal(sk.warps.length, 0);
 });
