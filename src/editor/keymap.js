@@ -141,9 +141,37 @@ export const REPEATING = new Set(['frame.next', 'frame.previous', 'frame.next10'
 
 const KEY_NAMES = { ' ': 'space', esc: 'escape', del: 'delete' };
 
+/** Keys by physical position (KeyboardEvent.code), as on a US keyboard. */
+const CODE_KEYS = {
+  Comma: ',',
+  Period: '.',
+  Slash: '/',
+  Semicolon: ';',
+  Quote: "'",
+  BracketLeft: '[',
+  BracketRight: ']',
+  Backslash: '\\',
+  Minus: '-',
+  Equal: '=',
+  Backquote: '`',
+};
+
+/**
+ * The key a shortcut names. With a non-Latin layout (Russian, Greek, Arabic…) the key types another
+ * script, so Ctrl+Z gives "я": the key's position decides instead, as most editors do. Latin
+ * layouts (AZERTY, Dvorak…) keep the letter you see.
+ */
+function shortcutKey(e) {
+  const key = e.key ?? '';
+  if (key.length !== 1 || /[\x20-\x7e]/.test(key) || !e.code) return key;
+  if (/^Key[A-Z]$/.test(e.code)) return e.code.slice(3);
+  if (/^Digit[0-9]$/.test(e.code)) return e.code.slice(5);
+  return CODE_KEYS[e.code] ?? key;
+}
+
 /** Combo string for a keyboard event, e.g. "ctrl+shift+l". */
 export function comboOf(e) {
-  let key = e.key.length === 1 ? e.key.toLowerCase() : e.key.toLowerCase();
+  let key = shortcutKey(e).toLowerCase();
   key = KEY_NAMES[key] ?? key;
   if (key === 'control' || key === 'shift' || key === 'alt' || key === 'meta') return '';
   const parts = [];

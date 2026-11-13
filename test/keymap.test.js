@@ -101,3 +101,23 @@ test('every preset can show or hide bones without a conflict', () => {
     assert.deepEqual(conflictsFor(PRESETS[id].bindings, combo, 'view.bones'), []);
   }
 });
+
+test('shortcuts follow the key position on non-Latin layouts, and the letter on Latin ones', async () => {
+  const { comboOf } = await import('../src/editor/keymap.js');
+  const ev = (key, code, mods = {}) => ({ key, code, ctrlKey: false, metaKey: false, shiftKey: false, altKey: false, ...mods });
+  // Russian layout: the Z key types "я", the S key "ы", the C key "с".
+  assert.equal(comboOf(ev('я', 'KeyZ', { ctrlKey: true })), 'ctrl+z');
+  assert.equal(comboOf(ev('Ы', 'KeyS', { ctrlKey: true, shiftKey: true })), 'ctrl+shift+s');
+  assert.equal(comboOf(ev('с', 'KeyC')), 'c');
+  assert.equal(comboOf(ev('б', 'Comma')), ',');
+  // Greek, and a non-Latin digit row.
+  assert.equal(comboOf(ev('ρ', 'KeyR', { shiftKey: true })), 'shift+r');
+  assert.equal(comboOf(ev('١', 'Digit1')), '1');
+  // Latin layouts keep the letter shown on the key: AZERTY's A key is where QWERTY has Q.
+  assert.equal(comboOf(ev('a', 'KeyQ', { ctrlKey: true })), 'ctrl+a');
+  assert.equal(comboOf(ev('z', 'KeyW')), 'z');
+  // Named keys and modifiers alone are unchanged.
+  assert.equal(comboOf(ev('ArrowLeft', 'ArrowLeft')), 'arrowleft');
+  assert.equal(comboOf(ev(' ', 'Space')), 'space');
+  assert.equal(comboOf(ev('Control', 'ControlLeft', { ctrlKey: true })), '');
+});
