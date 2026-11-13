@@ -60,7 +60,7 @@ export function runAction(app, action, ctx) {
       app.autoKey = !app.autoKey;
       app.changed();
     },
-    'select.none': () => (app.pick ? app.finishPick(null) : app.deselect()),
+    'select.none': () => (app.pick ? app.finishPick(null) : app.warpEdit ? ((app.warpEdit = null), app.changed()) : app.deselect()),
     'view.fit': () => (app.frameRequest = true),
     'view.overlays': () => {
       app.hideOverlays = !app.hideOverlays;

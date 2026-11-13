@@ -17,6 +17,7 @@ import { button, iconButton, section, toggleButton } from './ui.js';
 import { FPS_PRESETS, SIZE_PRESETS, formatFps, hexToRgba, rgbaToHex } from './output.js';
 import { posesUi } from './poseui.js';
 import { turnUi } from './turnui.js';
+import { warpUi } from './warpui.js';
 import { has } from './workspaces.js';
 import { sounds } from './audio.js';
 import { renameOnionBone } from './onion.js';
@@ -175,6 +176,7 @@ function boneUi(app, b) {
       setupMode && b !== 0 ? button(t('Delete'), { kind: 'danger', icon: 'trash-2', onclick: () => edit.deleteSelection(app) }) : null,
     ),
     turnUi(app, b),
+    warpUi(app, b),
   ];
 }
 

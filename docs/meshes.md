@@ -121,6 +121,31 @@ In Animate mode, **Deform mesh** lets you move vertices over time:
 Deform keys add to what the bones do, so you can squash a face for a blink, bulge a cheek or wobble a
 belly on top of the skeletal animation.
 
+## Warp deformers
+
+A warp deformer is a lattice, a grid of points over one or more meshes: drag its points and the
+meshes bend smoothly with them, without moving vertices one by one. Lattices can sit inside
+lattices: a parent reshapes a whole part (a head), children make local changes (an eye, a cheek),
+and they add up.
+
+- **Add one:** select a bone and, in the inspector's **Warp deformers** section, press **Add warp**.
+  It covers the pictures on that bone that no warp moves yet; image parts become grid meshes so
+  they can bend. The lattice shows in the viewport while you edit it (**Edit**, **Done** or Esc).
+- **In Setup mode** dragging a point reshapes the meshes for good, like a paint program's warp: the
+  lattice then rests again.
+- **In Animate mode** dragging a point keys the whole lattice at the current frame. Between keys the
+  lattice moves along the key's curve.
+- **Grid** sets the number of cells across and up. Changing it keeps the deformation of every key
+  (the new points take the old lattice's shape where they sit), so you can start coarse and add
+  detail where you need it.
+- **Inside** puts the lattice inside another one, and **Child warp** adds a lattice over one of a
+  warp's meshes, inside it.
+
+Warps are editing tools: they are baked into ordinary mesh deform keys, added to any keys the mesh
+has of its own (a [2.5D turn](poses-and-faces.md#25d-turn) included), so exports and every runtime
+play them with nothing extra. Edit the lattice again and the keys are baked again; delete a warp and
+the meshes get their own keys back.
+
 ## Linked meshes
 
 A linked mesh shows another image with the same vertices, triangles and weights as a mesh. Use it for

@@ -4818,3 +4818,29 @@ body.bone-dragging * {
 #status-text.stale {
   color: var(--fg-faint);
 }
+
+/* Warp deformers in the bone inspector. */
+.warp-row {
+  padding: var(--space-2);
+  margin: var(--space-1) 0 var(--space-2);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius-md);
+  background: var(--surface-1);
+}
+.warp-row.editing {
+  border-color: var(--ui-accent);
+}
+.warp-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin-bottom: var(--space-2);
+}
+.warp-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+}

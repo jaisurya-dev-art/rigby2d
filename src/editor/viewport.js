@@ -13,6 +13,7 @@ import { actorSlots } from '../core/scene.js';
 import { actorBounds, actorOfBone, imageKey } from './actors.js';
 import { MeshTool } from './meshtool.js';
 import { ShapeTool } from './shapetool.js';
+import { WarpTool } from './warptool.js';
 import { GLOW_COLORS } from './draworderdnd.js';
 import { h, popupMenu } from './widgets.js';
 import { t, tn } from './i18n.js';
@@ -41,6 +42,7 @@ export class Viewport {
     this.glView = glCanvas ? GLView.create(glCanvas) : null;
     this.meshTool = new MeshTool(app, this);
     this.shapeTool = new ShapeTool(app, this);
+    this.warpTool = new WarpTool(app, this);
     this.meshPress = false;
     this.width = 1;
     this.height = 1;
@@ -130,6 +132,7 @@ export class Viewport {
     if (overlays) this.drawGuides(pose);
     this.meshTool.draw(this.ctx);
     this.shapeTool.draw(this.ctx);
+    this.warpTool.draw(this.ctx);
     if (this.drag?.kind === 'box') {
       const { from, to } = this.drag;
       this.ctx.save();
@@ -1076,7 +1079,7 @@ export class Viewport {
       this.press = null;
       return;
     }
-    const editTool = this.meshTool.active ? this.meshTool : this.shapeTool.active ? this.shapeTool : null;
+    const editTool = this.warpTool.active ? this.warpTool : this.meshTool.active ? this.meshTool : this.shapeTool.active ? this.shapeTool : null;
     // Painting weights: Alt+drag a bone to try a pose (the test pose; the setup pose stays).
     if (e.button === 0 && e.altKey && this.app.testPosing) {
       e.preventDefault();
@@ -1108,6 +1111,7 @@ export class Viewport {
       else if (app.meshEdit?.mode === 'weights') app.changed(); // brush outline follows the cursor
     }
     if (this.meshPress === this.shapeTool && e.buttons & 1) this.shapeTool.move(pos);
+    if (this.meshPress === this.warpTool && e.buttons & 1) this.warpTool.move(pos);
     if (this.panning) {
       app.view.panX += pos[0] - this.panning[0];
       app.view.panY += pos[1] - this.panning[1];
@@ -1122,7 +1126,7 @@ export class Viewport {
       if (this.press.started) this.dragMove(pos, e.shiftKey);
     }
     // Shared bone highlight: light up the bone under the cursor, unless dragging or in a sub-editor.
-    if (!this.panning && !this.press && !this.meshTool.active && !this.shapeTool.active) {
+    if (!this.panning && !this.press && !this.meshTool.active && !this.shapeTool.active && !this.warpTool.active) {
       // The last drawn pose, unless the skeleton changed since (a bone added, an undo, another file).
       const last = this.lastPose;
       const fresh = last && last.world.length === app.doc.bones.length && this.lastPoseDoc === app.doc;

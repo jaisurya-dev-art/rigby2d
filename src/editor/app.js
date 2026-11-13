@@ -151,6 +151,8 @@ export class App {
     this.wiggle = { on: false, angle: 20, speed: 0.8 };
     /** Picking a bone for a field: { prompt, done(bone) }; the next bone clicked goes to `done`. */
     this.pick = null;
+    /** Warp deformer being edited (editor/warp.js): { name, selected point }. */
+    this.warpEdit = null;
     /** Shape being edited (bounding box, clipping or path): { slot, name, selected }. */
     this.shapeEdit = null;
     /** Whether the Rig panel is open (rigpanel.js): the tree then leaves skins, constraints and events to it. */

@@ -173,6 +173,30 @@ export function warpDeltas(doc, w, offsets, pose = new Pose(doc)) {
   });
 }
 
+/**
+ * Where a lattice's points are drawn (world, [x, y] each) in `pose`: rest positions moved by the
+ * warps' `offsets` (a Map by warp name, its own and its parents').
+ */
+export function latticeWorld(doc, pose, w, offsets) {
+  const bone = boneOf(doc, w);
+  const m = pose.world[bone];
+  const motion = latticeMotion(doc, pose, w, offsets);
+  return latticePoints(w).map(([x, y], k) => {
+    const [wx, wy] = m.apply([x, y]);
+    return [wx + motion[2 * k], wy + motion[2 * k + 1]];
+  });
+}
+
+/** The offsets of a warp and its parents at `time` in animation `name` (a Map; empty without keys). */
+export function chainOffsetsAt(doc, w, name, time) {
+  const out = new Map();
+  for (const x of [w, ...ancestors(doc, w)]) {
+    const o = name ? warpOffsetsAt(x, name, time) : null;
+    if (o) out.set(x.name, o);
+  }
+  return out;
+}
+
 /** A warp's offsets at `time` in animation `name` (null when it has no keys there). */
 export function warpOffsetsAt(w, name, time) {
   const keys = w.keys?.[name];
