@@ -1744,4 +1744,6 @@ export default {
   "Rebuild": "重建",
   "After changing the pictures or bones: measure the parts again": "更改图片或骨骼后：重新测量部件",
   "Removes the control bone, the turn animation and its slider; the meshes stay": "移除控制骨骼、转身动画及其滑块；网格保留",
+  "Tilt": "俯仰",
+  "Tilt angle": "俯仰角度",
 };

@@ -125,14 +125,23 @@ export class Pose {
     return list;
   }
 
-  /** Applies `anim` at `time` on top of the current pose, blended by `alpha` (1 = fully). */
-  apply(sk, anim, time, alpha) {
+  /**
+   * Applies `anim` at `time` on top of the current pose, blended by `alpha` (1 = fully). With
+   * `add` (additive slider constraints), bone keys and mesh deform add their change from the setup
+   * pose, times `alpha`, to the current pose instead of replacing it; other keys replace as usual.
+   */
+  apply(sk, anim, time, alpha, add = false) {
     const hold = alpha >= 0.5;
     for (const t of anim.bones) {
       const bone = sk.bones[t.bone];
       if (!bone) continue;
       const setup = bone.setup;
       const L = this.local[t.bone];
+      if (add) {
+        addBoneKeys(t, setup, L, time, alpha);
+        if (hold && t.inherit?.length) this.inherit[t.bone] = sample(t.inherit, time);
+        continue;
+      }
       let { x, y, rotation, scale_x: sx, scale_y: sy, shear_x: hx, shear_y: hy } = L;
       const has = (keys) => keys !== undefined && keys.length > 0;
       if (has(t.rotate)) rotation = setup.rotation + sampleComponent(t.rotate, time, 0);
@@ -204,7 +213,8 @@ export class Pose {
       const deltas = sampleDeform(t.keys, time, deformLength(source));
       const key = `${t.slot}/${t.attachment}`;
       const prev = this.deform.get(key);
-      this.deform.set(key, prev && alpha < 1 ? prev.map((p, j) => lerp(p, deltas[j], alpha)) : deltas);
+      if (add) this.deform.set(key, prev ? prev.map((p, j) => p + deltas[j] * alpha) : deltas.map((d) => d * alpha));
+      else this.deform.set(key, prev && alpha < 1 ? prev.map((p, j) => lerp(p, deltas[j], alpha)) : deltas);
     }
     // Sequence keys: the frame of the image sequence a slot's attachment shows.
     if (hold && anim.extra?.attachments) {
@@ -562,6 +572,33 @@ export class Pose {
     }
     return out;
   }
+}
+
+/**
+ * Adds a bone timeline's change from the setup pose (times `alpha`) to local transform `L`:
+ * offsets for rotation, translation and shear, a factor for scale (as Spine's additive blend).
+ */
+function addBoneKeys(t, setup, L, time, alpha) {
+  const has = (keys) => keys !== undefined && keys.length > 0;
+  if (has(t.rotate)) L.rotation += sampleComponent(t.rotate, time, 0) * alpha;
+  if (has(t.translate)) {
+    L.x += sampleComponent(t.translate, time, 0) * alpha;
+    L.y += sampleComponent(t.translate, time, 1) * alpha;
+  }
+  if (has(t.translateX)) L.x += sampleComponent(t.translateX, time, 0) * alpha;
+  if (has(t.translateY)) L.y += sampleComponent(t.translateY, time, 0) * alpha;
+  if (has(t.scale)) {
+    L.scale_x += setup.scale_x * (sampleComponent(t.scale, time, 0) - 1) * alpha;
+    L.scale_y += setup.scale_y * (sampleComponent(t.scale, time, 1) - 1) * alpha;
+  }
+  if (has(t.scaleX)) L.scale_x += setup.scale_x * (sampleComponent(t.scaleX, time, 0) - 1) * alpha;
+  if (has(t.scaleY)) L.scale_y += setup.scale_y * (sampleComponent(t.scaleY, time, 0) - 1) * alpha;
+  if (has(t.shear)) {
+    L.shear_x = (L.shear_x ?? 0) + sampleComponent(t.shear, time, 0) * alpha;
+    L.shear_y = (L.shear_y ?? 0) + sampleComponent(t.shear, time, 1) * alpha;
+  }
+  if (has(t.shearX)) L.shear_x = (L.shear_x ?? 0) + sampleComponent(t.shearX, time, 0) * alpha;
+  if (has(t.shearY)) L.shear_y = (L.shear_y ?? 0) + sampleComponent(t.shearY, time, 0) * alpha;
 }
 
 /** Deform deltas at `time`: each key's sparse values expanded, interpolated along its curve. */

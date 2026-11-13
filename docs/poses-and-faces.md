@@ -57,7 +57,7 @@ For mouth shapes per sound, use [viseme lip-sync](lip-sync.md) instead.
 
 ## 2.5D turn
 
-A head (or a body) can turn left and right as if it were 3D, with one control. Select the bone the
+A head (or a body) can turn left and right, and tilt up and down, as if it were 3D, with one control. Select the bone the
 parts hang from (the head) and, in the inspector's **2.5D turn** section, press **Make turnable**.
 Every picture on that bone and the bones below it turns together:
 
@@ -68,13 +68,15 @@ Every picture on that bone and the bones below it turns together:
   and the side turning in widens.
 - Image parts become grid meshes, so they can bend.
 
-Drag the new **control bone** (`head-turn-control`, placed above the head) left and right, or use
-the **Turn** slider in the section. In Animate mode the slider keys the control bone; key it like any
-bone to make a character look around.
+Drag the new **control bone** (`head-turn-control`, placed above the head): left and right turns the
+head, up and down tilts it, and diagonally does both. Or use the **Turn** and **Tilt** sliders in the
+section (double-click one for straight ahead). In Animate mode the sliders key the control bone; key
+it like any bone to make a character look around.
 
 | Setting | Meaning |
 | --- | --- |
 | **Angle** | The largest turn, at the control's full reach (25° by default). |
+| **Tilt angle** | The largest tilt up or down (15° by default). |
 | **Roundness** | How curved the surface is: 0 flat (parts only slide), 1 a full cylinder. |
 | **Depth of each part** | How near each part is: higher moves more. |
 
@@ -82,10 +84,11 @@ bone to make a character look around.
 turn out (the meshes stay). Changing the angle, roundness or a depth rebuilds it at once, and keys on
 the control bone are kept.
 
-The turn is ordinary skeleton data, so every runtime plays it: an animation (`head-turn`) of mesh
-deform keys from full left to full right, and a slider constraint that plays it from the control
-bone's x. In a game, move the control bone to make the character look at something. While the turn
-applies, it replaces other deform keys on those meshes. Turning up and down is coming next.
+The turn is ordinary skeleton data, so every runtime plays it: two animations of mesh deform keys
+(`head-turn`, left to right, and `head-turn-tilt`, down to up) and two additive slider constraints
+that play them from the control bone's x and y. Additive means turn and tilt combine, and they add to
+any other mesh animation on those parts. In a game, move the control bone to make the character look
+at something: the player, the cursor, whoever is talking.
 
 ## Poses in exports
 

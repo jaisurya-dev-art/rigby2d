@@ -643,7 +643,9 @@ private:
     bool into_applied_;
     std::vector<double> scratch_;
 
-    void apply_animation(const SkeletonData& sk, const Animation& anim, double time, double alpha);
+    /// With `add` (additive slider constraints), bone keys and mesh deform add their change from the
+    /// setup pose, times `alpha`, instead of replacing the current pose; other keys replace as usual.
+    void apply_animation(const SkeletonData& sk, const Animation& anim, double time, double alpha, bool add = false);
     void apply_constraint_timelines(const SkeletonData& sk, const Animation& anim, double time, double alpha);
     bool constraint_active(const SkeletonData& sk, const ConstraintData& c) const;
     void compute_world(const SkeletonData& sk);

@@ -208,16 +208,26 @@ impl Pose {
     /// Applies animation `anim` at `time` on top of the current pose, blended by `alpha`.
     pub fn apply(&mut self, sk: &SkeletonData, anim: usize, time: f64, alpha: f64) {
         let Some(a) = sk.animations.get(anim) else { return };
-        self.apply_animation(sk, a, time, alpha);
+        self.apply_animation(sk, a, time, alpha, false);
     }
 
-    fn apply_animation(&mut self, sk: &SkeletonData, anim: &Animation, time: f64, alpha: f64) {
+    /// Applies `anim` at `time`, blended by `alpha`. With `add` (additive slider constraints), bone
+    /// keys and mesh deform add their change from the setup pose, times `alpha`, to the current pose
+    /// instead of replacing it; other keys replace as usual.
+    fn apply_animation(&mut self, sk: &SkeletonData, anim: &Animation, time: f64, alpha: f64, add: bool) {
         let hold = alpha >= 0.5;
         for t in &anim.bones {
             let Some(bone) = sk.bones.get(t.bone) else { continue };
             let setup = &bone.setup;
             let target = if self.into_applied { &mut self.applied } else { &mut self.local };
             let l = &mut target[t.bone];
+            if add {
+                add_bone_keys(&t.channels, setup, l, time, alpha);
+                if hold && !t.inherit.is_empty() {
+                    self.inherit[t.bone] = sample_discrete(&t.inherit, time);
+                }
+                continue;
+            }
             let (mut x, mut y, mut rotation, mut sx, mut sy, mut hx, mut hy) = (l.x, l.y, l.rotation, l.scale_x, l.scale_y, l.shear_x, l.shear_y);
             let c = &t.channels;
             if !c[CH_ROTATE].is_empty() {
@@ -331,6 +341,19 @@ impl Pose {
             let n = deform_len(source);
             let deltas = sample_deform(&t.keys, time, n);
             let key = (t.slot, t.attachment);
+            if add {
+                match self.deform.get_mut(&key) {
+                    Some(prev) => {
+                        for (j, p) in prev.iter_mut().enumerate() {
+                            *p += deltas.get(j).copied().unwrap_or(0.0) * alpha;
+                        }
+                    }
+                    None => {
+                        self.deform.insert(key, deltas.iter().map(|d| d * alpha).collect());
+                    }
+                }
+                continue;
+            }
             match self.deform.get_mut(&key) {
                 Some(prev) if alpha < 1.0 => {
                     for (j, p) in prev.iter_mut().enumerate() {
@@ -994,7 +1017,7 @@ impl Pose {
         }
         // Apply onto the constrained (applied) transforms, then recompute world transforms.
         self.into_applied = true;
-        self.apply_animation(sk, anim, time, state_mix.min(1.0));
+        self.apply_animation(sk, anim, time, state_mix.min(1.0), s.additive);
         self.into_applied = false;
         Solved::All
     }
@@ -1182,6 +1205,44 @@ fn sample_discrete<T: Copy>(keys: &[(f64, T)], time: f64) -> T {
 }
 
 /// Deform deltas at `time`: each key's sparse values expanded, interpolated along its curve.
+/// Adds a bone timeline's change from the setup pose (times `alpha`) to local transform `l`:
+/// offsets for rotation, translation and shear, a factor for scale (as Spine's additive blend).
+fn add_bone_keys(c: &[Vec<Key>], setup: &Transform, l: &mut Transform, time: f64, alpha: f64) {
+    if !c[CH_ROTATE].is_empty() {
+        l.rotation += sample_component(&c[CH_ROTATE], time, 0) * alpha;
+    }
+    if !c[CH_TRANSLATE].is_empty() {
+        l.x += sample_component(&c[CH_TRANSLATE], time, 0) * alpha;
+        l.y += sample_component(&c[CH_TRANSLATE], time, 1) * alpha;
+    }
+    if !c[CH_TRANSLATE_X].is_empty() {
+        l.x += sample_component(&c[CH_TRANSLATE_X], time, 0) * alpha;
+    }
+    if !c[CH_TRANSLATE_Y].is_empty() {
+        l.y += sample_component(&c[CH_TRANSLATE_Y], time, 0) * alpha;
+    }
+    if !c[CH_SCALE].is_empty() {
+        l.scale_x += setup.scale_x * (sample_component(&c[CH_SCALE], time, 0) - 1.0) * alpha;
+        l.scale_y += setup.scale_y * (sample_component(&c[CH_SCALE], time, 1) - 1.0) * alpha;
+    }
+    if !c[CH_SCALE_X].is_empty() {
+        l.scale_x += setup.scale_x * (sample_component(&c[CH_SCALE_X], time, 0) - 1.0) * alpha;
+    }
+    if !c[CH_SCALE_Y].is_empty() {
+        l.scale_y += setup.scale_y * (sample_component(&c[CH_SCALE_Y], time, 0) - 1.0) * alpha;
+    }
+    if !c[CH_SHEAR].is_empty() {
+        l.shear_x += sample_component(&c[CH_SHEAR], time, 0) * alpha;
+        l.shear_y += sample_component(&c[CH_SHEAR], time, 1) * alpha;
+    }
+    if !c[CH_SHEAR_X].is_empty() {
+        l.shear_x += sample_component(&c[CH_SHEAR_X], time, 0) * alpha;
+    }
+    if !c[CH_SHEAR_Y].is_empty() {
+        l.shear_y += sample_component(&c[CH_SHEAR_Y], time, 0) * alpha;
+    }
+}
+
 fn sample_deform(keys: &[DeformKey], time: f64, n: usize) -> Vec<f64> {
     let expand = |k: &DeformKey| {
         let mut d = vec![0.0; n];

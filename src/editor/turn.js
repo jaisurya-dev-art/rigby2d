@@ -5,7 +5,9 @@
 // draws it flat again, so parts shift by their depth, edges foreshorten and back parts slide the
 // other way. It is stored as ordinary skeleton data, so every runtime plays it: a "turn" animation
 // of mesh deform keys sampled from full left (time 0) to full right (time 1), and a slider
-// constraint whose time comes from a control bone's x. No DOM: tested under Node.
+// constraint whose time comes from a control bone's x. Tilting up and down is the same around the
+// horizontal axis, from the control's y; both sliders are additive, so they combine. No DOM: tested
+// under Node.
 
 import { Animation, setKey } from '../core/animation.js';
 import { addConstraint, listConstraints, removeConstraint, uniqueConstraintName } from '../core/constraintdata.js';
@@ -16,8 +18,11 @@ import { Pose } from '../core/pose.js';
 
 /** Keys of the turn animation, from full left to full right (odd, so straight ahead is one). */
 export const TURN_SAMPLES = 9;
-/** Defaults: the largest turn (degrees), the surface's roundness (0 flat, 1 a full cylinder), the control's travel for a full turn. */
-export const TURN_DEFAULTS = { angle: 25, bulge: 0.6, reach: 100 };
+/**
+ * Defaults: the largest turn and tilt (degrees), the surface's roundness (0 flat, 1 round), the
+ * control's travel for a full turn or tilt.
+ */
+export const TURN_DEFAULTS = { angle: 25, tilt: 15, bulge: 0.6, reach: 100 };
 
 /** Bones in `root`'s branch (itself and every bone below it). */
 function branch(doc, root) {
@@ -98,6 +103,7 @@ export function planTurn(doc, bone, pose = new Pose(doc)) {
     }
   }
   const radius = Math.max(1, (x1 - x0) / 2);
+  const radiusY = Math.max(1, (y1 - y0) / 2);
   // Draw order: the first slot is at the back. Depths spread over half the radius, front positive.
   const n = slots.length;
   const parts = slots.map((s, k) => ({
@@ -112,42 +118,47 @@ export function planTurn(doc, bone, pose = new Pose(doc)) {
     center: [(x0 + x1) / 2, (y0 + y1) / 2],
     top: y1,
     radius,
+    radiusY,
     parts,
   };
 }
 
 /**
  * Deform deltas (in the attachment's own space, as deform keys store them) that turn `att` in
- * `slot` by `t` (-1 full left .. 1 full right) for `turn`, from the setup `pose`.
+ * `slot` by `t` for `turn`, from the setup `pose`. `axis` 'x' turns (-1 full left .. 1 full
+ * right, around the vertical axis); 'y' tilts (-1 down .. 1 up, around the horizontal axis).
  */
-export function turnDeltas(doc, pose, turn, slot, att, depth, t) {
-  const theta = (t * turn.angle * Math.PI) / 180;
+export function turnDeltas(doc, pose, turn, slot, att, depth, t, axis = 'x') {
+  const tilt = axis === 'y';
+  const theta = (t * (tilt ? turn.tilt ?? TURN_DEFAULTS.tilt : turn.angle) * Math.PI) / 180;
   const cos = Math.cos(theta);
   const sin = Math.sin(theta);
-  const [cx] = turn.center;
-  const r = turn.radius;
+  const c = turn.center[tilt ? 1 : 0];
+  const r = tilt ? turn.radiusY ?? Math.max(1, turn.top - turn.center[1]) : turn.radius;
   const pts = worldPoints(doc, pose, slot, att);
-  // The world offset of each vertex: rotated around the vertical axis through the centre, drawn flat.
-  const dx = [];
+  // How far each vertex moves along the axis: rotated around the centre in 3D, drawn flat again.
+  const moves = [];
   for (let i = 0; i < pts.length; i += 2) {
-    const x = pts[i] - cx;
-    const z = depth + turn.bulge * Math.sqrt(Math.max(0, r * r - x * x));
-    dx.push(x * cos + z * sin - x);
+    const u = pts[i + (tilt ? 1 : 0)] - c;
+    const z = depth + turn.bulge * Math.sqrt(Math.max(0, r * r - u * u));
+    moves.push(u * cos + z * sin - u);
   }
   // Into the space deform keys use: the slot's bone, or each weight's bone (weights sum to 1).
-  const local = (bone, wx) => {
+  const local = (bone, d) => {
     const m = pose.world[bone];
     const det = m.a * m.d - m.b * m.c || 1;
-    return [(m.d * wx) / det, (-m.b * wx) / det];
+    const wx = tilt ? 0 : d;
+    const wy = tilt ? d : 0;
+    return [(m.d * wx - m.c * wy) / det, (-m.b * wx + m.a * wy) / det];
   };
   const out = [];
   if (att.weights) {
     att.weights.forEach((v, i) => {
-      for (const w of v) out.push(...local(w.bone, dx[i]));
+      for (const w of v) out.push(...local(w.bone, moves[i]));
     });
   } else {
     const bone = doc.slots[slot].bone;
-    dx.forEach((d) => out.push(...local(bone, d)));
+    moves.forEach((d) => out.push(...local(bone, d)));
   }
   return out.map((v) => Math.round(v * 1000) / 1000);
 }
@@ -207,9 +218,11 @@ function replaceAttachment(doc, old, neu) {
  * `keepControl` (a rebuild keeps it, with any keys animators gave it). The meshes stay.
  */
 export function clearTurn(doc, turn, keepControl = false) {
-  if (turn.constraint && listConstraints(doc).some((c) => c.name === turn.constraint)) removeConstraint(doc, turn.constraint);
-  const anim = doc.animations.findIndex((a) => a.name === turn.animation);
-  if (anim >= 0) doc.animations.splice(anim, 1);
+  for (const name of [turn.constraint, turn.tiltConstraint]) if (name && listConstraints(doc).some((c) => c.name === name)) removeConstraint(doc, name);
+  for (const name of [turn.animation, turn.tiltAnimation]) {
+    const anim = doc.animations.findIndex((a) => a.name === name);
+    if (anim >= 0) doc.animations.splice(anim, 1);
+  }
   const control = doc.bones.findIndex((b) => b.name === turn.control);
   if (control > 0 && !keepControl) doc.removeBone(control);
   invalidateConstraints(doc);
@@ -252,23 +265,42 @@ export function buildTurn(doc, turn) {
     const above = pose.world[bone].inverse().apply([turn.center[0], turn.top + turn.radius * 0.35]);
     doc.addBone(makeBone(control, bone, transform(above[0], above[1], 0), 0));
   }
-  // The animation: deform keys from full left (0) through straight ahead (0.5) to full right (1).
-  const name = uniqueName(turn.name, (n) => doc.animations.some((a) => a.name === n));
-  const anim = new Animation(name, 1);
-  for (const part of parts) {
-    const keys = [];
-    for (let k = 0; k < TURN_SAMPLES; k++) {
-      const time = k / (TURN_SAMPLES - 1);
-      setKey(keys, time, { offset: 0, vertices: turnDeltas(doc, pose, turn, part.index, part.att, part.depth, time * 2 - 1) });
+  // Two animations of deform keys, from one extreme (0) through straight ahead (0.5) to the other
+  // (1): the turn (left to right) and the tilt (down to up). Each plays from an additive slider on
+  // the control (its x, its y), so turn and tilt combine, and add to the meshes' own deform keys.
+  const made = {};
+  for (const axis of ['x', 'y']) {
+    const base = axis === 'x' ? turn.name : `${turn.name}-tilt`;
+    const name = uniqueName(base, (n) => doc.animations.some((a) => a.name === n));
+    const anim = new Animation(name, 1);
+    for (const part of parts) {
+      const keys = [];
+      for (let k = 0; k < TURN_SAMPLES; k++) {
+        const time = k / (TURN_SAMPLES - 1);
+        setKey(keys, time, { offset: 0, vertices: turnDeltas(doc, pose, turn, part.index, part.att, part.depth, time * 2 - 1, axis) });
+      }
+      anim.deform.push({ slot: part.index, attachment: part.att.name, skin: null, keys });
     }
-    anim.deform.push({ slot: part.index, attachment: part.att.name, skin: null, keys });
+    doc.animations.push(anim);
+    const constraint = uniqueConstraintName(doc, base);
+    // Straight ahead is where the control rests (its setup position), not 0.
+    const scale = 1 / (2 * turn.reach);
+    const rest = doc.bones[doc.boneIndex(control)].setup[axis];
+    addConstraint(doc, { type: 'slider', name: constraint, animation: name, bone: control, property: axis, local: true, additive: true, scale, offset: Math.round((0.5 - rest * scale) * 1e9) / 1e9 });
+    made[axis] = { name, constraint, rest };
   }
-  doc.animations.push(anim);
-  // The slider: control x -reach .. reach plays the animation's 0 .. 1.
-  const constraint = uniqueConstraintName(doc, turn.name);
-  addConstraint(doc, { type: 'slider', name: constraint, animation: name, bone: control, property: 'x', local: true, scale: 1 / (2 * turn.reach), offset: 0.5 });
   invalidateConstraints(doc);
-  const stored = { ...turn, parts: parts.map(({ slot, attachment, depth }) => ({ slot, attachment, depth })), control, animation: name, constraint };
+  const stored = {
+    ...TURN_DEFAULTS,
+    ...turn,
+    parts: parts.map(({ slot, attachment, depth }) => ({ slot, attachment, depth })),
+    control,
+    animation: made.x.name,
+    constraint: made.x.constraint,
+    tiltAnimation: made.y.name,
+    tiltConstraint: made.y.constraint,
+    rest: [made.x.rest, made.y.rest],
+  };
   doc.turns.push(stored);
   return stored;
 }

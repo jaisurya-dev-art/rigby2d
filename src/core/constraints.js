@@ -709,7 +709,7 @@ export function solveSlider(sk, pose, c, state) {
   const local = pose.local;
   pose.local = pose.applied;
   try {
-    pose.apply(sk, anim, time, Math.min(1, state.mix));
+    pose.apply(sk, anim, time, Math.min(1, state.mix), c.additive);
   } finally {
     pose.local = local;
   }

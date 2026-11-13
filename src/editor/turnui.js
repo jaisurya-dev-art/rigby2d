@@ -53,8 +53,16 @@ export function turnUi(app, b) {
   }
   const control = doc.boneIndex(turn.control);
   const local = control !== null && control >= 0 ? app.pose().local[control] : null;
-  const amount = local ? Math.max(-1, Math.min(1, local.x / turn.reach)) : 0;
-  const turnTo = (v) => local && edit.setBoneLocal(app, control, { ...local, x: v * turn.reach });
+  // Where the control rests is straight ahead; its x turns, its y tilts.
+  const [restX, restY] = turn.rest ?? [0, 0];
+  const clamp1 = (v) => Math.max(-1, Math.min(1, v));
+  const amount = local ? clamp1((local.x - restX) / turn.reach) : 0;
+  const tiltAmount = local ? clamp1((local.y - restY) / turn.reach) : 0;
+  const turnTo = (v) => local && edit.setBoneLocal(app, control, { ...local, x: restX + v * turn.reach });
+  const tiltTo = (v) => local && edit.setBoneLocal(app, control, { ...local, y: restY + v * turn.reach });
+  const slider = (value, onSet, title) =>
+    h('input', { type: 'range', class: 'turn-amount', min: -1, max: 1, step: 0.01, value, title, oninput: (e) => onSet(Number(e.target.value)), ondblclick: () => onSet(0) });
+  const sliderTitle = setup ? t('Turns the setup pose (drag the control bone in the viewport too)') : t('Keys the turn at the current frame');
   const parts = turn.parts.map((p, i) =>
     row(
       p.slot,
@@ -67,22 +75,10 @@ export function turnUi(app, b) {
       h(
         'div',
         { class: 'grid' },
-        row(
-          t('Turn'),
-          h('input', {
-            type: 'range',
-            class: 'turn-amount',
-            min: -1,
-            max: 1,
-            step: 0.01,
-            value: amount,
-            title: setup ? t('Turns the setup pose (drag the control bone in the viewport too)') : t('Keys the turn at the current frame'),
-            oninput: (e) => turnTo(Number(e.target.value)),
-            ondblclick: () => turnTo(0),
-          }),
-          h('span', { class: 'small weak' }, `${Math.round(amount * turn.angle)}°`),
-        ),
+        row(t('Turn'), slider(amount, turnTo, sliderTitle), h('span', { class: 'small weak' }, `${Math.round(amount * turn.angle)}°`)),
+        row(t('Tilt'), slider(tiltAmount, tiltTo, sliderTitle), h('span', { class: 'small weak' }, `${Math.round(tiltAmount * (turn.tilt ?? 15))}°`)),
         row(t('Angle'), dragValue(turn.angle, (v) => rebuild(app, turn, { angle: v }), { min: 5, max: 85, speed: 0.5, decimals: 0, suffix: '°', disabled: !setup })),
+        row(t('Tilt angle'), dragValue(turn.tilt ?? 15, (v) => rebuild(app, turn, { tilt: v }), { min: 0, max: 60, speed: 0.5, decimals: 0, suffix: '°', disabled: !setup })),
         row(t('Roundness'), dragValue(turn.bulge, (v) => rebuild(app, turn, { bulge: v }), { min: 0, max: 1.5, speed: 0.01, decimals: 2, disabled: !setup })),
       ),
       h('div', { class: 'section-title' }, t('Depth of each part')),
@@ -92,7 +88,7 @@ export function turnUi(app, b) {
         'div',
         { class: 'buttons' },
         control !== null && control >= 0 ? button(t('Select control'), { icon: 'crosshair', onclick: () => app.select({ bone: control }) }) : null,
-        button(t('Rebuild'), { icon: 'refresh-cw', disabled: !setup, title: t('After changing the pictures or bones: measure the parts again'), onclick: () => rebuild(app, { ...planTurn(doc, b), name: turn.name, angle: turn.angle, bulge: turn.bulge, reach: turn.reach }, {}) }),
+        button(t('Rebuild'), { icon: 'refresh-cw', disabled: !setup, title: t('After changing the pictures or bones: measure the parts again'), onclick: () => rebuild(app, { ...planTurn(doc, b), name: turn.name, angle: turn.angle, tilt: turn.tilt, bulge: turn.bulge, reach: turn.reach }, {}) }),
         button(t('Remove'), {
           kind: 'danger',
           icon: 'trash-2',

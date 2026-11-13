@@ -200,7 +200,12 @@ namespace Rigby2D
             if (anim != null) ApplyAnimation(anim, time, alpha);
         }
 
-        void ApplyAnimation(SkeletonAnimation anim, double time, double alpha)
+        /// <summary>
+        /// Applies <paramref name="anim"/> at <paramref name="time"/>, blended by <paramref name="alpha"/>.
+        /// With <paramref name="add"/> (additive slider constraints), bone keys and mesh deform add their
+        /// change from the setup pose, times alpha, instead of replacing it; other keys replace as usual.
+        /// </summary>
+        void ApplyAnimation(SkeletonAnimation anim, double time, double alpha, bool add = false)
         {
             bool hold = alpha >= 0.5;
             foreach (var t in anim.Bones)
@@ -209,6 +214,13 @@ namespace Rigby2D
                 var setup = sk.Bones[t.Bone].Setup;
                 var target = intoApplied ? Applied : Local;
                 var l = target[t.Bone];
+                if (add)
+                {
+                    AddBoneKeys(t.Channels, setup, ref l, time, alpha);
+                    target[t.Bone] = l;
+                    if (hold && t.Inherit.Count > 0) Inherit[t.Bone] = SampleDiscrete(t.Inherit, time);
+                    continue;
+                }
                 double x = l.X, y = l.Y, rotation = l.Rotation, sx = l.ScaleX, sy = l.ScaleY, hx = l.ShearX, hy = l.ShearY;
                 var c = t.Channels;
                 if (c[Channel.Rotate].Count > 0) rotation = setup.Rotation + SampleComponent(c[Channel.Rotate], time, 0);
@@ -299,6 +311,22 @@ namespace Rigby2D
                 var source = sk.MeshSource(t.Slot, att, Skin) ?? att;
                 int n = source.Vertices?.DeformLength ?? 0;
                 long key = DeformKey(t.Slot, t.Attachment);
+                if (add)
+                {
+                    var deltas = Rent(n);
+                    SampleDeform(t.Keys, time, n, deltas);
+                    if (Deform.TryGetValue(key, out var sum))
+                    {
+                        for (int j = 0; j < sum.Length; j++) sum[j] += (j < deltas.Length ? deltas[j] : 0.0) * alpha;
+                        Release(deltas);
+                    }
+                    else
+                    {
+                        for (int j = 0; j < deltas.Length; j++) deltas[j] *= alpha;
+                        Deform[key] = deltas;
+                    }
+                    continue;
+                }
                 if (alpha < 1.0 && Deform.TryGetValue(key, out var prev))
                 {
                     var deltas = Rent(n);
@@ -971,7 +999,7 @@ namespace Rigby2D
             if (d > 0.0) time = s.Looping ? ((time % d) + d) % d : MathUtil.Clamp(time, 0.0, d);
             // Apply onto the constrained (applied) transforms, then recompute world transforms.
             intoApplied = true;
-            ApplyAnimation(anim, time, Num.Min(stateMix, 1.0));
+            ApplyAnimation(anim, time, Num.Min(stateMix, 1.0), s.Additive);
             intoApplied = false;
             return true;
         }
@@ -1174,6 +1202,36 @@ namespace Rigby2D
         static double Comp(Key k, int c) => c < k.Values.Length ? k.Values[c] : double.NaN;
 
         /// <summary>Samples component c of numeric keys at time (keys must not be empty).</summary>
+        /// <summary>
+        /// Adds a bone timeline's change from the setup pose (times alpha) to local transform <paramref name="l"/>:
+        /// offsets for rotation, translation and shear, a factor for scale (as Spine's additive blend).
+        /// </summary>
+        static void AddBoneKeys(List<Key>[] c, Transform2 setup, ref Transform2 l, double time, double alpha)
+        {
+            if (c[Channel.Rotate].Count > 0) l.Rotation += SampleComponent(c[Channel.Rotate], time, 0) * alpha;
+            if (c[Channel.Translate].Count > 0)
+            {
+                l.X += SampleComponent(c[Channel.Translate], time, 0) * alpha;
+                l.Y += SampleComponent(c[Channel.Translate], time, 1) * alpha;
+            }
+            if (c[Channel.TranslateX].Count > 0) l.X += SampleComponent(c[Channel.TranslateX], time, 0) * alpha;
+            if (c[Channel.TranslateY].Count > 0) l.Y += SampleComponent(c[Channel.TranslateY], time, 0) * alpha;
+            if (c[Channel.Scale].Count > 0)
+            {
+                l.ScaleX += setup.ScaleX * (SampleComponent(c[Channel.Scale], time, 0) - 1.0) * alpha;
+                l.ScaleY += setup.ScaleY * (SampleComponent(c[Channel.Scale], time, 1) - 1.0) * alpha;
+            }
+            if (c[Channel.ScaleX].Count > 0) l.ScaleX += setup.ScaleX * (SampleComponent(c[Channel.ScaleX], time, 0) - 1.0) * alpha;
+            if (c[Channel.ScaleY].Count > 0) l.ScaleY += setup.ScaleY * (SampleComponent(c[Channel.ScaleY], time, 0) - 1.0) * alpha;
+            if (c[Channel.Shear].Count > 0)
+            {
+                l.ShearX += SampleComponent(c[Channel.Shear], time, 0) * alpha;
+                l.ShearY += SampleComponent(c[Channel.Shear], time, 1) * alpha;
+            }
+            if (c[Channel.ShearX].Count > 0) l.ShearX += SampleComponent(c[Channel.ShearX], time, 0) * alpha;
+            if (c[Channel.ShearY].Count > 0) l.ShearY += SampleComponent(c[Channel.ShearY], time, 0) * alpha;
+        }
+
         static double SampleComponent(List<Key> keys, double time, int c)
         {
             if (time <= keys[0].Time) return Comp(keys[0], c);

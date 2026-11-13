@@ -472,13 +472,42 @@ void Pose::apply(const SkeletonData& sk, size_t anim, double time, double alpha)
     apply_animation(sk, sk.animations[anim], time, alpha);
 }
 
-void Pose::apply_animation(const SkeletonData& sk, const Animation& anim, double time, double alpha) {
+/// Adds a bone timeline's change from the setup pose (times `alpha`) to local transform `l`:
+/// offsets for rotation, translation and shear, a factor for scale (as Spine's additive blend).
+static void add_bone_keys(const std::vector<Key>* c, const Transform& setup, Transform& l, double time, double alpha) {
+    if (!c[CH_ROTATE].empty()) l.rotation += sample_component(c[CH_ROTATE], time, 0) * alpha;
+    if (!c[CH_TRANSLATE].empty()) {
+        l.x += sample_component(c[CH_TRANSLATE], time, 0) * alpha;
+        l.y += sample_component(c[CH_TRANSLATE], time, 1) * alpha;
+    }
+    if (!c[CH_TRANSLATE_X].empty()) l.x += sample_component(c[CH_TRANSLATE_X], time, 0) * alpha;
+    if (!c[CH_TRANSLATE_Y].empty()) l.y += sample_component(c[CH_TRANSLATE_Y], time, 0) * alpha;
+    if (!c[CH_SCALE].empty()) {
+        l.scale_x += setup.scale_x * (sample_component(c[CH_SCALE], time, 0) - 1.0) * alpha;
+        l.scale_y += setup.scale_y * (sample_component(c[CH_SCALE], time, 1) - 1.0) * alpha;
+    }
+    if (!c[CH_SCALE_X].empty()) l.scale_x += setup.scale_x * (sample_component(c[CH_SCALE_X], time, 0) - 1.0) * alpha;
+    if (!c[CH_SCALE_Y].empty()) l.scale_y += setup.scale_y * (sample_component(c[CH_SCALE_Y], time, 0) - 1.0) * alpha;
+    if (!c[CH_SHEAR].empty()) {
+        l.shear_x += sample_component(c[CH_SHEAR], time, 0) * alpha;
+        l.shear_y += sample_component(c[CH_SHEAR], time, 1) * alpha;
+    }
+    if (!c[CH_SHEAR_X].empty()) l.shear_x += sample_component(c[CH_SHEAR_X], time, 0) * alpha;
+    if (!c[CH_SHEAR_Y].empty()) l.shear_y += sample_component(c[CH_SHEAR_Y], time, 0) * alpha;
+}
+
+void Pose::apply_animation(const SkeletonData& sk, const Animation& anim, double time, double alpha, bool add) {
     bool hold = alpha >= 0.5;
     for (size_t ti = 0; ti < anim.bones.size(); ti++) {
         const BoneTimeline& t = anim.bones[ti];
         if (t.bone >= sk.bones.size()) continue;
         const Transform& setup = sk.bones[t.bone].setup;
         Transform& l = into_applied_ ? applied[t.bone] : local[t.bone];
+        if (add) {
+            add_bone_keys(t.channels, setup, l, time, alpha);
+            if (hold && !t.inherit.empty()) inherit[t.bone] = sample_discrete(t.inherit, time);
+            continue;
+        }
         double x = l.x, y = l.y, rotation = l.rotation, sx = l.scale_x, sy = l.scale_y, hx = l.shear_x, hy = l.shear_y;
         const std::vector<Key>* c = t.channels;
         if (!c[CH_ROTATE].empty()) rotation = setup.rotation + sample_component(c[CH_ROTATE], time, 0);
@@ -562,6 +591,15 @@ void Pose::apply_animation(const SkeletonData& sk, const Animation& anim, double
         std::vector<double> deltas = sample_deform(t.keys, time, n);
         std::pair<size_t, NameId> key(t.slot, t.attachment);
         std::map<std::pair<size_t, NameId>, std::vector<double> >::iterator prev = deform.find(key);
+        if (add) {
+            if (prev != deform.end()) {
+                for (size_t j = 0; j < prev->second.size(); j++) prev->second[j] += (j < deltas.size() ? deltas[j] : 0.0) * alpha;
+            } else {
+                for (size_t j = 0; j < deltas.size(); j++) deltas[j] *= alpha;
+                deform[key] = deltas;
+            }
+            continue;
+        }
         if (prev != deform.end() && alpha < 1.0) {
             for (size_t j = 0; j < prev->second.size(); j++) prev->second[j] = lerp(prev->second[j], j < deltas.size() ? deltas[j] : 0.0, alpha);
         } else {
@@ -1175,7 +1213,7 @@ Pose::Solved Pose::solve_slider(const SkeletonData& sk, const SliderData& s, siz
     if (d > 0.0) time = s.looping ? std::fmod(std::fmod(time, d) + d, d) : clampd(time, 0.0, d);
     // Apply onto the constrained (applied) transforms, then recompute world transforms.
     into_applied_ = true;
-    apply_animation(sk, anim, time, std::fmin(state_mix, 1.0));
+    apply_animation(sk, anim, time, std::fmin(state_mix, 1.0), s.additive);
     into_applied_ = false;
     out.type = Solved::SolvedAll;
     return out;
