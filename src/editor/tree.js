@@ -162,10 +162,12 @@ export function render(app, el) {
 
   // Skeleton: bones nested by parent, each bone's slots, each slot's attachments.
   const skeleton = [];
+  // A bone's slots are listed front first (drawn on top first), like the Draw order section and the
+  // layer panels of Photoshop and Aseprite.
   const slotsOf = new Map();
   doc.slots.forEach((s, i) => {
     if (!slotsOf.has(s.bone)) slotsOf.set(s.bone, []);
-    slotsOf.get(s.bone).push([s, i]);
+    slotsOf.get(s.bone).unshift([s, i]);
   });
   const childrenOf = new Map();
   doc.bones.forEach((b, i) => {
