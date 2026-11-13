@@ -1,7 +1,8 @@
 # Importing art
 
 Rigby2D animates bitmap artwork. Draw your character in any paint program, in separate pieces that
-can move on their own, and bring the pieces in as a layered PSD, an SVG with layers, or PNG files.
+can move on their own, and bring the pieces in as a layered PSD, an Aseprite file, an SVG with
+layers, or PNG files.
 
 ## Preparing artwork
 
@@ -33,6 +34,25 @@ can move on their own, and bring the pieces in as a layered PSD, an SVG with lay
 
 Next: rig it in one step with [AutoRig](autorig.md), or by hand with
 [bones](bones-and-slots.md#bones).
+
+## Importing an Aseprite file
+
+*File ▸ Import ▸ Aseprite…* opens `.aseprite` and `.ase` files directly, with no export step:
+
+- Each **image layer** becomes a slot on the **selected bone** (the root when nothing is selected),
+  placed where it was drawn, like a PSD. Groups are flattened; hidden layers and groups come in
+  hidden. Layer and cel opacity are baked into the images.
+- Every **different picture** a layer shows over the frames becomes an image of that slot (the same
+  drawing on several frames, or a linked cel, is one image), so the slot can swap between them.
+- **Frames and tags become animations.** Each tag is an animation with the tag's name, playing its
+  frames at Aseprite's frame durations, forward, in reverse or ping-pong. A file with frames but no
+  tags gets one animation named after the file. They are image swaps (stepped keys on the slots
+  whose picture changes), so a sprite animation plays as drawn, and you can add bones, meshes and
+  constraints on top.
+- It is pixel art, so the [pixel grid](#pixel-grid) turns on at 1 unit per pixel in a project
+  without images, and the art stays sharp.
+- Indexed, grayscale and RGBA sprites all work. Tilemap layers, reference layers, layer blend modes
+  (imported as normal) and per-cel z-order are left out; the status bar lists what was.
 
 ## Importing an SVG
 

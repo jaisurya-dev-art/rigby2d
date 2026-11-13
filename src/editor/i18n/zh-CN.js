@@ -1717,4 +1717,13 @@ export default {
   "Select the bones that should follow (Ctrl+click for several), then add the constraint": "先选择要跟随的骨骼（按住 Ctrl 点击可多选），再添加约束",
   "{driven} now follow(s) {driver}. Nothing moved: offsets keep the current pose.": "{driven} 现在跟随 {driver}。没有移动：偏移保持了当前姿势。",
   "Click the bone that drives {bone}": "点击驱动 {bone} 的骨骼",
+  "Imported {layers} layer(s) and {count} animation(s) from {file}": "已从 {file} 导入 {layers} 个图层和 {count} 个动画",
+  "Left out: {what}": "未导入：{what}",
+  "Aseprite import failed": "Aseprite 导入失败",
+  "tilemap layers": "瓦片地图图层",
+  "reference layers": "参考图层",
+  "layer blend modes (imported as normal)": "图层混合模式（按正常导入）",
+  "per-cel z-order (layer order is kept)": "单元格级 Z 顺序（保留图层顺序）",
+  "Aseprite…": "Aseprite…",
+  "Each layer becomes a part; frames and tags become animations that swap its pictures": "每个图层成为一个部件；帧和标签成为切换其图片的动画",
 };

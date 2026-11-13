@@ -127,6 +127,7 @@ function menus() {
       'separator',
       submenuItem(t('Import'), [
         { label: t('PSD…'), action: () => app.importPsd() },
+        { label: t('Aseprite…'), title: t('Each layer becomes a part; frames and tags become animations that swap its pictures'), action: () => app.importAseprite() },
         { label: t('SVG…'), title: t('An Inkscape, Affinity or Illustrator drawing: each layer becomes a part, placed where it was drawn'), action: () => app.importSvg() },
         { label: t('PNG images…'), action: () => app.importImages() },
         ...(has(app, 'audio') ? [{ label: t('Audio…'), action: () => app.importAudio() }] : []),

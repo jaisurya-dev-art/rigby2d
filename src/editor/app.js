@@ -1016,6 +1016,29 @@ export class App {
     }
   }
 
+  /** Imports an Aseprite file: each layer becomes a part; its frames and tags become animations. */
+  async importAseprite() {
+    const [file] = (await this.guard(() => platform.pickImportFiles('Aseprite', ['aseprite', 'ase'], false))) ?? [];
+    if (!file) return;
+    try {
+      const had = this.doc.images.length > 0;
+      const info = {};
+      const r = await io.importAseprite(file, selBone(this.sel) ?? 0, this.doc, this.images, info);
+      this.frameRequest = true;
+      if (r.animations && this.anim === null) this.anim = this.doc.animations.length - r.animations;
+      this.changed();
+      this.commitHistory?.();
+      track('editor-import-aseprite');
+      const what = r.animations
+        ? t('Imported {layers} layer(s) and {count} animation(s) from {file}', { layers: r.layers, count: r.animations, file: io.basename(file.name) })
+        : t('Imported {count} layers from {file}', { count: r.layers, file: io.basename(file.name) });
+      const left = r.skipped.length ? `. ${t('Left out: {what}', { what: r.skipped.map((x) => t(x)).join(', ') })}` : '';
+      this.setStatus(what + this.pixelArtNote(had, info.pixelScale) + left);
+    } catch (e) {
+      this.setStatus(`${t('Aseprite import failed')}: ${errorText(e)}`);
+    }
+  }
+
   /** Imports an SVG drawing (Inkscape, Affinity…): each layer becomes a part, placed where it was drawn. */
   async importSvg() {
     const [file] = (await this.guard(() => platform.pickImportFiles('SVG drawing', ['svg'], false))) ?? [];
