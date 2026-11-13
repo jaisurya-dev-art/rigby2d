@@ -564,6 +564,7 @@ export async function importAseprite(file, bone, doc, images, info = {}) {
     });
     const slot = makeSlot(doc.uniqueSlotName(part.name), bone, atts[0]);
     slot.attachments = atts;
+    slot.blend = part.blend;
     const first = part.shown[0];
     slot.attachment = part.hidden || first < 0 ? null : atts[first].name;
     doc.slots.push(slot);
@@ -592,7 +593,7 @@ export async function importAseprite(file, bone, doc, images, info = {}) {
   // Aseprite art is pixel art, drawn at its real pixel size: keep it sharp at 1 unit per pixel.
   info.pixelScale = 1;
   if (doc.name === 'untitled') doc.name = stem(fileName(file.name));
-  return { layers: parts.slots.length, images: pictures, animations: parts.animations.length, skipped: parts.skipped };
+  return { layers: parts.slots.length, images: pictures, animations: parts.animations.length, baked: parts.baked, skipped: parts.skipped };
 }
 
 /** The largest side an imported SVG is drawn at (canvas limits, and memory for many layers). */

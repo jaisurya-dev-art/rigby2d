@@ -245,55 +245,174 @@ function fingerprint(x, y, w, h, data) {
   return `${x},${y},${w},${h},${hash >>> 0}`;
 }
 
+/** Aseprite blend modes Rigby2D slots draw themselves (the rest are baked into the layers below). */
+const SLOT_BLEND = { 1: 'multiply', 2: 'screen', 16: 'additive' };
+
+// Separable blend functions on 0..1 channels (backdrop b, source s), as in Aseprite and the PDF spec.
+const screen = (b, s) => b + s - b * s;
+const hardLight = (b, s) => (s <= 0.5 ? b * 2 * s : screen(b, 2 * s - 1));
+const SEPARABLE = {
+  1: (b, s) => b * s,
+  2: screen,
+  3: (b, s) => hardLight(s, b), // overlay
+  4: Math.min,
+  5: Math.max,
+  6: (b, s) => (b === 0 ? 0 : s >= 1 ? 1 : Math.min(1, b / (1 - s))), // colour dodge
+  7: (b, s) => (b >= 1 ? 1 : s <= 0 ? 0 : 1 - Math.min(1, (1 - b) / s)), // colour burn
+  8: hardLight,
+  9: (b, s) => {
+    if (s <= 0.5) return b - (1 - 2 * s) * b * (1 - b);
+    const d = b <= 0.25 ? ((16 * b - 12) * b + 4) * b : Math.sqrt(b);
+    return b + (2 * s - 1) * (d - b);
+  }, // soft light
+  10: (b, s) => Math.abs(b - s),
+  11: (b, s) => b + s - 2 * b * s,
+  16: (b, s) => Math.min(1, b + s),
+  17: (b, s) => Math.max(0, b - s),
+  18: (b, s) => (b === 0 ? 0 : s === 0 ? 1 : Math.min(1, b / s)),
+};
+
+// Hue, saturation, colour and luminosity (non-separable), on [r, g, b].
+const lum = (c) => 0.3 * c[0] + 0.59 * c[1] + 0.11 * c[2];
+function clipColor(c) {
+  const l = lum(c);
+  const n = Math.min(...c);
+  const x = Math.max(...c);
+  return c.map((v) => (n < 0 ? l + ((v - l) * l) / (l - n) : x > 1 ? l + ((v - l) * (1 - l)) / (x - l) : v));
+}
+const setLum = (c, l) => clipColor(c.map((v) => v + l - lum(c)));
+const sat = (c) => Math.max(...c) - Math.min(...c);
+function setSat(c, s) {
+  const max = Math.max(...c);
+  const min = Math.min(...c);
+  if (max === min) return [0, 0, 0];
+  return c.map((v) => ((v - min) * s) / (max - min));
+}
+const NON_SEPARABLE = {
+  12: (b, s) => setLum(setSat(s, sat(b)), lum(b)), // hue
+  13: (b, s) => setLum(setSat(b, sat(s)), lum(b)), // saturation
+  14: (b, s) => setLum(s, lum(b)), // colour
+  15: (b, s) => setLum(b, lum(s)), // luminosity
+};
+
 /**
- * What an import makes from a read file: { width, height, slots: [{ name, hidden, pictures: [{
- * width, height, x, y (top-left in the canvas), data (RGBA) }], shown: picture index per frame (-1 =
- * none) }], animations: [{ name, steps: [{ frame, time }], duration }], skipped: [what was left out] }.
- * Slots are bottom-most first, one per image layer that shows anything; `stem` names the animation
- * of a file without tags.
+ * Blends `top` (a canvas-space picture: { x, y, width, height, data }) into `under` with Aseprite
+ * blend `mode`, keeping `under`'s own alpha: how the layer below looks under it.
+ */
+export function blendInto(under, top, mode) {
+  const sep = SEPARABLE[mode];
+  const non = NON_SEPARABLE[mode];
+  if (!sep && !non) return;
+  const x0 = Math.max(under.x, top.x);
+  const y0 = Math.max(under.y, top.y);
+  const x1 = Math.min(under.x + under.width, top.x + top.width);
+  const y1 = Math.min(under.y + under.height, top.y + top.height);
+  const b = [0, 0, 0];
+  const s = [0, 0, 0];
+  for (let y = y0; y < y1; y++) {
+    for (let x = x0; x < x1; x++) {
+      const i = ((y - under.y) * under.width + (x - under.x)) * 4;
+      const j = ((y - top.y) * top.width + (x - top.x)) * 4;
+      const a = top.data[j + 3] / 255;
+      if (!a || !under.data[i + 3]) continue;
+      for (let k = 0; k < 3; k++) {
+        b[k] = under.data[i + k] / 255;
+        s[k] = top.data[j + k] / 255;
+      }
+      const mixed = non ? non(b, s) : b.map((v, k) => sep(v, s[k]));
+      for (let k = 0; k < 3; k++) under.data[i + k] = Math.round(Math.min(1, Math.max(0, b[k] + (mixed[k] - b[k]) * a)) * 255);
+    }
+  }
+}
+
+/** A cel as a picture in canvas space, clipped to the canvas, with its layer's and its own opacity. */
+function canvasCel(ase, layer, cel) {
+  const x0 = Math.max(0, cel.x);
+  const y0 = Math.max(0, cel.y);
+  const x1 = Math.min(ase.width, cel.x + cel.width);
+  const y1 = Math.min(ase.height, cel.y + cel.height);
+  if (x1 <= x0 || y1 <= y0) return null;
+  const width = x1 - x0;
+  const height = y1 - y0;
+  const data = new Uint8Array(width * height * 4);
+  for (let row = 0; row < height; row++) {
+    const from = ((y0 - cel.y + row) * cel.width + (x0 - cel.x)) * 4;
+    data.set(cel.pixels.subarray(from, from + width * 4), row * width * 4);
+  }
+  const alpha = layer.opacity * cel.opacity;
+  if (alpha < 1) for (let i = 3; i < data.length; i += 4) data[i] = Math.round(data[i] * alpha);
+  return { x: x0, y: y0, width, height, data };
+}
+
+/** A picture cropped to the pixels it shows, or null when it shows none. */
+function cropped(pic) {
+  const bounds = alphaBounds(pic.data, pic.width, pic.height);
+  if (!bounds) return null;
+  const data = new Uint8Array(bounds.width * bounds.height * 4);
+  for (let row = 0; row < bounds.height; row++) {
+    const from = ((bounds.y + row) * pic.width + bounds.x) * 4;
+    data.set(pic.data.subarray(from, from + bounds.width * 4), row * bounds.width * 4);
+  }
+  return { x: pic.x + bounds.x, y: pic.y + bounds.y, width: bounds.width, height: bounds.height, data };
+}
+
+/**
+ * What an import makes from a read file: { width, height, slots: [{ name, hidden, blend, pictures:
+ * [{ width, height, x, y (top-left in the canvas), data (RGBA) }], shown: picture index per frame
+ * (-1 = none) }], animations: [{ name, steps: [{ frame, time }], duration }], baked: [layer names],
+ * skipped: [what was left out] }. Slots are bottom-most first, one per image layer that shows
+ * anything. Layers are clipped to the canvas, as Aseprite shows them. Multiply, screen and addition
+ * layers keep their blend on the slot; shown layers in any other blend mode are baked into the
+ * shown layers below them (so the parts look as they do in Aseprite) and are not imported
+ * themselves. `stem` names the animation of a file without tags.
  */
 export function asepriteParts(ase, stem = 'animation') {
   const skipped = new Set();
+  const baked = [];
+  const bakers = [];
   const slots = [];
   ase.layers.forEach((layer, index) => {
     if (layer.type === LAYER_TYPE.tilemap) return skipped.add(tn('tilemap layers'));
     if (layer.type !== LAYER_TYPE.image) return;
     if (layer.reference) return skipped.add(tn('reference layers'));
-    if (layer.blend !== 0) skipped.add(tn('layer blend modes (imported as normal)'));
-    const pictures = [];
-    const byKey = new Map();
-    const byCel = new Map();
-    const shown = ase.frames.map((frame) => {
-      const cel = frame.cels.find((c) => c.layer === index);
-      if (!cel) return -1;
-      if (cel.z) skipped.add(tn('per-cel z-order (layer order is kept)'));
-      if (byCel.has(cel)) return byCel.get(cel);
-      // Layer and cel opacity are baked into the picture; then it is cropped to what it shows.
-      const alpha = layer.opacity * cel.opacity;
-      const data = new Uint8Array(cel.pixels);
-      if (alpha < 1) for (let i = 3; i < data.length; i += 4) data[i] = Math.round(data[i] * alpha);
-      const bounds = alphaBounds(data, cel.width, cel.height);
-      let found = -1;
-      if (bounds) {
-        const crop = new Uint8Array(bounds.width * bounds.height * 4);
-        for (let row = 0; row < bounds.height; row++) {
-          const from = ((bounds.y + row) * cel.width + bounds.x) * 4;
-          crop.set(data.subarray(from, from + bounds.width * 4), row * bounds.width * 4);
-        }
-        const x = cel.x + bounds.x;
-        const y = cel.y + bounds.y;
-        const key = fingerprint(x, y, bounds.width, bounds.height, crop);
-        if (!byKey.has(key)) {
-          byKey.set(key, pictures.length);
-          pictures.push({ width: bounds.width, height: bounds.height, x, y, data: crop });
-        }
-        found = byKey.get(key);
+    if (layer.blend !== 0 && !SLOT_BLEND[layer.blend]) {
+      // A shown one is baked into the layers below; a hidden one (a variant to switch on) is kept.
+      if (!layer.hidden) {
+        bakers.push(index);
+        baked.push(layer.name);
+        return;
       }
-      byCel.set(cel, found);
-      return found;
-    });
-    if (pictures.length) slots.push({ name: layer.name || `layer ${index + 1}`, hidden: layer.hidden, pictures, shown });
+      skipped.add(tn('blend modes of hidden layers (imported as normal)'));
+    }
+    slots.push({ index, name: layer.name || `layer ${index + 1}`, hidden: layer.hidden, blend: SLOT_BLEND[layer.blend] ?? 'normal', pictures: [], keys: new Map(), shown: [] });
   });
+  for (const frame of ase.frames) {
+    const pics = new Map();
+    for (const cel of frame.cels) {
+      if (cel.z) skipped.add(tn('per-cel z-order (layer order is kept)'));
+      const pic = canvasCel(ase, ase.layers[cel.layer], cel);
+      if (pic) pics.set(cel.layer, pic);
+    }
+    // Blend layers, lowest first, into every shown layer below them.
+    for (const b of bakers) {
+      const top = pics.get(b);
+      if (top) for (const slot of slots) if (slot.index < b && !slot.hidden && pics.has(slot.index)) blendInto(pics.get(slot.index), top, ase.layers[b].blend);
+    }
+    for (const slot of slots) {
+      const pic = pics.has(slot.index) ? cropped(pics.get(slot.index)) : null;
+      if (!pic) {
+        slot.shown.push(-1);
+        continue;
+      }
+      const key = fingerprint(pic.x, pic.y, pic.width, pic.height, pic.data);
+      if (!slot.keys.has(key)) {
+        slot.keys.set(key, slot.pictures.length);
+        slot.pictures.push(pic);
+      }
+      slot.shown.push(slot.keys.get(key));
+    }
+  }
+  const shownSlots = slots.filter((s) => s.pictures.length).map(({ name, hidden, blend, pictures, shown }) => ({ name, hidden, blend, pictures, shown }));
 
   // Animations: one per tag, or one for the whole file when it has frames but no tags.
   const tags = ase.tags.length ? ase.tags : ase.frames.length > 1 ? [{ name: stem, from: 0, to: ase.frames.length - 1, direction: DIRECTION.forward }] : [];
@@ -308,5 +427,5 @@ export function asepriteParts(ase, stem = 'animation') {
       });
     return { name: tag.name || stem, steps, duration: time };
   });
-  return { width: ase.width, height: ase.height, slots, animations, skipped: [...skipped] };
+  return { width: ase.width, height: ase.height, slots: shownSlots, animations, baked, skipped: [...skipped] };
 }

@@ -51,8 +51,13 @@ Next: rig it in one step with [AutoRig](autorig.md), or by hand with
   constraints on top.
 - It is pixel art, so the [pixel grid](#pixel-grid) turns on at 1 unit per pixel in a project
   without images, and the art stays sharp.
-- Indexed, grayscale and RGBA sprites all work. Tilemap layers, reference layers, layer blend modes
-  (imported as normal) and per-cel z-order are left out; the status bar lists what was.
+- **Blend modes**: Multiply, Screen and Addition layers keep their blend on the slot. Layers in other
+  blend modes (Overlay, Soft Light, Color Burn and the rest) are usually colour grading: they are
+  baked into the layers below them, so every part looks as it does in Aseprite, and are not imported
+  themselves. A hidden one comes in as a normal, hidden part.
+- Layers are clipped to the canvas, as Aseprite shows them.
+- Indexed, grayscale and RGBA sprites all work. Tilemap layers, reference layers and per-cel z-order
+  are left out; the status bar lists what was, and which blend layers were baked.
 
 ## Importing an SVG
 

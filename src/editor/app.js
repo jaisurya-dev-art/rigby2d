@@ -1032,8 +1032,9 @@ export class App {
       const what = r.animations
         ? t('Imported {layers} layer(s) and {count} animation(s) from {file}', { layers: r.layers, count: r.animations, file: io.basename(file.name) })
         : t('Imported {count} layers from {file}', { count: r.layers, file: io.basename(file.name) });
+      const baked = r.baked.length ? `. ${t('Blend layers baked into the layers below: {names}', { names: r.baked.join(', ') })}` : '';
       const left = r.skipped.length ? `. ${t('Left out: {what}', { what: r.skipped.map((x) => t(x)).join(', ') })}` : '';
-      this.setStatus(what + this.pixelArtNote(had, info.pixelScale) + left);
+      this.setStatus(what + this.pixelArtNote(had, info.pixelScale) + baked + left);
     } catch (e) {
       this.setStatus(`${t('Aseprite import failed')}: ${errorText(e)}`);
     }
