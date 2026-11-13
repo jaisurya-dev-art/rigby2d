@@ -744,7 +744,12 @@ export class Viewport {
       if (sy < RULER_W) continue;
       ctx.moveTo(RULER_W - 6, sy);
       ctx.lineTo(RULER_W, sy);
-      ctx.fillText(String(Math.round(y)), 1, sy + 2);
+      // Turned to run along the ruler (read bottom to top), just past the tick like the top ruler's.
+      ctx.save();
+      ctx.translate(2, sy - 2);
+      ctx.rotate(-Math.PI / 2);
+      ctx.fillText(String(Math.round(y)), 0, 0);
+      ctx.restore();
     }
     ctx.stroke();
     // Corner (the intersection): click opens the guide menu.
