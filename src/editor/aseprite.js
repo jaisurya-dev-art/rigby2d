@@ -359,7 +359,8 @@ function cropped(pic) {
 /**
  * What an import makes from a read file: { width, height, slots: [{ name, hidden, blend, pictures:
  * [{ width, height, x, y (top-left in the canvas), data (RGBA) }], shown: picture index per frame
- * (-1 = none) }], animations: [{ name, steps: [{ frame, time }], duration }], baked: [layer names],
+ * (-1 = none) }], animations: [{ name, steps: [{ frame, time }], duration, variant: the hidden
+ * slot it shows, or null }], baked: [layer names],
  * skipped: [what was left out] }. Slots are bottom-most first, one per image layer that shows
  * anything. Layers are clipped to the canvas, as Aseprite shows them. Multiply, screen and addition
  * layers keep their blend on the slot; shown layers in any other blend mode are baked into the
@@ -425,7 +426,16 @@ export function asepriteParts(ase, stem = 'animation') {
         time = Math.round((time + ase.frames[frame].duration) * 1e6) / 1e6;
         return step;
       });
-    return { name: tag.name || stem, steps, duration: time };
+    return { name: tag.name || stem, steps, duration: time, variant: null };
   });
+  // Hidden layers are variants to switch on (another screen, another outfit): each gets its own
+  // animation of the same frames with that layer shown, named after it ("walk · Heart" with tags).
+  const variants = [];
+  shownSlots.forEach((slot, s) => {
+    if (!slot.hidden) return;
+    const base = animations.length ? animations : [{ name: stem, steps: [{ frame: 0, time: 0 }], duration: ase.frames[0]?.duration ?? 0.1 }];
+    for (const anim of base) variants.push({ ...anim, name: ase.tags.length ? `${anim.name} · ${slot.name}` : slot.name, variant: s });
+  });
+  animations.push(...variants);
   return { width: ase.width, height: ase.height, slots: shownSlots, animations, baked, skipped: [...skipped] };
 }

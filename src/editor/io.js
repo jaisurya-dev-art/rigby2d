@@ -571,14 +571,22 @@ export async function importAseprite(file, bone, doc, images, info = {}) {
     slotIndex.push(doc.slots.length - 1);
     names.push(atts.map((a) => a.name));
   }
-  // Animations: stepped image-swap keys, only on layers whose picture changes over the frames.
+  // Animations: stepped image-swap keys on the layers whose picture changes over the frames. A
+  // variant animation also shows its hidden layer; with variants, every animation hides the other
+  // hidden layers at its start, so one never stays on after another animation played.
+  const variants = parts.animations.some((a) => a.variant !== null);
   for (const anim of parts.animations) {
     const name = uniqueName(anim.name, (n) => doc.animations.some((a) => a.name === n));
     const animation = new Animation(name, anim.duration);
     parts.slots.forEach((part, s) => {
-      if (part.hidden) return;
+      const shownHere = !part.hidden || anim.variant === s;
+      if (!shownHere) {
+        if (variants) setKey(animation.slotTimelineMut(slotIndex[s]).attachment, 0, null, STEPPED);
+        return;
+      }
       // Unchanged from the setup pose throughout: no keys needed.
-      if (anim.steps.every((st) => part.shown[st.frame] === part.shown[0])) return;
+      const setupShown = part.hidden ? -1 : part.shown[0];
+      if (anim.steps.every((st) => part.shown[st.frame] === setupShown)) return;
       const keys = animation.slotTimelineMut(slotIndex[s]).attachment;
       let last;
       for (const { frame, time } of anim.steps) {

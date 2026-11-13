@@ -104,6 +104,9 @@ test('the import plan: one image per different picture, animations from tags', (
   assert.ok(Math.abs(blinkAnim.duration - 0.45) < 1e-9);
   assert.deepEqual(blinkAnim.steps.map((s) => s.frame), [0, 1, 2]);
   assert.deepEqual(bounce.steps.map((s) => s.frame), [1, 2], 'ping-pong over two frames');
+  // The hidden layer is a variant: one more animation per tag, with it shown.
+  assert.deepEqual(parts.animations.map((a) => `${a.name}:${a.variant}`), ['blink:null', 'bounce:null', 'blink · ghost:2', 'bounce · ghost:2']);
+  assert.deepEqual(parts.animations[2].steps, blinkAnim.steps);
 });
 
 test('tag directions and a file without tags', () => {
