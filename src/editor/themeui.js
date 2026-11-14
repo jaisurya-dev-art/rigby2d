@@ -7,8 +7,9 @@ import { STORAGE_KEY } from './prefs.js';
 import { pickImportFiles, pickSaveTarget } from './platform.js';
 import { THEME_EXTENSION, THEME_KEYS, allThemes, applyTheme, findTheme, newThemeId, normalizeTheme, parseTheme, serializeTheme } from './themes.js';
 import { t } from './i18n.js';
-import { button, dialog, hint } from './ui.js';
-import { h } from './widgets.js';
+import { button, dialog, hint, segmented } from './ui.js';
+import { closeColorPicker, colorButton } from './colorpicker.js';
+import { h, textField } from './widgets.js';
 
 const customOf = (app) => app.prefs.get('themes.custom');
 
@@ -71,7 +72,10 @@ function preview(theme) {
 
 /** The Themes dialog. */
 export function openThemes(app, { onClose = null } = {}) {
-  const { body, setFooter } = dialog({ title: t('Themes'), subtitle: t('Colours only: layout, type and shortcuts stay the same.'), className: 'themes-dialog', onClose });
+  const { body, setFooter } = dialog({ title: t('Themes'), subtitle: t('Colours only: layout, type and shortcuts stay the same.'), className: 'themes-dialog', onClose: () => {
+      closeColorPicker();
+      onClose?.();
+    } });
   const cards = h('div', { class: 'theme-sections' });
   const editor = h('div', { class: 'theme-editor' });
   const status = h('span', { class: 'theme-status weak' });
@@ -132,26 +136,24 @@ export function openThemes(app, { onClose = null } = {}) {
       );
       return;
     }
-    const name = h('input', {
-      class: 'theme-name',
-      value: theme.name,
-      'aria-label': t('Theme name'),
-      onchange: (e) => {
-        saveCustom(app, { ...theme, name: e.target.value });
+    const name = textField(theme.name, () => {}, { placeholder: t('Theme name') });
+    name.classList.add('theme-name');
+    name.setAttribute('aria-label', t('Theme name'));
+    name.addEventListener('change', () => {
+      saveCustom(app, { ...savedTheme(app), name: name.value });
+      draw();
+    });
+    const scheme = segmented(
+      [
+        ['dark', t('Dark')],
+        ['light', t('Light')],
+      ],
+      theme.scheme,
+      (v) => {
+        saveCustom(app, { ...savedTheme(app), scheme: v });
         draw();
       },
-    });
-    const scheme = h(
-      'select',
-      {
-        'aria-label': t('Dark or light'),
-        onchange: (e) => {
-          saveCustom(app, { ...theme, scheme: e.target.value });
-          draw();
-        },
-      },
-      h('option', { value: 'dark', selected: theme.scheme === 'dark' }, t('Dark')),
-      h('option', { value: 'light', selected: theme.scheme === 'light' }, t('Light')),
+      { title: t('Dark or light') },
     );
     editor.replaceChildren(h('div', { class: 'theme-editor-head' }, name, scheme), swatches(theme, true));
   };
@@ -169,16 +171,21 @@ export function openThemes(app, { onClose = null } = {}) {
           h('h5', null, t(group)),
           ...THEME_KEYS.filter((k) => k.group === group).map(({ key, label }) => {
             const value = theme.colors[key];
+            const code = h('code', null, value.toUpperCase());
+            // Live: the whole editor recolours as the picker moves.
             const set = (v) => {
-              saveCustom(app, { ...theme, colors: { ...theme.colors, [key]: v } });
-              theme = savedTheme(app);
+              const now = savedTheme(app);
+              saveCustom(app, { ...now, colors: { ...now.colors, [key]: v } });
+              code.textContent = v.toUpperCase();
             };
             return h(
-              'label',
+              'div',
               { class: 'theme-color' },
-              editable ? h('input', { type: 'color', value: value.slice(0, 7), oninput: (e) => set(e.target.value), onchange: () => draw() }) : h('span', { class: 'theme-swatch', style: `background:${value}` }),
+              editable
+                ? colorButton(value, { label: t(label), swatches: Object.values(theme.colors), onInput: set, onCommit: () => draw() })
+                : h('span', { class: 'theme-swatch', style: `background:${value}` }),
               h('span', null, t(label)),
-              h('code', null, value.toUpperCase()),
+              code,
             );
           }),
         ),

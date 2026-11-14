@@ -5064,3 +5064,131 @@ body.bone-dragging * {
 .theme-sections .theme-new {
   min-height: 118px;
 }
+
+/* The editor's colour picker (colorpicker.js): a swatch that opens a popover in the theme's colours. */
+.cp-swatch {
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  flex: none;
+  border: 1px solid var(--line-strong, var(--line));
+  border-radius: var(--radius-sm);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--overlay, white) 10%, transparent);
+  cursor: pointer;
+}
+.cp-swatch:hover {
+  border-color: var(--fg-muted);
+}
+.cp-swatch:focus-visible {
+  outline: 2px solid var(--ui-accent);
+  outline-offset: 1px;
+}
+.cp-popover {
+  position: fixed;
+  z-index: var(--z-popover);
+  width: 232px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  background: var(--popup);
+  border: 1px solid var(--popup-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-popover);
+}
+.cp-sv {
+  position: relative;
+  height: 148px;
+  border-radius: var(--radius-md);
+  background-image: linear-gradient(to top, hsl(0 0% 0%), transparent), linear-gradient(to right, hsl(0 0% 100%), transparent);
+  cursor: crosshair;
+  touch-action: none;
+}
+.cp-knob,
+.cp-hue-knob {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border: 2px solid hsl(0 0% 100%);
+  border-radius: var(--radius-full);
+  box-shadow: 0 0 0 1px hsl(0 0% 0% / 0.5), 0 2px 6px hsl(0 0% 0% / 0.35);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+.cp-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.cp-preview {
+  width: 26px;
+  height: 26px;
+  flex: none;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--line);
+}
+.cp-hue {
+  position: relative;
+  flex: 1;
+  height: 12px;
+  border-radius: var(--radius-full);
+  background: linear-gradient(to right, hsl(0 100% 50%), hsl(60 100% 50%), hsl(120 100% 50%), hsl(180 100% 50%), hsl(240 100% 50%), hsl(300 100% 50%), hsl(360 100% 50%));
+  cursor: pointer;
+  touch-action: none;
+}
+.cp-hue-knob {
+  top: 50%;
+}
+.cp-sv:focus-visible,
+.cp-hue:focus-visible {
+  outline: 2px solid var(--ui-accent);
+  outline-offset: 2px;
+}
+.cp-hash {
+  color: var(--fg-faint);
+  font-family: var(--font-mono);
+}
+.cp-popover input.cp-hex {
+  flex: 1;
+  height: var(--control-h);
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  background: var(--surface-1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+}
+.cp-chips {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: 4px;
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--line);
+}
+.cp-chip {
+  aspect-ratio: 1;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+.cp-chip:hover {
+  border-color: var(--fg-muted);
+  transform: scale(1.08);
+}
+/* The Themes dialog's name field and Dark / Light switch. */
+.theme-editor-head {
+  align-items: center;
+}
+.theme-editor-head input.theme-name {
+  flex: 1;
+  height: var(--button-h);
+  padding: 0 var(--space-2);
+  font-size: var(--text-md);
+  font-weight: 600;
+  background: var(--surface-1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+}
+.theme-editor-head input.theme-name:hover {
+  border-color: var(--line-strong, var(--line));
+}

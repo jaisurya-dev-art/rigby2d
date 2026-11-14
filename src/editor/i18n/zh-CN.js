@@ -1834,4 +1834,11 @@ export default {
   "Built-in": "内置",
   "Your themes": "你的主题",
   "Make one with New theme, or import a .rigbytheme file someone shared.": "用“新建主题”创建一个，或导入别人分享的 .rigbytheme 文件。",
+  "{name}: change colour": "{name}：更改颜色",
+  "Change colour": "更改颜色",
+  "Saturation and brightness": "饱和度和亮度",
+  "Hue": "色相",
+  "Hex colour": "十六进制颜色",
+  "Colour": "颜色",
+  "Theme colours": "主题颜色",
 };
