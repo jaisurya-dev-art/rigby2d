@@ -72,45 +72,51 @@ function preview(theme) {
 /** The Themes dialog. */
 export function openThemes(app, { onClose = null } = {}) {
   const { body, setFooter } = dialog({ title: t('Themes'), subtitle: t('Colours only: layout, type and shortcuts stay the same.'), className: 'themes-dialog', onClose });
-  const cards = h('div', { class: 'theme-cards' });
+  const cards = h('div', { class: 'theme-sections' });
   const editor = h('div', { class: 'theme-editor' });
   const status = h('span', { class: 'theme-status weak' });
 
   const draw = () => {
     const current = savedTheme(app);
-    cards.replaceChildren(
-      ...allThemes(customOf(app)).map((theme) =>
-        h(
-          'button',
-          {
-            class: `theme-card${theme.id === current.id ? ' selected' : ''}`,
-            'aria-pressed': theme.id === current.id ? 'true' : 'false',
-            onclick: () => {
-              useTheme(app, theme.id);
-              draw();
-            },
-          },
-          preview(theme),
-          h('b', null, theme.custom ? theme.name : t(theme.name)),
-          h('span', { class: 'weak' }, theme.custom ? t('Your theme') : theme.id === 'mammoth' ? t('New in 0.6') : theme.id === 'rigby-light' ? t('For bright rooms') : t('The default')),
-        ),
-      ),
+    const card = (theme) =>
       h(
         'button',
         {
-          class: 'theme-card theme-new',
-          title: t('A copy of the current theme, to change its colours'),
+          class: `theme-card${theme.id === current.id ? ' selected' : ''}`,
+          'aria-pressed': theme.id === current.id ? 'true' : 'false',
           onclick: () => {
-            const custom = customOf(app);
-            const id = newThemeId(custom);
-            saveCustom(app, { ...current, id, name: t('{name} copy', { name: current.custom ? current.name : t(current.name) }) });
-            useTheme(app, id);
+            useTheme(app, theme.id);
             draw();
           },
         },
-        h('span', { class: 'theme-new-plus' }, '+'),
-        t('New theme'),
-      ),
+        preview(theme),
+        h('b', null, theme.custom ? theme.name : t(theme.name)),
+        h('span', { class: 'weak' }, theme.custom ? (theme.scheme === 'light' ? t('Light') : t('Dark')) : theme.id === 'mammoth' ? t('New in 0.6') : theme.id === 'rigby-light' ? t('For bright rooms') : t('The default')),
+      );
+    const newCard = h(
+      'button',
+      {
+        class: 'theme-card theme-new',
+        title: t('A copy of the current theme, to change its colours'),
+        onclick: () => {
+          const id = newThemeId(customOf(app));
+          saveCustom(app, { ...current, id, name: t('{name} copy', { name: current.custom ? current.name : t(current.name) }) });
+          useTheme(app, id);
+          draw();
+        },
+      },
+      h('span', { class: 'theme-new-plus' }, '+'),
+      t('New theme'),
+    );
+    const themes = allThemes(customOf(app));
+    const own = themes.filter((th) => th.custom);
+    // Built-in themes, then the person's own (with New theme), each in its own section.
+    cards.replaceChildren(
+      h('h4', { class: 'theme-section' }, t('Built-in')),
+      h('div', { class: 'theme-cards' }, ...themes.filter((th) => !th.custom).map(card)),
+      h('h4', { class: 'theme-section' }, t('Your themes'), h('span', { class: 'weak' }, String(own.length))),
+      h('div', { class: 'theme-cards' }, ...own.map(card), newCard),
+      ...(own.length ? [] : [hint(t('Make one with New theme, or import a .rigbytheme file someone shared.'))]),
     );
     // Built-in themes cannot be deleted. (The button's display style would override `hidden`.)
     remove.style.display = current.custom ? '' : 'none';

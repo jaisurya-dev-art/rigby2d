@@ -163,7 +163,7 @@ your projects stay the same, and detached panels follow the main window.
 | **Mammoth** | Deep ice surfaces, warm ivory text and an amber accent. New in 0.6. |
 | **Rigby Light** | For bright rooms. |
 
-The Themes dialog (also a quick pick in *Edit ▸ Preferences ▸ Interface*):
+The Themes dialog lists the **Built-in** themes and **Your themes** (the ones you made or imported) in two sections. A quick theme picker is also in *Edit ▸ Preferences ▸ Interface*.
 
 - **New theme** copies the current theme. Change any of its colours (surfaces, text, accent,
   state and the viewport's canvas and grid) and the editor updates as you go. Give it a name and

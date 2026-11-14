@@ -5040,3 +5040,27 @@ body.bone-dragging * {
 .theme-editor .ui-hint {
   margin-bottom: var(--space-3);
 }
+.theme-section {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg-muted);
+}
+.theme-section .weak {
+  font-weight: 500;
+  letter-spacing: 0;
+}
+.theme-sections .theme-cards + .theme-section {
+  margin-top: var(--space-4);
+}
+.theme-sections .theme-cards + .ui-hint {
+  margin-top: var(--space-2);
+}
+.theme-sections .theme-new {
+  min-height: 118px;
+}

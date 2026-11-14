@@ -1831,4 +1831,7 @@ export default {
   "Setup mode": "设置模式",
   "Animate mode": "动画模式",
   "Canvas": "画布",
+  "Built-in": "内置",
+  "Your themes": "你的主题",
+  "Make one with New theme, or import a .rigbytheme file someone shared.": "用“新建主题”创建一个，或导入别人分享的 .rigbytheme 文件。",
 };
