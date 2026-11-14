@@ -54,7 +54,7 @@ import { openWelcome } from './welcomeui.js';
 import { TOUR_RELEASE, openWhatsNew, shouldShowWhatsNew } from './whatsnewui.js';
 import { COMMUNITY_URL, DEVLOG_URL } from './news.js';
 import { openMigrationCheck } from './migrationui.js';
-import markSvg from '../../branding/rigby2d-mark.svg?raw';
+import { brandMark } from './brandmark.js';
 import { startAnalytics } from './analytics.js';
 
 // The desktop app has its own menus: no WebView right-click menu outside text fields.
@@ -95,12 +95,6 @@ initThemes(app);
 const inTauri = '__TAURI_INTERNALS__' in window;
 const $ = (sel) => document.querySelector(sel);
 
-/** The Rigby2D mark, inline so its white bowl can follow the theme (dark on Rigby Light; style.css). */
-function homeMark() {
-  const el = h('span', { class: 'home-mark', 'aria-hidden': 'true' });
-  el.innerHTML = markSvg.replace(/role="img"[^>]*?aria-label="[^"]*"/, '');
-  return el;
-}
 
 // Detaching panels into their own OS windows, syncing them and the saved window layouts all live
 // in panelsync.js (it was growing here). `sync` is created once the viewport exists (below).
@@ -402,7 +396,7 @@ function buildMenuBar() {
   // in its own title bar).
   const home = inTauri
     ? null
-    : h('a', { class: 'home-link', href: '../', title: t('Rigby2D website: home, documentation and downloads'), 'data-goatcounter-click': 'editor-home' }, homeMark(), h('span', null, t('Rigby2D')));
+    : h('a', { class: 'home-link', href: '../', title: t('Rigby2D website: home, documentation and downloads'), 'data-goatcounter-click': 'editor-home' }, brandMark(18, 'home-mark'), h('span', null, t('Rigby2D')));
   const docTitle = inTauri ? null : h('span', { class: 'doc-title' });
   bar.replaceChildren(
     ...[home, home && h('span', { class: 'vsep' }), ...titles, h('span', { class: 'vsep' }), mode, quickBar, onionNotice, h('span', { class: 'spacer' }), docTitle, docTitle && h('span', { class: 'spacer' }), updateBadge(app), switcher].filter(Boolean),

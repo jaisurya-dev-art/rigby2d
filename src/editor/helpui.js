@@ -8,7 +8,7 @@ import { confirmDialog, fetchBytes, openExternal, pickImportFiles as importFiles
 import { t, tn } from './i18n.js';
 import { h } from './widgets.js';
 import { button, dialog as uiDialog, uiIcon } from './ui.js';
-import markUrl from '../../branding/rigby2d-mark.svg?url';
+import { brandMark } from './brandmark.js';
 
 /* global __RIGBY_VERSION__ */
 export const VERSION = typeof __RIGBY_VERSION__ === 'string' ? __RIGBY_VERSION__ : '';
@@ -309,7 +309,7 @@ export function openAbout() {
     h(
       'div',
       { class: 'about-hero' },
-      h('img', { src: markUrl, alt: '', width: 56, height: 56 }),
+      brandMark(56),
       h(
         'div',
         null,

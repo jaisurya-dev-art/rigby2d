@@ -12,7 +12,7 @@ import { engineIcon, icon } from './icons.js';
 import { COMMUNITY_URL, DEVLOG_URL, cachedNews, fetchNews, isNew, markSeen } from './news.js';
 import { h } from './widgets.js';
 import { checkbox, closeButton, dialog } from './ui.js';
-import markUrl from '../../branding/rigby2d-mark.svg?url';
+import { brandMark } from './brandmark.js';
 
 /** Game starters, made by the website build (site/vite.config.js) from runtimes/phaser/starter. */
 export const STARTERS = [
@@ -110,7 +110,7 @@ export function openWelcome(app, { tutorials, whatsNew, onClose } = {}) {
       h(
         'aside',
         { class: 'welcome-side' },
-        h('div', { class: 'welcome-brand' }, h('img', { src: markUrl, alt: '', width: 34, height: 34 }), h('div', null, h('b', null, t('Rigby2D')), h('small', null, VERSION ? `${t('Version')} ${VERSION}` : t('Development build')))),
+        h('div', { class: 'welcome-brand' }, brandMark(34), h('div', null, h('b', null, t('Rigby2D')), h('small', null, VERSION ? `${t('Version')} ${VERSION}` : t('Development build')))),
         h('h4', null, t('Start')),
         action('plus', t('New game project'), t('Characters for games'), () => app.newDocument('game')),
         action('plus', t('New film project'), t('Animation rendered to video'), () => app.newDocument('film')),

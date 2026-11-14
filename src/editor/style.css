@@ -1917,6 +1917,9 @@ div.log-entry {
 }
 /* "Predictions active" notice beside the ANIMATE button. */
 #menubar .onion-notice {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   margin-left: 8px;
   color: var(--warning-fg, rgb(240, 150, 60));
   font-weight: 600;
@@ -1924,6 +1927,9 @@ div.log-entry {
   border: 1px solid color-mix(in srgb, var(--warning-tint, rgb(240, 150, 60)) 40%, transparent);
   border-radius: 4px;
   padding: 1px 7px;
+}
+#menubar .onion-notice[hidden] {
+  display: none;
 }
 #menubar .onion-notice:hover {
   background: color-mix(in srgb, var(--warning-tint, rgb(240, 150, 60)) 12%, transparent);
@@ -5020,14 +5026,18 @@ body.bone-dragging * {
     grid-template-columns: 1fr;
   }
 }
-#menubar .home-link .home-mark,
-#menubar .home-link .home-mark svg {
+/* The Rigby2D mark (brandmark.js), sized by the span around it. */
+.brand-mark {
+  display: inline-block;
+  flex: none;
+}
+.brand-mark svg {
   display: block;
-  width: 18px;
-  height: 18px;
+  width: 100%;
+  height: 100%;
 }
 /* The mark's white bowl (its last shape) follows the theme: dark on Rigby Light. */
-:root[data-theme]:not([data-theme='rigby-dark']) #menubar .home-link .home-mark path:last-child {
+:root[data-theme]:not([data-theme='rigby-dark']) .brand-mark path:last-child {
   fill: var(--mark-bowl);
 }
 .theme-color .theme-swatch {
