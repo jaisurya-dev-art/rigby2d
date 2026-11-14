@@ -211,5 +211,6 @@ export function isMenuOpen() {
 }
 
 window.addEventListener('pointerdown', (e) => {
-  if (openMenu && !openMenu.contains(e.target) && !e.target.closest?.('.menu-title')) closeMenu();
+  // The colour picker floats outside the popup it was opened from (onion skin, guides): not a click away.
+  if (openMenu && !openMenu.contains(e.target) && !e.target.closest?.('.menu-title, .cp-popover')) closeMenu();
 });

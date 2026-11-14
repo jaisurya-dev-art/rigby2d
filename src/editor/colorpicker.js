@@ -37,9 +37,15 @@ export function closeColorPicker() {
  * A colour swatch button. Clicking it opens the picker beside it. `onInput(hex)` follows every
  * change; `onCommit(hex)` runs when the picker closes after a change. `swatches`: quick colours.
  */
-export function colorButton(value, { onInput, onCommit = null, swatches = [], label = '' } = {}) {
+export function colorButton(value, { onInput, onCommit = null, swatches = [], label = '', title = null, disabled = false, className = '' } = {}) {
   let current = value;
-  const btn = h('button', { type: 'button', class: 'cp-swatch', style: `background:${value}`, 'aria-label': label ? t('{name}: change colour', { name: label }) : t('Change colour'), title: value.toUpperCase() });
+  const btn = h('button', { type: 'button', class: `cp-swatch ${className}`.trim(), disabled, style: `background:${value}`, 'aria-label': label ? t('{name}: change colour', { name: label }) : t('Change colour'), title: title ?? value.toUpperCase() });
+  /** Shows another colour (e.g. after a reset), without reporting it. */
+  btn.setColor = (hex) => {
+    current = hex;
+    btn.style.background = hex;
+    if (!title) btn.title = hex.toUpperCase();
+  };
   btn.addEventListener('click', (e) => {
     e.stopPropagation();
     const wasOpen = open?.anchor === btn;
@@ -48,9 +54,7 @@ export function colorButton(value, { onInput, onCommit = null, swatches = [], la
     openPicker(btn, current, {
       swatches,
       onInput: (hex) => {
-        current = hex;
-        btn.style.background = hex;
-        btn.title = hex.toUpperCase();
+        btn.setColor(hex);
         onInput?.(hex);
       },
       onCommit: (hex) => onCommit?.(hex),
@@ -193,5 +197,4 @@ function openPicker(anchor, start, { swatches, onInput, onCommit }) {
     if (changed) onCommit(fromHsv(hsv));
   }
   open = { anchor, close };
-  requestAnimationFrame(() => sv.focus({ preventScroll: true }));
 }

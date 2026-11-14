@@ -5,6 +5,7 @@
 import { ONION_DEFAULTS } from './app.js';
 import { h, popupMenu } from './widgets.js';
 import { t } from './i18n.js';
+import { colorButton } from './colorpicker.js';
 
 const toHex = (rgb) => '#' + rgb.slice(0, 3).map((x) => Math.round(Math.max(0, Math.min(1, x)) * 255).toString(16).padStart(2, '0')).join('');
 const fromHex = (hex) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255);
@@ -37,8 +38,7 @@ function numRow(label, value, onChange, { min = 0, max = MAX_ONION_FRAMES } = {}
 
 /** A color picker with a reset-to-default button. `onReset` returns the value to show afterwards. */
 function colorRow(label, rgb, onChange, onReset) {
-  const inp = h('input', { class: 'onion-color', type: 'color', value: toHex(rgb) });
-  inp.addEventListener('input', () => onChange(fromHex(inp.value)));
+  const inp = colorButton(toHex(rgb), { label, className: 'onion-color', onInput: (hex) => onChange(fromHex(hex)) });
   const reset = onReset
     ? h(
         'button',
@@ -48,7 +48,7 @@ function colorRow(label, rgb, onChange, onReset) {
           title: t('Reset to the default color'),
           onclick: () => {
             const v = onReset();
-            if (v) inp.value = toHex(v);
+            if (v) inp.setColor(toHex(v));
           },
         },
         '↺',

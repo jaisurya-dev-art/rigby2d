@@ -7,6 +7,7 @@
 import { GUIDES_DEFAULTS } from './app.js';
 import { h, popupMenu } from './widgets.js';
 import { t } from './i18n.js';
+import { colorButton } from './colorpicker.js';
 
 const toHex = (rgb) => '#' + rgb.slice(0, 3).map((x) => Math.round(Math.max(0, Math.min(1, x)) * 255).toString(16).padStart(2, '0')).join('');
 const fromHex = (hex) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255);
@@ -18,10 +19,13 @@ function guideRow(label, cfg, def, refresh) {
     cfg.enabled = cb.checked;
     refresh();
   });
-  const color = h('input', { class: 'guides-color', type: 'color', value: toHex(cfg.color) });
-  color.addEventListener('input', () => {
-    cfg.color = fromHex(color.value);
-    refresh();
+  const color = colorButton(toHex(cfg.color), {
+    label,
+    className: 'guides-color',
+    onInput: (hex) => {
+      cfg.color = fromHex(hex);
+      refresh();
+    },
   });
   const reset = h(
     'button',
@@ -31,7 +35,7 @@ function guideRow(label, cfg, def, refresh) {
       title: t('Reset to the default color'),
       onclick: () => {
         cfg.color = [...def];
-        color.value = toHex(cfg.color);
+        color.setColor(toHex(cfg.color));
         refresh();
       },
     },

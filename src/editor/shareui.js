@@ -11,6 +11,7 @@ import { canEncodeVideo, frameRange, renderGif, renderJob } from './render/offli
 import { RATES, SHARE_BACKGROUND, SIZES, shareSettings, shareTitle, submitUrl } from './share.js';
 import { h, select } from './widgets.js';
 import { button, checkbox, dialog, fieldRow, fields, hint } from './ui.js';
+import { colorButton } from './colorpicker.js';
 
 const safe = (s) => s.replace(/[\\/:*?"<>|\s]+/g, '_').replace(/^_+|_+$/g, '') || 'rigby2d';
 const toHex = (c) => `#${c.slice(0, 3).map((v) => Math.round(v * 255).toString(16).padStart(2, '0')).join('')}`;
@@ -136,7 +137,7 @@ export function openShareDialog(app) {
         ),
         ...row(
           t('Background'),
-          h('input', { type: 'color', value: choice.background, disabled: choice.format === 'gif' && choice.transparent, oninput: (e) => (choice.background = e.target.value) }),
+          colorButton(choice.background, { label: t('Background'), disabled: choice.format === 'gif' && choice.transparent, onInput: (v) => (choice.background = v) }),
           choice.format === 'gif' ? checkbox(t('Transparent'), choice.transparent, (on) => ((choice.transparent = on), draw())) : null,
         ),
         ...row(t('Post title'), h('input', { type: 'text', class: 'share-title', value: title(), maxlength: 300, oninput: (e) => (choice.title = e.target.value) })),

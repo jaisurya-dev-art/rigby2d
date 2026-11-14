@@ -1841,4 +1841,6 @@ export default {
   "Hex colour": "十六进制颜色",
   "Colour": "颜色",
   "Theme colours": "主题颜色",
+  "Bone color": "骨骼颜色",
+  "Slot color": "插槽颜色",
 };
