@@ -5321,3 +5321,10 @@ input[type='range'] {
 .theme-new-plus .icon {
   display: block;
 }
+/* An on/off menu item with a shortcut (widgets.js checkItem): the shortcut on the right. */
+.popup label.item.check-item {
+  justify-content: space-between;
+}
+.popup label.item.check-item .item-label {
+  gap: 4px;
+}

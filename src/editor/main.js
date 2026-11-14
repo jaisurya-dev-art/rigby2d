@@ -28,7 +28,7 @@ import { findPanel, rigLeftDock } from './docklayout.js';
 import { GraphEditor } from './graph.js';
 import { Dopesheet, copySelectedKeys, cutSelectedKeys, deleteSelectedKeys, exitSelectModes, pasteKeys, renderControls } from './timeline.js';
 import { Viewport } from './viewport.js';
-import { closeMenu, h, isMenuOpen, popupMenu, submenuItem, widgetState } from './widgets.js';
+import { checkItem, closeMenu, h, isMenuOpen, popupMenu, submenuItem, widgetState } from './widgets.js';
 import { uiIcon } from './ui.js';
 import * as log from './log.js';
 import { toggleLogWindow, windowOpen as logOpen } from './logwindow.js';
@@ -240,25 +240,19 @@ function menus() {
         }),
         ` ${t('Timeline in Setup mode')}`,
       ),
-      {
-        label: t('Hide overlays'),
-        checked: app.hideOverlays,
-        shortcut: sc('view.overlays'),
-        title: t('Hides bones, shapes, selection outlines and guides at once, to watch the animation as it renders'),
-        action: () => {
-          app.hideOverlays = !app.hideOverlays;
+      checkItem(
+        t('Hide overlays'),
+        app.hideOverlays,
+        (on) => {
+          app.hideOverlays = on;
           app.changed();
         },
-      },
+        { shortcut: sc('view.overlays'), title: t('Hides bones, shapes, selection outlines and guides at once, to watch the animation as it renders') },
+      ),
       { label: logOpen() ? t('Hide log') : t('Log'), action: () => toggleLogWindow() },
       submenuItem(t('Panel layout'), () => [
         { label: t('Rig on the left'), title: t('Skins, constraints, meshes and events in a Rig panel left of the viewport'), action: () => applyPreset(rigLeftDock(), t('Rig on the left')) },
-        {
-          label: t('Rig panel'),
-          checked: dock.has('rig'),
-          title: t('Skins, constraints, meshes and events in their own panel'),
-          action: () => (dock.has('rig') ? dock.close('rig') : dock.open('rig')),
-        },
+        checkItem(t('Rig panel'), dock.has('rig'), (on) => (on ? dock.open('rig') : dock.close('rig')), { title: t('Skins, constraints, meshes and events in their own panel') }),
         'separator',
         { label: t('Reset layout'), title: t('Put the panels back in their default places and sizes'), action: () => resetLayout() },
       ]),

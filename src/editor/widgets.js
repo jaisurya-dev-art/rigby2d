@@ -160,6 +160,12 @@ function menuEntry(it) {
  * popupMenu's, or a function returning one (built fresh each time it opens, so it can show live
  * state). The child popup lives inside this entry, so the outside-click logic keeps it open.
  */
+/** An on/off menu item: a checkbox and its label, with the shortcut on the right (the menu stays open). */
+export function checkItem(label, checked, onChange, { shortcut = null, title = null } = {}) {
+  const box = h('input', { type: 'checkbox', checked, onchange: () => onChange(box.checked) });
+  return h('label', { class: 'item check-item', title }, h('span', { class: 'item-label' }, box, label), shortcut ? h('span', { class: 'shortcut' }, shortcut) : null);
+}
+
 export function submenuItem(label, items, { title } = {}) {
   const btn = h('button', { class: 'item submenu', title: title ?? null }, h('span', null, label), h('span', { class: 'shortcut submenu-arrow' }, icon('chevron-right', 14)));
   let child = null;
