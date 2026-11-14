@@ -12,6 +12,7 @@ import { defineConfig } from 'vite';
 
 import { DOCS, imageFiles, pageHtml, renderAll, renderMarkdown, searchIndex } from './docs/build.js';
 import { siteFooter, siteHeader } from './chrome.js';
+import { creatorsSection } from './creators.js';
 import { icon, mark } from './icons.js';
 import { feedXml, indexPage, newsJson, postPage, readPosts } from './blog/devlog.js';
 
@@ -271,7 +272,7 @@ function comparePages() {
 
 /**
  * The shared header and footer (chrome.js) in place of the pages' <!--site-header:…--> and
- * <!--site-footer--> markers, and icons (icons.js) in place of <i data-icon="…"></i> and
+ * <!--site-footer--> markers, the Founding Creators (creators.js) in place of <!--founding-creators-->, and icons (icons.js) in place of <i data-icon="…"></i> and
  * <i data-mark="…"></i>.
  */
 function siteChrome() {
@@ -286,6 +287,8 @@ function siteChrome() {
         return html
           .replace(/<!--site-header:(\w*)-->/, (_, active) => siteHeader({ base, active, mark: `${up}branding/rigby2d-mark.svg` }))
           .replace('<!--site-footer-->', siteFooter({ base, lockup: `${up}branding/rigby2d-lockup-transparent.svg` }))
+          // The homepage's Founding Creators (creators.json), read each time so edits show in dev.
+          .replace('<!--founding-creators-->', () => creatorsSection(JSON.parse(fs.readFileSync(path.join(here, 'creators.json'), 'utf8')), base))
           .replace(/<i data-(icon|mark)="([\w-]+)"><\/i>/g, (_, kind, name) => (kind === 'icon' ? icon(name) : mark(name)));
       },
     },

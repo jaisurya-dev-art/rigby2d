@@ -1,0 +1,18 @@
+{
+  "creators": [
+    {
+      "name": "InkThorn Games",
+      "channel": "https://www.youtube.com/@InkThornGames",
+      "platform": "YouTube",
+      "founding": true,
+      "video": {
+        "title": "Rigby2D: Free 2D Skeletal Animation for Indie Devs",
+        "url": "https://www.youtube.com/watch?v=PLPg4Tj3vVw",
+        "thumbnail": "creators/inkthorn-rigby2d-review.webp",
+        "length": "3:17",
+        "date": "2026-11-14"
+      },
+      "quote": "Being free, it has practically all the features of paid competitors like Spine, Moho, or Toon Boom."
+    }
+  ]
+}
