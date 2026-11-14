@@ -404,8 +404,8 @@ export function skinsSection(app) {
     app.changed();
   };
   const skins = [
-    row(`${doc.skin ? '○' : '●'} ${t('default')}`, { selected: app.sel?.skin === 'default', onclick: pickSkin('default') }),
-    ...doc.skins.map((s) => row(`${doc.skin === s.name ? '●' : '○'} ${s.name}`, { selected: app.sel?.skin === s.name, onclick: pickSkin(s.name) })),
+    row(h('span', { class: 'skin-pick' }, uiIcon(doc.skin ? 'circle' : 'circle-dot', 'sm'), t('default')), { selected: app.sel?.skin === 'default', onclick: pickSkin('default') }),
+    ...doc.skins.map((s) => row(h('span', { class: 'skin-pick' }, uiIcon(doc.skin === s.name ? 'circle-dot' : 'circle', 'sm'), s.name), { selected: app.sel?.skin === s.name, onclick: pickSkin(s.name) })),
   ];
   const newSkin = addButton(t('New'), { disabled: app.mode !== Mode.Setup, title: t('New skin (becomes active)'), onclick: () => createSkin(app) });
   return section(app, 'skins', t('Skins'), doc.skins.length + 1, skins, newSkin);

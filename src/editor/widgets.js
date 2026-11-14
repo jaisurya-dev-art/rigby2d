@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 // Small DOM helpers: element builder, draggable number fields and popup menus.
+import { icon } from './icons.js';
 
 /** Shared widget state: panels are not rebuilt while a value is being dragged. */
 export const widgetState = { dragging: false };
@@ -148,7 +149,8 @@ function menuEntry(it) {
         it.action();
       },
     },
-    h('span', null, it.label),
+    // `checked` (true or false): the item is a choice; the current one shows a check.
+    it.checked === undefined ? h('span', null, it.label) : h('span', { class: 'item-label' }, h('span', { class: 'item-check' }, it.checked ? icon('check', 14) : null), it.label),
     it.shortcut ? h('span', { class: 'shortcut' }, it.shortcut) : null,
   );
 }
@@ -159,7 +161,7 @@ function menuEntry(it) {
  * state). The child popup lives inside this entry, so the outside-click logic keeps it open.
  */
 export function submenuItem(label, items, { title } = {}) {
-  const btn = h('button', { class: 'item submenu', title: title ?? null }, h('span', null, label), h('span', { class: 'shortcut' }, '▸'));
+  const btn = h('button', { class: 'item submenu', title: title ?? null }, h('span', null, label), h('span', { class: 'shortcut submenu-arrow' }, icon('chevron-right', 14)));
   let child = null;
   const closeChild = () => {
     child?.remove();

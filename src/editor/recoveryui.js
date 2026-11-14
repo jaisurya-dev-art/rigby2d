@@ -12,7 +12,7 @@ import * as platform from './platform.js';
 import { LINKS, VERSION, askChoice, dialog } from './helpui.js';
 import { t } from './i18n.js';
 import { h } from './widgets.js';
-import { button } from './ui.js';
+import { button, uiIcon } from './ui.js';
 import { HEARTBEAT_MS, QUIT_FILE, crashReport, crashedSessions, deadSessions, newSessionId, sessionAutosave } from './recovery.js';
 
 const SESSIONS_KEY = 'rigby.sessions';
@@ -255,7 +255,7 @@ export function installRecovery(app) {
       h('span', null, saved ? t('Rigby2D ran into an error. Your work was auto-saved. Details are in View ▸ Log.') : t('Rigby2D ran into an error. Details are in View ▸ Log.')),
       h('button', { onclick: () => openCrashReport() }, t('Report…')),
       h('button', { onclick: () => app.save(true) }, t('Save as…')),
-      h('button', { class: 'dialog-close', 'aria-label': t('Dismiss'), onclick: () => banner.remove() }, '✕'),
+      h('button', { class: 'dialog-close', 'aria-label': t('Dismiss'), onclick: () => banner.remove() }, uiIcon('x', 'sm')),
     );
     document.body.append(banner);
   }

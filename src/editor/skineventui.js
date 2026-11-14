@@ -5,7 +5,7 @@
 import { listConstraints } from '../core/constraintdata.js';
 import { FPS, Mode } from './app.js';
 import { dragValue, h, textField } from './widgets.js';
-import { button } from './ui.js';
+import { button, uiIcon } from './ui.js';
 import { t } from './i18n.js';
 
 const row = (label, ...content) => [h('label', null, label), h('div', { class: 'cell' }, ...content)];
@@ -174,7 +174,7 @@ export function skinUi(app, name) {
                               app.changed();
                             },
                           },
-                          '✕',
+                          uiIcon('x', 'sm'),
                         )
                       : null,
                   ),
@@ -275,7 +275,7 @@ export function eventUi(app, name) {
               app.changed();
             },
           },
-          '✕',
+          uiIcon('x', 'sm'),
         ),
       ),
     );

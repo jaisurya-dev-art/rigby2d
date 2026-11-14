@@ -6,6 +6,7 @@ import { ONION_DEFAULTS } from './app.js';
 import { h, popupMenu } from './widgets.js';
 import { t } from './i18n.js';
 import { colorButton } from './colorpicker.js';
+import { uiIcon } from './ui.js';
 
 const toHex = (rgb) => '#' + rgb.slice(0, 3).map((x) => Math.round(Math.max(0, Math.min(1, x)) * 255).toString(16).padStart(2, '0')).join('');
 const fromHex = (hex) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255);
@@ -51,7 +52,7 @@ function colorRow(label, rgb, onChange, onReset) {
             if (v) inp.setColor(toHex(v));
           },
         },
-        '↺',
+        uiIcon('rotate-ccw', 'sm'),
       )
     : null;
   return h('label', { class: 'onion-row' }, h('span', null, label), h('span', { class: 'onion-color-wrap' }, inp, reset));

@@ -8,9 +8,9 @@ import { t } from './i18n.js';
 import { checkSkeleton } from './migration.js';
 import { openExternal, pickImportFiles } from './platform.js';
 import { h } from './widgets.js';
-import { button } from './ui.js';
+import { button, uiIcon } from './ui.js';
 
-const MARK = { ok: '✓', kept: '●', partial: '◐', no: '✕' };
+const MARK = { ok: 'check', kept: 'circle-dot', partial: 'contrast', no: 'x' };
 const LABEL = { ok: 'Plays as in the original', kept: 'Kept and exported', partial: 'Partly supported', no: 'Not supported' };
 
 export async function openMigrationCheck(app) {
@@ -34,7 +34,7 @@ export async function openMigrationCheck(app) {
     h(
       'table',
       { class: 'migration-table' },
-      h('tbody', null, ...report.items.map((i) => h('tr', { class: `status-${i.status}` }, h('td', { title: t(LABEL[i.status]) }, MARK[i.status]), h('td', null, i.feature === 'Note' ? '' : t(i.feature)), h('td', null, i.count ? String(i.count) : ''), h('td', { class: 'weak' }, (i.note ? t(i.note) : t(LABEL[i.status])))))),
+      h('tbody', null, ...report.items.map((i) => h('tr', { class: `status-${i.status}` }, h('td', { title: t(LABEL[i.status]) }, uiIcon(MARK[i.status], 'sm')), h('td', null, i.feature === 'Note' ? '' : t(i.feature)), h('td', null, i.count ? String(i.count) : ''), h('td', { class: 'weak' }, (i.note ? t(i.note) : t(LABEL[i.status])))))),
     ),
     h(
       'div',

@@ -247,7 +247,8 @@ function menus() {
         ` ${t('Timeline in Setup mode')}`,
       ),
       {
-        label: `${app.hideOverlays ? '● ' : '○ '}${t('Hide overlays')}`,
+        label: t('Hide overlays'),
+        checked: app.hideOverlays,
         shortcut: sc('view.overlays'),
         title: t('Hides bones, shapes, selection outlines and guides at once, to watch the animation as it renders'),
         action: () => {
@@ -259,7 +260,8 @@ function menus() {
       submenuItem(t('Panel layout'), () => [
         { label: t('Rig on the left'), title: t('Skins, constraints, meshes and events in a Rig panel left of the viewport'), action: () => applyPreset(rigLeftDock(), t('Rig on the left')) },
         {
-          label: `${dock.has('rig') ? '● ' : '○ '}${t('Rig panel')}`,
+          label: t('Rig panel'),
+          checked: dock.has('rig'),
           title: t('Skins, constraints, meshes and events in their own panel'),
           action: () => (dock.has('rig') ? dock.close('rig') : dock.open('rig')),
         },
@@ -390,7 +392,7 @@ function buildMenuBar() {
         ].filter(Boolean));
       },
     },
-    uiIcon('layers', 'sm'),
+    uiIcon('onion', 'sm'),
     h('span', null, t('Onion skin on')),
   );
   // Workspace switcher: which tools the editor shows for this project.

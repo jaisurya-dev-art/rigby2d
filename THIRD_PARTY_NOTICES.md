@@ -33,7 +33,8 @@ License: <https://github.com/openai/whisper>.
 
 The editor's dialogs and the website use icons from:
 
-- **Lucide**: ISC License, Copyright (c) Lucide Contributors. Source: <https://lucide.dev>.
+- **Lucide**: ISC License, Copyright (c) Lucide Contributors. Source: <https://lucide.dev>. The onion
+  icon is from Lucide Lab (ISC License, the same contributors): <https://github.com/lucide-icons/lucide-lab>.
 - **Defold logo** (the Defold mark on the website): from Defold's brand assets,
   <https://github.com/defold/assets-defold>. A trademark of the Defold Foundation, used only to name
   the engine the Defold runtime is for.

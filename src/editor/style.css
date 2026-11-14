@@ -5192,3 +5192,122 @@ body.bone-dragging * {
 .theme-editor-head input.theme-name:hover {
   border-color: var(--line-strong, var(--line));
 }
+
+/* Number fields, checkboxes, radio buttons and sliders in the theme's colours everywhere (the
+   system's own controls look like the system, not the editor). */
+input[type='number'] {
+  font: inherit;
+  color: var(--text);
+  background: var(--widget);
+  border: 1px solid transparent;
+  border-radius: 3px;
+  padding: 2px 6px;
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+input[type='number']::-webkit-outer-spin-button,
+input[type='number']::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type='number']:hover:not(:disabled) {
+  background: var(--widget-hover);
+}
+input[type='number']:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+input[type='checkbox'],
+input[type='radio'] {
+  appearance: none;
+  -webkit-appearance: none;
+  display: inline-grid;
+  place-content: center;
+  flex: none;
+  width: 15px;
+  height: 15px;
+  margin: 0;
+  vertical-align: -3px;
+  background: var(--surface-1);
+  border: 1px solid var(--line-strong, var(--border));
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+input[type='radio'] {
+  border-radius: var(--radius-full);
+}
+input[type='checkbox']:hover:not(:disabled),
+input[type='radio']:hover:not(:disabled) {
+  border-color: var(--fg-muted);
+}
+input[type='checkbox']:checked,
+input[type='radio']:checked {
+  background: var(--ui-accent);
+  border-color: var(--ui-accent);
+}
+input[type='checkbox']::before {
+  content: '';
+  width: 9px;
+  height: 9px;
+  background: var(--on-accent, white);
+  clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+  transform: scale(0);
+  transition: transform 80ms ease-out;
+}
+input[type='radio']::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-full);
+  background: var(--on-accent, white);
+  transform: scale(0);
+  transition: transform 80ms ease-out;
+}
+input[type='checkbox']:checked::before,
+input[type='radio']:checked::before {
+  transform: scale(1);
+}
+input[type='checkbox']:focus-visible,
+input[type='radio']:focus-visible {
+  outline: 2px solid var(--ui-accent);
+  outline-offset: 1px;
+}
+input[type='range'] {
+  accent-color: var(--ui-accent);
+}
+
+/* SVG icons where text symbols used to be: menu checks, submenu arrows, the active skin. */
+.popup .item .item-label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.popup .item .item-check {
+  display: inline-flex;
+  width: 15px;
+  flex: none;
+  color: var(--ui-accent);
+}
+.popup .item .submenu-arrow {
+  display: inline-flex;
+  align-items: center;
+}
+.row .skin-pick {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+.row .skin-pick .icon {
+  color: var(--fg-muted);
+}
+.row.selected .skin-pick .icon {
+  color: inherit;
+}
+.key-add .icon,
+.key-reset .icon,
+.key-edit-remove .icon,
+.onion-reset .icon,
+.guides-reset .icon,
+.theme-new-plus .icon {
+  display: block;
+}

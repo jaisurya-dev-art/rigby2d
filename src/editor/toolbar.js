@@ -139,7 +139,7 @@ export function render(app, el) {
   const onion =
     app.mode === Mode.Animate
       ? withOptions(
-          toggleButton(t('Onion skin'), app.onion.enabled, set((on) => (app.onion.enabled = on)), { icon: 'layers', title: t('Onion skin: draw past and future frames in the viewport') }),
+          toggleButton(t('Onion skin'), app.onion.enabled, set((on) => (app.onion.enabled = on)), { icon: 'onion', title: t('Onion skin: draw past and future frames in the viewport') }),
           t('Onion-skin options'),
           (x, y) => onionPanel(app, x, y),
         )

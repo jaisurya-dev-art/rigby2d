@@ -342,9 +342,9 @@ function clipMenu(app, actor, clip, x, y) {
     app.changed();
   };
   popupMenu(x, y, [
-    submenuItem(t('Plays'), [[1, t('Once')], [2, t('2 times')], [3, t('3 times')], [0, t('Loops until the next clip')]].map(([v, l]) => ({ label: `${clip.loops === v ? '● ' : ''}${l}`, action: set('loops', v) }))),
-    submenuItem(t('Speed'), [0.25, 0.5, 0.75, 1, 1.5, 2].map((v) => ({ label: `${clip.speed === v ? '● ' : ''}${v}×`, action: set('speed', v) }))),
-    submenuItem(t('Blend in'), [0, 0.1, 0.25, 0.5, 1].map((v) => ({ label: `${clip.blend === v ? '● ' : ''}${v ? `${v} s` : t('Cut (no blend)')}`, action: set('blend', v) }))),
+    submenuItem(t('Plays'), [[1, t('Once')], [2, t('2 times')], [3, t('3 times')], [0, t('Loops until the next clip')]].map(([v, l]) => ({ label: l, checked: clip.loops === v, action: set('loops', v) }))),
+    submenuItem(t('Speed'), [0.25, 0.5, 0.75, 1, 1.5, 2].map((v) => ({ label: `${v}×`, checked: clip.speed === v, action: set('speed', v) }))),
+    submenuItem(t('Blend in'), [0, 0.1, 0.25, 0.5, 1].map((v) => ({ label: v ? `${v} s` : t('Cut (no blend)'), checked: clip.blend === v, action: set('blend', v) }))),
     {
       label: t('Split at the playhead'),
       action: () => {

@@ -36,7 +36,8 @@ export function windowLayoutsSubmenu(ctx) {
           const active = l.id === activeId;
           const unsaved = active && dirty;
           return {
-            label: `${active ? '● ' : ''}${l.name}${unsaved ? ' — unsaved' : ''}`,
+            label: `${l.name}${unsaved ? ' — unsaved' : ''}`,
+            checked: active,
             shortcut: hotkeyLabel(l.hotkey),
             class: active ? (unsaved ? 'active unsaved' : 'active') : null,
             title: (active ? (unsaved ? t('Active layout; its windows moved since it was saved.') + ' ' : t('Active layout.') + ' ') : '') + t('Load: {panels}', { panels: summary(l.panels) }),

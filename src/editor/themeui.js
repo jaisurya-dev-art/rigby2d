@@ -7,7 +7,7 @@ import { STORAGE_KEY } from './prefs.js';
 import { pickImportFiles, pickSaveTarget } from './platform.js';
 import { THEME_EXTENSION, THEME_KEYS, allThemes, applyTheme, findTheme, newThemeId, normalizeTheme, parseTheme, serializeTheme } from './themes.js';
 import { t } from './i18n.js';
-import { button, dialog, hint, segmented } from './ui.js';
+import { button, dialog, hint, segmented, uiIcon } from './ui.js';
 import { closeColorPicker, colorButton } from './colorpicker.js';
 import { h, textField } from './widgets.js';
 
@@ -109,7 +109,7 @@ export function openThemes(app, { onClose = null } = {}) {
           draw();
         },
       },
-      h('span', { class: 'theme-new-plus' }, '+'),
+      h('span', { class: 'theme-new-plus' }, uiIcon('plus')),
       t('New theme'),
     );
     const themes = allThemes(customOf(app));

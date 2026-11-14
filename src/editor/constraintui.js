@@ -18,7 +18,7 @@ import { Pose } from '../core/pose.js';
 import { FPS, Mode } from './app.js';
 import { keepPoseOffsets } from './constraintoffsets.js';
 import { dragValue, h, select, textField } from './widgets.js';
-import { button, iconButton } from './ui.js';
+import { button, iconButton, uiIcon } from './ui.js';
 import { t, tn } from './i18n.js';
 
 export const CONSTRAINT_LABELS = { ik: 'IK', transform: tn('Transform'), path: tn('Path'), physics: tn('Physics'), slider: tn('Slider') };
@@ -264,8 +264,8 @@ function animUi(app, c) {
         row(
           t('Bend'),
           h('span', { class: 'segmented' },
-            h('button', { class: value.bendPositive ? 'active' : '', onclick: () => key({ bendPositive: true }) }, '+'),
-            h('button', { class: value.bendPositive ? '' : 'active', onclick: () => key({ bendPositive: false }) }, '−'),
+            h('button', { class: value.bendPositive ? 'active' : '', title: t('Bend positive'), 'aria-label': t('Bend positive'), onclick: () => key({ bendPositive: true }) }, uiIcon('plus', 'sm')),
+            h('button', { class: value.bendPositive ? '' : 'active', title: t('Bend negative'), 'aria-label': t('Bend negative'), onclick: () => key({ bendPositive: false }) }, uiIcon('minus', 'sm')),
           ),
         ),
         row('', checkbox(value.compress, (v) => key({ compress: v }), t('Compress'))),
@@ -319,8 +319,8 @@ function ikUi(app, ik, boneChoices) {
       row(
         t('Bend'),
         h('span', { class: 'segmented' },
-          h('button', { class: ik.bendPositive ? 'active' : '', onclick: () => set('bendPositive', true) }, '+'),
-          h('button', { class: ik.bendPositive ? '' : 'active', onclick: () => set('bendPositive', false) }, '−'),
+          h('button', { class: ik.bendPositive ? 'active' : '', title: t('Bend positive'), 'aria-label': t('Bend positive'), onclick: () => set('bendPositive', true) }, uiIcon('plus', 'sm')),
+          h('button', { class: ik.bendPositive ? '' : 'active', title: t('Bend negative'), 'aria-label': t('Bend negative'), onclick: () => set('bendPositive', false) }, uiIcon('minus', 'sm')),
         ),
       ),
       row('', checkbox(ik.compress, (v) => set('compress', v), t('Compress'), t('Scale the bones down when the target is closer than their length'))),

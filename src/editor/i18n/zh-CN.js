@@ -1843,4 +1843,6 @@ export default {
   "Theme colours": "主题颜色",
   "Bone color": "骨骼颜色",
   "Slot color": "插槽颜色",
+  "Bend positive": "正向弯曲",
+  "Bend negative": "反向弯曲",
 };
