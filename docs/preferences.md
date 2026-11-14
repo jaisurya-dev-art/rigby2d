@@ -17,6 +17,7 @@ defaults.
 | Setting | What it does |
 | --- | --- |
 | Interface scale | Size of all text and controls, from 75% to 200% in 5% steps (desktop app). In the browser, use the browser's zoom. |
+| Theme | The editor's colours: Rigby Dark (the default), Mammoth, Rigby Light or one of your own. **Themes…** opens the Themes window, where you make, import and export themes. See [Themes](interface.md#themes). |
 | Keyboard shortcuts | Keys like Spine's (the default), keys that follow Blender, or your own (**Customize…**). See [Shortcuts](shortcuts.md#your-own-shortcuts). |
 | Viewport drawing | WebGL, or Canvas 2D for graphics drivers that have trouble with WebGL. |
 | New projects | The workspace (Game or Film) that *File ▸ New* starts in. |

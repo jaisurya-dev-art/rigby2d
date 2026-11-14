@@ -15,9 +15,9 @@ each feature carries over, before you open anything:
 
 | Mark | Means |
 | --- | --- |
-| ✓ | Plays as in the original |
-| ● | Kept and exported, but not shown in the editor (bounding boxes, points) |
-| ◐ | Partly supported: kept as it is, so a later export still has it, but not played |
+| Check | Plays as in the original |
+| Dot in a circle | Kept and exported, but not shown in the editor (bounding boxes, points) |
+| Half-filled circle | Partly supported: kept as it is, so a later export still has it, but not played |
 
 Files older than 3.8 can't be read. Open the project in the tool that made it and export it again
 as JSON 3.8 or newer.

@@ -172,6 +172,13 @@ The Themes dialog lists the **Built-in** themes and **Your themes** (the ones yo
   Share them on Discord: anyone can import them.
 - **Delete theme** removes one of your themes (it shows only for your own; built-in themes stay).
 
+Colours are picked with the editor's own colour picker, which follows the theme: click a colour
+to open it, then drag in the square (saturation and brightness) and along the hue strip, type a
+ hex code, or click one of the theme's colours to reuse it. The editor updates as you drag;
+<kbd>Esc</kbd> closes the picker, and the arrow keys nudge the colour (<kbd>Shift</kbd> for larger
+steps). The same picker sets bone and slot colours, the film background, onion skin and guide
+colours.
+
 A `.rigbytheme` file is JSON you can also write by hand. Colours are `#rrggbb`, `rgb()` or `hsl()`;
 any colour that is missing or does not read falls back to Rigby Dark's (Rigby Light's for a
 `"scheme": "light"` theme), and the import says how many did:

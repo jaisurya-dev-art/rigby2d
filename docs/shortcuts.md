@@ -20,7 +20,7 @@ keymap, starting from the preset you use. Every action can then be changed:
 | Change a key | Click it and press the new key (with <kbd>Ctrl</kbd>, <kbd>Shift</kbd> or <kbd>Alt</kbd> if you like). <kbd>Esc</kbd> cancels. |
 | Add another key | Click **+** and press it. An action can have several. |
 | Remove a key | Hover it and click **×**. |
-| Undo your changes to an action | Click **↺**: it goes back to the preset you started from. |
+| Undo your changes to an action | Click the reset button (the circular arrow): it goes back to the preset you started from. |
 | Start over | **Start again from** a preset. |
 | Keep or share a keymap | **Export…** saves it as a `.json` file; **Import…** loads one. |
 
