@@ -102,7 +102,7 @@ runtimes and the MCP server. The pages are also in [`docs/`](docs/).
   on-device Whisper transcription, and renders to PNG sequences, WebM with alpha and MP4.
 - **Scene composition** (new in 0.3): several characters on one stage as actors with NLE-style clips
   (trim, speed, loops, crossfades, their own audio), painted layers with parallax, and a camera,
-  and they play in games through the Godot, Unity, Cocos Creator, Phaser, PixiJS, JavaScript and Rust runtimes. See [Scenes](https://rigby2d.com/docs/scenes.html).
+  and they play in games through the Godot, Unity, Defold, Cocos Creator, Phaser, PixiJS, JavaScript and Rust runtimes. See [Scenes](https://rigby2d.com/docs/scenes.html).
 - **A focused editor**: Game and Film workspaces, panels you can resize or pop out to a second
   monitor, *Open recent*, and a searchable shortcut reference with Reference and Blender-like keys.
 - **Your work is safe**: saves that never leave a half-written file, `.rigby1` backups like Blender's
