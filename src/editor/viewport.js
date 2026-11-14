@@ -17,6 +17,7 @@ import { WarpTool } from './warptool.js';
 import { GLOW_COLORS } from './draworderdnd.js';
 import { h, popupMenu } from './widgets.js';
 import { t, tn } from './i18n.js';
+import { canvasColor } from './canvascolors.js';
 
 const SELECTED = 'rgb(255,170,40)';
 const BONE = 'rgb(110,200,230)';
@@ -118,7 +119,7 @@ export class Viewport {
       ctx.clearRect(0, 0, this.width, this.height);
       if (!app.hideOverlays) this.drawOutlines(pose);
     } else {
-      ctx.fillStyle = 'rgb(38,38,38)';
+      ctx.fillStyle = canvasColor('--canvas-bg', 'rgb(38,38,38)');
       ctx.fillRect(0, 0, this.width, this.height);
       this.drawGrid();
       this.drawAttachments(pose, dpr);
@@ -247,7 +248,7 @@ export class Viewport {
     const tl = this.toWorld([0, 0]);
     const br = this.toWorld([this.width, this.height]);
     const ctx = this.ctx;
-    ctx.strokeStyle = 'rgb(48,48,48)';
+    ctx.strokeStyle = canvasColor('--canvas-grid', 'rgb(48,48,48)');
     ctx.lineWidth = 1;
     ctx.beginPath();
     for (let x = Math.floor(tl[0] / step) * step; x <= br[0]; x += step) {
@@ -709,7 +710,7 @@ export class Viewport {
     ctx.save();
     ctx.font = '9px ui-monospace, Consolas, monospace';
     ctx.textBaseline = 'top';
-    ctx.fillStyle = 'rgb(28,28,30)';
+    ctx.fillStyle = canvasColor('--ruler-bg', 'rgb(28,28,30)');
     ctx.fillRect(0, 0, w, RULER_W);
     ctx.fillRect(0, 0, RULER_W, hgt);
     // While dragging a guide, flash the ruler(s) it can be dropped on to delete: the matching ruler
@@ -726,8 +727,8 @@ export class Viewport {
         ctx.fillRect(0, 0, RULER_W, hgt);
       }
     }
-    ctx.fillStyle = 'rgb(150,150,155)';
-    ctx.strokeStyle = 'rgb(90,90,95)';
+    ctx.fillStyle = canvasColor('--ruler-text', 'rgb(150,150,155)');
+    ctx.strokeStyle = canvasColor('--ruler-tick', 'rgb(90,90,95)');
     ctx.lineWidth = 1;
     ctx.beginPath();
     const step = this.niceStep();
@@ -756,9 +757,9 @@ export class Viewport {
     }
     ctx.stroke();
     // Corner (the intersection): click opens the guide menu.
-    ctx.fillStyle = 'rgb(44,44,48)';
+    ctx.fillStyle = canvasColor('--ruler-corner', 'rgb(44,44,48)');
     ctx.fillRect(0, 0, RULER_W, RULER_W);
-    ctx.strokeStyle = 'rgb(90,90,95)';
+    ctx.strokeStyle = canvasColor('--ruler-tick', 'rgb(90,90,95)');
     ctx.strokeRect(0.5, 0.5, RULER_W - 1, RULER_W - 1);
     if (dragging || diag) this.drawTrashIcon();
     ctx.restore();

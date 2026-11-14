@@ -19,6 +19,7 @@ import { drawLanes, laneActors, pressLane } from './sceneui.js';
 import { t, tn } from './i18n.js';
 import { FPS_PRESETS, formatFps } from './output.js';
 import { shortcutLabel, withShortcut } from './keymap.js';
+import { canvasColor } from './canvascolors.js';
 export { orderedKeys, keySelectionIndices, applyKeySelection } from './keyorder.js';
 
 const GUTTER = 170;
@@ -576,7 +577,7 @@ function keyFill(selected, curve) {
   // for the paste preview, so the two no longer clash.
   if (curve === STEPPED) return 'rgb(60,170,205)';
   if (isBezier(curve)) return 'rgb(120,220,140)';
-  return 'rgb(230,230,230)';
+  return canvasColor('--tl-key', 'rgb(230,230,230)');
 }
 
 export class Dopesheet {
@@ -635,7 +636,7 @@ export class Dopesheet {
     }
     const ctx = this.ctx;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ctx.fillStyle = 'rgb(30,30,30)';
+    ctx.fillStyle = canvasColor('--tl-bg', 'rgb(30,30,30)');
     ctx.fillRect(0, 0, width, height);
 
     const trackLeft = GUTTER;
@@ -648,7 +649,7 @@ export class Dopesheet {
     this.layout = { trackLeft, trackW, duration, t0, span: viewSpan };
 
     // Ruler with frame ticks. Zoomed, everything right of the labels is clipped to the track area.
-    ctx.fillStyle = 'rgb(45,45,45)';
+    ctx.fillStyle = canvasColor('--tl-ruler', 'rgb(45,45,45)');
     ctx.fillRect(0, 0, width, RULER);
     ctx.save();
     if (view) {
@@ -659,11 +660,11 @@ export class Dopesheet {
     const frames = Math.round(duration * FPS);
     const pxPerFrame = trackW / (viewSpan * FPS);
     const labelEvery = [1, 2, 5, 10, 15, 30, 60].find((n) => n * pxPerFrame >= 34) ?? 120;
-    ctx.strokeStyle = 'rgb(120,120,120)';
+    ctx.strokeStyle = canvasColor('--tl-tick', 'rgb(120,120,120)');
     ctx.lineWidth = 1;
     ctx.font = '10px ui-monospace, Consolas, monospace';
     ctx.textBaseline = 'top';
-    ctx.fillStyle = 'rgb(170,170,170)';
+    ctx.fillStyle = canvasColor('--tl-label', 'rgb(170,170,170)');
     ctx.beginPath();
     for (let f = Math.max(0, Math.floor(t0 * FPS)); f <= Math.min(frames, Math.ceil((t0 + viewSpan) * FPS)); f++) {
       const x = Math.round(timeToX(f / FPS)) + 0.5;
@@ -688,7 +689,7 @@ export class Dopesheet {
       const y = top + r * ROW;
       const highlight = (track.bone !== undefined && track.bone === selectedBone) || (track.slot !== undefined && track.slot === selectedSlot);
       if (r % 2 === 1 || highlight) {
-        ctx.fillStyle = highlight ? 'rgb(55,50,40)' : 'rgb(34,34,34)';
+        ctx.fillStyle = highlight ? canvasColor('--tl-row-hi', 'rgb(55,50,40)') : canvasColor('--tl-row', 'rgb(34,34,34)');
         ctx.fillRect(0, y, width, ROW);
       }
       // Shared bone hover: tint the whole row background (magenta, matching the viewport glow and the
@@ -699,7 +700,7 @@ export class Dopesheet {
       }
       ctx.font = '12px system-ui, "Segoe UI", sans-serif';
       ctx.textBaseline = 'middle';
-      ctx.fillStyle = copiedTrackIds?.has(trackId(track)) ? 'rgb(185,135,255)' : 'rgb(200,200,200)';
+      ctx.fillStyle = copiedTrackIds?.has(trackId(track)) ? 'rgb(185,135,255)' : canvasColor('--tl-text', 'rgb(200,200,200)');
       ctx.fillText(label, 8, y + ROW / 2, GUTTER - 14);
     });
     // Keys and everything over them stay right of the labels when zoomed.
@@ -718,7 +719,7 @@ export class Dopesheet {
         this.keyRects.push({ x0: c[0] - 6, x1: c[0] + 6, y0: c[1] - 7, y1: c[1] + 7, key: k, keys: trackKeys(anim, track), index, time: k.time });
       });
     });
-    ctx.strokeStyle = 'rgb(60,60,60)';
+    ctx.strokeStyle = canvasColor('--tl-line', 'rgb(60,60,60)');
     ctx.beginPath();
     ctx.moveTo(trackLeft + 0.5, 0);
     ctx.lineTo(trackLeft + 0.5, height);

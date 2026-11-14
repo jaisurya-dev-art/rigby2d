@@ -152,6 +152,46 @@ See [Animating](animating.md) and [Graph editor](graph-editor.md).
 The workspace is saved in the `.rigby` file. Switching is always safe: film settings, poses and face
 controls never reach skeleton exports.
 
+## Themes
+
+*View ▸ Theme* switches the editor's colours. Themes change colour only: layout, type, shortcuts and
+your projects stay the same, and detached panels follow the main window.
+
+| Theme | |
+| --- | --- |
+| **Rigby Dark** | The default. |
+| **Mammoth** | Deep ice surfaces, warm ivory text and an amber accent. New in 0.6. |
+| **Rigby Light** | For bright rooms. |
+
+*View ▸ Theme ▸ Themes…* (or *Edit ▸ Preferences ▸ Interface*) opens the Themes dialog:
+
+- **New theme** copies the current theme. Change any of its colours (surfaces, text, accent,
+  state and the viewport's canvas and grid) and the editor updates as you go. Give it a name and
+  say whether it is dark or light.
+- **Export theme…** saves the current theme as a `.rigbytheme` file; **Import theme…** adds one.
+  Share them on Discord: anyone can import them.
+- **Delete theme** removes one of your themes. The built-in themes stay.
+
+A `.rigbytheme` file is JSON you can also write by hand. Colours are `#rrggbb`, `rgb()` or `hsl()`;
+any colour that is missing or does not read falls back to Rigby Dark's (Rigby Light's for a
+`"scheme": "light"` theme), and the import says how many did:
+
+```json
+{
+  "rigby2d-theme": 1,
+  "name": "Night shift",
+  "scheme": "dark",
+  "colors": {
+    "app0": "#0a161c", "app": "#0e1c23", "panel": "#13242c", "control": "#1a2f38",
+    "hover": "#223a44", "popover": "#182c35", "line": "#24404b", "lineStrong": "#36545f",
+    "text": "#f1ece4", "textStrong": "#ffffff", "textMuted": "#9fb3bd", "textFaint": "#7a909a",
+    "accent": "#f08a3a", "accentText": "#f5a263", "onAccent": "#1c0f05", "selected": "#5a3216",
+    "focus": "#9cc3de", "success": "#6fcf97", "warning": "#e9c46a", "danger": "#e76f51",
+    "modeSetup": "#9cc3de", "modeAnimate": "#f08a3a", "viewport": "#0b1a21", "viewportGrid": "#15303a"
+  }
+}
+```
+
 ## Log
 
 *View ▸ Log* (or **Log** at the right of the status bar) lists status messages, script output,

@@ -10,6 +10,7 @@ import { FPS, Mode, snap } from './app.js';
 import { curveMenu, resortAnimation } from './timeline.js';
 import { t } from './i18n.js';
 import { channelLabel } from './keyorder.js';
+import { canvasColor } from './canvascolors.js';
 
 const GUTTER = 170;
 const RULER = 22;
@@ -143,7 +144,7 @@ export class GraphEditor {
     }
     const ctx = this.ctx;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ctx.fillStyle = 'rgb(30,30,30)';
+    ctx.fillStyle = canvasColor('--tl-bg', 'rgb(30,30,30)');
     ctx.fillRect(0, 0, width, height);
 
     // Value range: fitted to the visible curves (including handles) unless zoomed.
@@ -182,13 +183,13 @@ export class GraphEditor {
     ctx.textBaseline = 'bottom';
     for (let v = Math.ceil(range.lo / step) * step; v <= range.hi; v += step) {
       const y = Math.round(valueToY(v)) + 0.5;
-      ctx.strokeStyle = Math.abs(v) < step / 2 ? 'rgb(75,75,75)' : 'rgb(42,42,42)';
+      ctx.strokeStyle = Math.abs(v) < step / 2 ? canvasColor('--graph-axis', 'rgb(75,75,75)') : canvasColor('--graph-grid', 'rgb(42,42,42)');
       ctx.lineWidth = 1;
       ctx.beginPath();
       ctx.moveTo(trackLeft, y);
       ctx.lineTo(width, y);
       ctx.stroke();
-      ctx.fillStyle = 'rgb(120,120,120)';
+      ctx.fillStyle = canvasColor('--tl-tick', 'rgb(120,120,120)');
       ctx.fillText(formatValue(v, step), trackLeft + 4, y - 1);
     }
 
@@ -246,16 +247,16 @@ export class GraphEditor {
     ctx.restore();
 
     // Ruler.
-    ctx.fillStyle = 'rgb(45,45,45)';
+    ctx.fillStyle = canvasColor('--tl-ruler', 'rgb(45,45,45)');
     ctx.fillRect(0, 0, width, RULER);
     const frames = Math.min(Math.round(duration * FPS), Math.ceil(t1 * FPS));
     const pxPerFrame = trackW / ((t1 - t0) * FPS);
     const labelEvery = [1, 2, 5, 10, 15, 30, 60].find((n) => n * pxPerFrame >= 34) ?? 120;
-    ctx.strokeStyle = 'rgb(120,120,120)';
+    ctx.strokeStyle = canvasColor('--tl-tick', 'rgb(120,120,120)');
     ctx.lineWidth = 1;
     ctx.font = '10px ui-monospace, Consolas, monospace';
     ctx.textBaseline = 'top';
-    ctx.fillStyle = 'rgb(170,170,170)';
+    ctx.fillStyle = canvasColor('--tl-label', 'rgb(170,170,170)');
     ctx.beginPath();
     for (let f = Math.max(0, Math.floor(t0 * FPS)); f <= frames; f++) {
       const x = Math.round(timeToX(f / FPS)) + 0.5;
@@ -269,9 +270,9 @@ export class GraphEditor {
     ctx.stroke();
 
     // Curve list.
-    ctx.fillStyle = 'rgb(30,30,30)';
+    ctx.fillStyle = canvasColor('--tl-bg', 'rgb(30,30,30)');
     ctx.fillRect(0, RULER, GUTTER, height - RULER);
-    ctx.fillStyle = 'rgb(150,150,150)';
+    ctx.fillStyle = canvasColor('--tl-label', 'rgb(150,150,150)');
     ctx.font = '11px system-ui, "Segoe UI", sans-serif';
     ctx.textBaseline = 'middle';
     ctx.fillText(curves.length ? (this.range || this.timeRange ? t('Double-click: fit') : t('Curves')) : t('No keyed bone channels'), 8, RULER / 2);
@@ -279,14 +280,14 @@ export class GraphEditor {
     curves.forEach((cv, r) => {
       const y = RULER + r * ROW;
       const shown = !this.hidden.has(cv.id);
-      ctx.fillStyle = shown ? cv.color : 'rgb(70,70,70)';
+      ctx.fillStyle = shown ? cv.color : canvasColor('--tl-dim', 'rgb(70,70,70)');
       ctx.fillRect(8, y + 5, 8, 8);
-      ctx.fillStyle = shown ? 'rgb(210,210,210)' : 'rgb(110,110,110)';
+      ctx.fillStyle = shown ? canvasColor('--tl-text', 'rgb(210,210,210)') : canvasColor('--tl-dim', 'rgb(110,110,110)');
       ctx.font = '12px system-ui, "Segoe UI", sans-serif';
       ctx.fillText(cv.label, 22, y + ROW / 2, GUTTER - 28);
       this.rows.push({ y0: y, y1: y + ROW, id: cv.id });
     });
-    ctx.strokeStyle = 'rgb(60,60,60)';
+    ctx.strokeStyle = canvasColor('--tl-line', 'rgb(60,60,60)');
     ctx.beginPath();
     ctx.moveTo(trackLeft + 0.5, 0);
     ctx.lineTo(trackLeft + 0.5, height);

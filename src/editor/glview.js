@@ -6,8 +6,9 @@ import { PixelGrid } from '../webgl/pixelgrid.js';
 import { WebGLRenderer } from '../webgl/renderer.js';
 import { actorSlots } from '../core/scene.js';
 import { imageKey } from './actors.js';
+import { canvasRgba } from './canvascolors.js';
 
-const BACKGROUND = [38 / 255, 38 / 255, 38 / 255];
+const BACKGROUND = [38 / 255, 38 / 255, 38 / 255, 1];
 const GRID = [48 / 255, 48 / 255, 48 / 255, 1];
 const X_AXIS = [90 / 255, 60 / 255, 60 / 255, 1];
 const Y_AXIS = [60 / 255, 90 / 255, 60 / 255, 1];
@@ -79,7 +80,8 @@ export class GLView {
     const h = Math.round(height * dpr);
     if (this.canvas.width !== w || this.canvas.height !== h) [this.canvas.width, this.canvas.height] = [w, h];
     gl.viewport(0, 0, w, h);
-    gl.clearColor(BACKGROUND[0], BACKGROUND[1], BACKGROUND[2], 1);
+    const bg = canvasRgba('--canvas-bg', BACKGROUND);
+    gl.clearColor(bg[0], bg[1], bg[2], 1);
     gl.clear(gl.COLOR_BUFFER_BIT);
     const { zoom, panX, panY } = app.view;
     const r = this.renderer;
@@ -102,8 +104,9 @@ export class GLView {
     const y0 = (-height / 2 + panY) / zoom;
     const y1 = (height / 2 + panY) / zoom;
     const px = 1 / zoom;
-    for (let x = Math.floor(x0 / step) * step; x <= x1; x += step) r.line(x, y0, x, y1, px, GRID);
-    for (let y = Math.floor(y0 / step) * step; y <= y1; y += step) r.line(x0, y, x1, y, px, GRID);
+    const grid = canvasRgba('--canvas-grid', GRID);
+    for (let x = Math.floor(x0 / step) * step; x <= x1; x += step) r.line(x, y0, x, y1, px, grid);
+    for (let y = Math.floor(y0 / step) * step; y <= y1; y += step) r.line(x0, y, x1, y, px, grid);
     r.line(x0, 0, x1, 0, px, X_AXIS);
     r.line(0, y0, 0, y1, px, Y_AXIS);
 

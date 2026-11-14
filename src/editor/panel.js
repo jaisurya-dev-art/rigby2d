@@ -21,6 +21,7 @@ import { getCurrentWindow } from '@tauri-apps/api/window';
 import { blockNativeContextMenu } from './platform.js';
 import { emit, listen } from '@tauri-apps/api/event';
 import { t } from './i18n.js';
+import { initThemes } from './themeui.js';
 
 blockNativeContextMenu({ dev: import.meta.env.DEV });
 
@@ -80,6 +81,7 @@ const BUILDERS = { timeline: buildTimeline, tree: buildTree, inspector: buildIns
 
 const panelId = new URLSearchParams(location.search).get('panel') || 'timeline';
 const app = new App();
+initThemes(app);
 const $ = (sel) => document.querySelector(sel);
 const body = $('#panel-body');
 const view = (BUILDERS[panelId] ?? buildTimeline)(app);

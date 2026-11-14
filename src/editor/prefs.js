@@ -10,6 +10,10 @@ export const PREFS = {
   'interface.scale': { default: 1, min: 0.75, max: 2 },
   /** '' follows the system language. */
   'interface.language': { default: '', options: ['', 'en', 'ja', 'zh-CN', 'ko', 'es', 'pt-BR'] },
+  /** The theme's id (themes.js): a built-in one or one of 'themes.custom'. */
+  'interface.theme': { default: 'rigby-dark' },
+  /** People's own themes: { id: { name, scheme, colors } }. Not reset with the Interface page. */
+  'themes.custom': { default: {} },
   'general.welcome': { default: true },
   'updates.check': { default: true },
   'editing.undoSteps': { default: 200, min: 20, max: 1000 },

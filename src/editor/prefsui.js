@@ -13,6 +13,8 @@ import { h } from './widgets.js';
 import { renderAddonsPage } from './addonui.js';
 import { LANGUAGES, t } from './i18n.js';
 import { icon } from './icons.js';
+import { allThemes } from './themes.js';
+import { openThemes, savedTheme, useTheme } from './themeui.js';
 
 /** Applies the interface scale (desktop: the window's zoom, like Blender's resolution scale). */
 export async function applyInterfaceScale(app) {
@@ -49,6 +51,22 @@ function shortcutControl(app) {
         },
         t('Customize…'),
       ),
+    );
+  draw();
+  return wrap;
+}
+
+/** The theme, and Themes… to make or import one (the choice updates when it closes). */
+function themeControl(app) {
+  const wrap = h('span', { class: 'pref-shortcuts' });
+  const draw = () =>
+    wrap.replaceChildren(
+      choice(
+        allThemes(app.prefs.get('themes.custom')).map((th) => [th.id, th.custom ? th.name : t(th.name)]),
+        savedTheme(app).id,
+        (v) => useTheme(app, v),
+      ),
+      h('button', { onclick: () => openThemes(app, { onClose: draw }) }, t('Themes…')),
     );
   draw();
   return wrap;
@@ -119,6 +137,7 @@ const PAGES = [
         isDesktop
           ? row('Interface scale', 'Size of all text and controls.', scaleSlider(app))
           : row(t('Interface scale'), "In the browser, use the browser's zoom (Ctrl + and Ctrl −).", h('span')),
+        row(t('Theme'), t('The editor\'s colours: Rigby Dark, Mammoth, Rigby Light or your own.'), themeControl(app)),
         row(t('Keyboard shortcuts'), t('Keys as in Spine, keys that follow Blender, or your own.'), shortcutControl(app)),
         row(
           t('Viewport drawing'),
