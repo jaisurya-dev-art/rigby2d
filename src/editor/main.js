@@ -45,7 +45,7 @@ import { ago, clearRecentProjects, recentProjects, splitPath } from './recent.js
 import { LINKS, VERSION, openAbout, openShortcuts, openSupporters } from './helpui.js';
 import { installRecovery } from './recoveryui.js';
 import { applyInterfaceScale, openPreferences } from './prefsui.js';
-import { initThemes, themeMenuItems } from './themeui.js';
+import { initThemes, openThemes } from './themeui.js';
 import { AddonManager } from './addonui.js';
 import { languageFor, setLanguage, t } from './i18n.js';
 import { openRuntimes } from './runtimeui.js';
@@ -266,7 +266,7 @@ function menus() {
         'separator',
         { label: t('Reset layout'), title: t('Put the panels back in their default places and sizes'), action: () => resetLayout() },
       ]),
-      submenuItem(t('Theme'), () => themeMenuItems(app)),
+      { label: t('Themes…'), title: t('Make your own theme, or import one'), action: () => openThemes(app) },
       // Save and recall where the detached panels sit (desktop only; panels pop out only there).
       ...(inTauri && sync ? [windowLayoutsMenuItem({ app, sync })] : []),
       'separator',

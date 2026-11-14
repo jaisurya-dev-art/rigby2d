@@ -154,7 +154,7 @@ controls never reach skeleton exports.
 
 ## Themes
 
-*View ▸ Theme* switches the editor's colours. Themes change colour only: layout, type, shortcuts and
+*View ▸ Themes…* switches the editor's colours. Themes change colour only: layout, type, shortcuts and
 your projects stay the same, and detached panels follow the main window.
 
 | Theme | |
@@ -163,14 +163,14 @@ your projects stay the same, and detached panels follow the main window.
 | **Mammoth** | Deep ice surfaces, warm ivory text and an amber accent. New in 0.6. |
 | **Rigby Light** | For bright rooms. |
 
-*View ▸ Theme ▸ Themes…* (or *Edit ▸ Preferences ▸ Interface*) opens the Themes dialog:
+The Themes dialog (also a quick pick in *Edit ▸ Preferences ▸ Interface*):
 
 - **New theme** copies the current theme. Change any of its colours (surfaces, text, accent,
   state and the viewport's canvas and grid) and the editor updates as you go. Give it a name and
   say whether it is dark or light.
 - **Export theme…** saves the current theme as a `.rigbytheme` file; **Import theme…** adds one.
   Share them on Discord: anyone can import them.
-- **Delete theme** removes one of your themes. The built-in themes stay.
+- **Delete theme** removes one of your themes (it shows only for your own; built-in themes stay).
 
 A `.rigbytheme` file is JSON you can also write by hand. Colours are `#rrggbb`, `rgb()` or `hsl()`;
 any colour that is missing or does not read falls back to Rigby Dark's (Rigby Light's for a

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
-// View ▸ Theme and the Themes dialog (themes.js): pick a theme, make your own from a copy, change
+// View ▸ Themes… and the Themes dialog (themes.js): pick a theme, make your own from a copy, change
 // its colours (live), import and export .rigbytheme files. Themes are colour only. The choice and
 // people's own themes live in the preferences, so every window (detached panels too) follows.
 
@@ -43,19 +43,6 @@ export function initThemes(app = null) {
 export function useTheme(app, id) {
   app.prefs.set('interface.theme', id);
   app.changed?.();
-}
-
-/** View ▸ Theme: every theme (the current one marked) and the Themes dialog. */
-export function themeMenuItems(app) {
-  const current = savedTheme(app).id;
-  return [
-    ...allThemes(customOf(app)).map((theme) => ({
-      label: `${theme.id === current ? '● ' : '○ '}${theme.custom ? theme.name : t(theme.name)}`,
-      action: () => useTheme(app, theme.id),
-    })),
-    'separator',
-    { label: t('Themes…'), title: t('Make your own theme, or import one'), action: () => openThemes(app) },
-  ];
 }
 
 /** Saves the person's own theme `theme` (by its id). */
@@ -125,7 +112,8 @@ export function openThemes(app, { onClose = null } = {}) {
         t('New theme'),
       ),
     );
-    remove.hidden = !current.custom;
+    // Built-in themes cannot be deleted. (The button's display style would override `hidden`.)
+    remove.style.display = current.custom ? '' : 'none';
     drawEditor(current);
   };
 
