@@ -72,6 +72,7 @@ export function siteFooter({ base = '/', lockup = '/blog/lockup.svg' } = {}) {
           <img src="${lockup}" alt="Rigby2D" width="176" height="66" />
           <p>Free, open-source 2D skeletal animation for games and film.</p>
           <a class="btn small discord" href="${DISCORD}" rel="noopener" data-goatcounter-click="site-community-footer">${brandIcon('discord', 16)}Join our Discord</a>
+          <a class="btn small x" href="${X}" rel="noopener" data-goatcounter-click="site-x-footer">${brandIcon('x', 16)}Follow us on X</a>
         </div>
         ${col('Product', [
           [`${base}#download`, 'Download'],

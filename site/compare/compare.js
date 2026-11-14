@@ -194,7 +194,8 @@ export function comparePage(c) {
           <h2>Questions</h2>
           <div class="vs-faq">${c.faq.map(([q, a]) => `<details><summary>${esc(q)}</summary><p>${esc(a)}</p></details>`).join('')}</div>
 
-          <div class="community-callout"><p><b>Questions about switching?</b> Ask on Discord: people who made the move answer there.</p><a class="btn discord" href="https://discord.gg/PGgaTwbNH" rel="noopener">${brandIcon('discord', 18)}Join our Discord</a></div>
+          <div class="community-callout"><p><b>Questions about switching?</b> Ask on Discord: people who made the move answer there.</p><a class="btn discord" href="https://discord.gg/PGgaTwbNH" rel="noopener">${brandIcon('discord', 18)}Join our Discord</a>
+              <a class="btn x" href="https://x.com/Rigby2d" rel="noopener" data-goatcounter-click="site-x-compare"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z"/></svg>Follow us on X</a></div>
           <p class="fine vs-others">Also: ${others}</p>
         </div>
       </section>`;

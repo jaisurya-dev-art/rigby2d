@@ -1278,6 +1278,25 @@ h3 {
   background: #6d78f5;
   border-color: #6d78f5;
 }
+/* A line break in a row of buttons (the hero puts Discord and X together on their own line). */
+.cta .cta-break {
+  flex-basis: 100%;
+  height: 0;
+}
+
+/* X: where the news goes out */
+.btn.x {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #000;
+  border-color: #3a3a3c;
+  color: #fff;
+}
+.btn.x:hover {
+  background: #16181c;
+  border-color: #5a5a5e;
+}
 .community {
   background: radial-gradient(60% 120% at 12% 50%, rgba(88, 101, 242, 0.16), transparent 70%);
 }
