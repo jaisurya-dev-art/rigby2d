@@ -8,6 +8,7 @@
 
 export const DISCORD = 'https://discord.gg/PGgaTwbNH';
 export const GITHUB = 'https://github.com/jaisurya-dev-art/rigby2d';
+export const X = 'https://x.com/Rigby2d';
 
 const DISCORD_PATH =
   'M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z';
@@ -18,9 +19,11 @@ const HEART = `<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColo
 
 const BUILDING = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>`;
 
-/** An inline brand icon ('discord' or 'github'). */
+const X_PATH = 'M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z';
+
+/** An inline brand icon ('discord', 'github' or 'x'). */
 export const brandIcon = (name, size = 18) =>
-  `<svg viewBox="0 0 24 24" width="${size}" height="${size}" aria-hidden="true"><path fill="currentColor" d="${name === 'discord' ? DISCORD_PATH : GITHUB_PATH}"/></svg>`;
+  `<svg viewBox="0 0 24 24" width="${size}" height="${size}" aria-hidden="true"><path fill="currentColor" d="${{ discord: DISCORD_PATH, x: X_PATH }[name] ?? GITHUB_PATH}"/></svg>`;
 
 const SECTIONS = [
   ['features', '#features', 'Features'],
@@ -43,12 +46,14 @@ export function siteHeader({ base = '/', mark = '/blog/mark.svg', active = '' } 
           <a class="nav-extra" href="${base}#download">Download</a>
           <a class="nav-extra nav-fund-extra" href="${base}fund/"${active === 'fund' ? ' aria-current="page"' : ''}>${HEART} Support Rigby2D</a>
           <a class="nav-extra" href="${DISCORD}" rel="noopener">${brandIcon('discord', 16)} Discord</a>
+          <a class="nav-extra" href="${X}" rel="noopener">${brandIcon('x', 16)} X</a>
           <a class="nav-extra" href="${GITHUB}" rel="noopener">${brandIcon('github', 16)} GitHub</a>
         </nav>
         <div class="nav-actions">
           <a class="nav-studios" href="${base}studios/" title="Rigby2D for studios: free for every seat" data-goatcounter-click="site-studios-nav"${active === 'studios' ? ' aria-current="page"' : ''}>${BUILDING}<span>Studios</span></a>
           <a class="nav-fund" href="${base}fund/" title="Rigby2D is free. Supporters keep it moving." data-goatcounter-click="site-fund-nav"${active === 'fund' ? ' aria-current="page"' : ''}>${HEART}<span>Support</span></a>
           <a class="nav-icon discord" href="${DISCORD}" rel="noopener" title="Discord: the community" aria-label="Rigby2D on Discord" data-goatcounter-click="site-community-nav">${brandIcon('discord')}</a>
+          <a class="nav-icon" href="${X}" rel="noopener" title="Follow @Rigby2d on X" aria-label="Rigby2D on X" data-goatcounter-click="site-x-nav">${brandIcon('x')}</a>
           <a class="nav-icon" href="${GITHUB}" rel="noopener" title="Source code on GitHub" aria-label="Rigby2D on GitHub" data-goatcounter-click="site-github-nav">${brandIcon('github')}</a>
           <a class="btn small nav-download" href="${base}#download" data-goatcounter-click="site-download-nav">Download</a>
           <a class="btn small primary" href="${base}editor/" data-goatcounter-click="site-open-editor-nav">Open editor</a>
@@ -90,6 +95,7 @@ export function siteFooter({ base = '/', lockup = '/blog/lockup.svg' } = {}) {
         ])}
         ${col('Community', [
           [DISCORD, 'Discord', true],
+          [X, 'X (@Rigby2d)', true],
           [GITHUB, 'GitHub', true],
           [`${GITHUB}/issues`, 'Issues', true],
           [`${GITHUB}/blob/develop/CONTRIBUTING.md`, 'Contributing', true],
