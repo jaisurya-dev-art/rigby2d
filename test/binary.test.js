@@ -208,3 +208,37 @@ test('physics constraints and wind keys round-trip through .skel', () => {
   assert.deepEqual(back.constraints.filter((c) => c.type === 'physics'), json.constraints.filter((c) => c.type === 'physics'));
   assert.deepEqual(Object.values(back.animations)[0].physics, anim.physics);
 });
+
+test('transform constraint options (local source / target, additive, clamp) round-trip through .skel', async () => {
+  const { Pose } = await import('../src/core/pose.js');
+  const rig = (options) => ({
+    skeleton: { [V]: '4.3.0' },
+    bones: [
+      { name: 'root' },
+      { name: 'driver', parent: 'root', x: 100, y: 50, rotation: 30 },
+      { name: 'follower', parent: 'root', x: -40, rotation: 10 },
+    ],
+    slots: [],
+    constraints: [{ type: 'transform', name: 't', bones: ['follower'], source: 'driver', x: 5, properties: { rotate: { to: { rotate: { max: 20 } } }, x: { to: { x: {} } } }, ...options }],
+    skins: [{ name: 'default', attachments: {} }],
+    animations: {},
+  });
+  const KEYS = ['localSource', 'localTarget', 'additive', 'clamp'];
+  for (let bits = 0; bits < 16; bits++) {
+    const options = Object.fromEntries(KEYS.filter((_, i) => bits & (1 << i)).map((k) => [k, true]));
+    const json = rig(options);
+    const back = readSkeletonBinary(writeSkeletonBinary(json));
+    const c = back.constraints.find((x) => x.name === 't');
+    for (const k of KEYS) assert.equal(!!c[k], !!options[k], `${k} with options ${JSON.stringify(options)}`);
+    // Both files pose the follower the same way.
+    const a = readSkeletonJson(json).skeleton;
+    const b = readSkeletonJson(back).skeleton;
+    const wa = new Pose(a).world[a.bones.findIndex((x) => x.name === 'follower')];
+    const wb = new Pose(b).world[b.bones.findIndex((x) => x.name === 'follower')];
+    for (const k of ['a', 'b', 'c', 'd', 'tx', 'ty']) assert.ok(Math.abs(wa[k] - wb[k]) < 1e-4, `${k} with options ${JSON.stringify(options)}`);
+  }
+  // The flags byte: (property count << 5) | options; written with the older names too.
+  const bytes = writeSkeletonBinary(rig({ local: true, relative: true }));
+  const back = readSkeletonBinary(bytes).constraints.find((x) => x.name === 't');
+  assert.deepEqual([back.localSource, back.localTarget, back.additive], [true, true, true]);
+});

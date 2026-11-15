@@ -9,7 +9,7 @@ root folders. Editing tools save the file in its own format, or a copy when `out
 
 <!-- generated:mcp-tools -->
 
-The server has **42 tools**. Parameters marked **required** must be given; the others are optional.
+The server has **45 tools**. Parameters marked **required** must be given; the others are optional.
 
 ### `inspect_project`
 
@@ -214,14 +214,55 @@ Fire an event at a time in an animation (games receive it during playback). Crea
 | `float` | number |  |
 | `string` | string |  |
 
-### `batch_edit`
+### `add_constraint`
 
-Apply many edits in one call, loading and saving the project once, atomically: all of them are saved, or none. Each operation is { op, ...arguments } where op is one of add_bone, set_bone_setup, add_animation, set_bone_key, delete_bone_key, set_attachment_key, set_event_key and the arguments are that tool's (without path, output and overwrite). Operations run in order, so later ones can use what earlier ones created (add_animation, then its keys). Much faster than one call per key for building animations. Curves can be presets or a custom bezier [cx1, cy1, cx2, cy2].
+Add a constraint, applied after the existing ones. ik: 'bones' is the chain (1 or 2 bones), 'target' the target bone. transform: 'bones' follow 'target' (the source bone); by default every property is mapped and offsets keep the current pose (nothing jumps). path: 'bones' along the path attachment in slot 'target'. physics: one constraint per bone in 'bones' (names get a number), with rotate 1 unless 'settings' say otherwise. slider: 'settings.animation' is the animation it plays; optional 'target' is the bone that drives it. Saves the project.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
 | `path` **required** | string | Project file: a .rigby work file or a skeleton .json / .skel export. Relative paths resolve against the first workspace root. |
-| `operations` **required** | list of object | The edits, in order: { op, ...that tool's arguments } with op one of add_bone, set_bone_setup, add_animation, set_bone_key, delete_bone_key, set_attachment_key, set_event_key. |
+| `output` | string | Save to this file instead of changing the input (same format as the input, inside the workspace). |
+| `overwrite` | boolean | Replace `output` if it already exists (default false). |
+| `type` **required** | `'ik'`, `'transform'`, `'path'`, `'physics'`, `'slider'` |  |
+| `name` **required** | string | Constraint name (must be new). |
+| `bones` | list of string | Constrained bones (see the description per type). |
+| `target` | string | IK target bone, transform source bone, path slot, or the bone driving a slider. |
+| `keepPose` | boolean | Transform only: set offsets so the bones stay where they are (default true). |
+| `settings` | object | Settings in skeleton JSON 4.3 spelling. IK: mix, softness, bendPositive, compress, stretch, uniform. Transform: properties ({ from: { offset, to: { to: { offset, max, scale } } } }), offsetX, offsetY, offsetRotation, mixRotate, mixX, mixY, mixScaleX, mixScaleY, mixShearY, localSource, localTarget, additive, clamp. Path: positionMode, spacingMode, rotateMode, position, spacing, mixRotate, mixX, mixY. Physics: x, y, rotate, scaleX, shearX, inertia, strength, damping, mass, wind, gravity, mix, limit, fps. Slider: animation, loop, bone, property, scale, offset, local, additive, time, mix. On set_constraint, null removes a setting. |
+
+### `set_constraint`
+
+Change a constraint's settings (skeleton JSON 4.3 spelling; null removes one), rename it, or move it in the application order. IK also takes 'target' in settings. Saves the project.
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `path` **required** | string | Project file: a .rigby work file or a skeleton .json / .skel export. Relative paths resolve against the first workspace root. |
+| `output` | string | Save to this file instead of changing the input (same format as the input, inside the workspace). |
+| `overwrite` | boolean | Replace `output` if it already exists (default false). |
+| `constraint` **required** | string | Constraint name. |
+| `settings` | object | Settings in skeleton JSON 4.3 spelling. IK: mix, softness, bendPositive, compress, stretch, uniform. Transform: properties ({ from: { offset, to: { to: { offset, max, scale } } } }), offsetX, offsetY, offsetRotation, mixRotate, mixX, mixY, mixScaleX, mixScaleY, mixShearY, localSource, localTarget, additive, clamp. Path: positionMode, spacingMode, rotateMode, position, spacing, mixRotate, mixX, mixY. Physics: x, y, rotate, scaleX, shearX, inertia, strength, damping, mass, wind, gravity, mix, limit, fps. Slider: animation, loop, bone, property, scale, offset, local, additive, time, mix. On set_constraint, null removes a setting. |
+| `rename` | string | New name (keys and skins follow). |
+| `order` | integer | New position in the application order (0 = first). |
+
+### `delete_constraint`
+
+Delete a constraint with its animation keys and skin memberships. Saves the project.
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `path` **required** | string | Project file: a .rigby work file or a skeleton .json / .skel export. Relative paths resolve against the first workspace root. |
+| `output` | string | Save to this file instead of changing the input (same format as the input, inside the workspace). |
+| `overwrite` | boolean | Replace `output` if it already exists (default false). |
+| `constraint` **required** | string | Constraint name. |
+
+### `batch_edit`
+
+Apply many edits in one call, loading and saving the project once, atomically: all of them are saved, or none. Each operation is { op, ...arguments } where op is one of add_bone, set_bone_setup, add_animation, set_bone_key, delete_bone_key, set_attachment_key, set_event_key, add_constraint, set_constraint, delete_constraint and the arguments are that tool's (without path, output and overwrite). Operations run in order, so later ones can use what earlier ones created (add_animation, then its keys). Much faster than one call per key for building animations. Curves can be presets or a custom bezier [cx1, cy1, cx2, cy2].
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `path` **required** | string | Project file: a .rigby work file or a skeleton .json / .skel export. Relative paths resolve against the first workspace root. |
+| `operations` **required** | list of object | The edits, in order: { op, ...that tool's arguments } with op one of add_bone, set_bone_setup, add_animation, set_bone_key, delete_bone_key, set_attachment_key, set_event_key, add_constraint, set_constraint, delete_constraint. |
 | `output` | string | Save to this file instead of changing the input (same format as the input, inside the workspace). |
 | `overwrite` | boolean | Replace `output` if it already exists (default false). |
 
@@ -397,7 +438,7 @@ Lip-sync an animation to one of its audio tracks. With `text` (the words spoken)
 
 ### `rename_bone`
 
-Rename a bone. Poses that store the bone follow the new name. Saves the project.
+Rename a bone. Constraints, poses and film effects that refer to it follow the new name. Saves the project.
 
 | Parameter | Type | Description |
 | --- | --- | --- |

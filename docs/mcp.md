@@ -87,6 +87,9 @@ all of its parameters, generated from the server itself.
 | `delete_bone_key` | Deletes a bone key at a time. |
 | `set_attachment_key` | Shows an attachment of a slot from a time on (image swap), or hides it. |
 | `set_event_key` | Fires an event at a time, creating the event definition if needed. Replaces the same event at the same time. |
+| `add_constraint` | Adds an IK, transform, path, physics or slider constraint, applied after the others. A transform constraint keeps its bones where they are (offsets are worked out for you); physics makes one constraint per bone. Settings use skeleton JSON 4.3 spelling. |
+| `set_constraint` | Changes a constraint's settings (`null` removes one), renames it (keys and skins follow) or moves it in the application order. |
+| `delete_constraint` | Deletes a constraint with its animation keys and skin memberships. |
 | `batch_edit` | Applies many of the edits above in one call: `operations` is a list of `{ op, ...that tool's arguments }` (without `path`), run in order. The project is loaded once and saved once, atomically: if any operation fails, nothing is saved and the error names the operation. Use it to build animations: 40 keys take about 15 ms instead of 0.6 s as separate calls. |
 
 Key values are relative to the setup pose, as in the editor and the file formats: rotate,
