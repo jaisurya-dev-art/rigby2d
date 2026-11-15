@@ -18,12 +18,14 @@
         "minWidth": 900,
         "minHeight": 560,
         "label": "main",
+        "create": false,
         "maximized": true,
         "visible": false,
         "backgroundColor": "#1b1b1b"
       },
       {
         "label": "splash",
+        "create": false,
         "title": "Rigby2D",
         "url": "splash.html",
         "width": 720,

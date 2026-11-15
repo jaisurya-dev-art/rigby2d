@@ -13,6 +13,7 @@
     "url": "git+https://github.com/jaisurya-dev-art/rigby2d.git"
   },
   "bin": {
+    "rigby": "bin/rigby.js",
     "rigby2d-mcp": "src/mcp/server.js"
   },
   "keywords": [

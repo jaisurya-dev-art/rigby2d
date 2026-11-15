@@ -45,7 +45,8 @@ export default defineConfig({
     target: 'es2021',
     outDir: 'dist',
     emptyOutDir: true,
-    // The editor, the splash screen window and the detached panel windows (panel.html).
-    rollupOptions: { input: { main: 'index.html', splash: 'splash.html', panel: 'panel.html' } },
+    // The editor, the splash screen window, the detached panel windows (panel.html) and the
+    // windowless render mode (render.html, Rigby2D --render).
+    rollupOptions: { input: { main: 'index.html', splash: 'splash.html', panel: 'panel.html', render: 'render.html' } },
   },
 });

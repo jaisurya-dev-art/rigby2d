@@ -7,7 +7,8 @@ build pose libraries and face controls, add audio and lip-sync, and run Python s
 
 It uses the same runtime as the editor and games (`src/core`) and runs on Node.js 20 or newer. A
 clone of the repository is enough for every tool except `run_script` (Pyodide) and reading PSD
-files (ag-psd): run `npm install` once in the Rigby2D folder to use them.
+files (ag-psd): run `npm install` once in the Rigby2D folder to use them. The same tools run from a
+terminal with the [`rigby` command](cli.md).
 
 ## Setup
 

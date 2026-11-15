@@ -24,6 +24,10 @@ export const NAV = [
     pages: ['scripting', 'addons', 'mcp', 'mcp-tools'],
   },
   {
+    title: 'Command line',
+    pages: ['cli'],
+  },
+  {
     title: 'Shipping',
     pages: ['export', 'runtimes', 'file-formats', 'runtime-spec'],
   },
@@ -63,6 +67,7 @@ export const PAGE_ICONS = {
   addons: 'puzzle',
   mcp: 'bot',
   'mcp-tools': 'wrench',
+  cli: 'terminal',
   export: 'package',
   runtimes: 'gamepad-2',
   'file-formats': 'file-code',

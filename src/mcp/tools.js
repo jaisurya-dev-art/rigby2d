@@ -456,6 +456,32 @@ async function convert(ws, { input, output, version = '4.3', overwrite = false }
   };
 }
 
+// ---- images -----------------------------------------------------------------------------------
+
+/**
+ * The images of a loaded project named in `names` (a Set): from the work file, an images folder,
+ * or unpacked from the atlas. Returns Map(name -> { bytes } (PNG) or { width, height, rgba }).
+ */
+export async function projectImages(p, names) {
+  const images = new Map();
+  const dir = path.dirname(p.file);
+  if (p.format === 'rigby') {
+    for (const n of names) if (p.entries.has(`images/${n}.png`)) images.set(n, { bytes: p.entries.get(`images/${n}.png`) });
+  } else if (p.imageSource?.startsWith('atlas ')) {
+    const atlas = parseAtlas(await fs.readFile(path.join(dir, p.imageSource.slice(6)), 'utf8'));
+    const pages = new Map();
+    for (const page of atlas.pages) pages.set(page.name, decodePng(await fs.readFile(path.join(dir, page.name))));
+    for (const [n, picture] of unpackAtlas(atlas, pages)) if (names.has(n)) images.set(n, picture);
+  } else if (p.imageSource?.startsWith('folder ')) {
+    const imagesDir = path.join(dir, p.imageSource.slice(7));
+    for (const n of names) {
+      const bytes = await fs.readFile(path.join(imagesDir, `${n}.png`)).catch(() => null);
+      if (bytes) images.set(n, { bytes });
+    }
+  }
+  return images;
+}
+
 // ---- Defold game objects ----------------------------------------------------------------------
 
 async function defoldModel(ws, { input, output_folder, name, folder, animation = '', skin = '', overwrite = false }) {
@@ -474,24 +500,8 @@ async function defoldModel(ws, { input, output_folder, name, folder, animation =
   if (!projectFolder.startsWith('/')) throw new ToolError('folder is a path in the Defold project and starts with "/", such as "/assets/hero".');
   if (animation && !p.doc.animations.some((a) => a.name === animation)) throw new ToolError(`No animation '${animation}'. The skeleton has: ${p.doc.animations.map((a) => a.name).join(', ') || 'none'}.`);
   if (skin && skin !== 'default' && !p.doc.skins.some((s) => s.name === skin)) throw new ToolError(`No skin '${skin}'.`);
-  // The images, as PNG bytes: from the work file, an images folder, or unpacked from the atlas.
   const used = new Set(usedImages(p.doc));
-  const images = new Map();
-  const dir = path.dirname(source);
-  if (p.format === 'rigby') {
-    for (const n of used) if (p.entries.has(`images/${n}.png`)) images.set(n, { bytes: p.entries.get(`images/${n}.png`) });
-  } else if (p.imageSource?.startsWith('atlas ')) {
-    const atlas = parseAtlas(await fs.readFile(path.join(dir, p.imageSource.slice(6)), 'utf8'));
-    const pages = new Map();
-    for (const page of atlas.pages) pages.set(page.name, decodePng(await fs.readFile(path.join(dir, page.name))));
-    for (const [n, picture] of unpackAtlas(atlas, pages)) if (used.has(n)) images.set(n, picture);
-  } else if (p.imageSource?.startsWith('folder ')) {
-    const imagesDir = path.join(dir, p.imageSource.slice(7));
-    for (const n of used) {
-      const bytes = await fs.readFile(path.join(imagesDir, `${n}.png`)).catch(() => null);
-      if (bytes) images.set(n, { bytes });
-    }
-  }
+  const images = await projectImages(p, used);
   const missing = [...used].filter((n) => !images.has(n));
   const files = defoldModelFiles({ doc: p.doc, images, name: base, folder: projectFolder, animation, skin });
   const targets = [];
