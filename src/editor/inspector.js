@@ -18,6 +18,7 @@ import { FPS_PRESETS, SIZE_PRESETS, formatFps, hexToRgba, rgbaToHex } from './ou
 import { posesUi } from './poseui.js';
 import { turnUi } from './turnui.js';
 import { warpUi } from './warpui.js';
+import { effectsUi, filmProjectUi, particlesUi } from './filmfxui.js';
 import { has } from './workspaces.js';
 import { sounds } from './audio.js';
 import { renameOnionBone } from './onion.js';
@@ -178,6 +179,8 @@ function boneUi(app, b) {
     ),
     turnUi(app, b),
     warpUi(app, b),
+    effectsUi(app, { bone: bone.name }),
+    particlesUi(app, b),
   ];
 }
 
@@ -421,6 +424,7 @@ function slotUi(app, s) {
     );
   }
   if (setupMode) out.push(h('div', { class: 'buttons' }, button(t('Delete slot'), { kind: 'danger', icon: 'trash-2', onclick: () => edit.deleteSelection(app) })));
+  out.push(effectsUi(app, { slot: slot.name }));
   return out;
 }
 
@@ -459,6 +463,7 @@ function projectUi(app) {
     has(app, 'output') ? h('hr') : null,
     has(app, 'output') ? outputUi(app) : null,
     has(app, 'audio') ? audioUi(app) : null,
+    filmProjectUi(app),
     h('hr'),
     section(t('Rig'), [
       h('div', { class: 'small' }, t('{bones} bones · {slots} slots · {skins} skins', { bones: app.doc.bones.length, slots: app.doc.slots.length, skins: app.doc.skins.length + 1 })),

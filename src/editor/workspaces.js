@@ -6,7 +6,8 @@
 // - Game: rigging and animation for game engines and apps, exported as skeleton JSON / .skel +
 //   atlas and played by the runtimes. The editor as it has always been.
 // - Film: animation for film, video and motion graphics, rendered to image sequences and video:
-//   output settings, rendering, face controls, timecode.
+//   output settings, rendering, face controls, timecode, film effects (layer effects, particles,
+//   motion blur, depth of field).
 import { tn } from './i18n.js';
 
 export const WORKSPACES = {
@@ -22,7 +23,7 @@ export const WORKSPACES = {
     label: tn('Film'),
     description: tn('Animate for film, video and motion graphics; render image sequences and video.'),
     fps: 24,
-    features: new Set(['poses', 'output', 'render', 'faceControls', 'timecode', 'outputFrame', 'audio', 'scene']),
+    features: new Set(['poses', 'output', 'render', 'faceControls', 'timecode', 'outputFrame', 'audio', 'scene', 'filmFx']),
   },
 };
 

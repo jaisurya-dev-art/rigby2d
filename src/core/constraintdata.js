@@ -5,6 +5,8 @@
 // files). These helpers list, create, order, rename and delete both kinds, and keep name
 // references in step when bones, slots or constraints are renamed or removed.
 
+import { renameFilmBone, renameFilmSlot } from './filmfx.js';
+
 export const CONSTRAINT_TYPES = ['ik', 'transform', 'path', 'physics', 'slider'];
 const LEGACY_TYPES = ['transform', 'path', 'physics'];
 
@@ -132,6 +134,7 @@ function rawConstraints(sk) {
 
 /** Updates constraint references after a bone is renamed. */
 export function renameBoneRefs(sk, from, to) {
+  renameFilmBone(sk, from, to);
   for (const c of rawConstraints(sk)) {
     const d = c.data;
     if (Array.isArray(d.bones)) d.bones = d.bones.map((n) => (n === from ? to : n));
@@ -142,6 +145,7 @@ export function renameBoneRefs(sk, from, to) {
 
 /** Updates constraint references (and per-slot attachment keys) after a slot is renamed. */
 export function renameSlotRefs(sk, from, to) {
+  renameFilmSlot(sk, from, to);
   // Attachment keys kept per slot name (image sequence keys).
   for (const a of sk.animations) {
     for (const slots of Object.values(a.extra?.attachments ?? {})) {

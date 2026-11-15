@@ -249,6 +249,19 @@ function menus() {
         },
         { shortcut: sc('view.overlays'), title: t('Hides bones, shapes, selection outlines and guides at once, to watch the animation as it renders') },
       ),
+      ...(has(app, 'filmFx')
+        ? [
+            checkItem(
+            t('Preview film effects'),
+            app.filmPreview !== false,
+            (on) => {
+              app.filmPreview = on;
+              app.changed();
+            },
+            { title: t('Shows layer effects, particles and depth of field in the viewport. Turn off if playback slows down; renders always include them.') },
+            ),
+          ]
+        : []),
       { label: logOpen() ? t('Hide log') : t('Log'), action: () => toggleLogWindow() },
       submenuItem(t('Panel layout'), () => [
         { label: t('Rig on the left'), title: t('Skins, constraints, meshes and events in a Rig panel left of the viewport'), action: () => applyPreset(rigLeftDock(), t('Rig on the left')) },

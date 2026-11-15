@@ -7,6 +7,9 @@
 import { Pose } from '../../core/pose.js';
 import { AnimationState } from '../../core/state.js';
 import { PixelGrid } from '../../webgl/pixelgrid.js';
+import { FilmDrawer } from '../../webgl/filmdraw.js';
+import { PostFX } from '../../webgl/post.js';
+import { ParticleField, hasFilmFx } from '../../core/filmfx.js';
 import { WebGLRenderer } from '../../webgl/renderer.js';
 import { readFrame } from '../glframes.js';
 import { animationBounds, outputFrame } from '../output.js';
@@ -61,6 +64,10 @@ export class FrameRenderer {
     // Scenes: actors keep their own poses (and physics) from frame to frame.
     this.actorPoses = new Map();
     this.setupCamera = doc.scene ? setupCameraPosition(doc) : null;
+    // Film effects (layer effects, particles, motion blur, depth of field): only for projects that
+    // use them; every other project renders through the direct path below, exactly as before.
+    this.film = hasFilmFx(doc) ? new FilmDrawer(this.renderer) : null;
+    this.particles = this.film ? new ParticleField() : null;
   }
 
   /** Poses the stage's parallax layers and every actor for the current frame, `dt` after the last. */
@@ -105,6 +112,7 @@ export class FrameRenderer {
 
   /** Renders frame `n` (frames must be requested in increasing order). */
   render(n) {
+    if (this.film) return this.renderFilm(n);
     const { doc, gl, job } = this;
     const dt = 1 / job.settings.fps;
     // Step through skipped frames so physics behaves as in continuous playback.
@@ -136,8 +144,87 @@ export class FrameRenderer {
     return this.canvas;
   }
 
+  /**
+   * Frame `n` with film effects. With motion blur, the shutter's sub-frames are simulated (physics
+   * included) and averaged; the time before the shutter opens is stepped without drawing.
+   */
+  renderFilm(n) {
+    const { doc, gl, job } = this;
+    const fps = job.settings.fps;
+    const dt = 1 / fps;
+    const mb = doc.film.motionBlur;
+    const last = mb && n > 0 ? n - 1 : n;
+    while (this.frame < last) {
+      if (this.frame >= 0) this.state.update(doc, dt);
+      this.frame++;
+      if (doc.scene && this.frame < n) {
+        this.state.apply(doc, this.pose);
+        this.poseScene(this.frame > 0 ? dt : 0);
+      }
+    }
+    gl.viewport(0, 0, this.width, this.height);
+    const bg = job.settings.background;
+    const clear = () => {
+      if (bg) gl.clearColor(bg[0] * bg[3], bg[1] * bg[3], bg[2] * bg[3], bg[3]);
+      else gl.clearColor(0, 0, 0, 0);
+      gl.clear(gl.COLOR_BUFFER_BIT);
+    };
+    if (!(mb && n > 0)) {
+      this.state.apply(doc, this.pose);
+      this.poseScene(this.frame > 0 ? dt : 0);
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+      clear();
+      this.drawFilm(n / fps, null);
+    } else {
+      // Shutter: open for `shutter`/360 of the frame, ending at frame n.
+      const open = (mb.shutter / 360) * dt;
+      this.state.update(doc, dt - open);
+      const post = (this.film.post ??= new PostFX(this.renderer));
+      const acc = post.acquire(this.width, this.height, { precise: true });
+      for (let k = 1; k <= mb.samples; k++) {
+        this.state.update(doc, open / mb.samples);
+        this.frame = n;
+        this.state.apply(doc, this.pose);
+        this.poseScene(open / mb.samples);
+        const sub = post.acquire(this.width, this.height);
+        this.drawFilm(n / fps - open + (open * k) / mb.samples, sub.fb);
+        post.bind(acc);
+        post.copy(sub, { opacity: 1 / mb.samples, blend: 'add' });
+        post.release(sub);
+      }
+      post.bind(null, this.width, this.height);
+      clear();
+      post.copy(acc);
+      post.release(acc);
+    }
+    gl.finish();
+    return this.canvas;
+  }
+
+  /** Draws the posed frame at time `t` (seconds) with film effects into `target` (null = canvas). */
+  drawFilm(t, target) {
+    const { doc } = this;
+    const world = (name) => {
+      const i = doc.bones.findIndex((b) => b.name === name);
+      return i < 0 ? null : this.pose.world[i];
+    };
+    const particles = this.particles.update(doc, t, world);
+    this.film.draw({
+      doc,
+      pose: this.pose,
+      lookup: (name) => this.lookup(name),
+      width: this.width,
+      height: this.height,
+      camera: cameraFor(this.job.settings, doc, this.pose, this.camera),
+      target,
+      between: this.actorDrawer(),
+      particles,
+    });
+  }
+
   dispose() {
     this.pixelGrid.dispose();
+    this.film?.dispose();
     for (const e of this.textures.values()) this.renderer.deleteTexture(e.tex);
     this.textures.clear();
     this.doc.skin = this.previousSkin;

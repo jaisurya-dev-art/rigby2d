@@ -20,7 +20,7 @@ and meshes, animate it for games or film, and play it anywhere with the included
 <a href="bones-and-slots.html" data-icon="bone"><strong>Rig by hand</strong>Bones, weighted meshes, constraints, skins and events.</a>
 <a href="animating.html" data-icon="play"><strong>Animate</strong>Dopesheet, graph editor, onion skin, poses and face controls.</a>
 <a href="retargeting.html" data-icon="repeat-2"><strong>Reuse animation</strong>Retarget animations from one character to another.</a>
-<a href="film.html" data-icon="clapperboard"><strong>Make films</strong>Camera, audio, lip-sync, and renders to PNG, WebM and MP4.</a>
+<a href="film.html" data-icon="clapperboard"><strong>Make films</strong>Camera, audio, lip-sync, film effects, and renders to PNG, WebM and MP4.</a>
 <a href="scenes.html" data-icon="drama"><strong>Compose scenes</strong>Several characters, clips, parallax layers and a camera.</a>
 <a href="scripting.html" data-icon="code"><strong>Automate</strong>Python scripts, add-ons, and AI assistants over MCP.</a>
 <a href="cli.html" data-icon="terminal"><strong>Command line</strong>Convert, export, rig, script and render on the GPU with <code>rigby</code>, no window needed.</a>

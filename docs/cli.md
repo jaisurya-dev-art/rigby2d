@@ -150,6 +150,9 @@ rigby render hero.rigby -a walk --out walk.mp4 --width 1280 --height 720 --fps 2
 | `.png` sequence | the editor's encoder | yes |
 | `.gif` | the editor's encoder | one-bit |
 
+Renders include the project's [film effects](film-effects.md) (layer effects, particles, motion blur,
+depth of field) with either engine.
+
 Frames are always drawn by the GPU, by one of two engines:
 
 - **app**: the Rigby2D desktop app, 0.6 or newer, renders in a hidden window and exits. It is the

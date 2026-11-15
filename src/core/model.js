@@ -8,6 +8,7 @@
 import { pruneConstraints } from './constraintdata.js';
 import { Animation, BONE_CHANNELS, SLOT_CHANNELS, emptyBoneTimeline, emptySlotTimeline, makeKey } from './animation.js';
 import { LINEAR, cloneCurve } from './curve.js';
+import { readFilm } from './filmfx.js';
 import { identityTransform, toAffine } from './math.js';
 import { readControllers, readPoses } from './poses.js';
 import { readScene } from './scene.js';
@@ -153,6 +154,8 @@ export class Skeleton {
      * the project in the work file (actors/<id>/), not here.
      */
     this.scene = null;
+    /** Film effects (filmfx.js): layer effects, particle emitters, motion blur, depth of field; null when unused. Work files only. */
+    this.film = null;
   }
 
   static fromJson(json) {
@@ -716,6 +719,7 @@ function readSkeleton(o) {
   sk.controllers = readControllers(o.controllers);
   sk.workspace = oneOf(o.workspace, ['game', 'film'], null);
   sk.scene = readScene(o.scene);
+  sk.film = readFilm(o.film);
   sk.audio = arr(o.audio, 'audio')
     .filter((t) => t && typeof t.sound === 'string' && typeof t.animation === 'string')
     .map((t) => ({ sound: t.sound, animation: t.animation, offset: Number.isFinite(t.offset) ? t.offset : 0, volume: Number.isFinite(t.volume) ? Math.max(0, t.volume) : 1 }));
@@ -845,5 +849,6 @@ function writeSkeleton(sk) {
   if (sk.workspace) out.workspace = sk.workspace;
   if (sk.audio.length) out.audio = raw(sk.audio);
   if (sk.scene) out.scene = raw(sk.scene);
+  if (sk.film) out.film = raw(sk.film);
   return out;
 }

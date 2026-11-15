@@ -21,6 +21,7 @@ A workspace decides which tools the editor shows; it never changes the animation
 | Output panel, output frame, render | Hidden | Shown |
 | Pose library | Yes | Yes |
 | Face controls, audio tracks, lip-sync | Hidden | Shown |
+| Film effects (layer effects, particles, motion blur, depth of field) | Hidden | Shown |
 
 The workspace is saved with the project (`.rigby`), so a film project opens in the Film workspace.
 New projects use the workspace you used last. Skeleton exports opened with *File ▸ Open* start in
@@ -92,6 +93,11 @@ shapes sound by sound (with automatic transcription, a typed line or a timing fi
 
 WebM and MP4 renders include the animation's audio, mixed. Every render also writes it as
 `<name>.wav` next to the frames or video, ready for your video editor.
+
+## Film effects
+
+Layer effects (drop shadow, light shading, glow, blur, colour grade), particles, motion blur and depth
+of field: see [Film effects](film-effects.md).
 
 ## Scenes
 

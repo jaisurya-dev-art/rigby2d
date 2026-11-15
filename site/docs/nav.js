@@ -17,7 +17,7 @@ export const NAV = [
   },
   {
     title: 'Film and audio',
-    pages: ['film', 'scenes', 'lip-sync'],
+    pages: ['film', 'film-effects', 'scenes', 'lip-sync'],
   },
   {
     title: 'Automation',
@@ -61,6 +61,7 @@ export const PAGE_ICONS = {
   'poses-and-faces': 'smile',
   retargeting: 'repeat-2',
   film: 'clapperboard',
+  'film-effects': 'sparkles',
   scenes: 'drama',
   'lip-sync': 'audio-lines',
   scripting: 'code',
