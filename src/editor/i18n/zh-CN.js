@@ -1914,4 +1914,6 @@ export default {
   "Tween lines": "补间线",
   "Draws a thin line in the dopesheet between keys that blend into each other; stepped keys and image switches get none": "在摄影表中，于相互过渡的关键帧之间画一条细线；阶梯关键帧和图像切换不画线",
   "Paint how strongly each bone moves this mesh (brush settings in the inspector)": "绘制每根骨骼对此网格的影响强度（笔刷设置在检查器中）",
+  "Bone only": "仅骨骼",
+  "Moves, turns or scales just the bone: its child bones and images stay where they are drawn. Off: they move with it.": "只移动、旋转或缩放骨骼本身：其子骨骼和图像保持在原位。关闭时它们会随之移动。",
 };

@@ -11,7 +11,7 @@ gets most of the room; *View ▸ Layouts* saves an arrangement you like.
 | --- | --- | --- |
 | 1 | **Menu bar** | *File* (with *New*, *Open recent*, *Import* and *Export* submenus), *Edit*, *View*, *Scripts* and *Help* (see [The Help menu](#the-help-menu)), the **SETUP** and **ANIMATE** mode tabs, and buttons for *Undo*, *Redo*, *Fit the skeleton in view* and *Show or hide bones* (hover one to see its shortcut). When an update is ready, an **Update available** button appears here too. |
 | 2 | **Workspace switch** | **Game** or **Film**: which tools are shown. See [Workspaces](#workspaces). |
-| 3 | **Viewport toolbar** | Transform tools, the active tool's values with a key button, axes, **Weights** (when a mesh is selected), onion skin, guides and auto key. |
+| 3 | **Viewport toolbar** | Transform tools, the active tool's values with a key button, axes, **Bone only** (Setup mode), **Weights** (when a mesh is selected), onion skin, guides and auto key. |
 | 4 | **Viewport** | The character. Select, pose and edit here. |
 | 5 | **Tree** | The skeleton (bones, slots, attachments) and the draw order, skins, constraints, events, animations and images. |
 | 6 | **Inspector** | Properties of the selection (a bone, slot, constraint, skin or event) and, on its **Project** tab, the project settings. Poses and face controls sit at the bottom. |

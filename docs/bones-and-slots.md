@@ -21,6 +21,15 @@ Bones are created in **Setup mode**:
 Every project has a `root` bone at the origin. <kbd>Delete</kbd> removes the selected bone together
 with its children.
 
+### Moving a joint after the rig is built
+
+To fix a joint that is in the wrong place, select the bone in Setup mode and move, turn or scale it
+with the Translate, Rotate or Scale tool (or type new values in the inspector). With **Bone only** on
+(the pin button on the viewport toolbar, on by default), only the bone changes: its child bones and its
+images, including the parts of weighted meshes bound to it, stay where they are drawn. Turn **Bone
+only** off to carry everything along instead, for example to place a whole arm. Child bones selected
+together with it always move along. The Pose tool always turns whole chains.
+
 ### Point bones
 
 A point bone has a length of 0: a pivot or anchor, such as a shoulder joint, a hip origin, a prop

@@ -213,6 +213,8 @@ export class App {
      * Animate mode, so Setup gives the viewport that room.
      */
     this.timelineInSetup = loadSetting('rigby.view.timelineInSetup', '0') === '1';
+    /** Setup mode: moving, turning or scaling a bone leaves its child bones and images in place. */
+    this._boneOnly = loadSetting('rigby.setup.boneOnly', '1') === '1';
     /** Tween lines in the dopesheet: a thin line between keys that blend into each other (View menu). */
     this.tweenLines = loadSetting('rigby.view.tweenLines', '1') === '1';
     /**
@@ -288,6 +290,16 @@ export class App {
      *  the copy and its preview. timeline.js owns it; the stamp bumps on every change. */
     this.timelineClip = null;
     this.timelineClipStamp = 0;
+  }
+
+  /** "Bone only" (Setup mode toolbar): remembered between sessions. */
+  get boneOnly() {
+    return this._boneOnly;
+  }
+
+  set boneOnly(on) {
+    this._boneOnly = !!on;
+    saveSetting('rigby.setup.boneOnly', on ? '1' : '0');
   }
 
   /** Auto key (Animate mode): remembered between sessions. */

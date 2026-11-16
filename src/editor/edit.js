@@ -11,6 +11,7 @@ import { FPS, Mode, selBone, selSlot, snap } from './app.js';
 import { CHANNEL_FIELDS, TRANSFORM_CHANNELS as CHANNELS } from './channels.js';
 import { constraintsKeeping, keepPoseOffsets } from './constraintoffsets.js';
 import { t } from './i18n.js';
+import { setBoneSetupOnly } from './setupmove.js';
 
 /** Makes sure an animation exists and is selected, creating one if needed. Returns its index. */
 export function ensureAnimation(app) {
@@ -79,7 +80,10 @@ export function setBoneLocal(app, bone, t) {
     // Painting weights: the bone moves for a look only; the setup pose stays as it is.
     app.testPose.set(bone, { ...t });
   } else if (app.mode === Mode.Setup) {
-    app.doc.bones[bone].setup = t;
+    // "Bone only" (toolbar): the bone's children and images stay where they are drawn. The Pose tool
+    // turns whole chains, so it always carries them along.
+    if (app.boneOnly && app.tool !== 'pose') setBoneSetupOnly(app.doc, bone, t, new Set(app.selectedBones()));
+    else app.doc.bones[bone].setup = t;
     // A bone driven by a transform constraint stays where it is moved: the move sets the offsets.
     const name = app.doc.bones[bone].name;
     for (const d of constraintsKeeping(app.doc, name)) keepPoseOffsets(app.doc, d, name);

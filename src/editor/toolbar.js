@@ -180,6 +180,14 @@ export function render(app, el) {
         )
       : null;
   if (weights) weights.dataset.tut = 'weights';
+  // Bone only: in Setup mode a bone moves without its child bones and images (to fix a joint).
+  const boneOnly =
+    app.mode === Mode.Setup && app.tool !== 'pose' && app.tool !== 'create'
+      ? toggleButton(t('Bone only'), app.boneOnly, set((on) => (app.boneOnly = on)), {
+          icon: 'pin',
+          title: t('Moves, turns or scales just the bone: its child bones and images stay where they are drawn. Off: they move with it.'),
+        })
+      : null;
 
   el.replaceChildren(
     ...[
@@ -188,6 +196,7 @@ export function render(app, el) {
       h('div', { class: 'toolgroup fields' }, fields),
       h('span', { class: 'vsep' }),
       axes,
+      boneOnly,
       h('span', { class: 'toolbar-spacer' }),
       weights,
       onion,
