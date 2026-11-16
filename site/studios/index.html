@@ -140,8 +140,19 @@
             <p>Yes. The editor and the runtimes are open source under MIT or Apache-2.0, with no revenue limit, no per-seat fee and no royalties. Studios of any size can use them in any number of games.</p>
           </details>
           <details>
-            <summary>Who maintains it, and what if development stops?</summary>
-            <p>Rigby2D ships often, with every release built in public CI, and it is funded by its supporters. Because everything is open source, your studio keeps the full source of the editor and runtimes whatever happens: nothing can be taken away or relicensed under you.</p>
+            <summary>Who maintains Rigby2D?</summary>
+            <p>Rigby2D is built and maintained by its creator, Jaisurya (<a href="https://github.com/jaisurya-dev-art" rel="noopener">@jaisurya-dev-art</a> on GitHub), with contributions from the community: pull requests, bug reports and runtimes such as a community Unreal Engine 5 runtime.</p>
+            <p>All of it happens in public on <a href="https://github.com/jaisurya-dev-art/rigby2d" rel="noopener">GitHub</a>: every change, issue and release is visible, and each release is built and checksummed by public CI, not on someone's machine. It is paid for by <a href="#sponsor">sponsors</a>, not licences, so features are never held back to sell an upgrade.</p>
+          </details>
+          <details>
+            <summary>What if development stops?</summary>
+            <p>Your games keep shipping. Nothing in Rigby2D depends on us still being around:</p>
+            <ul>
+              <li><b>The runtimes live in your project.</b> They are plain source with no dependencies, no licence check and no network calls, so a shipped game keeps working without any update from us.</li>
+              <li><b>Your files stay open.</b> A .rigby work file is a ZIP of JSON and your own images, and exports use the widely used skeleton JSON and .skel formats, documented in <a href="../docs/file-formats.html">File formats</a>.</li>
+              <li><b>The editor keeps working.</b> It runs offline, every release stays downloadable from GitHub with checksums, and it builds from source.</li>
+              <li><b>Anyone can carry it on.</b> The code is MIT or Apache-2.0, so your studio or the community can fork it, fix it and keep going. The <a href="../docs/runtime-spec.html">runtime specification</a> and the frame-by-frame tests against the reference runtime make any fork checkable.</li>
+            </ul>
           </details>
           <details>
             <summary>Will our existing characters work?</summary>

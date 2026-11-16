@@ -2732,6 +2732,17 @@ a.patron:hover {
   padding: 0 20px 18px;
   color: var(--muted);
 }
+.faq details ul {
+  margin: 0;
+  padding: 0 20px 18px 40px;
+  color: var(--muted);
+}
+.faq details li + li {
+  margin-top: 8px;
+}
+.faq details li b {
+  color: var(--text);
+}
 
 @media (max-width: 1000px) {
   .fund-hero-grid {
