@@ -14,7 +14,7 @@ import { dragValue, h, popupMenu, select, textField } from './widgets.js';
 import { button, dialog, iconButton, segmented, toggleButton, uiIcon } from './ui.js';
 // The dopesheet's row order and key-selection-by-index live in keyorder.js (core-only, so the
 // selection round trip can be tested in Node). Re-exported here so the windows import them as before.
-import { tracks, trackKeys } from './keyorder.js';
+import { tracks, trackKeys, tweenSpans } from './keyorder.js';
 import { drawLanes, laneActors, pressLane } from './sceneui.js';
 import { t, tn } from './i18n.js';
 import { FPS_PRESETS, formatFps } from './output.js';
@@ -580,6 +580,9 @@ function keyFill(selected, curve) {
   return canvasColor('--tl-key', 'rgb(230,230,230)');
 }
 
+/** The track label colour (the tween lines use it too, fainter). */
+const tlText = () => canvasColor('--tl-text', 'rgb(200,200,200)');
+
 export class Dopesheet {
   constructor(app, scroller, canvas) {
     this.app = app;
@@ -700,7 +703,7 @@ export class Dopesheet {
       }
       ctx.font = '12px system-ui, "Segoe UI", sans-serif';
       ctx.textBaseline = 'middle';
-      ctx.fillStyle = copiedTrackIds?.has(trackId(track)) ? 'rgb(185,135,255)' : canvasColor('--tl-text', 'rgb(200,200,200)');
+      ctx.fillStyle = copiedTrackIds?.has(trackId(track)) ? 'rgb(185,135,255)' : tlText();
       ctx.fillText(label, 8, y + ROW / 2, GUTTER - 14);
     });
     // Keys and everything over them stay right of the labels when zoomed.
@@ -709,6 +712,27 @@ export class Dopesheet {
       ctx.beginPath();
       ctx.rect(trackLeft - 7, RULER, width - trackLeft + 7, height);
       ctx.clip();
+    }
+    // Tween lines: a thin line from each key to the next where the values blend (under the diamonds).
+    if (app.tweenLines) {
+      ctx.save();
+      ctx.strokeStyle = tlText();
+      ctx.globalAlpha = 0.45;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      rows.forEach(({ track }, r) => {
+        const keys = trackKeys(anim, track);
+        const y = Math.round(top + r * ROW + ROW / 2) + 0.5;
+        for (const [a, b] of tweenSpans(track, keys)) {
+          const x0 = timeToX(keys[a].time ?? 0) + 6;
+          const x1 = timeToX(keys[b].time ?? 0) - 6;
+          if (x1 - x0 < 2) continue;
+          ctx.moveTo(x0, y);
+          ctx.lineTo(x1, y);
+        }
+      });
+      ctx.stroke();
+      ctx.restore();
     }
     rows.forEach(({ track }, r) => {
       const y = top + r * ROW;

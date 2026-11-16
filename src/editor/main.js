@@ -241,6 +241,16 @@ function menus() {
         ` ${t('Timeline in Setup mode')}`,
       ),
       checkItem(
+        t('Tween lines'),
+        app.tweenLines,
+        (on) => {
+          app.tweenLines = on;
+          saveSetting('rigby.view.tweenLines', on ? '1' : '0');
+          app.changed();
+        },
+        { title: t('Draws a thin line in the dopesheet between keys that blend into each other; stepped keys and image switches get none') },
+      ),
+      checkItem(
         t('Hide overlays'),
         app.hideOverlays,
         (on) => {
@@ -270,8 +280,8 @@ function menus() {
         { label: t('Reset layout'), title: t('Put the panels back in their default places and sizes'), action: () => resetLayout() },
       ]),
       { label: t('Themes…'), title: t('Make your own theme, or import one'), action: () => openThemes(app) },
-      // Save and recall where the detached panels sit (desktop only; panels pop out only there).
-      ...(inTauri && sync ? [windowLayoutsMenuItem({ app, sync })] : []),
+      // Save and recall where the panels sit and their sizes (on the desktop, the popped-out windows too).
+      ...(sync ? [windowLayoutsMenuItem({ app, sync })] : []),
       'separator',
       { label: t('Fit the skeleton in view'), shortcut: sc('view.fit'), action: () => (app.frameRequest = true) },
       { label: t('Zoom to 100%'), shortcut: sc('view.actual'), action: () => zoomActual() },
@@ -516,7 +526,21 @@ function splitter(el, cssVar, axis, sign, min, max) {
   };
   el.addEventListener('dblclick', reset);
   el.title = t('Drag to resize · double-click to reset');
-  return reset;
+  // For saved layouts: the size now (px, or null while it is the default) and setting one.
+  const get = () => {
+    const v = root.style.getPropertyValue(cssVar).trim();
+    return v.endsWith('px') ? parseFloat(v) : null;
+  };
+  const set = (px) => {
+    if (!Number.isFinite(px)) return reset();
+    apply(px);
+    try {
+      localStorage.setItem(key, String(parseFloat(getComputedStyle(root).getPropertyValue(cssVar))));
+    } catch {
+      // Not remembered.
+    }
+  };
+  return { reset, get, set, name: cssVar.slice(2) };
 }
 
 const SPLITTERS = [
@@ -524,7 +548,16 @@ const SPLITTERS = [
   [$('#split-right'), '--right', 'x', -1, 220, () => window.innerWidth - $('#dock-left').clientWidth - 360],
   [$('#split-bottom'), '--bottom', 'y', -1, 120, () => window.innerHeight - 220],
 ];
-const resetSplitters = SPLITTERS.map((args) => splitter(...args));
+const splitters = SPLITTERS.map((args) => splitter(...args));
+// The panel sizes for a saved layout: { left, right, bottom } in px (null keeps the default).
+const regionSizes = {
+  capture: () => Object.fromEntries(splitters.map((s) => [s.name, s.get()])),
+  apply: (sizes) => {
+    if (!sizes) return;
+    for (const s of splitters) if (s.name in sizes) s.set(sizes[s.name]);
+    window.dispatchEvent(new Event('resize'));
+  },
+};
 
 // Where the panels sit (dockui.js): tab groups to the left, right and bottom of the viewport. A
 // panel's tab drags it to another group or region; its pop-out button opens it in its own window.
@@ -547,7 +580,7 @@ function applyPreset(layout, name) {
 /** View ▸ Reset layout: today's arrangement and region sizes. */
 function resetLayout() {
   dock.reset();
-  for (const reset of resetSplitters) reset();
+  for (const s of splitters) s.reset();
   window.dispatchEvent(new Event('resize'));
   app.setStatus(t('Panels back in their default places'));
 }
@@ -562,6 +595,7 @@ sync = installPanelSync(app, {
   inTauri,
   appEl: $('#app'),
   dock,
+  sizes: regionSizes,
   runForwardedAction: (action) => runAction(app, action, { viewport, zoomActual, deleteSelectedKeys, closeMenu }),
 });
 const dopesheet = new Dopesheet(app, $('#dopesheet'), $('#dopesheet canvas'));

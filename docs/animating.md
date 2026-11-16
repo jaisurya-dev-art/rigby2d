@@ -73,6 +73,11 @@ The dopesheet shows a row for every keyed channel of the animation: each bone's 
 scale and shear, slot images and colors, mesh deformation, image sequences, IK and other constraints,
 draw order and events. Diamonds are keys; their color tells the curve (stepped keys are purple).
 
+A thin **tween line** joins each key to the next where the value blends between them, so you can see at
+a glance where something moves and where it holds. A stepped key has no line after it, and image
+swaps, draw order and events never have one, since they switch exactly on the key. Turn the lines off
+with *View ▸ Tween lines*.
+
 | To | Do |
 | --- | --- |
 | Move the time cursor | Click or drag in the ruler or an empty area. |

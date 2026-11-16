@@ -1,8 +1,9 @@
 # The interface
 
 The editor is one window with five areas around the viewport. Panels can be resized by dragging the
-borders between them, and in the desktop app the Timeline, Tree and Inspector can be popped out into
-their own windows.
+borders between them (double-click a border to reset it), and in the desktop app the Timeline, Tree
+and Inspector can be popped out into their own windows. The side panels start narrow, so the viewport
+gets most of the room; *View ▸ Layouts* saves an arrangement you like.
 
 ![The editor with numbered areas: 1 menus, 2 workspace switch, 3 viewport toolbar, 4 viewport, 5 tree, 6 inspector, 7 timeline controls, 8 dopesheet, 9 status bar](images/interface-tour.jpg "The parts of the editor")
 
@@ -10,7 +11,7 @@ their own windows.
 | --- | --- | --- |
 | 1 | **Menu bar** | *File* (with *New*, *Open recent*, *Import* and *Export* submenus), *Edit*, *View*, *Scripts* and *Help* (see [The Help menu](#the-help-menu)), the **SETUP** and **ANIMATE** mode tabs, and buttons for *Undo*, *Redo*, *Fit the skeleton in view* and *Show or hide bones* (hover one to see its shortcut). When an update is ready, an **Update available** button appears here too. |
 | 2 | **Workspace switch** | **Game** or **Film**: which tools are shown. See [Workspaces](#workspaces). |
-| 3 | **Viewport toolbar** | Transform tools, the active tool's values with a key button, axes, onion skin, guides and auto key. |
+| 3 | **Viewport toolbar** | Transform tools, the active tool's values with a key button, axes, **Weights** (when a mesh is selected), onion skin, guides and auto key. |
 | 4 | **Viewport** | The character. Select, pose and edit here. |
 | 5 | **Tree** | The skeleton (bones, slots, attachments) and the draw order, skins, constraints, events, animations and images. |
 | 6 | **Inspector** | Properties of the selection (a bone, slot, constraint, skin or event) and, on its **Project** tab, the project settings. Poses and face controls sit at the bottom. |
@@ -89,8 +90,11 @@ The *View* menu chooses what is drawn over the art:
   with the Blender-like shortcuts) hides bones, shapes, selection outlines and guides at once, to
   watch the animation as it renders. Press it again to bring them back.
 - *Timeline in Setup mode* keeps the timeline on screen in Setup mode.
+- *Tween lines* draws a thin line in the dopesheet between keys that blend into each other (on by
+  default). See [The dopesheet](animating.md#the-dopesheet).
 
-It also has the **Log** window, *Window layouts* (desktop app) and zoom commands. The viewport
+It also has the **Log** window, *Panel layout*, *Layouts* (see [Saved layouts](#saved-layouts)) and
+zoom commands. The viewport
 renderer and the shortcut preset are in [Preferences](preferences.md) (*Interface*).
 
 ## Tree
@@ -205,17 +209,24 @@ any colour that is missing or does not read falls back to Rigby Dark's (Rigby Li
 warnings and errors with expandable tracebacks. Filter by level or text, and **Copy** entries for a
 bug report. The status bar button turns red and counts errors you have not seen yet.
 
-## Detached panels and window layouts
+## Saved layouts
+
+*View ▸ Layouts* saves your panel arrangement under a name and loads it again later:
+
+- **Save current layout…** stores where each panel sits and how wide or tall the panel areas are.
+  In the desktop app it also stores which panels are popped out into their own windows, and where.
+- Pick a saved layout in the submenu to load it.
+- **Manage layouts…** renames, updates and deletes layouts, and binds a shortcut
+  (<kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>1</kbd> to <kbd>9</kbd>) that loads a layout.
+
+*View ▸ Panel layout ▸ Reset layout* puts every panel back in its default place and size. Layouts are
+kept on this computer (in the browser editor, in this browser).
+
+## Detached panels
 
 In the desktop app, the Timeline, Tree and Inspector can each be popped out into a window of its own,
-for example on a second monitor. Everything stays in sync with the main window.
-
-*View ▸ Window layouts* saves where the panels sit as a named layout:
-
-- **Save current layout…** stores which panels are popped out and where.
-- **Manage layouts…** renames, updates and deletes layouts, and binds a shortcut
-  (<kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>1</kbd> to <kbd>9</kbd>) that recalls a layout from any
-  Rigby2D window.
+for example on a second monitor. Everything stays in sync with the main window, and a
+[saved layout](#saved-layouts) remembers where the windows are.
 
 ## The Help menu
 

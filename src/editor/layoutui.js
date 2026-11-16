@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
-// The "Window layouts" UI (View menu, desktop only): save the current arrangement of detached
-// panels under a name, recall one, and a Manage panel to rename, rebind its Ctrl+Alt+<digit>
-// shortcut, re-capture or delete. The submenu and the Manage panel flag the layout that is active
+// The "Layouts" UI (View menu): save where the panels sit and how big they are under a name (on the
+// desktop, also the panels popped out into their own windows), recall one, and a Manage panel to
+// rename, rebind its Ctrl+Alt+<digit> shortcut, re-capture or delete. The submenu and the Manage panel flag the layout that is active
 // now, and amber when the windows have been moved/opened/closed since it was last saved. The store
 // is layouts.js; the windows are moved by panelsync.js.
 
@@ -20,10 +20,10 @@ const hotkeyValue = (hotkey) => (hotkey === null || hotkey === undefined ? '' : 
 /** Which panels a layout pops out, as a readable list ("Timeline, Tree"), or "all docked". */
 function summary(panels) {
   const ids = Object.keys(panels ?? {});
-  return ids.length ? ids.map((id) => PANELS[id]?.label ?? id).join(', ') : 'all docked';
+  return ids.length ? ids.map((id) => t(PANELS[id]?.label ?? id)).join(', ') : t('all docked');
 }
 
-/** Items for the View ▸ Window layouts submenu (rebuilt each time it opens, so it stays current). */
+/** Items for the View ▸ Layouts submenu (rebuilt each time it opens, so it stays current). */
 export function windowLayoutsSubmenu(ctx) {
   const layouts = loadLayouts();
   const { id: activeId, dirty } = ctx.sync.activeLayout();
@@ -50,12 +50,12 @@ export function windowLayoutsSubmenu(ctx) {
 
 /** The entry to drop into the View menu (a submenu that unfolds to the right). */
 export function windowLayoutsMenuItem(ctx) {
-  return submenuItem(t('Window layouts'), () => windowLayoutsSubmenu(ctx), { title: t('Save and recall where the detached panels sit (for multi-monitor setups)') });
+  return submenuItem(t('Layouts'), () => windowLayoutsSubmenu(ctx), { title: t('Save and load where the panels sit and how big they are (on the desktop, popped-out panel windows too)') });
 }
 
 function loadLayout(ctx, layout) {
-  ctx.sync.applyLayout(layout.panels, layout.id, layout.dock);
-  ctx.app.setStatus(t('Window layout: {name}', { name: layout.name }));
+  ctx.sync.applyLayout(layout.panels, layout.id, layout.dock, layout.sizes);
+  ctx.app.setStatus(t('Layout: {name}', { name: layout.name }));
 }
 
 function openSaveLayout(ctx) {
@@ -67,15 +67,15 @@ function openSaveLayout(ctx) {
     onclick: async () => {
       save.disabled = true;
       const panels = await ctx.sync.captureLayout();
-      const layout = { id: newLayoutId(), name: name.trim() || t('Layout {number}', { number: existing.length + 1 }), hotkey, panels, dock: ctx.sync.captureDock() };
+      const layout = { id: newLayoutId(), name: name.trim() || t('Layout {number}', { number: existing.length + 1 }), hotkey, panels, dock: ctx.sync.captureDock(), sizes: ctx.sync.captureSizes() };
       saveLayouts(upsertLayout(loadLayouts(), layout));
       ctx.sync.setActiveLayout(layout.id); // the saved layout is now the active, clean one
-      ctx.app.setStatus(t('Saved window layout "{name}"', { name: layout.name }) + (hotkey !== null ? ` (${hotkeyLabel(hotkey)})` : ''));
+      ctx.app.setStatus(t('Saved layout "{name}"', { name: layout.name }) + (hotkey !== null ? ` (${hotkeyLabel(hotkey)})` : ''));
       close();
     },
   });
   const { body, close } = dialog({
-    title: t('Save window layout'),
+    title: t('Save layout'),
     subtitle: t('Capturing: {panels}.', { panels: summary(currentPanelsHint(ctx)) }),
     footer: [button(t('Cancel'), { onclick: () => close() }), save],
   });
@@ -95,7 +95,7 @@ function currentPanelsHint(ctx) {
 
 function openManageLayouts(ctx) {
   const { body, close } = dialog({
-    title: t('Manage window layouts'),
+    title: t('Manage layouts'),
     subtitle: t('Rename a layout, bind a Ctrl+Alt+<number> shortcut, update it to the current arrangement, or delete it.'),
     className: 'modal-wide',
     footer: [button(t('Close'), { onclick: () => close() })],
@@ -125,11 +125,11 @@ function openManageLayouts(ctx) {
                 button(t('Load'), { size: 'sm', title: t('Load this layout now'), onclick: () => (loadLayout(ctx, l), render()) }),
                 button(t('Update'), {
                   size: 'sm',
-                  title: t('Save the current window arrangement into this layout and make it the active one'),
+                  title: t('Save the current panel arrangement into this layout and make it the active one'),
                   onclick: async (e) => {
                     e.currentTarget.disabled = true;
                     const panels = await ctx.sync.captureLayout();
-                    saveLayouts(updatePanels(loadLayouts(), l.id, panels, ctx.sync.captureDock()));
+                    saveLayouts(updatePanels(loadLayouts(), l.id, panels, ctx.sync.captureDock(), ctx.sync.captureSizes()));
                     ctx.sync.setActiveLayout(l.id);
                     ctx.app.setStatus(t('Updated "{name}" to the current arrangement', { name: l.name }));
                     render();
@@ -149,7 +149,7 @@ function openManageLayouts(ctx) {
               unsaved ? h('span', { class: 'layout-badge', title: t('The windows moved since this layout was saved') }, t('unsaved')) : null,
             );
           })
-        : [h('p', { class: 'weak' }, t('No saved layouts yet. Use View ▸ Window layouts ▸ Save current layout.'))]),
+        : [h('p', { class: 'weak' }, t('No saved layouts yet. Use View ▸ Layouts ▸ Save current layout.'))]),
     );
   };
   render();

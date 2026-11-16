@@ -3,7 +3,7 @@
 // (local / parent / world) and auto key.
 
 import { Affine, wrapDegrees } from '../core/math.js';
-import { Mode, TOOLS, selBone } from './app.js';
+import { Mode, TOOLS, selBone, selSlot } from './app.js';
 import * as edit from './edit.js';
 import { shortcutLabel, withShortcut } from './keymap.js';
 import { onionPanel } from './onionui.js';
@@ -162,6 +162,25 @@ export function render(app, el) {
     autoKey.dataset.tut = 'autokey';
   }
 
+  // Weights: one click from a selected mesh to painting its weights (Setup mode), and back.
+  const meshSlot = app.meshEdit?.slot ?? selSlot(app.sel);
+  const meshName = app.meshEdit?.name ?? (meshSlot !== null ? app.doc.slots[meshSlot]?.attachment : null);
+  const isMesh = meshSlot !== null && meshName && app.doc.attachment(meshSlot, meshName)?.type === 'mesh';
+  const weights =
+    app.mode === Mode.Setup && isMesh
+      ? toggleButton(
+          t('Weights'),
+          app.meshEdit?.mode === 'weights',
+          set((on) => {
+            if (!on) app.meshEdit = null;
+            else if (app.meshEdit) app.meshEdit.mode = 'weights';
+            else app.meshEdit = { slot: meshSlot, name: meshName, mode: 'weights', radius: 40, strength: 0.5, subtract: false, selected: null };
+          }),
+          { icon: 'paintbrush', title: t('Paint how strongly each bone moves this mesh (brush settings in the inspector)') },
+        )
+      : null;
+  if (weights) weights.dataset.tut = 'weights';
+
   el.replaceChildren(
     ...[
       h('div', { class: 'toolgroup', role: 'toolbar', 'aria-label': t('Tools') }, tools),
@@ -170,6 +189,7 @@ export function render(app, el) {
       h('span', { class: 'vsep' }),
       axes,
       h('span', { class: 'toolbar-spacer' }),
+      weights,
       onion,
       guides,
       autoKey,

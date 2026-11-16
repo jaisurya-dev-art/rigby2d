@@ -32,7 +32,7 @@ const geomKey = (id) => `rigby.panel.${id}.geom`;
  * window-layouts UI use. `dock` (dockui.js) is where the panels sit inside the editor window, which
  * a saved window layout also keeps.
  */
-export function installPanelSync(app, { inTauri, appEl, dock = null, runForwardedAction }) {
+export function installPanelSync(app, { inTauri, appEl, dock = null, sizes = null, runForwardedAction }) {
   // Open detached panel windows, by id (see dock.js PANELS). A change here broadcasts to every
   // open window, and each window forwards its shortcuts back.
   const detachedWindows = new Map();
@@ -145,14 +145,18 @@ export function installPanelSync(app, { inTauri, appEl, dock = null, runForwarde
 
   /** Where the panels sit inside the editor window (the dock layout), for a saved window layout. */
   const captureDock = () => dock?.get() ?? null;
+  /** The panel sizes inside the editor window ({ left, right, bottom } px), for a saved layout. */
+  const captureSizes = () => sizes?.capture() ?? null;
 
   /** Arranges the windows to match a saved layout: docks the panels it leaves out, opens the ones it
    *  wants (at their saved spot), and moves any that are already open. `id` records which layout is
    *  now in effect, so the UI can show it as current (and flag later changes as unsaved). `dockLayout`
-   *  (saved with the layout, absent in older ones) arranges the panels inside the editor window. */
-  function applyLayout(panels, id = null, dockLayout = null) {
-    if (!inTauri) return;
+   *  (saved with the layout, absent in older ones) arranges the panels inside the editor window, and
+   *  `regionSizes` sizes them. The browser has no panel windows, so there only the dock and sizes apply. */
+  function applyLayout(panels, id = null, dockLayout = null, regionSizes = null) {
     if (dockLayout && dock) dock.set(dockLayout);
+    if (regionSizes) sizes?.apply(regionSizes);
+    if (!inTauri) return void setActiveLayout(id);
     applyingLayout = true;
     const want = panels ?? {};
     for (const pid of [...detachedWindows.keys()]) if (!want[pid]) dockPanel(pid);
@@ -172,7 +176,7 @@ export function installPanelSync(app, { inTauri, appEl, dock = null, runForwarde
   function triggerHotkey(digit) {
     const layout = byHotkey(loadLayouts(), digit);
     if (!layout) return false;
-    applyLayout(layout.panels, layout.id, layout.dock);
+    applyLayout(layout.panels, layout.id, layout.dock, layout.sizes);
     app.setStatus(t('Window layout: {name}', { name: layout.name }));
     return true;
   }
@@ -241,21 +245,21 @@ export function installPanelSync(app, { inTauri, appEl, dock = null, runForwarde
     listen(EV_CLOSED, (e) => dockPanel(e.payload?.panel));
     // Closing the editor closes the whole program: main.js tears down the detached panel windows
     // with closePanels() once the close is confirmed (unsaved changes can cancel it).
-    // Ctrl+Alt+<digit> loads the layout bound to that digit (also forwarded from panel windows).
-    // Capture phase: text fields stopPropagation() keydown, so a bubble-phase listener would miss
-    // the shortcut whenever an input/select had focus.
-    window.addEventListener('keydown', (e) => {
-      const digit = layoutHotkeyDigit(e);
-      if (digit !== null && triggerHotkey(digit)) e.preventDefault();
-    }, true);
   }
+  // Ctrl+Alt+<digit> loads the layout bound to that digit (on the desktop, also forwarded from panel
+  // windows). Capture phase: text fields stopPropagation() keydown, so a bubble-phase listener would
+  // miss the shortcut whenever an input/select had focus.
+  window.addEventListener('keydown', (e) => {
+    const digit = layoutHotkeyDigit(e);
+    if (digit !== null && triggerHotkey(digit)) e.preventDefault();
+  }, true);
 
   /** Closes every detached panel window (the editor is closing). */
   function closePanels() {
     for (const [, win] of detachedWindows) win?.destroy().catch(() => {});
   }
 
-  return { syncPanels, detachPanel, dockPanel, detachedIds, captureLayout, captureDock, applyLayout, activeLayout, setActiveLayout, closePanels };
+  return { syncPanels, detachPanel, dockPanel, detachedIds, captureLayout, captureDock, captureSizes, applyLayout, activeLayout, setActiveLayout, closePanels };
 }
 
 /** A detached panel window positions itself when the editor sends EV_PLACE (loading a layout). */

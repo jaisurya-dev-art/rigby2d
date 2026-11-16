@@ -7,7 +7,9 @@
 // A layout is { id, name, hotkey, panels }, where hotkey is a digit 0–9 (an optional
 // Ctrl+Alt+<digit> shortcut) or null, and panels is { [panelId]: { x, y, w, h } } — a panel listed
 // here is detached at that spot; one left out is docked. `dock` (optional, docklayout.js) is where the
-// panels sit inside the editor window.
+// panels sit inside the editor window, and `sizes` (optional, { left, right, bottom } px, null for the
+// default) how big they are there. The browser editor has no panel windows: its layouts keep `panels`
+// empty and save only the dock and sizes.
 import { t } from './i18n.js';
 
 const STORE = 'rigby.layouts';
@@ -73,9 +75,9 @@ export function assignHotkey(list, id, hotkey) {
 }
 
 /** Replaces a layout's captured panel arrangement (Manage ▸ Update to current), and its dock layout
- *  when one is given. */
-export function updatePanels(list, id, panels, dock = undefined) {
-  return list.map((l) => (l.id === id ? { ...l, panels, ...(dock ? { dock } : {}) } : l));
+ *  and panel sizes when given. */
+export function updatePanels(list, id, panels, dock = undefined, sizes = undefined) {
+  return list.map((l) => (l.id === id ? { ...l, panels, ...(dock ? { dock } : {}), ...(sizes ? { sizes } : {}) } : l));
 }
 
 /**

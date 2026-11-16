@@ -79,7 +79,9 @@ add up to 1.
 
 1. Select the bones the mesh should follow: <kbd>Ctrl</kbd>+click them in the tree.
 2. Press **Bind to N selected bones**. Each vertex is weighted to the nearest of those bones.
-3. Switch to **Weights** to refine them by painting.
+3. Switch to **Weights** to refine them by painting. With a mesh selected in Setup mode, the
+   **Weights** button on the viewport toolbar does this in one click, without opening the mesh first;
+   click it again to stop painting.
 
 ![Painting weights on NILA's torso: red where the paint bone has full weight, blue where it has none](images/mesh-weights.jpg "Weights mode: red is full weight for the paint bone, blue is none")
 

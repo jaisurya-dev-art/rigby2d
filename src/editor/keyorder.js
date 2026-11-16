@@ -87,6 +87,27 @@ export function trackKeys(anim, track) {
   return anim.boneTimeline(track.bone)?.[track.channel];
 }
 
+/** Whether a track's keys blend into each other. Images, draw order, events, sequences and bone
+ *  inherit switch at each key instead, so they never tween. */
+export function tweens(track) {
+  if (track.drawOrder || track.events || track.sequence) return false;
+  if (track.raw || track.ik !== undefined || track.deform !== undefined) return true;
+  if (track.slot !== undefined) return (track.channel ?? 'attachment') !== 'attachment';
+  return track.channel !== 'inherit';
+}
+
+/** The tweens of a track, as [from, to] key index pairs: each key to the next one, except after a
+ *  stepped key (it holds its value until the next key). */
+export function tweenSpans(track, keys) {
+  if (!keys || keys.length < 2 || !tweens(track)) return [];
+  const out = [];
+  for (let i = 0; i + 1 < keys.length; i++) {
+    if (keys[i].curve === 'stepped' || !((keys[i + 1].time ?? 0) > (keys[i].time ?? 0))) continue;
+    out.push([i, i + 1]);
+  }
+  return out;
+}
+
 /** Every key of an animation in a fixed order, so a selection can be addressed by index. Both the
  *  editor and the detached window build the same order from the same document. */
 export function orderedKeys(app, anim) {

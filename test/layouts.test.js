@@ -89,3 +89,13 @@ test('Ctrl+Alt+<digit> matches, but AltGr characters (German AltGr+7 = "{") stay
   assert.equal(layoutHotkeyDigit(ev('Digit1', '1', { ctrlKey: false })), null);
   assert.equal(layoutHotkeyDigit(ev('KeyA', 'a')), null);
 });
+
+test('a layout keeps the panel sizes, and updating replaces them', () => {
+  let list = upsertLayout([], { id: 'a', name: 'A', hotkey: null, panels: {}, sizes: { left: 250, right: 280, bottom: null } });
+  assert.deepEqual(list[0].sizes, { left: 250, right: 280, bottom: null });
+  list = updatePanels(list, 'a', {}, undefined, { left: 200, right: 300, bottom: 180 });
+  assert.deepEqual(list[0].sizes, { left: 200, right: 300, bottom: 180 });
+  // Updating without sizes (an older caller) keeps the saved ones.
+  list = updatePanels(list, 'a', {});
+  assert.equal(list[0].sizes.bottom, 180);
+});

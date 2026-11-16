@@ -7,7 +7,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
 import { Animation, makeKey } from '../src/core/animation.js';
-import { applyKeySelection, keySelectionIndices, orderedKeys } from '../src/editor/keyorder.js';
+import { applyKeySelection, keySelectionIndices, orderedKeys, tweenSpans, tweens } from '../src/editor/keyorder.js';
 
 /** A document + animation with keys on several bone channels and some events. */
 function fixture() {
@@ -65,4 +65,26 @@ test('with no current animation, selection indices are empty and applying clears
   assert.deepEqual(keySelectionIndices(app), []);
   applyKeySelection(app, [0, 1]);
   assert.equal(app.selectedKeys.size, 0);
+});
+
+test('tween lines join each key to the next, except after a stepped key', () => {
+  const keys = [{ time: 0 }, { time: 0.5, curve: 'stepped' }, { time: 1 }, { time: 1.5, curve: { bezier: [0.42, 0, 0.58, 1] } }, { time: 2 }];
+  assert.deepEqual(tweenSpans({ bone: 0, channel: 'rotate' }, keys), [[0, 1], [2, 3], [3, 4]]);
+  // Keys written without a time (0 in skeleton JSON) still count from the start.
+  assert.deepEqual(tweenSpans({ raw: { type: 'ik', name: 'a' } }, [{}, { time: 1 }]), [[0, 1]]);
+  assert.deepEqual(tweenSpans({ bone: 0, channel: 'rotate' }, [{ time: 0 }]), []);
+});
+
+test('only tracks whose values blend get tween lines', () => {
+  assert.equal(tweens({ bone: 0, channel: 'translate' }), true);
+  assert.equal(tweens({ slot: 0, channel: 'rgba' }), true);
+  assert.equal(tweens({ deform: 0, slot: 0 }), true);
+  assert.equal(tweens({ ik: 0 }), true);
+  assert.equal(tweens({ bone: 0, channel: 'inherit' }), false);
+  assert.equal(tweens({ slot: 0, channel: 'attachment' }), false);
+  assert.equal(tweens({ slot: 0 }), false);
+  assert.equal(tweens({ drawOrder: true }), false);
+  assert.equal(tweens({ events: true }), false);
+  assert.equal(tweens({ sequence: { skin: 'default', slot: 'a', attachment: 'b' } }), false);
+  assert.deepEqual(tweenSpans({ slot: 0, channel: 'attachment' }, [{ time: 0 }, { time: 1 }]), []);
 });

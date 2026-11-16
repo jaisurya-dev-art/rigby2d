@@ -25,7 +25,7 @@ keymap, starting from the preset you use. Every action can then be changed:
 | Keep or share a keymap | **Export…** saves it as a `.json` file; **Import…** loads one. |
 
 A key that another action already used moves to the new one, and the dialog says which action lost
-it. <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>1</kbd> to <kbd>9</kbd> stay with saved window layouts.
+it. <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>1</kbd> to <kbd>9</kbd> stay with saved layouts.
 Changes save as you go, apply to every Rigby2D window at once (detached panels too), and switching
 to another preset keeps your keymap for later.
 
@@ -105,6 +105,6 @@ This table is generated from the editor's keymap, so it always matches the curre
 
 | Keys | Does |
 | --- | --- |
-| <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>1</kbd>…<kbd>9</kbd> | Load a saved window layout (desktop app). |
+| <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>1</kbd>…<kbd>9</kbd> | Load a saved layout (*View ▸ Layouts*). |
 | <kbd>Ctrl</kbd>+<kbd>Enter</kbd> | Run the script in the script editor. |
 | <kbd>/</kbd> | Search these docs. |

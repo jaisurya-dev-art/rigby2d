@@ -213,6 +213,8 @@ export class App {
      * Animate mode, so Setup gives the viewport that room.
      */
     this.timelineInSetup = loadSetting('rigby.view.timelineInSetup', '0') === '1';
+    /** Tween lines in the dopesheet: a thin line between keys that blend into each other (View menu). */
+    this.tweenLines = loadSetting('rigby.view.tweenLines', '1') === '1';
     /**
      * Onion skinning: ghost poses of nearby frames drawn behind the current one. `future` / `past`
      * are the default frame counts and the colors tint them. `perBone` (bone name -> partial
@@ -1268,6 +1270,7 @@ export class App {
       time: this.time,
       mode: this.mode,
       timelineView: this.timelineView,
+      tweenLines: this.tweenLines,
       autoKey: this.autoKey,
       playing: this.playing,
       playSpeed: this.playSpeed,
@@ -1335,6 +1338,7 @@ export class App {
     if (typeof s.time === 'number') this.time = s.time;
     if (s.mode) this.mode = s.mode;
     if (s.timelineView) this.timelineView = s.timelineView;
+    if (typeof s.tweenLines === 'boolean') this.tweenLines = s.tweenLines;
     if (typeof s.autoKey === 'boolean') this.autoKey = s.autoKey;
     if (typeof s.playing === 'boolean') this.playing = s.playing;
     if (typeof s.looping === 'boolean') this.looping = s.looping;
