@@ -13,6 +13,20 @@
         "date": "2026-11-14"
       },
       "quote": "Being free, it has practically all the features of paid competitors like Spine, Moho, or Toon Boom."
+    },
+    {
+      "name": "P & H",
+      "channel": "https://www.youtube.com/@PH-WorkFlow",
+      "platform": "YouTube",
+      "founding": true,
+      "video": {
+        "title": "Turn a Single Still Image into 2D Game Animation with AI",
+        "url": "https://www.youtube.com/watch?v=dIEoDVtieyA",
+        "thumbnail": "creators/ph-workflow-ai-still-to-animation.webp",
+        "length": "10:12",
+        "date": "2026-11-14"
+      },
+      "quote": "Rigby2D for skeleton binding and animation: a treasure chest, effects, a knight and an elf mage."
     }
   ]
 }
