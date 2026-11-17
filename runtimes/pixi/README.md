@@ -13,19 +13,23 @@ single mesh.
 
 ## Install
 
-Download `rigby2d-pixi-<version>.mjs` (ES module) or `rigby2d-pixi-<version>.js` (script tag,
-`window.RigbyPixi`) from the [latest release](https://github.com/jaisurya-dev-art/rigby2d/releases/latest),
-or build them with `npm run build:pixi` (writes `dist-pixi/`). PixiJS isn't bundled: the runtime
-uses the PixiJS your game already loads.
+Install PixiJS and Rigby2D in your project:
+
+```sh
+npm install pixi.js @rigby2d/pixi-js
+```
+
+`pixi.js` is a peer dependency: your app installs and controls its PixiJS version. Import the
+package directly in your game.
 
 ## Use
 
 Export your character from Rigby2D (*File ▸ Export*): the `.skel` or `.json`, the `.atlas` and its
 `.png` pages, in one folder.
 
-```js
+```ts
 import * as PIXI from 'pixi.js';
-import { rigbyPixi } from './rigby2d-pixi-<version>.mjs';
+import { rigbyPixi, type RigbySkeleton, type SkeletonEvent, type TrackEntry } from '@rigby2d/pixi-js';
 
 const { loadRigby, RigbySkeleton } = rigbyPixi(PIXI);
 
@@ -34,49 +38,44 @@ await app.init({ width: 960, height: 600, preference: 'webgl' }); // or 'webgpu'
 document.body.appendChild(app.canvas);
 
 const data = await loadRigby('assets/hero.skel', 'assets/hero.atlas'); // pages load from the atlas's folder
-const hero = new RigbySkeleton(data, { animation: 'idle' });
+const hero: RigbySkeleton = new RigbySkeleton(data, { animation: 'idle' });
 hero.position.set(400, 550);
 hero.scale.set(0.5);
-hero.on('event', (entry, event) => console.log(event.name));
+hero.on('event', (entry: TrackEntry, event: SkeletonEvent) => console.log(event.name));
 app.stage.addChild(hero);
 ```
 
-With script tags, PixiJS and the runtime are globals:
+## CDN with a pinned version
+
+For a page without a bundler, import PixiJS and Rigby2D as browser ES modules from jsDelivr. Replace
+`<version>` with a published package version so deployments use a fixed release:
 
 ```html
-<script src="pixi.min.js"></script>
-<script src="rigby2d-pixi-<version>.js"></script>
-<script>
-  const { loadRigby, RigbySkeleton } = RigbyPixi.rigbyPixi(PIXI);
-</script>
+<script type="module" src="./main.js"></script>
 ```
+
+```js
+// main.js
+import * as PIXI from 'https://cdn.jsdelivr.net/npm/pixi.js@8.22.0/+esm';
+import { rigbyPixi } from 'https://cdn.jsdelivr.net/npm/@rigby2d/pixi-js@<version>/+esm';
+
+const { loadRigby, RigbySkeleton } = rigbyPixi(PIXI);
+const app = new PIXI.Application();
+await app.init({ width: 960, height: 600 });
+document.body.appendChild(app.canvas);
+const hero = new RigbySkeleton(await loadRigby('./assets/hero.skel', './assets/hero.atlas'), { animation: 'idle' });
+app.stage.addChild(hero);
+```
+
+The npm package must be published before its jsDelivr URL can resolve. To use the standalone
+release files instead, download `rigby2d-pixi-<version>.mjs` or the script-tag build
+`rigby2d-pixi-<version>.js` from the [latest release](https://github.com/jaisurya-dev-art/rigby2d/releases/latest),
+or build them with `npm run build:pixi` (writes `dist-pixi/`). These bundles use the PixiJS instance
+provided by your app and do not include PixiJS.
 
 The skeleton's origin (usually between the feet) is at the object's position. Skeleton Y points up
 and PixiJS's down; the runtime turns it around for you. Skeletons made from the same loaded data
 share it and its textures, so a crowd costs one load.
-
-## TypeScript
-
-The runtime source is typed: the factory, loaders, `RigbySkeleton`, its options, track entries and
-events, and the optional WebAssembly module. Everything below shows the API's TypeScript types. The
-classes come out of the factory:
-
-```ts
-import * as PIXI from 'pixi.js';
-import { rigbyPixi, type RigbySkeleton, type SkeletonEvent, type TrackEntry } from './runtimes/pixi/rigby-pixi.ts';
-
-const { loadRigby, RigbySkeleton: Skeleton } = rigbyPixi(PIXI);
-
-const data = await loadRigby('assets/hero.skel', 'assets/hero.atlas'); // RigbyData
-const hero: RigbySkeleton = new Skeleton(data, { animation: 'idle' });
-hero.on('event', (entry: TrackEntry, event: SkeletonEvent) => console.log(event.name));
-const hand = hero.boneTransform('hand_r'); // BoneTransform | null
-```
-
-`RigbySkeleton` extends PixiJS's `Container`, so it is typed as one. `play` and `queue` return the
-`TrackEntry` (`null` for an unknown animation in the JavaScript runtime, `undefined` with
-WebAssembly). The skeleton data (`SkeletonData`, `Pose`, `AnimationState`) is typed for what the
-runtime shows of it: names, tracks and transforms. `runtimes/pixi/example.ts` is a longer example.
 
 ## Loading
 
