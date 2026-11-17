@@ -141,6 +141,10 @@ hero.play('run', true, 0.2);                         // crossfade over 0.2 s
 hero.attachToBone('hand_r', sword);                  // any display object follows a bone
 ```
 
+From TypeScript, the runtime is typed (`RigbySkeleton`, `RigbyData`, `TrackEntry`, `SkeletonEvent`
+and more); see the
+[PixiJS guide](https://github.com/jaisurya-dev-art/rigby2d/blob/develop/runtimes/pixi/README.md#typescript).
+
 A `RigbySkeleton` is a PixiJS `Container`. Its attachments are PixiJS meshes that go through
 PixiJS's batcher, so a character is usually one batched mesh, drawn in the same draw calls as your
 sprites. Filters, masks, tint, alpha, blend modes, bounds and pointer events work as for any display

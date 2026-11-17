@@ -10,7 +10,7 @@ import { test } from 'node:test';
 import * as PIXI from 'pixi.js';
 
 import { AnimationState, drawSkeletonGeometry, Pose } from '../src/core/index.js';
-import { loadRigbyWasm, rigbyPixi } from '../runtimes/pixi/rigby-pixi.js';
+import { loadRigbyWasm, rigbyPixi } from '../runtimes/pixi/rigby-pixi.ts';
 
 PIXI.DOMAdapter.set({ ...PIXI.DOMAdapter.get(), createCanvas: () => ({ getContext: () => null }) });
 

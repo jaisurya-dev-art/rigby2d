@@ -55,6 +55,29 @@ The skeleton's origin (usually between the feet) is at the object's position. Sk
 and PixiJS's down; the runtime turns it around for you. Skeletons made from the same loaded data
 share it and its textures, so a crowd costs one load.
 
+## TypeScript
+
+The runtime source is typed: the factory, loaders, `RigbySkeleton`, its options, track entries and
+events, and the optional WebAssembly module. Everything below shows the API's TypeScript types. The
+classes come out of the factory:
+
+```ts
+import * as PIXI from 'pixi.js';
+import { rigbyPixi, type RigbySkeleton, type SkeletonEvent, type TrackEntry } from './runtimes/pixi/rigby-pixi.ts';
+
+const { loadRigby, RigbySkeleton: Skeleton } = rigbyPixi(PIXI);
+
+const data = await loadRigby('assets/hero.skel', 'assets/hero.atlas'); // RigbyData
+const hero: RigbySkeleton = new Skeleton(data, { animation: 'idle' });
+hero.on('event', (entry: TrackEntry, event: SkeletonEvent) => console.log(event.name));
+const hand = hero.boneTransform('hand_r'); // BoneTransform | null
+```
+
+`RigbySkeleton` extends PixiJS's `Container`, so it is typed as one. `play` and `queue` return the
+`TrackEntry` (`null` for an unknown animation in the JavaScript runtime, `undefined` with
+WebAssembly). The skeleton data (`SkeletonData`, `Pose`, `AnimationState`) is typed for what the
+runtime shows of it: names, tracks and transforms. `runtimes/pixi/example.ts` is a longer example.
+
 ## Loading
 
 | Function | What it does |
@@ -143,6 +166,9 @@ the JavaScript runtime and are not driven.
 - The example in `examples/pixi.html` plays NILA, Rigbytron and a blurred crowd among PixiJS
   graphics and text, with a star attached to a bone (`npm run web:dev`, then open
   `/examples/pixi.html`; add `?webgpu` for WebGPU).
+- The runtime is `runtimes/pixi/rigby-pixi.ts` (shared types in `types.ts`, the typed view of the
+  JavaScript core in `core.ts`). Within this repository, Vite and Node with type stripping can
+  import the `.ts` source directly.
 - Tests: `node --test test/pixi.test.js` checks the meshes hold exactly the JavaScript runtime's
   triangles, and covers blend modes, per-object skins, two-color tint, events and bone children.
   `test/pixi-wasm.test.js` checks the WebAssembly mode draws the same triangles and UVs (skipped

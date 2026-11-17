@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
-// The PixiJS runtime (runtimes/pixi): skeletons draw as PixiJS meshes holding exactly the triangles
+// The PixiJS runtime (runtimes/pixi, TypeScript): skeletons draw as PixiJS meshes holding exactly the triangles
 // the JavaScript runtime makes, batched by texture, blend and tint; physics can follow the object's
 // movement without changing what a still skeleton draws; skins are per object; bones carry children.
 
@@ -10,7 +10,7 @@ import { test } from 'node:test';
 import * as PIXI from 'pixi.js';
 
 import { drawSkeletonGeometry, Pose, AnimationState } from '../src/core/index.js';
-import { rigbyPixi } from '../runtimes/pixi/rigby-pixi.js';
+import { rigbyPixi } from '../runtimes/pixi/rigby-pixi.ts';
 
 // No browser here: shader programs probe a canvas for precision; give them one without WebGL.
 PIXI.DOMAdapter.set({ ...PIXI.DOMAdapter.get(), createCanvas: () => ({ getContext: () => null }) });
