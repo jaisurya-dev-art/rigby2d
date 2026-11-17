@@ -269,16 +269,22 @@ export class ParticleSystem {
     const e = this.emitter;
     this.rand = random(e.seed);
     this.time = -e.warmup;
+    this.frac = 0;
     this.carry = 0;
     this.particles = [];
   }
 
-  /** Steps to time `t`. `world` is the emitter's world transform at `t` (used for new particles). */
+  /**
+   * Steps to time `t`. `world` is the emitter's world transform at `t` (used for new particles).
+   * The simulation stays on its fixed-step grid; the part of a step left over (`frac`) moves each
+   * particle on when it is drawn, so sub-frame times (motion blur) see it in motion.
+   */
   advance(t, world) {
     if (t < this.time - 1e-9) this.reset();
-    const steps = Math.min(Math.round((t - this.time) / STEP), 60 * 600);
+    const steps = Math.min(Math.floor((t - this.time) / STEP + 1e-9), 60 * 600);
     for (let i = 0; i < steps; i++) this.step(STEP, world);
-    this.time = t;
+    this.time += steps * STEP;
+    this.frac = Math.min(STEP, Math.max(0, t - this.time));
   }
 
   spawn(world) {
@@ -333,12 +339,14 @@ export class ParticleSystem {
   sprites() {
     const e = this.emitter;
     const end = e.colorEnd ?? e.color;
+    const f = this.frac ?? 0;
     return this.particles.map((p) => {
-      const u = p.age / p.life;
+      const u = Math.min(1, (p.age + f) / p.life);
       const fade = Math.min(e.fadeIn > 0 ? u / e.fadeIn : 1, e.fadeOut > 0 ? (1 - u) / e.fadeOut : 1, 1);
       const color = e.color.map((c, k) => c + (end[k] - c) * u);
       color[3] *= Math.max(0, fade);
-      return { x: p.x, y: p.y, size: p.size * (1 + (e.grow - 1) * u), rotation: p.rot, color };
+      const wander = Math.sin(p.phase + p.age * p.freq * Math.PI * 2) * e.turbulence;
+      return { x: p.x + (p.vx + wander) * f, y: p.y + p.vy * f, size: p.size * (1 + (e.grow - 1) * u), rotation: p.rot + p.spin * f, color };
     });
   }
 }

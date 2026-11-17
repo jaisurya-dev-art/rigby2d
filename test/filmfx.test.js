@@ -143,6 +143,19 @@ test('particles are deterministic, warm up, and start over when time goes back',
   assert.notDeepEqual(other.sprites(), b.sprites());
 });
 
+test('particles move between simulation steps, so motion blur sub-frames see them move', () => {
+  const e = readFilm({ emitters: [{ rate: 30, warmup: 1, seed: 3, speed: [500, 500], gravity: 0, wind: 0, turbulence: 0, spread: 0, angle: -90 }] }).emitters[0];
+  // A shutter's sub-frames: 2 ms apart, less than a 1/60 s step.
+  const sub = [1, 1.002, 1.004, 1.006];
+  const a = new ParticleSystem(e);
+  const ys = sub.map((t) => (a.advance(t, null), a.sprites()[0].y));
+  for (let i = 1; i < ys.length; i++) assert.ok(ys[i] < ys[i - 1] - 0.5, `sub-frame ${i} moved (${ys[i - 1]} -> ${ys[i]})`);
+  // Still deterministic: reaching a time in small steps or in one go gives the same particles.
+  const b = new ParticleSystem(e);
+  b.advance(1.006, null);
+  assert.deepEqual(a.sprites(), b.sprites());
+});
+
 test('particles follow the emitter bone and the field restarts edited emitters', () => {
   const sk = new Skeleton();
   sk.film = readFilm({ emitters: [{ name: 'p', bone: 'root', shape: 'point', speed: [0, 0], gravity: 0, wind: 0, turbulence: 0, rate: 10, warmup: 0, spread: 0 }] });
