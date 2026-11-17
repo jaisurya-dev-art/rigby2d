@@ -1916,4 +1916,8 @@ export default {
   "Paint how strongly each bone moves this mesh (brush settings in the inspector)": "绘制每根骨骼对此网格的影响强度（笔刷设置在检查器中）",
   "Bone only": "仅骨骼",
   "Moves, turns or scales just the bone: its child bones and images stay where they are drawn. Off: they move with it.": "只移动、旋转或缩放骨骼本身：其子骨骼和图像保持在原位。关闭时它们会随之移动。",
+  "A Rigby displayable for visual novels: animations as image attributes, lip-sync from dialogue and voice, blinks and gaze.": "面向视觉小说的 Rigby 可显示对象：动画即图像属性，支持根据台词和语音的口型同步、眨眼和视线。",
+  "Choose your Ren'Py project folder (the one with the game folder)": "选择你的 Ren'Py 项目文件夹（包含 game 文件夹的那个）",
+  "Installed the Ren'Py runtime into {folder} (game/rigby2d). Show your characters with Rigby().": "已将 Ren'Py 运行时安装到 {folder}（game/rigby2d）。用 Rigby() 显示你的角色。",
+  "Could not install the Ren'Py runtime: {error}": "无法安装 Ren'Py 运行时：{error}",
 };

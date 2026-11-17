@@ -405,4 +405,8 @@ export default {
   "Nothing is locked behind a tier. Support keeps Rigby2D free for everyone.": "Nada fica bloqueado por nível. O apoio mantém o Rigby2D gratuito para todos.",
   "Where the money goes ↗": "Para onde vai o dinheiro ↗",
   "Sponsor on GitHub ↗": "Patrocinar no GitHub ↗",
+  "A Rigby displayable for visual novels: animations as image attributes, lip-sync from dialogue and voice, blinks and gaze.": "Um displayable Rigby para visual novels: animações como atributos de imagem, sincronia labial com o diálogo e a voz, piscadas e olhar.",
+  "Choose your Ren'Py project folder (the one with the game folder)": "Escolha a pasta do seu projeto Ren'Py (a que tem a pasta game)",
+  "Installed the Ren'Py runtime into {folder} (game/rigby2d). Show your characters with Rigby().": "O runtime do Ren'Py foi instalado em {folder} (game/rigby2d). Mostre seus personagens com Rigby().",
+  "Could not install the Ren'Py runtime: {error}": "Não foi possível instalar o runtime do Ren'Py: {error}",
 };

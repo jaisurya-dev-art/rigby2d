@@ -3139,7 +3139,8 @@ kbd {
   --rt: #8fd0ef;
   --rt-fg: #0b1d24;
 }
-.rt-pixijs {
+.rt-pixijs,
+.rt-renpy {
   --rt: #e72264;
 }
 .rt-defold {
@@ -3160,7 +3161,8 @@ kbd {
   border: 1px solid #3a3d44;
 }
 /* PixiJS's own mark is pink: shown on white, as in PixiJS's light logo. */
-.rt-pixijs .rt-logo {
+.rt-pixijs .rt-logo,
+.rt-renpy .rt-logo {
   background: #fff;
 }
 .rt-body {

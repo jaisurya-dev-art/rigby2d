@@ -405,4 +405,8 @@ export default {
   "Nothing is locked behind a tier. Support keeps Rigby2D free for everyone.": "등급에 따라 잠긴 기능은 없습니다. 후원 덕분에 Rigby2D는 모두에게 무료입니다.",
   "Where the money goes ↗": "후원금 사용처 ↗",
   "Sponsor on GitHub ↗": "GitHub에서 후원 ↗",
+  "A Rigby displayable for visual novels: animations as image attributes, lip-sync from dialogue and voice, blinks and gaze.": "비주얼 노벨용 Rigby 디스플레이어블: 애니메이션을 이미지 속성으로 쓰고, 대사와 음성에 맞춘 립싱크, 눈 깜빡임, 시선을 지원합니다.",
+  "Choose your Ren'Py project folder (the one with the game folder)": "Ren'Py 프로젝트 폴더(game 폴더가 있는 폴더)를 선택하세요",
+  "Installed the Ren'Py runtime into {folder} (game/rigby2d). Show your characters with Rigby().": "Ren'Py 런타임을 {folder}(game/rigby2d)에 설치했습니다. Rigby()로 캐릭터를 표시하세요.",
+  "Could not install the Ren'Py runtime: {error}": "Ren'Py 런타임을 설치하지 못했습니다: {error}",
 };

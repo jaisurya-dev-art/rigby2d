@@ -1,0 +1,45 @@
+kitchen-sink.png
+size: 512, 128
+filter: Linear, Linear
+cape
+bounds: 0, 0, 60, 30
+body
+bounds: 64, 0, 60, 90
+rotate: 90
+offsets: 2, 3, 96, 64
+arm
+bounds: 130, 0, 50, 14
+fore
+bounds: 130, 20, 45, 12
+head
+bounds: 190, 0, 50, 50
+offsets: 3, 1, 56, 54
+eye-open
+bounds: 250, 0, 10, 8
+eye-shut
+bounds: 262, 0, 10, 3
+hat01
+bounds: 280, 0, 40, 20
+hat02
+bounds: 280, 24, 40, 20
+hat03
+bounds: 280, 48, 20, 40
+rotate: 270
+hair
+bounds: 330, 0, 35, 16
+
+kitchen-sink2.png
+size: 256, 32
+filter: Linear, Linear
+badge
+bounds: 0, 0, 12, 12
+flag
+bounds: 20, 0, 30, 20
+flag-b
+bounds: 60, 0, 30, 20
+tail
+bounds: 100, 0, 90, 12
+spark
+bounds: 200, 0, 16, 16
+dot
+bounds: 220, 0, 6, 6

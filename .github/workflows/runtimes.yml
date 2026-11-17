@@ -1,6 +1,6 @@
 # The runtimes must play every animation like the JavaScript runtime (src/core), frame by frame.
 # Golden files record the JavaScript runtime's output (bone matrices, drawables, draw order, events);
-# the Rust and C++ (Defold) runtimes replay them. Besides the checked-in files, golden data is
+# the Rust, C++ (Defold) and Python (Ren'Py) runtimes replay them. Besides the checked-in files, golden data is
 # generated here from every exported demo skeleton, in JSON and binary form.
 name: Runtimes
 
@@ -42,3 +42,7 @@ jobs:
           g++ -std=c++17 -O2 -Wall -Wextra -Werror -fno-exceptions -fno-rtti -I runtimes/defold/rigby2d/include \
             runtimes/defold/test/golden.cpp runtimes/defold/rigby2d/commonsrc/rigby_*.cpp -o "$RUNNER_TEMP/golden-cpp"
           "$RUNNER_TEMP/golden-cpp" "$GITHUB_WORKSPACE"
+      - name: Python runtime (Ren'Py)
+        run: |
+          node runtimes/renpy/tests/make_golden.mjs --large "$RUNNER_TEMP/golden-py"
+          RIGBY_GOLDEN_DIR="$RUNNER_TEMP/golden-py" python3 -m unittest discover -s runtimes/renpy/tests

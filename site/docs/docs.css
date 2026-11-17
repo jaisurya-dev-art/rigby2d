@@ -858,6 +858,7 @@ kbd {
 .card-defold .card-art { color: #1c9be6; }
 .card-javascript .card-art { color: #f7df1e; }
 .card-rust .card-art { color: #f74c00; }
+.card-renpy .card-art { color: #ff8fa3; background: #fff; }
 .card-windows .card-art { color: #3fa9f5; }
 .card-apple .card-art { color: #f4f4f5; }
 .card-linux .card-art { color: #fcc624; }
@@ -918,6 +919,7 @@ kbd {
 .h-mark.card-defold { color: #1c9be6; }
 .h-mark.card-javascript { color: #f7df1e; }
 .h-mark.card-rust { color: #f74c00; }
+.h-mark.card-renpy { color: #ff8fa3; background: #fff; }
 .h-mark.card-windows { color: #3fa9f5; }
 .h-mark.card-apple { color: #f4f4f5; }
 .h-mark.card-linux { color: #fcc624; }

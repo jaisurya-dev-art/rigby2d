@@ -1737,6 +1737,7 @@ h3 {
 .engine-defold { --brand: #1c9be6; }
 .engine-javascript { --brand: #f7df1e; }
 .engine-rust { --brand: #f74c00; }
+.engine-renpy { --brand: #ff8fa3; }
 .engines {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));

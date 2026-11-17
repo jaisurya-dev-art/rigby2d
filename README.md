@@ -40,12 +40,13 @@
     <td align="center" width="104"><a href="runtimes/cocos/README.md"><img src="docs/images/engines/cocos.svg" width="56" height="56" alt="Cocos Creator"><br><b>Cocos Creator</b></a><br><sub>3.8</sub></td>
     <td align="center" width="104"><a href="runtimes/phaser/README.md"><img src="docs/images/engines/phaser.svg" width="56" height="56" alt="Phaser"><br><b>Phaser</b></a><br><sub>3.60+ · 4</sub></td>
     <td align="center" width="104"><a href="runtimes/pixi/README.md"><img src="docs/images/engines/pixijs.svg" width="56" height="56" alt="PixiJS"><br><b>PixiJS</b></a><br><sub>8 · WebGPU</sub></td>
+    <td align="center" width="104"><a href="runtimes/renpy/README.md"><img src="docs/images/engines/renpy.svg" width="56" height="56" alt="Ren'Py"><br><b>Ren'Py</b></a><br><sub>8.3+</sub></td>
     <td align="center" width="104"><a href="docs/runtimes.md#javascript"><img src="docs/images/engines/javascript.svg" width="56" height="56" alt="JavaScript"><br><b>JavaScript</b></a><br><sub>any engine</sub></td>
     <td align="center" width="104"><a href="runtimes/README.md"><img src="docs/images/engines/rust.svg" width="56" height="56" alt="Rust"><br><b>Rust</b></a><br><sub>native</sub></td>
   </tr>
 </table>
 
-<p align="center"><sub>Eight free, open-source runtimes. Each plays the same animation as the editor, frame for frame.</sub></p>
+<p align="center"><sub>Nine free, open-source runtimes. Each plays the same animation as the editor, frame for frame.</sub></p>
 
 <p align="center">
   <a href="https://upstar.dev/r/jaisurya-dev-art/rigby2d">
@@ -114,14 +115,14 @@ runtimes and the MCP server. The pages are also in [`docs/`](docs/).
   See [Add-ons](https://rigby2d.com/docs/addons.html).
 - **Welcome screen, auto-update and runtimes from the editor**: new projects, recent work, starter
   projects and lessons at startup; signed updates in the desktop app; *File ▸ Get runtimes* for Unity,
-  Godot, Defold, Cocos Creator, Phaser and PixiJS.
+  Godot, Defold, Cocos Creator, Phaser, PixiJS and Ren'Py.
 - **Coming from other tools**: opens Spine exports (with a migration checker) and DragonBones
   projects. See [Coming from Spine](https://rigby2d.com/docs/migrating-from-spine.html) and
   [Coming from DragonBones](https://rigby2d.com/docs/migrating-from-dragonbones.html).
 - **Python scripting** and custom tools, and a built-in **MCP server** so AI assistants such as
   Claude can inspect, rig and animate your projects.
 - **Lossless skeleton JSON (3.8, 4.2, 4.3) and binary `.skel`** with texture atlases, played by the
-  **JavaScript, Phaser, PixiJS, Rust, C++ (Defold), Unity, Godot and Cocos Creator runtimes**.
+  **JavaScript, Phaser, PixiJS, Rust, C++ (Defold), Unity, Godot, Cocos Creator and Python (Ren'Py) runtimes**.
 - **Sprite sheets** for engines that play frames: packed with TexturePacker/Aseprite-style JSON, a
   Defold atlas, or PNG frames, with loops that join up (also from the MCP server).
 - Built-in **tutorials** and demo projects (**NILA**, **Rigbytron**, and a **scene** with both), also on the
@@ -157,7 +158,7 @@ src/core/       Runtime: data model, skeleton JSON/.skel + atlas I/O, pose evalu
 src/editor/     Editor UI: viewport, tree, inspector, dopesheet, graph editor, import/export, scripting
 src/webgl/      Reference WebGL renderer for the runtime
 src/mcp/        Model Context Protocol server for AI assistants
-runtimes/       Rust, C++ (Defold), Godot, Unity, Cocos Creator, Phaser and PixiJS runtimes
+runtimes/       Rust, C++ (Defold), Godot, Unity, Cocos Creator, Phaser, PixiJS and Ren'Py runtimes
 site/           Website and documentation site (GitHub Pages)
 docs/           Documentation pages and images
 branding/       Logo, icons, Rigbytron and NILA (proprietary, see TRADEMARKS.md)

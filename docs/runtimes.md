@@ -13,6 +13,7 @@ characters on a stage with a moving camera and parallax.
 <a href="#cocos-creator" data-mark="cocos"><strong>Cocos Creator <span class="status">Complete</span></strong>A <code>RigbySkeleton</code> component for 2D scenes, drawn in order with sprites and UI. <small>Cocos Creator 3.8 · web and native</small></a>
 <a href="#phaser" data-mark="phaser"><strong>Phaser <span class="status">Complete</span></strong>A plugin: <code>this.add.rigby()</code>, on the JavaScript runtime. <small>Phaser 3.60+ and 4 · WebGL</small></a>
 <a href="#pixijs" data-mark="pixijs"><strong>PixiJS <span class="status">New</span></strong>Native PixiJS display objects, batched with your sprites. <small>PixiJS 8 · WebGL and WebGPU</small></a>
+<a href="#renpy" data-mark="renpy"><strong>Ren'Py <span class="status">New</span></strong>A <code>Rigby</code> displayable: animations and expressions as image attributes, lip-sync from dialogue and voice, blinks and gaze. Pure Python, nothing to install. <small>Ren'Py 8.3+ · every platform</small></a>
 <a href="#javascript" data-mark="javascript"><strong>JavaScript <span class="status">Complete</span></strong>No dependencies, with a ready-made WebGL renderer. <small><code>src/core</code> · <code>src/webgl</code></small></a>
 <a href="#rust" data-mark="rust"><strong>Rust <span class="status">Complete</span></strong>No dependencies; matches the JavaScript runtime frame by frame, 3 to 4× faster. <small><code>runtimes/rust/rigby-runtime</code></small></a>
 </div>
@@ -22,7 +23,8 @@ JavaScript runtime.
 
 **From the editor:** *File ▸ Get runtimes…* downloads the runtimes that match your editor's version:
 the Unity package (or its git URL), the Godot addon for your system (or installs it straight into a
-Godot project), the Cocos Creator package (or installs it straight into a Cocos project), and the
+Godot project), the Cocos Creator package (or installs it straight into a Cocos project), the
+Ren'Py runtime (or installs it straight into a Ren'Py project's game folder) and its demo game, and the
 Phaser and PixiJS bundles. The welcome screen also offers a **Phaser game starter**: a
 small playable game with NILA to build on.
 
@@ -285,6 +287,32 @@ func _ready() -> void:
 For scenes, the `RigbyScene2D` node plays a `.scene.json` export: the stage, every character
 and their clips, with the stage's camera available for a `Camera2D`. See the
 [Godot guide](../runtimes/godot/addons/rigby2d/README.md) for every property and method.
+
+## Ren'Py
+
+Copy `runtimes/renpy/game/rigby2d/` and `runtimes/renpy/game/rigby2d.rpy` into your game's `game/`
+folder, export your character as **JSON + atlas** into `game/images/nila/`, and show it:
+
+```renpy
+image nila = Rigby("images/nila", expressions=["happy", "surprised"], once=["wave"])
+define n = Character("Nila", image="nila")
+
+label start:
+    show nila idle
+    n "Hi! I'm Nila."          # lip-synced to the words, or to the voice line
+    show nila wave happy       # waves, then back to idle; the face crossfades to happy
+```
+
+Animations are image attributes: motions crossfade on the base track, `expressions` are an
+exclusive face layer, `overlays` combine freely, and skins switch outfits. Characters defined with
+`image=` lip-sync on their own, from their voice lines (with Rhubarb, Whisper, ElevenLabs or
+Papagayo timing files when present) or from the text as it types, using the nine mouth shapes of the
+editor's [lip-sync](lip-sync.md). They blink, can look at the mouse (pupils and
+[2.5D turns](poses-and-faces.md#25d-turn)), and run their physics. The runtime underneath
+(`game/rigby2d`) is pure Python, a port of the Rust core tested against the JavaScript runtime frame
+by frame, so it needs no native library and runs everywhere Ren'Py does. See the
+[Ren'Py guide](https://github.com/jaisurya-dev-art/rigby2d/blob/main/runtimes/renpy/README.md) and
+the demo game in `runtimes/renpy/demo`.
 
 ## Performance
 

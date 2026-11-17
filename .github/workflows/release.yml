@@ -78,6 +78,8 @@ jobs:
       # Defold runtime: the library (a dependency zip; Defold's build server compiles the native
       # extension) and the demo project.
       - run: node runtimes/defold/package.mjs
+      # Ren'Py runtime: the runtime zip (drops into a game's game/ folder) and the demo game.
+      - run: node runtimes/renpy/package.mjs
       # Unity runtime: the C# core against the JavaScript runtime (golden tests), then the package
       # as a tarball for Unity's "Install package from tarball".
       - run: node runtimes/unity/com.rigby2d.unity/Tests~/run.mjs
@@ -113,6 +115,7 @@ jobs:
           cp dist-pixi/* release/
           cp runtimes/rust/target/wasm32-unknown-unknown/release/rigby_wasm.wasm "release/rigby2d-pixi-${V}.wasm"
           cp dist-cocos/rigby2d-cocos-*.zip release/
+          cp "runtimes/renpy/dist/rigby2d-renpy-${V}.zip" "runtimes/renpy/dist/rigby2d-renpy-demo-${V}.zip" release/
           ls -la release
 
       - id: unsigned

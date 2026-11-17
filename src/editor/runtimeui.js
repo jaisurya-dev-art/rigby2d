@@ -82,6 +82,21 @@ export function openRuntimes(app) {
     }
   };
 
+  const installRenpy = async () => {
+    const dir = await pickFolder(t("Choose your Ren'Py project folder (the one with the game folder)"));
+    if (!dir) return;
+    const file = `rigby2d-renpy-${VERSION}.zip`;
+    try {
+      status(t('Downloading {file}…', { file }));
+      // Only the runtime: game/rigby2d and game/rigby2d.rpy (not the README and licences).
+      const files = [...unzip(await fetchBytes(release(file)))].filter(([p]) => p.startsWith('game/') && !p.endsWith('/')).map(([path, bytes]) => ({ path, bytes }));
+      await writeFilesTo(dir, files);
+      status(t("Installed the Ren'Py runtime into {folder} (game/rigby2d). Show your characters with Rigby().", { folder: dir }));
+    } catch (e) {
+      status(t("Could not install the Ren'Py runtime: {error}", { error: e.message }));
+    }
+  };
+
   const copy = async (text, button) => {
     await navigator.clipboard?.writeText(text);
     status(t('Copied {text}', { text }));
@@ -171,6 +186,15 @@ export function openRuntimes(app) {
         primary: action('download', t('ES module'), () => download(`rigby2d-pixi-${V}.mjs`), 'primary'),
         secondary: [action('download', t('Script tag'), () => download(`rigby2d-pixi-${V}.js`)), action('download', t('WebAssembly core'), () => download(`rigby2d-pixi-${V}.wasm`))],
         guide: docs('pixijs'),
+      }),
+      card({
+        id: 'renpy',
+        name: "Ren'Py",
+        badge: '8.3+',
+        text: t('A Rigby displayable for visual novels: animations as image attributes, lip-sync from dialogue and voice, blinks and gaze.'),
+        primary: isDesktop && VERSION ? action('folder-open', t('Install into a project…'), installRenpy, 'primary') : action('download', t('Download .zip'), () => download(`rigby2d-renpy-${V}.zip`), 'primary'),
+        secondary: [isDesktop && VERSION ? action('download', '.zip', () => download(`rigby2d-renpy-${V}.zip`)) : null, action('gamepad-2', t('Demo'), () => download(`rigby2d-renpy-demo-${V}.zip`))].filter(Boolean),
+        guide: docs('renpy'),
       }),
       card({
         id: 'javascript',

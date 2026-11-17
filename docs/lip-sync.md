@@ -101,6 +101,14 @@ For a mouth drawn as one shape that opens and closes, use a [face control](poses
 its **Lip-sync** button keys the control on every frame from the loudness of the animation's first
 audio track. The mouth opens on speech and closes in silence.
 
+## In Ren'Py
+
+The [Ren'Py runtime](runtimes.md#renpy) lip-syncs live with the same nine mouth shapes and the same
+word rules, so you don't need to key the dialogue. Every character defined with `image=` moves its
+mouth while it speaks: from its voice line (using a Rhubarb, Whisper, ElevenLabs or Papagayo timing
+file next to it when there is one), or from the text as it types. The mouth slot and its images are
+found by name, as here.
+
 ## Through MCP
 
 `lip_sync` does both kinds: viseme lip-sync from `text` or a `timing_file` onto a `slot` (with
