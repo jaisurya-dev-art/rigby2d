@@ -1,0 +1,104 @@
+# Publishes the runtimes' npm packages when the app is released: it starts on the same `v<version>`
+# tag push as release.yml (Release build), e.g. v0.5.1 -> @rigby2d/pixi-js@0.5.1.
+#
+# Which runtimes publish is decided in the "Plan" step, by name, so adding one is deliberate: for
+# Phaser, Cocos... give the folder a package.json with `build`, `typecheck` and `verify` scripts
+# like runtimes/pixi and add a line to the PACKAGES list. Until then they are never published.
+# Today only runtimes/pixi (@rigby2d/pixi-js) is in the list.
+#
+# The tag's version must equal "version" in each listed package.json, so bump it with the app's
+# version before tagging; a mismatch fails the run before anything is published.
+#
+# Needs the repository secret NPM_TOKEN (an npm automation token that may publish the @rigby2d
+# scope). Publishing happens only for a pushed tag; "Run workflow" builds and verifies, and
+# publishes nothing. No GitHub release is created.
+name: npm publish
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+run-name: npm publish ${{ github.ref_name }} by @${{ github.actor }}
+
+jobs:
+  plan:
+    name: Plan
+    runs-on: ubuntu-latest
+    outputs:
+      packages: ${{ steps.plan.outputs.packages }}
+      publish: ${{ steps.plan.outputs.publish }}
+    steps:
+      - uses: actions/checkout@v7
+      - name: Plan
+        id: plan
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          REF_TYPE: ${{ github.ref_type }}
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          # Package folders to publish, one per runtime.
+          PACKAGES='runtimes/pixi'
+          publish=false
+          [ "$EVENT_NAME" = push ] && [ "$REF_TYPE" = tag ] && publish=true
+          json='[]'
+          for dir in $PACKAGES; do
+            name="$(node -p "require('./$dir/package.json').name")"
+            version="$(node -p "require('./$dir/package.json').version")"
+            if [ "$publish" = true ] && [ "v$version" != "$REF_NAME" ]; then
+              echo "::error::Tag $REF_NAME does not match $name $version ($dir/package.json)"; exit 1
+            fi
+            json="$(node -e "const a=JSON.parse(process.argv[1]);a.push({dir:'$dir',name:'$name',version:'$version'});console.log(JSON.stringify(a))" "$json")"
+            echo "Package $name@$version ($dir), publish: $publish"
+          done
+          echo "packages=$json" >> "$GITHUB_OUTPUT"
+          echo "publish=$publish" >> "$GITHUB_OUTPUT"
+
+  verify:
+    name: Build and verify ${{ matrix.package.name }}
+    needs: plan
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        package: ${{ fromJson(needs.plan.outputs.packages) }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Type-check
+        run: npm run typecheck --prefix ${{ matrix.package.dir }}
+      - name: Tests
+        run: npm test
+      - name: Build, pack (dry run) and verify
+        run: npm run verify --prefix ${{ matrix.package.dir }}
+
+  publish:
+    name: Publish ${{ matrix.package.name }}@${{ matrix.package.version }}
+    needs: [plan, verify]
+    if: needs.plan.outputs.publish == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        package: ${{ fromJson(needs.plan.outputs.packages) }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          registry-url: https://registry.npmjs.org/
+      - run: npm ci
+      # `npm publish` runs the package's prepack: it builds and adds the license files.
+      - name: Publish
+        working-directory: ${{ matrix.package.dir }}
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

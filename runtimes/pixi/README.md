@@ -67,7 +67,10 @@ const hero = new RigbySkeleton(await loadRigby('./assets/hero.skel', './assets/h
 app.stage.addChild(hero);
 ```
 
-The npm package must be published before its jsDelivr URL can resolve. To use the standalone
+The runtime never imports `pixi.js` itself: `rigbyPixi(PIXI)` takes the PixiJS your game loads, so
+the package has no imports for the CDN to resolve, and it works with any PixiJS 8 URL. Pass the
+same PixiJS you load for the game (a second copy would not share its renderer). This URL works only
+once the package is published; until then, use the release files below. To use the standalone
 release files instead, download `rigby2d-pixi-<version>.mjs` or the script-tag build
 `rigby2d-pixi-<version>.js` from the [latest release](https://github.com/jaisurya-dev-art/rigby2d/releases/latest),
 or build them with `npm run build:pixi` (writes `dist-pixi/`). These bundles use the PixiJS instance
@@ -166,8 +169,16 @@ the JavaScript runtime and are not driven.
   graphics and text, with a star attached to a bone (`npm run web:dev`, then open
   `/examples/pixi.html`; add `?webgpu` for WebGPU).
 - The runtime is `runtimes/pixi/rigby-pixi.ts` (shared types in `types.ts`, the typed view of the
-  JavaScript core in `core.ts`). Within this repository, Vite and Node with type stripping can
-  import the `.ts` source directly.
+  JavaScript core in `core.ts`). Node 22.18 or newer, with type stripping, imports the `.ts` source
+  directly; the examples and tests in this repository do.
+- The npm package, `@rigby2d/pixi-js`, is built from this folder: `npm run build:pixi:npm` (in the
+  repository root) writes `runtimes/pixi/dist/` (an ES module and its `.d.ts`), and
+  `npm run verify:pixi:npm` checks what `npm pack` would ship. The standalone bundles stay as they
+  were (`npm run build:pixi`).
+- Releases: `.github/workflows/npm-publish.yml` starts with the app's release, on the same `v<version>`
+  tag push as `release.yml`, and publishes `@rigby2d/pixi-js` (the only package for now). The tag
+  must match `version` in `runtimes/pixi/package.json`, so bump both together. It needs the
+  repository secret `NPM_TOKEN`; "Run workflow" only builds and verifies.
 - Tests: `node --test test/pixi.test.js` checks the meshes hold exactly the JavaScript runtime's
   triangles, and covers blend modes, per-object skins, two-color tint, events and bone children.
   `test/pixi-wasm.test.js` checks the WebAssembly mode draws the same triangles and UVs (skipped
