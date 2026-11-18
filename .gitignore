@@ -18,3 +18,5 @@ _site/
 
 # Interface check screenshots (npm run ui:check)
 test/ui/shots/
+runtimes/pixi/dist/
+runtimes/pixi/LICENSE-*
