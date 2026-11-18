@@ -61,6 +61,8 @@ jobs:
           node runtimes/phaser/build.mjs
           npx vite build --config site/vite.config.js
           cp -r _site/docs/. "$GITHUB_WORKSPACE/_site/docs/"
+          # Their scripts and styles too: the released pages point at the release build's hashed assets.
+          cp -rn _site/assets/. "$GITHUB_WORKSPACE/_site/assets/"
       - uses: actions/configure-pages@v6
       - uses: actions/upload-pages-artifact@v5
         with:
