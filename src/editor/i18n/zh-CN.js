@@ -1336,6 +1336,8 @@ export default {
   "Website": "网站",
   "Weights": "权重",
   "Weights each vertex to the nearest of the selected bones": "将每个顶点的权重分配给所选骨骼中最近的一根",
+  "Splash animation": "启动动画",
+  "Play a community animation on the splash screen, then start the editor with Start. Off: the logo shows and the editor opens by itself.": "在启动画面播放社区动画，点击“开始”进入编辑器。关闭后只显示标志，编辑器自动打开。",
   "Welcome screen": "欢迎屏幕",
   "Welcome screen…": "欢迎屏幕…",
   "Welcome to Rigby2D": "欢迎使用 Rigby2D",

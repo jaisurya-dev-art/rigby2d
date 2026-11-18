@@ -15,6 +15,8 @@ export const PREFS = {
   /** People's own themes: { id: { name, scheme, colors } }. Not reset with the Interface page. */
   'themes.custom': { default: {} },
   'general.welcome': { default: true },
+  /** Desktop: play a community animation on the splash screen (when the app bundles any). */
+  'general.splashArt': { default: true },
   'updates.check': { default: true },
   'editing.undoSteps': { default: 200, min: 20, max: 1000 },
   /** Curve of new transform keys: 'linear', 'ease' (ease in and out) or 'stepped'. */

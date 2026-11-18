@@ -1,11 +1,16 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
-// Splash screen: the Rigby2D lockup sweeps in, holds a moment, and the editor opens. (The splash
-// carries no character artwork, so the signed desktop app contains open-source code only.)
+// Splash screen. By default the Rigby2D lockup sweeps in, holds a moment, and the editor opens.
+// When community animations are bundled (src/splash/art/) and Preferences ▸ General ▸ Splash
+// animation is on, one of them plays instead, credited, and a Start button opens the editor once it
+// is ready. (Community pieces are CC BY 4.0, so the signed app still holds only openly licensed work.)
 
 import { listen } from '@tauri-apps/api/event';
 import { Window, getCurrentWindow } from '@tauri-apps/api/window';
 
 import lockupUrl from '../../branding/rigby2d-lockup-transparent.svg?url';
+import { version } from '../../package.json';
+import { createPrefs } from '../editor/prefs.js';
+import { pickPiece, playPiece } from './art.js';
 
 const inTauri = '__TAURI_INTERNALS__' in window;
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -16,6 +21,7 @@ const MAX_WAIT = 8;
 const $ = (s) => document.querySelector(s);
 $('#lockup').src = lockupUrl;
 
+const piece = createPrefs().get('general.splashArt') ? pickPiece() : null;
 let finished = false;
 
 /**
@@ -61,13 +67,36 @@ function reveal() {
   $('#note').style.opacity = '0';
 }
 
-setTimeout(reveal, reducedMotion ? 0 : 150);
+if (piece) {
+  document.body.classList.add('art');
+  $('#version').textContent = version;
+  playPiece(piece, $('#art'), reducedMotion).catch((err) => console.error('splash animation', err));
+  const credit = $('#credit');
+  credit.append(Object.assign(document.createElement('b'), { textContent: `${piece.title} by ${piece.artist}` }), 'Community animation · Made with Rigby2D');
+  $('#bar').style.width = '35%';
+  $('#start').addEventListener('click', () => finish());
+  addEventListener('keydown', (e) => {
+    if ((e.key === 'Enter' || e.key === ' ' || e.key === 'Escape') && $('#start').classList.contains('ready')) finish();
+  });
+} else {
+  setTimeout(reveal, reducedMotion ? 0 : 150);
+}
 
 // The editor opens once it has drawn its first frame (it sends `editor-ready`), so it never appears
 // blank; and not before the lockup has played. If the signal never comes, it opens anyway.
+// With an animation it waits for Start instead: the button turns from grey to white when ready.
 let held = false;
 let ready = !inTauri;
-const maybeFinish = () => held && ready && finish();
+function maybeFinish() {
+  if (!held || !ready) return;
+  if (!piece) return finish();
+  const start = $('#start');
+  if (start.classList.contains('ready')) return;
+  start.classList.add('ready');
+  start.focus({ focusVisible: false });
+  $('#bar').style.width = '100%';
+  setTimeout(() => ($('#bar').style.opacity = '0'), 400);
+}
 setTimeout(() => {
   held = true;
   maybeFinish();
@@ -78,4 +107,7 @@ if (inTauri) {
     maybeFinish();
   }).catch(() => (ready = true));
 }
-setTimeout(finish, MAX_WAIT * 1000);
+setTimeout(() => {
+  ready = held = true;
+  maybeFinish();
+}, MAX_WAIT * 1000);

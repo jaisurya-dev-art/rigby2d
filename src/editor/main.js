@@ -4,7 +4,7 @@
 
 import { WORKSPACES, has } from './workspaces.js';
 import { emit } from '@tauri-apps/api/event';
-import { getCurrentWindow } from '@tauri-apps/api/window';
+import { Window, getCurrentWindow } from '@tauri-apps/api/window';
 
 import './style.css';
 import { App, Mode, saveSetting, saveShapes } from './app.js';
@@ -804,8 +804,14 @@ else {
 }
 
 // The window starts hidden while the splash screen plays; the splash opens it when done. Show it
-// anyway if the splash never does.
-if (inTauri) setTimeout(() => getCurrentWindow().maximize().catch(() => {}).finally(() => getCurrentWindow().show().catch(() => {})), 10000);
+// anyway if the splash never does (unless it is still open, waiting for Start).
+if (inTauri) {
+  setTimeout(async () => {
+    const splash = await Window.getByLabel('splash').catch(() => null);
+    if (splash && (await splash.isVisible().catch(() => false))) return;
+    getCurrentWindow().maximize().catch(() => {}).finally(() => getCurrentWindow().show().catch(() => {}));
+  }, 10000);
+}
 
 /**
  * Desktop: opens the project among files dropped on the window or passed at launch (a work file

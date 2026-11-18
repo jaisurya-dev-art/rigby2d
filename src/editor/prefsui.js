@@ -126,6 +126,7 @@ const PAGES = [
         choice([['', t('System ({language})', { language: navigator.language })], ...LANGUAGES], app.prefs.get('interface.language'), (v) => app.prefs.set('interface.language', v)),
       ),
       row('Welcome screen', 'Show the welcome screen when the editor starts.', checkbox(app.prefs.get('general.welcome'), (v) => app.prefs.set('general.welcome', v))),
+      isDesktop ? row('Splash animation', 'Play a community animation on the splash screen, then start the editor with Start. Off: the logo shows and the editor opens by itself.', checkbox(app.prefs.get('general.splashArt'), (v) => app.prefs.set('general.splashArt', v))) : null,
       isDesktop ? row('Check for updates', 'Look for a new version when the editor starts and every few hours, and show it in the menu bar.', checkbox(app.prefs.get('updates.check'), (v) => app.prefs.set('updates.check', v))) : null,
     ],
   },

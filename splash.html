@@ -49,6 +49,101 @@
         letter-spacing: 0.04em;
         transition: opacity 0.3s;
       }
+      /* A community animation (src/splash/art/): played live, with the lockup top left and a Start button. */
+      #art,
+      #credit,
+      #version,
+      #start,
+      #bar {
+        display: none;
+      }
+      body.art {
+        background:
+          radial-gradient(55% 80% at 62% 55%, rgba(123, 167, 199, 0.16), transparent 70%),
+          #0a0a0b;
+      }
+      body.art #note {
+        display: none;
+      }
+      body.art #art {
+        display: block;
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+      }
+      body.art #lockup {
+        left: 30px;
+        top: 26px;
+        width: 220px;
+        transform: none;
+        opacity: 1;
+        clip-path: none;
+        filter: none;
+      }
+      body.art #credit {
+        display: block;
+        position: absolute;
+        left: 32px;
+        bottom: 22px;
+        font-size: 11px;
+        line-height: 1.5;
+        color: #6b7079;
+      }
+      #credit b {
+        display: block;
+        color: #f4f4f5;
+        font-size: 13px;
+        font-weight: 600;
+      }
+      body.art #version {
+        display: block;
+        position: absolute;
+        right: 28px;
+        top: 22px;
+        color: #565a62;
+      }
+      body.art #start {
+        display: block;
+        position: absolute;
+        right: 26px;
+        bottom: 22px;
+        font: 600 13px system-ui, 'Segoe UI', sans-serif;
+        color: #6b7079;
+        background: #26272b;
+        border: 0;
+        border-radius: 8px;
+        padding: 10px 26px;
+        pointer-events: none;
+        transition:
+          background 0.4s,
+          color 0.4s;
+      }
+      body.art #start.ready {
+        color: #0a0a0b;
+        background: #f4f4f5;
+        cursor: pointer;
+        pointer-events: auto;
+      }
+      body.art #start.ready:hover {
+        background: #b5d3e7;
+      }
+      body.art #start:focus-visible {
+        outline: 2px solid #7ba7c7;
+        outline-offset: 2px;
+      }
+      body.art #bar {
+        display: block;
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        height: 2px;
+        width: 0;
+        background: #7ba7c7;
+        transition:
+          width 0.4s,
+          opacity 0.4s;
+      }
       body.leaving {
         transition: opacity 0.25s ease-in;
         opacity: 0;
@@ -56,7 +151,12 @@
     </style>
   </head>
   <body data-tauri-drag-region>
+    <canvas id="art"></canvas>
     <img id="lockup" alt="Rigby2D" draggable="false" />
+    <div id="credit"></div>
+    <div id="version"></div>
+    <button id="start" type="button">Start</button>
+    <div id="bar"></div>
     <div id="note">Loading…</div>
     <script type="module" src="/src/splash/splash.js"></script>
   </body>
