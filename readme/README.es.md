@@ -55,13 +55,13 @@
 </p>
 
 <p align="center">
-  <a href="https://youtu.be/I9G-ZbvNlGw"><img src="../docs/images/promo-0.5.jpg" alt="Mira el vídeo de Rigby2D 0.5 en YouTube" width="800"></a><br>
-  <sub>▶ <a href="https://youtu.be/I9G-ZbvNlGw">Mira <b>Rigby2D 0.5</b></a>: todas las novedades en 54 segundos · También: <a href="https://youtu.be/3StZlHwZeSo">Meet NILA</a>, nuestra mascota animada en Rigby2D</sub>
+  <a href="https://youtu.be/Yqh1_XLBHsU"><img src="https://img.youtube.com/vi/Yqh1_XLBHsU/maxresdefault.jpg" alt="Rigby2D 0.6 Mammoth trailer" width="800"></a><br>
+  <sub>▶ <a href="https://youtu.be/Yqh1_XLBHsU">Rigby2D 0.6 Mammoth</a></sub>
 </p>
 
 <p align="center">
-  <img src="../docs/screenshot.jpg" alt="El editor de Rigby2D animando a NILA" width="800"><br>
-  <sub>El editor animando a NILA: el hueso de la cabeza seleccionado en el árbol, sus claves en la hoja de animación y su pose en el inspector.</sub>
+  <img src="../docs/screenshot.jpg" alt="El editor de Rigby2D 0.6 animando el mamut" width="800"><br>
+  <sub>El editor 0.6 con la demo del mamut: su rig en el visor, la animación del barrito en la hoja de animación, el árbol y el inspector a la derecha.</sub>
 </p>
 
 ## Destacado en

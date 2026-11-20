@@ -55,13 +55,13 @@
 </p>
 
 <p align="center">
-  <a href="https://youtu.be/I9G-ZbvNlGw"><img src="../docs/images/promo-0.5.jpg" alt="在 YouTube 上观看 Rigby2D 0.5 影片" width="800"></a><br>
-  <sub>▶ <a href="https://youtu.be/I9G-ZbvNlGw">观看 <b>Rigby2D 0.5</b></a>：54 秒看完全部新功能 · 另见：<a href="https://youtu.be/3StZlHwZeSo">Meet NILA</a>，用 Rigby2D 制作动画的吉祥物</sub>
+  <a href="https://youtu.be/Yqh1_XLBHsU"><img src="https://img.youtube.com/vi/Yqh1_XLBHsU/maxresdefault.jpg" alt="Rigby2D 0.6 Mammoth trailer" width="800"></a><br>
+  <sub>▶ <a href="https://youtu.be/Yqh1_XLBHsU">Rigby2D 0.6 Mammoth</a></sub>
 </p>
 
 <p align="center">
-  <img src="../docs/screenshot.jpg" alt="正在为 NILA 制作动画的 Rigby2D 编辑器" width="800"><br>
-  <sub>编辑器正在为 NILA 制作动画：在树中选中头部骨骼，关键帧显示在摄影表中，姿势显示在检查器中。</sub>
+  <img src="../docs/screenshot.jpg" alt="正在为猛犸象制作动画的 Rigby2D 0.6 编辑器" width="800"><br>
+  <sub>0.6 编辑器打开猛犸象演示：视口中是它的骨架，摄影表中是鸣叫动画，右侧停靠着树和检查器。</sub>
 </p>
 
 ## 媒体报道与社区收录

@@ -55,13 +55,13 @@
 </p>
 
 <p align="center">
-  <a href="https://youtu.be/I9G-ZbvNlGw"><img src="../docs/images/promo-0.5.jpg" alt="YouTube에서 Rigby2D 0.5 영상 보기" width="800"></a><br>
-  <sub>▶ <a href="https://youtu.be/I9G-ZbvNlGw"><b>Rigby2D 0.5</b> 보기</a>: 54초에 담은 새 기능 · <a href="https://youtu.be/3StZlHwZeSo">Meet NILA</a>: Rigby2D로 애니메이션한 마스코트</sub>
+  <a href="https://youtu.be/Yqh1_XLBHsU"><img src="https://img.youtube.com/vi/Yqh1_XLBHsU/maxresdefault.jpg" alt="Rigby2D 0.6 Mammoth trailer" width="800"></a><br>
+  <sub>▶ <a href="https://youtu.be/Yqh1_XLBHsU">Rigby2D 0.6 Mammoth</a></sub>
 </p>
 
 <p align="center">
-  <img src="../docs/screenshot.jpg" alt="NILA를 애니메이션하는 Rigby2D 에디터" width="800"><br>
-  <sub>NILA를 애니메이션하는 에디터: 트리에서 머리 본을 선택하고, 도프시트에 키, 인스펙터에 포즈.</sub>
+  <img src="../docs/screenshot.jpg" alt="매머드를 애니메이션하는 Rigby2D 0.6 에디터" width="800"><br>
+  <sub>매머드 데모를 연 0.6 에디터: 뷰포트에 리그, 도프시트에 울음 애니메이션, 오른쪽에 트리와 인스펙터.</sub>
 </p>
 
 ## 미디어 및 커뮤니티 소개

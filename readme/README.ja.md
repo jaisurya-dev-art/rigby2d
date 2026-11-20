@@ -55,13 +55,13 @@
 </p>
 
 <p align="center">
-  <a href="https://youtu.be/I9G-ZbvNlGw"><img src="../docs/images/promo-0.5.jpg" alt="YouTube で Rigby2D 0.5 の紹介映像を見る" width="800"></a><br>
-  <sub>▶ <a href="https://youtu.be/I9G-ZbvNlGw"><b>Rigby2D 0.5</b> を見る</a>：新機能を 54 秒で · <a href="https://youtu.be/3StZlHwZeSo">Meet NILA</a>：Rigby2D でアニメーションしたマスコット</sub>
+  <a href="https://youtu.be/Yqh1_XLBHsU"><img src="https://img.youtube.com/vi/Yqh1_XLBHsU/maxresdefault.jpg" alt="Rigby2D 0.6 Mammoth trailer" width="800"></a><br>
+  <sub>▶ <a href="https://youtu.be/Yqh1_XLBHsU">Rigby2D 0.6 Mammoth</a></sub>
 </p>
 
 <p align="center">
-  <img src="../docs/screenshot.jpg" alt="NILA をアニメーション中の Rigby2D エディター" width="800"><br>
-  <sub>NILA をアニメーション中のエディター：ツリーで頭のボーンを選択し、ドープシートにキー、インスペクターにポーズ。</sub>
+  <img src="../docs/screenshot.jpg" alt="マンモスをアニメーション中の Rigby2D 0.6 エディター" width="800"><br>
+  <sub>マンモスのデモを開いた 0.6 エディター：ビューポートにリグ、ドープシートに鳴き声のアニメーション、右にツリーとインスペクター。</sub>
 </p>
 
 ## メディア掲載・紹介

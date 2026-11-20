@@ -70,13 +70,8 @@
 </p>
 
 <p align="center">
-  <a href="https://youtu.be/I9G-ZbvNlGw"><img src="docs/images/promo-0.5.jpg" alt="Watch the Rigby2D 0.5 film on YouTube" width="800"></a><br>
-  <sub>▶ <a href="https://youtu.be/I9G-ZbvNlGw">Watch <b>Rigby2D 0.5</b></a>: everything new in 54 seconds · Also: <a href="https://youtu.be/3StZlHwZeSo">Meet NILA</a>, our mascot, animated in Rigby2D</sub>
-</p>
-
-<p align="center">
-  <img src="docs/screenshot.jpg" alt="The Rigby2D editor animating NILA: viewport with her rig, bone tree, inspector and dopesheet" width="800"><br>
-  <sub>The editor animating NILA: the head bone selected in the tree, its keys in the dopesheet, its pose in the inspector.</sub>
+  <img src="docs/screenshot.jpg" alt="The Rigby2D 0.6 editor animating the Mammoth demo: viewport with its rig, tree, inspector and dopesheet" width="800"><br>
+  <sub>The 0.6 editor with the Mammoth demo: its rig in the viewport, the trumpet animation in the dopesheet, the tree and inspector docked on the right.</sub>
 </p>
 
 ## Featured in
