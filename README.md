@@ -26,6 +26,11 @@
 </p>
 
 <p align="center">
+  <a href="https://youtu.be/Yqh1_XLBHsU"><img src="https://img.youtube.com/vi/Yqh1_XLBHsU/maxresdefault.jpg" alt="Watch the Rigby2D 0.6 Mammoth trailer on YouTube" width="720"></a><br>
+  <sub>▶ <a href="https://youtu.be/Yqh1_XLBHsU">Watch the 0.6 Mammoth trailer</a>: every shot made in Rigby2D</sub>
+</p>
+
+<p align="center">
   <a href="https://alternativeto.net/software/rigby2d/about/?utm_source=badge&utm_medium=referral"><img alt="Rigby2D on AlternativeTo" src="https://alternativeto.net/static/badges/badge-compact-dark.svg" height="80"></a><br>
   <sub>Listed on AlternativeTo next to Spine, DragonBones and Live2D</sub>
 </p>
