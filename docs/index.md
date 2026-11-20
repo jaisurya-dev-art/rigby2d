@@ -5,7 +5,7 @@ and meshes, animate it for games or film, and play it anywhere with the included
 [MCP server](mcp.md) lets AI assistants inspect, rig and animate your projects, and the
 [`rigby` command](cli.md) does the same from a terminal.
 
-![The Rigby2D editor with NILA, the Rigby2D mascot, in Animate mode: the viewport, the bone tree, the inspector and the dopesheet](images/editor-overview.jpg "NILA, one of the bundled demos, open in the editor")
+![The Rigby2D 0.6 editor with the Mammoth demo in Animate mode: the viewport with its rig, the tree, the inspector and the dopesheet](images/editor-overview.jpg "The Mammoth, one of the bundled demos, open in the editor")
 
 > [!TIP]
 > Watch [Meet NILA](https://youtu.be/3StZlHwZeSo), our mascot's 70-second promo, animated and rendered in Rigby2D.
