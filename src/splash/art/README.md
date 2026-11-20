@@ -27,6 +27,9 @@ src/splash/art/<id>/
 }
 ```
 
+- A still picture instead of a skeleton: `"image": "plate.webp"` (it gets falling snow and a slow
+  push in), and `"headline": ["Rigby2D", "0.6", "MAMMOTH"]` to show the release name instead of a
+  credit (the 0.6 splash, `mammoth/`).
 - `animation` loops; leave it out to play the first one. `skin` picks a skin.
 - `frame` places the setup pose: its centre at `x` and `y` of the window (0 to 1) and its height
   `height` of the window's. The lockup sits top left, the credit bottom left and the Start button

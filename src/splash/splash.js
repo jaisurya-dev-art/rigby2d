@@ -2,12 +2,14 @@
 // Splash screen. By default the Rigby2D lockup sweeps in, holds a moment, and the editor opens.
 // When community animations are bundled (src/splash/art/) and Preferences ▸ General ▸ Splash
 // animation is on, one of them plays instead, credited, and a Start button opens the editor once it
-// is ready. (Community pieces are CC BY 4.0, so the signed app still holds only openly licensed work.)
+// is ready. A piece can also be a still picture brought to life (snow and a slow push) with a headline,
+// as the release splash is.
 
 import { listen } from '@tauri-apps/api/event';
 import { Window, getCurrentWindow } from '@tauri-apps/api/window';
 
 import lockupUrl from '../../branding/rigby2d-lockup-transparent.svg?url';
+import markUrl from '../../branding/rigby2d-mark.svg?url';
 import { version } from '../../package.json';
 import { createPrefs } from '../editor/prefs.js';
 import { pickPiece, playPiece } from './art.js';
@@ -69,10 +71,19 @@ function reveal() {
 
 if (piece) {
   document.body.classList.add('art');
+  // With art the mark alone sits top left: the name is in the headline or the credit.
+  $('#lockup').src = markUrl;
   $('#version').textContent = version;
   playPiece(piece, $('#art'), reducedMotion).catch((err) => console.error('splash animation', err));
   const credit = $('#credit');
-  credit.append(Object.assign(document.createElement('b'), { textContent: `${piece.title} by ${piece.artist}` }), 'Community animation · Made with Rigby2D');
+  if (piece.headline) {
+    // A release splash: its name, large, in place of a credit.
+    const [name, version, title] = piece.headline;
+    credit.classList.add('headline');
+    credit.append(Object.assign(document.createElement('span'), { textContent: `${name} ` }), Object.assign(document.createElement('em'), { textContent: version }), Object.assign(document.createElement('b'), { textContent: title }));
+  } else {
+    credit.append(Object.assign(document.createElement('b'), { textContent: `${piece.title} by ${piece.artist}` }), 'Community animation · Made with Rigby2D');
+  }
   $('#bar').style.width = '35%';
   $('#start').addEventListener('click', () => finish());
   addEventListener('keydown', (e) => {

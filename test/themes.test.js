@@ -39,6 +39,8 @@ test('every colour token the stylesheet reads is set by every theme', () => {
   // The engine marks' brand colours.
   read.delete('--rt');
   read.delete('--rt-fg');
+  // The What's new tour is always dark.
+  for (const name of [...read]) if (name.startsWith('--wn-')) read.delete(name);
   for (const theme of BUILT_IN_THEMES) {
     const tokens = themeTokens(theme);
     const missing = [...read].filter((name) => !(name in tokens));

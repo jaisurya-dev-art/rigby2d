@@ -8,6 +8,8 @@ import nilaUrl from '../../branding/nila/nila.rigby?url&no-inline';
 import nilaThumb from '../../branding/nila/thumbnail.png?url';
 import sceneUrl from '../../branding/scene/scene.rigby?url&no-inline';
 import sceneThumb from '../../branding/scene/thumbnail.png?url';
+import mammothUrl from '../../branding/mammoth/mammoth.rigby?url&no-inline';
+import mammothThumb from '../../branding/mammoth/thumbnail.png?url';
 
 export const REMOTE = false;
 
@@ -15,4 +17,5 @@ export const SOURCES = {
   rigbytron: { url: rigbytronUrl, thumbnail: rigbytronThumb },
   nila: { url: nilaUrl, thumbnail: nilaThumb },
   scene: { url: sceneUrl, thumbnail: sceneThumb },
+  mammoth: { url: mammothUrl, thumbnail: mammothThumb },
 };

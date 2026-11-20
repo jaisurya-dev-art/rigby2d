@@ -67,6 +67,13 @@ const DEMOS = {
     export: 'runtimes/godot/demo/scene',
     about: 'Scene composition: both characters as actors with clips, voices and lip-sync, on a painted multiplane stage with parallax and a moving camera.',
   },
+  mammoth: {
+    title: 'Mammoth',
+    credit: 'the Mammoth',
+    file: 'branding/mammoth/mammoth.rigby',
+    export: 'branding/mammoth/export',
+    about: 'A film demo: a woolly mammoth with a meshed, physics-driven coat and tail, its walk and trumpet call, and film effects (shadow, light, snow, depth of field) in the Film workspace.',
+  },
 };
 const DEMO_LICENSE = 'branding/DEMO-LICENSE.md';
 

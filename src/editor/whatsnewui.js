@@ -1,21 +1,18 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
-// What's new in 0.5: a full-screen launch tour, one idea per screen, shown once when a new minor
-// version first starts (before the welcome screen) and any time from Help ▸ What's new in 0.5. Each
+// What's new in 0.6: a full-screen launch tour, one idea per screen, shown once when a new minor
+// version first starts (before the welcome screen) and any time from Help ▸ What's new in 0.6. Each
 // feature screen has a button that opens the feature. Arrow keys, the dots, Next and Skip move
 // through it; Escape closes it.
 
 import { VERSION } from './helpui.js';
 import { t } from './i18n.js';
-import { engineIcon } from './icons.js';
-import { iceText } from './icetext.js';
 import { openExternal } from './platform.js';
-import { openRuntimes } from './runtimeui.js';
-import { openSpriteSheetDialog } from './spritesheetui.js';
+import { openThemes } from './themeui.js';
+import { asepriteArt, boneOnlyArt, dockArt, filmArt, themesArt, turnArt, warpArt, weightsArt } from './whatsnewart.js';
 import { h } from './widgets.js';
-import markUrl from '../../branding/rigby2d-mark.svg?url';
 
 /** The release this tour is for (major.minor); it shows once per release that is newer than the last one seen. */
-export const TOUR_RELEASE = '0.5';
+export const TOUR_RELEASE = '0.6';
 const SEEN_KEY = 'rigby2d.whatsnew.seen';
 
 const minor = (v) => (v ?? '').split('.').slice(0, 2).join('.');
@@ -34,85 +31,74 @@ function markSeen() {
 /** Whether to open the tour at startup: a release build of this tour's version, not yet seen. */
 export const shouldShowWhatsNew = () => minor(VERSION) === TOUR_RELEASE && seen() !== TOUR_RELEASE;
 
-/** Key caps for the shortcuts screen. */
-const keys = (...k) => h('span', { class: 'wn-keys' }, ...k.map((x) => h('kbd', null, x)));
+// The opening plays the end of the 0.6 trailer full screen (src/editor/whatsnew/, VP9 with a still for
+// its first frame); each feature screen draws its own live animation (whatsnewart.js).
+const media = import.meta.glob('./whatsnew/*.{webm,jpg}', { eager: true, query: '?url', import: 'default' });
+const clip = (name) => ({ src: media[`./whatsnew/${name}.webm`], poster: media[`./whatsnew/${name}.jpg`] });
+const docs = (page) => () => openExternal(`https://rigby2d.com/docs/${page}.html`);
 
-/** A mesh drawing itself: an outline, then the triangles inside it (an SVG with stroke animations). */
-function meshArt() {
-  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  svg.setAttribute('viewBox', '0 0 240 240');
-  svg.setAttribute('class', 'wn-mesh');
-  // A leaf-like shape, its outline points and a fan of triangles inside it.
-  const pts = [[120, 18], [168, 42], [200, 92], [206, 146], [182, 196], [132, 222], [86, 212], [48, 176], [34, 124], [48, 72], [82, 34]];
-  const inner = [[120, 96], [150, 136], [96, 150], [124, 176]];
-  const all = [...pts, ...inner];
-  const tri = [[0, 1, 11], [1, 2, 11], [2, 3, 12], [2, 12, 11], [3, 4, 12], [4, 14, 12], [4, 5, 14], [5, 6, 14], [6, 13, 14], [6, 7, 13], [7, 8, 13], [8, 9, 11], [8, 11, 13], [9, 10, 11], [10, 0, 11], [11, 12, 13], [12, 14, 13]];
-  const P = (i) => all[i].join(',');
-  svg.innerHTML =
-    `<polygon class="wn-mesh-fill" points="${pts.map((p) => p.join(',')).join(' ')}"/>` +
-    tri.map(([a, b, c], i) => `<polygon class="wn-mesh-tri" style="animation-delay:${0.5 + i * 0.05}s" points="${P(a)} ${P(b)} ${P(c)}"/>`).join('') +
-    all.map(([x, y], i) => `<circle class="wn-mesh-pt" style="animation-delay:${0.2 + i * 0.03}s" cx="${x}" cy="${y}" r="4.5"/>`).join('');
-  return svg;
-}
-
-/** A sprite sheet filling up, frame by frame. */
-function sheetArt() {
-  return h('div', { class: 'wn-sheet' }, ...Array.from({ length: 24 }, (_, i) => h('span', { style: `animation-delay:${0.3 + i * 0.06}s` }, h('i', { style: `transform:rotate(${Math.sin(i / 3.8) * 22}deg)` }))));
-}
-
-/** The screens of the tour: the opening, each feature, and the rest. */
-/** The release number in frosted glass, with particles rising inside (icetext.js); stops itself once off the page. */
-function ice(text) {
-  const el = h('span', { class: 'wn-ice', 'data-text': text }, text);
-  iceText(el);
-  return el;
-}
-
-function screens(app, { showPreferences }) {
-  const engines = (names, size) => h('div', { class: 'wn-engines' }, ...names.map((n) => h('span', { class: `wn-engine wn-${n}` }, engineIcon(n, size))));
+function screens(app) {
   return [
     {
       id: 'intro',
-      body: () => [
-        h('img', { class: 'wn-mark', src: markUrl, alt: '' }),
-        h('h1', { class: 'wn-hero' }, 'Rigby2D ', ice('0.5')),
-        h('p', { class: 'wn-lede' }, t('Our biggest update yet.')),
-      ],
+      film: clip('intro'),
+      body: () => [h('p', { class: 'wn-lede' }, t('We kept something big on ice. Until now.'))],
     },
     {
-      id: 'defold',
-      art: () => h('div', { class: 'wn-art-stack' }, engines(['defold'], 132), h('div', { class: 'wn-chips' }, ...[t('Windows'), 'macOS', t('Linux'), t('Android'), 'iOS', 'HTML5'].map((p, i) => h('span', { style: `animation-delay:${0.45 + i * 0.07}s` }, p)))),
-      title: t('Now in Defold.'),
-      text: t('A native runtime in C++, on every platform Defold ships to, matching the editor frame for frame.'),
-      cta: [t('Get the Defold runtime'), () => openRuntimes(app)],
+      id: 'dock',
+      art: dockArt,
+      title: t('Dock it. Tab it.'),
+      text: t('Every panel and dialog, rebuilt on one design language. Drag any panel by its tab, and save your layouts.'),
+      cta: [t('Tour the interface'), docs('interface')],
     },
     {
-      id: 'sheets',
-      art: sheetArt,
-      title: t('Sprite sheets.'),
-      text: t('Turn any animation into a sprite sheet, a Defold atlas, or loose frames. Drawn on your GPU, in seconds.'),
-      cta: [t('Export a sprite sheet'), () => openSpriteSheetDialog(app)],
+      id: 'themes',
+      art: themesArt,
+      title: t('Three themes. Or your own.'),
+      text: t('Rigby Dark, Mammoth and Rigby Light. Change any colour and share it as a file.'),
+      cta: [t('Open Themes'), () => openThemes(app)],
     },
     {
-      id: 'mesh',
-      art: meshArt,
-      title: t('One click. A mesh.'),
-      text: t('Rigby2D traces your art, places the points and builds the triangles. Then bend it.'),
-      cta: [t('See how it works'), () => openExternal('https://rigby2d.com/docs/meshes.html')],
+      id: 'weights',
+      art: weightsArt,
+      title: t('Watch your weights work.'),
+      text: t('Try a pose while you paint, or let the bone wiggle. Every stroke shows its effect, live.'),
+      cta: [t('Learn about weights'), docs('meshes')],
     },
     {
-      id: 'godot',
-      art: () => h('div', { class: 'wn-art-stack' }, engines(['godot'], 132), h('span', { class: 'wn-badge' }, t('Production-ready'))),
-      title: t('Godot, out of preview.'),
-      text: t('RigbySkeleton2D and RigbyScene2D are complete, tested against the editor on every frame.'),
-      cta: [t('Get the Godot runtime'), () => openRuntimes(app)],
+      id: 'boneonly',
+      art: boneOnlyArt,
+      title: t('Move a joint. The art stays.'),
+      text: t('Fix a bone after the rig is built, IK chains included. Plus point bones, and constraints that never jump.'),
+      cta: [t('Learn more'), docs('bones-and-slots')],
     },
     {
-      id: 'keys',
-      art: () => h('div', { class: 'wn-keyart' }, keys(t('Ctrl'), t('Shift'), 'B'), h('span', { class: 'wn-keyarrow' }, '→'), h('span', { class: 'wn-keyto' }, t('Create bone'))),
-      title: t('Your keys. Your way.'),
-      text: t('Rebind any action, keep more than one key for it, and take your keymap to any computer.'),
-      cta: [t('Customize shortcuts'), () => showPreferences('interface')],
+      id: 'turn',
+      art: turnArt,
+      title: t('Drag one handle. It turns.'),
+      text: t('A 2.5D turn and tilt from flat art, built for you. Plays in every runtime.'),
+      cta: [t('Learn more'), docs('meshes')],
+    },
+    {
+      id: 'warp',
+      art: warpArt,
+      title: t('Bend anything.'),
+      text: t('Warp deformers, nested and keyable. Shape any side of a turn by hand.'),
+      cta: [t('Learn more'), docs('meshes')],
+    },
+    {
+      id: 'film',
+      art: filmArt,
+      title: t('Then the film.'),
+      text: t('Shadow, light, glow, snow, sparks, motion blur and depth of field. Live in the viewport, rendered on your GPU.'),
+      cta: [t('Learn about film effects'), docs('film-effects')],
+    },
+    {
+      id: 'aseprite',
+      art: asepriteArt,
+      title: t('Aseprite files, already animated.'),
+      text: t('Layers become parts and tags become animations. Then add bones on top.'),
+      cta: [t('Learn more'), docs('importing-art')],
     },
     {
       id: 'more',
@@ -122,15 +108,15 @@ function screens(app, { showPreferences }) {
           'div',
           { class: 'wn-more' },
           ...[
-            [t('Copy and paste keys'), t('in the timeline, across bones and frames')],
-            [t('Phaser 4'), t('the plugin runs on Phaser 3.60+ and 4')],
-            [t('Layered PNGs in place'), t('like a PSD, ready for AutoRig')],
-            [t('A smarter AutoRig'), t('the spine finds the neck and head')],
-            [t('Seven runtimes'), t('Unity, Godot, Defold, Cocos, Phaser, JavaScript, Rust')],
-            [t('Big sheets, split'), t('over the size limit, on to the next sheet: Phaser and PixiJS load them as one')],
-            [t('Every export reports back'), t('where it went, or what went wrong')],
-            [t('SVG import'), t('Inkscape and Affinity layers, each one in place')],
-            [t('Fixes'), t('mesh rebinding, bone hover, DragonBones import')],
+            [t('The Rig panel'), t('skins, constraints, meshes and events in one place')],
+            [t('Better meshes'), t('locked points, holes, every shape in an image')],
+            [t('Tween lines'), t('see where values blend between keys')],
+            [t('Find and reparent'), t('search the tree, drag a bone onto its new parent')],
+            [t('The rigby command'), t('convert, export and render from scripts and CI')],
+            [t("Ren'Py runtime"), t('our ninth: lip-sync for visual novels')],
+            [t('Weights button'), t('one click from a mesh to painting')],
+            [t('Constraints over MCP'), t('add and edit them from your AI assistant')],
+            [t('Fixes'), t('Spine 4.3 .skel options, shortcuts on any keyboard layout')],
           ].map(([b, s], i) => h('div', { class: 'wn-more-item', style: `animation-delay:${0.15 + i * 0.07}s` }, h('b', null, b), h('span', null, s))),
         ),
         h('p', { class: 'wn-free' }, t('Free. Forever.')),
@@ -140,18 +126,19 @@ function screens(app, { showPreferences }) {
   ];
 }
 
-/** Opens the tour. `showPreferences(page)` opens Preferences on a page; `onClose` runs once it closes. */
-export function openWhatsNew(app, { showPreferences, onClose } = {}) {
+/** Opens the tour. `onClose` runs once it closes. */
+export function openWhatsNew(app, { onClose } = {}) {
   markSeen();
-  const list = screens(app, { showPreferences });
+  const list = screens(app);
   let index = 0;
-  const overlay = h('div', { class: 'wn-backdrop', role: 'dialog', 'aria-modal': 'true', 'aria-label': t('What is new in Rigby2D 0.5') });
+  const overlay = h('div', { class: 'wn-backdrop', role: 'dialog', 'aria-modal': 'true', 'aria-label': t('What is new in Rigby2D 0.6') });
   const stage = h('div', { class: 'wn-stage' });
   const dots = h('div', { class: 'wn-dots' });
   const back = h('button', { class: 'wn-nav', onclick: () => go(index - 1) }, t('Back'));
   const next = h('button', { class: 'wn-nav wn-next', onclick: () => (index === list.length - 1 ? close() : go(index + 1)) });
   const skip = h('button', { class: 'wn-skip', onclick: () => close() }, t('Skip'));
-  overlay.append(skip, stage, h('div', { class: 'wn-bar' }, back, dots, next));
+  const filmLayer = h('div', { class: 'wn-film' });
+  overlay.append(filmLayer, skip, stage, h('div', { class: 'wn-bar' }, back, dots, next));
 
   const close = () => {
     if (!overlay.isConnected) return;
@@ -171,11 +158,22 @@ export function openWhatsNew(app, { showPreferences, onClose } = {}) {
   function go(i) {
     index = Math.max(0, Math.min(list.length - 1, i));
     const s = list[index];
-    const page = h('div', { class: `wn-page wn-page-${s.id}` });
+    const page = h('div', { class: `wn-page wn-page-${s.id}${s.film ? ' wn-on-film' : ''}` });
+    overlay.classList.toggle('wn-filmed', !!s.film);
+    const old = [...filmLayer.children];
+    if (s.film) {
+      const v = h('video', { src: s.film.src, poster: s.film.poster, muted: '', loop: '', playsinline: '', autoplay: '', 'aria-hidden': 'true' });
+      v.muted = true;
+      v.addEventListener('loadeddata', () => v.classList.add('on'), { once: true });
+      v.addEventListener('error', () => v.classList.add('on'), { once: true });
+      filmLayer.append(v);
+      v.play?.().catch(() => {});
+    }
+    old.forEach((o) => (o.classList.remove('on'), setTimeout(() => o.remove(), 500)));
     if (s.body) page.append(...s.body());
     else
       page.append(
-        h('div', { class: 'wn-art' }, s.art()),
+        ...(s.art ? [h('div', { class: 'wn-art' }, s.art())] : []),
         h('div', { class: 'wn-copy' }, h('h2', { class: 'wn-title' }, s.title), h('p', { class: 'wn-text' }, s.text)),
       );
     if (s.cta?.[1]) {

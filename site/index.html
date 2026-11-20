@@ -20,6 +20,125 @@
     <!--site-header:-->
 
     <main id="main">
+      <!-- 0.6 Mammoth release: full-screen key art, snow, title, calls to action. -->
+      <section class="mammoth" aria-label="Rigby2D 0.6 Mammoth">
+        <div class="mammoth-art" aria-hidden="true"></div>
+        <canvas class="mammoth-snow" aria-hidden="true"></canvas>
+        <div class="wrap mammoth-copy">
+          <p class="mammoth-kick">Rigby2D <b>0.6</b> · Out now</p>
+          <h1 class="mammoth-title">MAMMOTH</h1>
+          <p class="mammoth-tag">Out of the ice. Our biggest release yet.</p>
+          <div class="mammoth-cta">
+            <a class="btn primary" href="https://youtu.be/Yqh1_XLBHsU" rel="noopener" data-goatcounter-click="site-trailer-mammoth">▶ Watch the trailer</a>
+            <a class="btn" href="#download" data-goatcounter-click="site-download-mammoth">Download 0.6</a>
+            <a class="btn" href="./editor/" data-goatcounter-click="site-editor-mammoth">Open in your browser</a>
+          </div>
+          <a class="mammoth-notes" href="https://github.com/jaisurya-dev-art/rigby2d/releases/tag/v0.6.0" rel="noopener">What's new in 0.6 →</a>
+        </div>
+      </section>
+      <script>
+        (() => {
+          const c = document.querySelector('.mammoth-snow');
+          if (!c || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+          const g = c.getContext('2d');
+          const title = document.querySelector('.mammoth-title');
+          let w, h, d, flakes;
+          // The tops of the MAMMOTH letters as a height map (one entry per 2 px column, canvas pixels):
+          // flakes that reach a letter's top settle there for a few seconds, then melt.
+          let top = null;
+          let x0 = 0;
+          const STEP = 2;
+          const mapLetters = () => {
+            top = null;
+            if (!title) return;
+            const cr = c.getBoundingClientRect();
+            const tr = title.getBoundingClientRect();
+            const bl = document.createElement('span');
+            bl.style.cssText = 'display:inline-block;width:0;height:0';
+            title.appendChild(bl);
+            const base = bl.getBoundingClientRect().top;
+            bl.remove();
+            const cs = getComputedStyle(title);
+            const ow = Math.ceil(tr.width * d);
+            const oh = Math.ceil(tr.height * d);
+            if (!ow || !oh) return;
+            const o = new OffscreenCanvas(ow, oh);
+            const og = o.getContext('2d');
+            og.font = `${cs.fontWeight} ${parseFloat(cs.fontSize) * d}px ${cs.fontFamily}`;
+            og.letterSpacing = `${parseFloat(cs.letterSpacing || 0) * d}px`;
+            og.fillText(title.textContent, 0, (base - tr.top) * d);
+            const px = og.getImageData(0, 0, ow, oh).data;
+            top = new Float32Array(Math.ceil(ow / STEP)).fill(Infinity);
+            for (let i = 0; i < top.length; i++) {
+              const x = i * STEP;
+              for (let y = 0; y < oh; y++) if (px[(y * ow + x) * 4 + 3] > 128) { top[i] = (tr.top - cr.top) * d + y; break; }
+            }
+            x0 = (tr.left - cr.left) * d;
+          };
+          const pile = () => new Float32Array(top ? top.length : 0);
+          let piles = pile();
+          const size = () => {
+            const r = c.getBoundingClientRect();
+            d = Math.min(2, devicePixelRatio || 1);
+            w = c.width = r.width * d;
+            h = c.height = r.height * d;
+            flakes = Array.from({ length: Math.round((r.width * r.height) / 6500) }, () => ({ x: Math.random() * w, y: Math.random() * h, r: (0.6 + Math.random() * 2.4) * d, s: 0.3 + Math.random() * 1.1, o: 0.25 + Math.random() * 0.6, o0: 0, rest: 0 }));
+            for (const f of flakes) f.o0 = f.o;
+            mapLetters();
+            piles = pile();
+          };
+          const surface = (x) => {
+            if (!top) return Infinity;
+            const i = Math.round((x - x0) / STEP);
+            return i >= 0 && i < top.length && top[i] < Infinity ? top[i] - piles[i] : Infinity;
+          };
+          const tick = () => {
+            g.clearRect(0, 0, w, h);
+            // The drifts on the letters: a soft white rim, as thick as the snow that settled there.
+            g.fillStyle = '#eef6fc';
+            for (let i = 0; i < piles.length; i++) {
+              piles[i] *= 0.9992;
+              if (piles[i] > 0.4 && top[i] < Infinity) {
+                g.globalAlpha = Math.min(0.9, piles[i] / (3 * d));
+                g.fillRect(x0 + i * STEP, top[i] - piles[i], STEP, piles[i] + 0.5 * d);
+              }
+            }
+            for (const f of flakes) {
+              if (f.rest > 0) {
+                // Settled on a letter: melt slowly, then fall again from the top.
+                f.rest -= 1;
+                f.o = f.o0 * Math.min(1, f.rest / 90);
+                if (f.rest <= 0) { f.y = -4; f.x = Math.random() * w; f.o = f.o0; }
+              } else {
+                const s = surface(f.x);
+                const ny = f.y + f.s * f.r * 0.5;
+                if (f.r > 0.8 * d && f.y + f.r <= s && ny + f.r >= s) {
+                  f.y = s - f.r * 0.7;
+                  f.rest = 360 + Math.random() * 480;
+                  const k = Math.round((f.x - x0) / STEP);
+                  for (let j = -4; j <= 4; j++) if (piles[k + j] !== undefined) piles[k + j] = Math.min(9 * d, piles[k + j] + f.r * 1.3 * (1 - Math.abs(j) / 5));
+                } else {
+                  f.y = ny;
+                  f.x += f.s * 0.6;
+                }
+              }
+              if (f.y > h) { f.y = -4; f.x = Math.random() * w; }
+              if (f.x > w) f.x = 0;
+              g.globalAlpha = f.o;
+              g.fillStyle = '#eaf5ff';
+              g.beginPath();
+              g.arc(f.x, f.y, f.r, 0, 6.283);
+              g.fill();
+            }
+            requestAnimationFrame(tick);
+          };
+          size();
+          addEventListener('resize', size);
+          // Map the letters again once the title's entrance animation and the font have settled.
+          document.fonts.ready.then(() => setTimeout(() => { mapLetters(); piles = pile(); }, 1900));
+          tick();
+        })();
+      </script>
       <section class="hero">
         <div class="wrap hero-grid">
           <div class="hero-copy">

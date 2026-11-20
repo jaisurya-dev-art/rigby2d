@@ -39,6 +39,15 @@ export const DEMOS = [
     animation: 'meet',
     description: tn('Scene composition: both characters as actors with clips (her line with its voice and lip-sync, then his hello in a robot voice and his slash), a painted multiplane stage with parallax and a moving camera.'),
   },
+  {
+    id: 'mammoth',
+    name: 'Mammoth',
+    file: 'mammoth.rigby',
+    url: SOURCES.mammoth.url,
+    thumbnail: SOURCES.mammoth.thumbnail,
+    animation: 'trumpet',
+    description: tn('A film demo: a woolly mammoth with a meshed, physics-driven coat and tail, a walk and a trumpet call, and film effects (shadow, light, snow, depth of field) in the Film workspace.'),
+  },
 ];
 
 /** The license of the demo content (branding/DEMO-LICENSE.md), on the website's Demos page. */

@@ -1,0 +1,25 @@
+mammoth.png
+size: 4096, 2048
+filter: Linear, Linear
+eyelid
+bounds: 2794, 953, 200, 200
+floor-contact-shadow
+bounds: 2, 1823, 1200, 90
+fur-coat
+bounds: 2623, 2, 1234, 880
+head
+bounds: 2, 2, 1017, 949
+leg-front-far
+bounds: 2, 953, 535, 868
+leg-front-near
+bounds: 539, 953, 540, 844
+leg-hind-far
+bounds: 1552, 953, 385, 654
+leg-hind-near
+bounds: 1081, 953, 469, 655
+promo-floor-background
+bounds: 1021, 2, 1600, 900
+snowflake
+bounds: 1204, 1823, 32, 32
+tail
+bounds: 1939, 953, 853, 569

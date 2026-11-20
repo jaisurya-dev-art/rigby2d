@@ -9,4 +9,4 @@ export const REMOTE = true;
 const BASE = 'https://rigby2d.com/demos/';
 const of = (id) => ({ url: `${BASE}${id}.rigby`, thumbnail: `${BASE}${id}.png` });
 
-export const SOURCES = { rigbytron: of('rigbytron'), nila: of('nila'), scene: of('scene') };
+export const SOURCES = { rigbytron: of('rigbytron'), nila: of('nila'), scene: of('scene'), mammoth: of('mammoth') };

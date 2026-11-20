@@ -73,9 +73,9 @@
         height: 100%;
       }
       body.art #lockup {
-        left: 30px;
-        top: 26px;
-        width: 220px;
+        left: 28px;
+        top: 24px;
+        width: 46px;
         transform: none;
         opacity: 1;
         clip-path: none;
@@ -95,6 +95,32 @@
         color: #f4f4f5;
         font-size: 13px;
         font-weight: 600;
+      }
+      body.art #credit.headline {
+        bottom: 26px;
+        font-size: 15px;
+        font-weight: 600;
+        color: #f4f4f5;
+        line-height: 1.05;
+        animation: rise 0.7s cubic-bezier(0.2, 1.3, 0.35, 1) 0.3s both;
+      }
+      #credit.headline em {
+        font-style: normal;
+        color: #f08a3c;
+      }
+      #credit.headline b {
+        margin-top: 2px;
+        font-size: 54px;
+        font-weight: 800;
+        letter-spacing: -0.01em;
+        color: #f08a3c;
+        text-shadow: 0 0 28px rgba(240, 138, 60, 0.45);
+      }
+      @keyframes rise {
+        from {
+          opacity: 0;
+          transform: translateY(14px) scale(0.94);
+        }
       }
       body.art #version {
         display: block;

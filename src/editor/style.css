@@ -72,6 +72,10 @@
   --z-popover: 1000;
   --z-toast: 3000;
   --z-tour: 4000;
+  /* The What's new tour's film screens (always dark, whatever the theme). */
+  --wn-ink: #050607;
+  --wn-text-soft: #c7c7cc;
+  --wn-ice-text: #e8f5ff;
 }
 
 * {
@@ -5330,3 +5334,18 @@ input[type='range'] {
 .popup label.item.check-item .item-label {
   gap: 4px;
 }
+/* 0.6: feature screens play a trailer clip full screen, the words bottom left over a shade. */
+.wn-film { position: absolute; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+.wn-film video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transform: scale(1.04); transition: opacity 0.5s ease, transform 6s cubic-bezier(0.2, 0.6, 0.2, 1); }
+.wn-film video.on { opacity: 1; transform: scale(1); }
+.wn-filmed .wn-film::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, color-mix(in srgb, var(--wn-ink) 94%, transparent) 0%, color-mix(in srgb, var(--wn-ink) 60%, transparent) 30%, transparent 58%), linear-gradient(to right, color-mix(in srgb, var(--wn-ink) 55%, transparent), transparent 50%); }
+.wn-stage, .wn-bar { position: relative; z-index: 1; }
+.wn-skip { z-index: 2; }
+.wn-filmed .wn-stage { align-items: flex-end; justify-content: flex-start; padding: 0 5vw 2vh; }
+.wn-page.wn-on-film { align-items: flex-start; text-align: left; max-width: 760px; gap: 14px; }
+.wn-on-film .wn-title { font-size: clamp(40px, 5.4vw, 72px); text-shadow: 0 2px 24px color-mix(in srgb, var(--wn-ink) 50%, transparent); }
+.wn-on-film .wn-text { margin: 0; color: var(--wn-text-soft); }
+.wn-on-film .wn-cta { margin-top: 4px; }
+.wn-page-intro.wn-on-film .wn-lede { margin: 0; color: var(--wn-ice-text); font-size: clamp(20px, 2.2vw, 28px); }
+@media (prefers-reduced-motion: reduce) { .wn-film video { transition: opacity 0.3s; transform: none; } }
+.wn-live { display: block; width: min(720px, 64vw, calc((100vh - 330px) * 16 / 9)); aspect-ratio: 16 / 9; height: auto; }

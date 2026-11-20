@@ -37,8 +37,72 @@ export function framePiece(bounds, width, height, frame = {}) {
   return { x: cx, y: cy, zoom };
 }
 
+/**
+ * A still picture brought to life on `canvas` (2D): a slow push in, and wind-blown snow in three
+ * depths in front of it (fine flakes, streaks, and a few big soft flakes near the lens), all moving.
+ * Stops once the splash is leaving.
+ */
+async function playStill(piece, canvas, still) {
+  const img = await createImageBitmap(await (await fetch(piece.urls[piece.image])).blob());
+  const ctx = canvas.getContext('2d');
+  let seed = 11;
+  const rnd = () => (seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296;
+  // The wind: down and to the right. Speeds are in window heights per second.
+  const dir = [0.42, 1];
+  const len = Math.hypot(...dir);
+  const [ux, uy] = [dir[0] / len, dir[1] / len];
+  const fine = Array.from({ length: 110 }, () => ({ x: rnd(), y: rnd(), r: 0.7 + rnd() * 1.3, a: 0.35 + rnd() * 0.6, v: 0.05 + rnd() * 0.07 }));
+  const streaks = Array.from({ length: 46 }, () => ({ x: rnd(), y: rnd(), l: 0.01 + rnd() * 0.022, a: 0.1 + rnd() * 0.25, v: 0.35 + rnd() * 0.3 }));
+  const bokeh = Array.from({ length: 9 }, () => ({ x: rnd(), y: rnd(), r: 0.012 + rnd() * 0.03, a: 0.08 + rnd() * 0.14, v: 0.02 + rnd() * 0.03 }));
+  const wrap = (x) => ((x % 1) + 1) % 1;
+  const t0 = performance.now();
+  const frame = (now) => {
+    const s = still ? 0 : (now - t0) / 1000;
+    const dpr = window.devicePixelRatio || 1;
+    const w = Math.round(canvas.clientWidth * dpr);
+    const h = Math.round(canvas.clientHeight * dpr);
+    if (canvas.width !== w || canvas.height !== h) [canvas.width, canvas.height] = [w, h];
+    // Push in slowly (6% over about 30 s), towards the head.
+    const k = 1 + 0.06 * (1 - Math.exp(-s / 12));
+    ctx.drawImage(img, (w - w * k) * 0.62, (h - h * k) * 0.4, w * k, h * k);
+    const at = (p) => [wrap(p.x + (ux * s * p.v * h) / w) * w, wrap(p.y + uy * s * p.v) * h];
+    ctx.fillStyle = 'rgb(234,245,255)';
+    for (const p of fine) {
+      const [x, y] = at(p);
+      ctx.globalAlpha = p.a;
+      ctx.beginPath();
+      ctx.arc(x, y, p.r * dpr, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.strokeStyle = 'rgb(214,236,255)';
+    ctx.lineWidth = 1.2 * dpr;
+    for (const p of streaks) {
+      const [x, y] = at(p);
+      ctx.globalAlpha = p.a;
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.lineTo(x - ux * p.l * w, y - uy * p.l * w);
+      ctx.stroke();
+    }
+    for (const p of bokeh) {
+      const [x, y] = at(p);
+      const r = p.r * w;
+      const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+      g.addColorStop(0, 'rgba(225,240,255,1)');
+      g.addColorStop(1, 'rgba(225,240,255,0)');
+      ctx.globalAlpha = p.a;
+      ctx.fillStyle = g;
+      ctx.fillRect(x - r, y - r, 2 * r, 2 * r);
+    }
+    ctx.globalAlpha = 1;
+    if (!document.body.classList.contains('leaving')) requestAnimationFrame(frame);
+  };
+  requestAnimationFrame(frame);
+}
+
 /** Loads a piece and plays its animation on `canvas` (WebGL, transparent) in a loop. */
 export async function playPiece(piece, canvas, still = false) {
+  if (piece.image) return playStill(piece, canvas, still);
   const get = (name) => {
     const url = piece.urls[name];
     if (!url) throw new Error(`${name} is missing`);

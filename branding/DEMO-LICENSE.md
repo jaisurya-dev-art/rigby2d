@@ -4,7 +4,7 @@ Version 1.0, October 2026. Copyright © 2026 the Rigby2D project. All rights not
 
 This license covers the Rigby2D demo projects and everything in them: the **NILA** and **Rigbytron**
 characters (names, designs, artwork, rigs, animations, voice and sound), the **scene demo** with its
-painted backgrounds, and the exported skeletons, atlases and images made from them ("the Demo
+painted backgrounds, the **Mammoth** demo, and the exported skeletons, atlases and images made from them ("the Demo
 Content"). It is a separate license from the one for Rigby2D's source code, which is open source under
 MIT OR Apache-2.0 and does not cover the Demo Content.
 
