@@ -589,6 +589,13 @@ export class Dopesheet {
     this.scroller = scroller;
     this.canvas = canvas;
     this.ctx = canvas.getContext('2d');
+    // The canvas covers only the visible part of the scroller (sticky at its top) and draws the rows
+    // shifted by the scroll; a spacer below it gives the scroller its full height. A canvas as tall as
+    // every row (thousands of pixels at high DPI) was re-uploaded on each frame.
+    canvas.style.position = 'sticky';
+    canvas.style.top = '0';
+    this.spacer = document.createElement('div');
+    scroller.appendChild(this.spacer);
     this.keyRects = [];
     this.layout = null;
     this.press = null;
@@ -631,14 +638,18 @@ export class Dopesheet {
     const width = Math.max(1, this.scroller.clientWidth);
     const height = Math.max(top + Math.max(rows.length, 1) * ROW + 6, this.scroller.clientHeight);
     const dpr = window.devicePixelRatio || 1;
+    const viewH = Math.max(1, Math.min(height, this.scroller.clientHeight || height));
+    const scrollY = Math.max(0, Math.min(this.scroller.scrollTop, height - viewH));
     this.canvas.style.width = `${width}px`;
-    this.canvas.style.height = `${height}px`;
-    if (this.canvas.width !== Math.round(width * dpr) || this.canvas.height !== Math.round(height * dpr)) {
+    this.canvas.style.height = `${viewH}px`;
+    const spacerH = `${height - viewH}px`;
+    if (this.spacer.style.height !== spacerH) this.spacer.style.height = spacerH;
+    if (this.canvas.width !== Math.round(width * dpr) || this.canvas.height !== Math.round(viewH * dpr)) {
       this.canvas.width = Math.round(width * dpr);
-      this.canvas.height = Math.round(height * dpr);
+      this.canvas.height = Math.round(viewH * dpr);
     }
     const ctx = this.ctx;
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, -scrollY * dpr); // draw in content coordinates
     ctx.fillStyle = canvasColor('--tl-bg', 'rgb(30,30,30)');
     ctx.fillRect(0, 0, width, height);
 
@@ -713,36 +724,33 @@ export class Dopesheet {
       ctx.rect(trackLeft - 7, RULER, width - trackLeft + 7, height);
       ctx.clip();
     }
-    // Tween lines: a thin line from each key to the next where the values blend (under the diamonds).
-    if (app.tweenLines) {
+    // Tween lines and key diamonds. While playing only the time moves, so this layer is drawn once into
+    // an offscreen canvas and reused until anything it depends on changes; otherwise it is drawn live.
+    const layerKey = app.playing
+      ? [app.docEpoch, app.version, app.anim, scrollY, width, viewH, dpr, t0, viewSpan, top, rows.length, app.selectedKeys.size, copiedSource?.size ?? 0, !!app.tweenLines].join('|')
+      : null;
+    if (layerKey === null || this.keyLayer?.key !== layerKey) {
+      const live = layerKey === null;
+      let layerCtx = ctx;
+      if (!live) {
+        const canvas = this.keyLayer?.canvas ?? document.createElement('canvas');
+        if (canvas.width !== this.canvas.width || canvas.height !== this.canvas.height) [canvas.width, canvas.height] = [this.canvas.width, this.canvas.height];
+        layerCtx = canvas.getContext('2d');
+        layerCtx.setTransform(1, 0, 0, 1, 0, 0);
+        layerCtx.clearRect(0, 0, canvas.width, canvas.height);
+        layerCtx.setTransform(dpr, 0, 0, dpr, 0, -scrollY * dpr);
+        this.keyLayer = { key: layerKey, canvas };
+      } else this.keyLayer = null;
+      this.drawKeyLayer(layerCtx, { app, anim, rows, top, trackLeft, trackW, timeToX });
+      if (!live) this.keyLayer.rects = this.keyRects;
+    }
+    if (this.keyLayer) {
+      this.keyRects = this.keyLayer.rects;
       ctx.save();
-      ctx.strokeStyle = tlText();
-      ctx.globalAlpha = 0.45;
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      rows.forEach(({ track }, r) => {
-        const keys = trackKeys(anim, track);
-        const y = Math.round(top + r * ROW + ROW / 2) + 0.5;
-        for (const [a, b] of tweenSpans(track, keys)) {
-          const x0 = timeToX(keys[a].time ?? 0) + 6;
-          const x1 = timeToX(keys[b].time ?? 0) - 6;
-          if (x1 - x0 < 2) continue;
-          ctx.moveTo(x0, y);
-          ctx.lineTo(x1, y);
-        }
-      });
-      ctx.stroke();
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.drawImage(this.keyLayer.canvas, 0, 0);
       ctx.restore();
     }
-    rows.forEach(({ track }, r) => {
-      const y = top + r * ROW;
-      (trackKeys(anim, track) ?? []).forEach((k, index) => {
-        const c = [timeToX(k.time), y + ROW / 2];
-        const fill = copiedSource?.has(k) ? 'rgb(60,220,110)' : keyFill(app.selectedKeys.has(k), k.curve);
-        diamond(ctx, c, 5.5, fill);
-        this.keyRects.push({ x0: c[0] - 6, x1: c[0] + 6, y0: c[1] - 7, y1: c[1] + 7, key: k, keys: trackKeys(anim, track), index, time: k.time });
-      });
-    });
     ctx.strokeStyle = canvasColor('--tl-line', 'rgb(60,60,60)');
     ctx.beginPath();
     ctx.moveTo(trackLeft + 0.5, 0);
@@ -958,9 +966,65 @@ export class Dopesheet {
     this.app.changed();
   }
 
+  /** Tween lines and key diamonds (see draw), filling this.keyRects. */
+  drawKeyLayer(ctx, { app, anim, rows, top, trackLeft, trackW, timeToX }) {
+    // Tween lines: a thin line from each key to the next where the values blend (under the diamonds).
+    if (app.tweenLines) {
+      ctx.save();
+      ctx.strokeStyle = tlText();
+      ctx.globalAlpha = 0.45;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      rows.forEach(({ track }, r) => {
+        const keys = trackKeys(anim, track);
+        const y = Math.round(top + r * ROW + ROW / 2) + 0.5;
+        for (const [a, b] of tweenSpans(track, keys)) {
+          const x0 = timeToX(keys[a].time ?? 0) + 6;
+          const x1 = timeToX(keys[b].time ?? 0) - 6;
+          if (x1 - x0 < 2) continue;
+          ctx.moveTo(x0, y);
+          ctx.lineTo(x1, y);
+        }
+      });
+      ctx.stroke();
+      ctx.restore();
+    }
+    // Diamonds are drawn only for rows scrolled into view and keys inside the time window, one path per
+    // colour, and once per pixel column (dense tracks put many keys on the same spot). Hit rects are kept
+    // for every key, as before. With tens of thousands of keys this was most of the frame time.
+    const visTop = this.scroller.scrollTop - ROW, visBottom = this.scroller.scrollTop + this.scroller.clientHeight + ROW;
+    const xMin = trackLeft - 8, xMax = trackLeft + trackW + 8;
+    const byFill = new Map(); // fill -> flat [x, y, x, y, ...]
+    let selectedFills = null;
+    rows.forEach(({ track }, r) => {
+      const y = top + r * ROW;
+      const cy = y + ROW / 2;
+      const keys = trackKeys(anim, track) ?? [];
+      const visible = y + ROW >= visTop && y <= visBottom;
+      let lastX = -Infinity, lastFill = null;
+      keys.forEach((k, index) => {
+        const x = timeToX(k.time);
+        this.keyRects.push({ x0: x - 6, x1: x + 6, y0: cy - 7, y1: cy + 7, key: k, keys, index, time: k.time });
+        if (!visible || x < xMin || x > xMax) return;
+        const selected = app.selectedKeys.has(k);
+        const fill = copiedSource?.has(k) ? 'rgb(60,220,110)' : keyFill(selected, k.curve);
+        if (fill === lastFill && x - lastX < 1) return; // same colour on the same pixel: already drawn
+        lastX = x;
+        lastFill = fill;
+        if (selected) (selectedFills ??= new Set()).add(fill);
+        let pts = byFill.get(fill);
+        if (!pts) byFill.set(fill, (pts = []));
+        pts.push(x, cy);
+      });
+    });
+    // Selected (and copied) colours last, so they sit on top as when each key was drawn in order.
+    const fills = [...byFill.keys()].sort((a, b) => (selectedFills?.has(a) ? 1 : 0) - (selectedFills?.has(b) ? 1 : 0));
+    for (const fill of fills) diamonds(ctx, byFill.get(fill), 5.5, fill);
+  }
+
   pos(e) {
-    const r = this.canvas.getBoundingClientRect();
-    return [e.clientX - r.left, e.clientY - r.top];
+    const r = this.canvas.getBoundingClientRect(); // the sticky canvas shows the rows from scrollTop down
+    return [e.clientX - r.left, e.clientY - r.top + this.scroller.scrollTop];
   }
 
   hit(p) {
@@ -1395,6 +1459,24 @@ function diamond(ctx, c, r, fill) {
   ctx.lineTo(c[0], c[1] + r);
   ctx.lineTo(c[0] - r, c[1]);
   ctx.closePath();
+  ctx.fillStyle = fill;
+  ctx.fill();
+  ctx.strokeStyle = 'black';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+}
+
+/** Many diamonds of one colour in one path: `pts` is a flat [x, y, x, y, ...] list of centres. */
+function diamonds(ctx, pts, r, fill) {
+  ctx.beginPath();
+  for (let i = 0; i < pts.length; i += 2) {
+    const x = pts[i], y = pts[i + 1];
+    ctx.moveTo(x, y - r);
+    ctx.lineTo(x + r, y);
+    ctx.lineTo(x, y + r);
+    ctx.lineTo(x - r, y);
+    ctx.closePath();
+  }
   ctx.fillStyle = fill;
   ctx.fill();
   ctx.strokeStyle = 'black';
