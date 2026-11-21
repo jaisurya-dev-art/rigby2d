@@ -1,0 +1,42 @@
+{
+  "name": "@rigby2d/pixi-js",
+  "version": "0.6.0",
+  "description": "Rigby2D skeletal animation for PixiJS 8: native display objects on WebGL and WebGPU, with TypeScript types.",
+  "license": "MIT OR Apache-2.0",
+  "author": "jaisurya-dev-art (https://github.com/jaisurya-dev-art)",
+  "homepage": "https://rigby2d.com/docs/runtimes.html#pixijs",
+  "bugs": "https://github.com/jaisurya-dev-art/rigby2d/issues",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jaisurya-dev-art/rigby2d.git",
+    "directory": "runtimes/pixi"
+  },
+  "keywords": ["rigby2d", "pixijs", "pixi", "skeletal-animation", "2d", "animation", "webgl", "webgpu"],
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": ["dist", "README.md", "LICENSE-MIT", "LICENSE-APACHE"],
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc -p tsconfig.json",
+    "verify": "node scripts/verify.mjs",
+    "prepack": "node scripts/prepack.mjs"
+  },
+  "peerDependencies": {
+    "pixi.js": "^8.0.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  }
+}

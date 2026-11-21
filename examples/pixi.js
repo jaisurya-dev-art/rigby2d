@@ -5,7 +5,7 @@
 
 // PixiJS from its CDN; in a game, install it with npm (npm install pixi.js).
 import * as PIXI from 'https://cdn.jsdelivr.net/npm/pixi.js@8.22.0/dist/pixi.min.mjs';
-import { rigbyPixi } from '../runtimes/pixi/rigby-pixi.js';
+import { rigbyPixi } from '../runtimes/pixi/rigby-pixi.ts';
 
 const { loadRigby, RigbySkeleton } = rigbyPixi(PIXI);
 

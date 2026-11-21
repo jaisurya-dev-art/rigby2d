@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
-// Bundles the PixiJS runtime (rigby-pixi.js with the JavaScript runtime; PixiJS itself stays outside) into
+// Bundles the PixiJS runtime (rigby-pixi.ts with the JavaScript runtime; PixiJS itself stays outside) into
 // single files for games, in dist-pixi/:
 //   rigby2d-pixi-<version>.mjs     ES module:   import { rigbyPixi } from './rigby2d-pixi-<version>.mjs'
 //   rigby2d-pixi-<version>.js      script tag:  <script src="rigby2d-pixi-<version>.js"> -> window.RigbyPixi.rigbyPixi(PIXI)
@@ -29,7 +29,7 @@ for (const [format, ext] of [
       outDir,
       emptyOutDir: false,
       minify: true,
-      lib: { entry: path.join(here, 'rigby-pixi.js'), name: 'RigbyPixi', formats: [format], fileName: () => `rigby2d-pixi-${version}.${ext}` },
+      lib: { entry: path.join(here, 'rigby-pixi.ts'), name: 'RigbyPixi', formats: [format], fileName: () => `rigby2d-pixi-${version}.${ext}` },
       rollupOptions: { output: { banner } },
     },
   });

@@ -39,6 +39,9 @@
     "build:mcpb": "node mcpb/build.mjs",
     "build:phaser": "node runtimes/phaser/build.mjs",
     "build:pixi": "node runtimes/pixi/build.mjs",
+    "build:pixi:npm": "npm run build --prefix runtimes/pixi",
+    "typecheck:pixi": "tsc -p runtimes/pixi/tsconfig.json",
+    "verify:pixi:npm": "npm run verify --prefix runtimes/pixi",
     "site:dev": "vite --config site/vite.config.js",
     "site:build": "node runtimes/phaser/build.mjs && vite build --config site/vite.config.js && vite build --base=/editor/ --outDir _site/editor --emptyOutDir",
     "build:cocos": "node runtimes/cocos/build.mjs",
@@ -68,6 +71,9 @@
     "marked": "^18.1.1",
     "pixi.js": "^8.22.0",
     "playwright": "^1.64.1",
+    "tsup": "^8.5.1",
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.3",
     "vite": "^8.3.4"
   }
 }
