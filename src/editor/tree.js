@@ -291,6 +291,15 @@ export function render(app, el) {
     onclick: () => edit.addPointBone(app, selBone(app.sel) ?? 0),
   });
 
+  // Fold every bone (the top level stays listed, e.g. each plant of a scene) or unfold them all.
+  const foldAll = (fold) => () => {
+    for (const k of [...collapsed]) if (k.startsWith('bone:')) collapsed.delete(k);
+    if (fold) doc.bones.forEach((_, i) => i !== 0 && collapsed.add(`bone:${i}`));
+    app.changed();
+  };
+  const collapseAll = iconButton('chevrons-down-up', { size: 'sm', title: t('Collapse all bones'), onclick: foldAll(true) });
+  const expandAll = iconButton('chevrons-up-down', { size: 'sm', title: t('Expand all bones'), onclick: foldAll(false) });
+
   // Draw order: front of the list is drawn on top.
   const n = doc.slots.length;
   const move = (from, to) => () => {
@@ -370,7 +379,7 @@ export function render(app, el) {
       has(app, 'scene') || doc.scene?.actors.length
         ? section(app, 'scene', t('Scene'), doc.scene?.actors.length ?? 0, doc.scene?.actors.length ? sceneRows(app, row) : [h('div', { class: 'small weak pad' }, t('Characters acting together: + Actor adds one (File ▸ New ▸ Scene starts a stage with a camera).'))], addButton(t('Actor'), { title: t('Add a character to the scene'), onclick: (e) => { const r = e.currentTarget.getBoundingClientRect(); addActorMenu(app, r.left, r.bottom); } }))
         : null,
-      rootDropTarget(section(app, 'skeleton', doc.name || t('Skeleton'), doc.bones.length, skeletonBody, [addBone, addPoint])),
+      rootDropTarget(section(app, 'skeleton', doc.name || t('Skeleton'), doc.bones.length, skeletonBody, [collapseAll, expandAll, addBone, addPoint])),
       section(app, 'draworder', t('Draw order'), n, orderList),
       // With the Rig panel open (rigpanel.js), skins, constraints and events are listed there instead.
       app.rigPanel ? null : skinsSection(app),
