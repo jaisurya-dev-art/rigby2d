@@ -727,7 +727,8 @@ export class Dopesheet {
     // Tween lines and key diamonds. While playing only the time moves, so this layer is drawn once into
     // an offscreen canvas and reused until anything it depends on changes; otherwise it is drawn live.
     const layerKey = app.playing
-      ? [app.docEpoch, app.version, app.anim, scrollY, width, viewH, dpr, t0, viewSpan, top, rows.length, app.selectedKeys.size, copiedSource?.size ?? 0, !!app.tweenLines].join('|')
+      ? [app.docEpoch, app.version, app.anim, scrollY, width, viewH, dpr, t0, viewSpan, top, rows.length,
+          app.selectedKeys.size, copiedSource?.size ?? 0, !!app.tweenLines, tlText(), keyFill(false, LINEAR)].join('|')
       : null;
     if (layerKey === null || this.keyLayer?.key !== layerKey) {
       const live = layerKey === null;

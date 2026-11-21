@@ -293,6 +293,7 @@ export function render(app, el) {
 
   // Fold every bone (the top level stays listed, e.g. each plant of a scene) or unfold them all.
   const foldAll = (fold) => () => {
+    collapsed.delete('skeleton');
     for (const k of [...collapsed]) if (k.startsWith('bone:')) collapsed.delete(k);
     if (fold) doc.bones.forEach((_, i) => i !== 0 && collapsed.add(`bone:${i}`));
     app.changed();
