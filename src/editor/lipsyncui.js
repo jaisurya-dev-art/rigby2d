@@ -13,7 +13,7 @@ import * as platform from './platform.js';
 import { transcribe } from './whisper.js';
 import { h } from './widgets.js';
 import { button, dialog, hint } from './ui.js';
-import { t, tn } from './i18n.js';
+import { statusMessage, t, tn } from './i18n.js';
 
 const select = (options, value, onchange) =>
   h(
@@ -49,9 +49,9 @@ const coverage = (slot) => Object.values(matchMouths(slot.attachments.map((a) =>
 export function openLipSync(app) {
   const anim = app.currentAnimation();
   const tracks = anim ? tracksOf(app.doc, anim.name) : [];
-  if (!tracks.length) return app.setStatus(t('Lip-sync needs an audio track on this animation (Import audio first).'));
+  if (!tracks.length) return app.setStatus(statusMessage('Lip-sync needs an audio track on this animation (Import audio first).'));
   const slots = app.doc.slots.map((s, i) => ({ s, i })).filter(({ s }) => s.attachments.length > 1);
-  if (!slots.length) return app.setStatus(t('Lip-sync needs a mouth slot with mouth shapes (a slot with several images).'));
+  if (!slots.length) return app.setStatus(statusMessage('Lip-sync needs a mouth slot with mouth shapes (a slot with several images).'));
 
   const best = slots.reduce((a, b) => (coverage(b.s) > coverage(a.s) ? b : a));
   const state = {
@@ -155,7 +155,7 @@ export function openLipSync(app) {
     app.changed();
     count('editor-lipsync');
     const slotName = app.doc.slots[state.slot].name;
-    app.setStatus(t("Lip-sync: {keys} mouth keys on '{slot}' from {source}. Undo reverts it.", { keys, slot: slotName, source: made.words ? t('{count} words', { count: made.words }) : state.fileName }));
+    app.setStatus(statusMessage("Lip-sync: {keys} mouth keys on '{slot}' from {source}. Undo reverts it.", { keys, slot: slotName, source: made.words ? statusMessage('{count} words', { count: made.words }) : state.fileName }));
     close();
   };
 

@@ -4,7 +4,7 @@
 // events (like the draw order), not HTML drag and drop, so it works the same in the desktop app.
 
 import * as edit from './edit.js';
-import { t } from './i18n.js';
+import { statusMessage } from './i18n.js';
 import { canReparent } from './treefind.js';
 
 const START = 4; // pointer travel before a press turns into a drag, px
@@ -46,7 +46,7 @@ function onMove(e) {
     d.row.classList.add('dragging');
     document.body.classList.add('bone-dragging');
     // Set directly: setStatus would rebuild the tree under the drag.
-    d.app.status = t('Drop on a bone to make it the parent, or on the skeleton title for the root. The bone keeps its place.');
+    d.app.status = statusMessage('Drop on a bone to make it the parent, or on the skeleton title for the root. The bone keeps its place.');
   }
   const target = targetAt(d, e.clientX, e.clientY);
   if (target?.el !== d.target?.el) {
@@ -78,5 +78,5 @@ function onUp(e) {
   const doc = d.app.doc;
   const name = doc.bones[d.bone].name;
   edit.reparentBoneKeepWorld(d.app, d.bone, d.target.bone);
-  d.app.setStatus(t('{bone} is now a child of {parent}', { bone: name, parent: doc.bones[d.target.bone]?.name ?? '' }));
+  d.app.setStatus(statusMessage('{bone} is now a child of {parent}', { bone: name, parent: doc.bones[d.target.bone]?.name ?? '' }));
 }

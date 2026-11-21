@@ -12,7 +12,7 @@ import { button, checkbox, dialog, fieldRow, fields, hint } from './ui.js';
 import { pausePlayback, showResult } from './resultui.js';
 import { mixWav } from './audio.js';
 import { clipTracks } from './actors.js';
-import { t, tn } from './i18n.js';
+import { statusMessage, t, tn } from './i18n.js';
 
 const QUALITIES = [
   ['high', tn('High')],
@@ -30,7 +30,7 @@ let last = { format: 'png', quality: 'high', merge: false };
 export function openRenderDialog(app) {
   const doc = app.doc;
   if (!doc.animations.length) {
-    app.setStatus(t('Nothing to render: create an animation first'));
+    app.setStatus(statusMessage('Nothing to render: create an animation first'));
     return;
   }
   const s = doc.settings;
@@ -162,7 +162,7 @@ export function openRenderDialog(app) {
     try {
       target = await platform.pickSaveTarget(`${first.name}${first.format === 'png' ? '_0000' : ''}.${ext}`, label, ext, { single: list.length === 1 && first.format !== 'png' });
     } catch (e) {
-      showResult(app, { ok: false, title: t('Render failed'), detail: String(e?.message ?? e) });
+      showResult(app, { ok: false, title: statusMessage('Render failed'), detail: String(e?.message ?? e) });
       return;
     }
     if (!target) return;
@@ -205,17 +205,17 @@ export function openRenderDialog(app) {
       running = null;
       if (!cancelled) track('editor-render');
       if (cancelled) {
-        app.setStatus(t('Render cancelled after {count} file(s)', { count: written }));
+        app.setStatus(statusMessage('Render cancelled after {count} file(s)', { count: written }));
         draw();
       } else {
         close();
         const where = list.length === 1 && written === 1 ? target.path : dir === '.' ? target.path : dir;
-        showResult(app, { ok: true, title: 'Render complete', detail: `${written} file(s) written.`, path: platform.isDesktop || written === 1 ? where : null });
+        showResult(app, { ok: true, title: statusMessage('Render complete'), detail: statusMessage('{count} file(s) written.', { count: written }), path: platform.isDesktop || written === 1 ? where : null });
       }
     } catch (e) {
       running = null;
       draw();
-      showResult(app, { ok: false, title: t('Render failed'), detail: String(e?.message ?? e) });
+      showResult(app, { ok: false, title: statusMessage('Render failed'), detail: String(e?.message ?? e) });
     }
   }
 
@@ -228,7 +228,7 @@ export function openRenderDialog(app) {
     try {
       target = await platform.pickSaveTarget(`${name}.${ext}`, { webm: t('WebM video'), mp4: 'MP4 video' }[ext], ext, { single: true });
     } catch (e) {
-      showResult(app, { ok: false, title: t('Render failed'), detail: String(e?.message ?? e) });
+      showResult(app, { ok: false, title: statusMessage('Render failed'), detail: String(e?.message ?? e) });
       return;
     }
     if (!target) return;
@@ -252,15 +252,15 @@ export function openRenderDialog(app) {
       if (files) track('editor-render-batch');
       if (files) {
         close();
-        showResult(app, { ok: true, title: t('Render complete'), detail: `${list.length} animations in one video.`, path: target.path });
+        showResult(app, { ok: true, title: statusMessage('Render complete'), detail: statusMessage('{count} animations in one video.', { count: list.length }), path: target.path });
       } else {
-        app.setStatus(t('Render cancelled'));
+        app.setStatus(statusMessage('Render cancelled'));
         draw();
       }
     } catch (e) {
       running = null;
       draw();
-      showResult(app, { ok: false, title: t('Render failed'), detail: String(e?.message ?? e) });
+      showResult(app, { ok: false, title: statusMessage('Render failed'), detail: String(e?.message ?? e) });
     }
   }
 

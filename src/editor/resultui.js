@@ -5,7 +5,7 @@
 import * as platform from './platform.js';
 import { h } from './widgets.js';
 import { button, dialog, uiIcon } from './ui.js';
-import { t } from './i18n.js';
+import { joinStatus, renderStatus, statusMessage, t } from './i18n.js';
 
 /**
  * Shows the outcome of an export or render. `ok`: whether it worked; `title`: e.g. 'Sprite sheet
@@ -13,7 +13,8 @@ import { t } from './i18n.js';
  * Escape closes it.
  */
 export function showResult(app, { ok, title, detail = '', path = null }) {
-  app.setStatus(`${title}${detail ? `: ${detail}` : ''}`);
+  const summary = renderStatus(detail);
+  app.setStatus(summary ? joinStatus(title, ': ', detail) : title);
   const onKey = (e) => {
     if (e.key !== 'Enter') return;
     e.preventDefault();
@@ -21,10 +22,10 @@ export function showResult(app, { ok, title, detail = '', path = null }) {
   };
   const reveal =
     ok && path && platform.isDesktop
-      ? button(t('Show in folder'), { icon: 'folder-open', onclick: () => platform.revealPath(path).catch((e) => app.setStatus(t('Could not open the folder: {error}', { error: e?.message ?? e }))) })
+      ? button(t('Show in folder'), { icon: 'folder-open', onclick: () => platform.revealPath(path).catch((e) => app.setStatus(statusMessage('Could not open the folder: {error}', { error: e?.message ?? e }))) })
       : null;
   const { el, body, footer, close } = dialog({
-    title,
+    title: renderStatus(title),
     className: `result-dialog ${ok ? 'result-ok' : 'result-failed'}`,
     backdropClass: 'result-backdrop',
     role: 'alertdialog',
@@ -32,7 +33,7 @@ export function showResult(app, { ok, title, detail = '', path = null }) {
     onClose: () => document.removeEventListener('keydown', onKey, true),
   });
   el.querySelector('.dialog-head h3').prepend(uiIcon(ok ? 'check' : 'triangle-alert'));
-  body.append(...[detail ? h('p', null, detail) : null, path ? h('p', { class: 'small result-path' }, path) : null].filter(Boolean));
+  body.append(...[summary ? h('p', null, summary) : null, path ? h('p', { class: 'small result-path' }, path) : null].filter(Boolean));
   document.addEventListener('keydown', onKey, true);
   footer.querySelector('.ui-btn-primary')?.focus();
 }

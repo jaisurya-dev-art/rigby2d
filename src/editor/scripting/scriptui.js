@@ -5,7 +5,7 @@
 import * as log from '../log.js';
 import { makeDraggable, openLogWindow } from '../logwindow.js';
 import { isDesktop, openExternal, pickImportFiles } from '../platform.js';
-import { t } from '../i18n.js';
+import { joinStatus, statusMessage, t } from '../i18n.js';
 import { h, submenuItem } from '../widgets.js';
 import { button, closeButton } from '../ui.js';
 import { ScriptHost } from './host.js';
@@ -104,7 +104,7 @@ export class Scripts {
     await this.refreshFiles();
     let failed = 0;
     for (const s of this.library) if (!(await this.run(s.name, s.source)).ok) failed++;
-    if (!quiet || failed) this.app.setStatus(failed ? t('{count} script(s) failed to load (details in View ▸ Log)', { count: failed }) : t('Loaded {count} script(s)', { count: this.library.length }));
+    if (!quiet || failed) this.app.setStatus(failed ? statusMessage('{count} script(s) failed to load (details in View ▸ Log)', { count: failed }) : statusMessage('Loaded {count} script(s)', { count: this.library.length }));
   }
 
   /** Desktop: scripts added from files are re-read, so editing them in another editor works. */
@@ -127,7 +127,7 @@ export class Scripts {
       return await this.host.runScript(name, source);
     } catch (e) {
       // Python itself did not start; the host has logged why.
-      this.app.setStatus(t('Python could not start: {error}', { error: log.errorMessage(e) }));
+      this.app.setStatus(statusMessage('Python could not start: {error}', { error: log.errorMessage(e) }));
       return { ok: false, error: log.errorMessage(e) };
     }
   }
@@ -139,7 +139,7 @@ export class Scripts {
     else this.library.push({ name, source, path });
     saveLibrary(this.library);
     const r = await this.run(name, source);
-    if (r.ok) this.app.setStatus(r.value.length ? t('{name}: added {tools} to the Scripts menu', { name, tools: r.value.join(', ') }) : t('Ran {name}', { name }));
+    if (r.ok) this.app.setStatus(r.value.length ? statusMessage('{name}: added {tools} to the Scripts menu', { name, tools: r.value.join(', ') }) : statusMessage('Ran {name}', { name }));
     this.changed();
     return r;
   }
@@ -148,7 +148,7 @@ export class Scripts {
     this.library = this.library.filter((s) => s.name !== name);
     saveLibrary(this.library);
     this.host.forget(name);
-    this.app.setStatus(t('Removed script {name}', { name }));
+    this.app.setStatus(statusMessage('Removed script {name}', { name }));
   }
 
   async addFiles() {
@@ -170,7 +170,7 @@ export class Scripts {
   /** Stops a script that runs too long; the library's tools load again. */
   async stop() {
     this.host.stop();
-    this.app.setStatus(t('Stopped the script. Python restarts with your library and add-ons.'));
+    this.app.setStatus(statusMessage('Stopped the script. Python restarts with your library and add-ons.'));
     await this.loadAll({ quiet: true });
     await this.afterStop?.();
   }
@@ -271,7 +271,10 @@ function scriptEditor(scripts) {
         drafts.delete(n);
         current = n;
       }
-      if (r.ok && !save) scripts.app.setStatus(t('Ran {name}', { name: n }) + (r.value.length ? t('; tools: {tools}', { tools: r.value.join(', ') }) : ''));
+      if (r.ok && !save) scripts.app.setStatus(joinStatus(
+        statusMessage('Ran {name}', { name: n }),
+        r.value.length ? statusMessage('; tools: {tools}', { tools: r.value.join(', ') }) : '',
+      ));
       state.textContent = r.ok ? t('Done') : t('Failed: {error}', { error: r.error });
       if (!r.ok) openLogWindow();
     } finally {

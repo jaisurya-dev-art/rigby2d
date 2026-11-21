@@ -47,7 +47,7 @@ import { installRecovery } from './recoveryui.js';
 import { applyInterfaceScale, openPreferences } from './prefsui.js';
 import { initThemes, openThemes } from './themeui.js';
 import { AddonManager } from './addonui.js';
-import { languageFor, setLanguage, t } from './i18n.js';
+import { languageFor, setLanguage, statusMessage, t } from './i18n.js';
 import { openRuntimes } from './runtimeui.js';
 import { checkForUpdates, scheduleUpdateCheck, updateBadge } from './updateui.js';
 import { openWelcome } from './welcomeui.js';
@@ -69,20 +69,12 @@ log.installCapture(app);
 // The interface language: the preference, or the system's.
 const applyLanguage = () => setLanguage(app.prefs.get('interface.language') || languageFor(navigator.languages ?? [navigator.language]));
 applyLanguage();
-app.status = t(app.status); // set before the language was known
 /** Static text in index.html, marked data-i18n (text) and data-i18n-title. */
 const translateStatic = () => {
   for (const el of document.querySelectorAll('[data-i18n]')) el.textContent = t((el.dataset.i18n ||= el.textContent));
   for (const el of document.querySelectorAll('[data-i18n-title]')) el.title = t((el.dataset.i18nTitle ||= el.title));
 };
 translateStatic();
-app.prefs.onChange((key) => {
-  if (key === 'interface.language' || key === null) {
-    applyLanguage();
-    translateStatic();
-    app.changed();
-  }
-});
 const scripts = new Scripts(app);
 const recovery = installRecovery(app);
 const addons = new AddonManager(app, scripts);
@@ -407,7 +399,8 @@ function buildMenuBar() {
     h('span', null, t('Onion skin on')),
   );
   // Workspace switcher: which tools the editor shows for this project.
-  const tabs = Object.values(WORKSPACES).map((ws) => h('button', { class: 'workspace-tab', 'data-tut': `workspace:${ws.id}`, title: t(ws.description), onclick: () => app.workspace !== ws.id && app.setWorkspace(ws.id) }, t(ws.label)));
+  const workspaces = Object.values(WORKSPACES);
+  const tabs = workspaces.map((ws) => h('button', { class: 'workspace-tab', 'data-tut': `workspace:${ws.id}`, title: t(ws.description), onclick: () => app.workspace !== ws.id && app.setWorkspace(ws.id) }, t(ws.label)));
   const switcher = h('div', { class: 'workspaces', 'data-tut': 'workspaces', role: 'tablist', title: t('Workspace') }, tabs);
   // In the browser: a way back to the website, and the open file's name (the desktop app shows it
   // in its own title bar).
@@ -427,6 +420,11 @@ function buildMenuBar() {
     if (document.documentElement.lang !== shownLanguage) {
       shownLanguage = document.documentElement.lang;
       for (const b of titles) b.textContent = t(b.dataset.title);
+      for (const [i, ws] of workspaces.entries()) {
+        tabs[i].textContent = t(ws.label);
+        tabs[i].title = t(ws.description);
+      }
+      switcher.title = t('Workspace');
     }
     // Live states of the quick buttons (property writes only when they change).
     if (undoBtn.disabled !== !app.history.undo.length) undoBtn.disabled = !app.history.undo.length;
@@ -571,10 +569,21 @@ const dock = installDock({
   },
 });
 
+app.prefs.onChange((key) => {
+  if (key !== 'interface.language' && key !== null) return;
+  const before = document.documentElement.lang;
+  applyLanguage();
+  if (before !== document.documentElement.lang) {
+    translateStatic();
+    dock.refresh();
+  }
+  app.changed();
+});
+
 /** View ▸ Panel layout ▸ a preset. */
 function applyPreset(layout, name) {
   dock.set(layout);
-  app.setStatus(t('Panel layout: {name}', { name }));
+  app.setStatus(statusMessage('Panel layout: {name}', { name }));
 }
 
 /** View ▸ Reset layout: today's arrangement and region sizes. */
@@ -582,7 +591,7 @@ function resetLayout() {
   dock.reset();
   for (const s of splitters) s.reset();
   window.dispatchEvent(new Event('resize'));
-  app.setStatus(t('Panels back in their default places'));
+  app.setStatus(statusMessage('Panels back in their default places'));
 }
 
 // ---- main loop --------------------------------------------------------------------------------
@@ -741,11 +750,12 @@ function frame(now) {
   }
   renderMenuBar();
   // A message dims once it is old, so advice about an earlier action doesn't read as current.
-  if (app.status !== lastStatus) {
-    lastStatus = app.status;
+  const status = app.status;
+  if (status !== lastStatus) {
+    lastStatus = status;
     statusAt = now;
   }
-  setText($('#status-text'), app.status);
+  setText($('#status-text'), status);
   const stale = now - statusAt > 8000;
   if ($('#status-text').classList.contains('stale') !== stale) $('#status-text').classList.toggle('stale', stale);
   const errors = log.unreadErrors;
@@ -820,7 +830,7 @@ if (inTauri) {
 async function openDesktopPaths(paths) {
   const rank = (p) => [/\.rigby$/i, /\.skel$/i, /\.json$/i, /\.rigby\d$/i].findIndex((re) => re.test(p));
   const path = paths.filter((p) => rank(p) >= 0).sort((a, b) => rank(a) - rank(b))[0];
-  if (!path) return app.setStatus(t('Nothing to open: drop a Rigby2D work file (.rigby) or a skeleton (.json or .skel).'));
+  if (!path) return app.setStatus(statusMessage('Nothing to open: drop a Rigby2D work file (.rigby) or a skeleton (.json or .skel).'));
   if (!(await app.confirmDiscard())) return;
   const file = desktopFile(path);
   await app.openFrom(file.path, file.fs);

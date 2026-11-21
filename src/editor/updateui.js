@@ -5,7 +5,7 @@
 // installs files signed with the Rigby2D release key (tauri.conf.json, plugins.updater.pubkey).
 
 import { LINKS, VERSION, askChoice } from './helpui.js';
-import { t } from './i18n.js';
+import { statusMessage, t } from './i18n.js';
 import * as log from './log.js';
 import { icon } from './icons.js';
 import { isDesktop, openExternal } from './platform.js';
@@ -41,7 +41,7 @@ export function showUpdate(app, update) {
  */
 export async function checkForUpdates(app, { quiet = false } = {}) {
   if (!isDesktop) {
-    if (!quiet) app.setStatus(t('The browser editor is always up to date.'));
+    if (!quiet) app.setStatus(statusMessage('The browser editor is always up to date.'));
     return;
   }
   let update;
@@ -50,12 +50,12 @@ export async function checkForUpdates(app, { quiet = false } = {}) {
     update = await check();
   } catch (e) {
     log.warn(`Update check failed: ${e?.message ?? e}`, { source: 'updates' });
-    if (!quiet) app.setStatus(t('Could not check for updates: {error}', { error: e?.message ?? e }));
+    if (!quiet) app.setStatus(statusMessage('Could not check for updates: {error}', { error: e?.message ?? e }));
     return;
   }
   showUpdate(app, update);
   if (!update) {
-    if (!quiet) app.setStatus(t('Rigby2D {version} is the latest version.', { version: VERSION }));
+    if (!quiet) app.setStatus(statusMessage('Rigby2D {version} is the latest version.', { version: VERSION }));
     return;
   }
   if (quiet) {
@@ -117,15 +117,15 @@ async function offerUpdate(app, update) {
       if (e.event === 'Started') total = e.data.contentLength ?? 0;
       if (e.event === 'Progress') {
         done += e.data.chunkLength;
-        app.setStatus(t('Downloading Rigby2D {version}… {percent}', { version: update.version, percent: total ? `${Math.round((100 * done) / total)}%` : '' }));
+        app.setStatus(statusMessage('Downloading Rigby2D {version}… {percent}', { version: update.version, percent: total ? `${Math.round((100 * done) / total)}%` : '' }));
       }
-      if (e.event === 'Finished') app.setStatus(t('Installing Rigby2D {version}…', { version: update.version }));
+      if (e.event === 'Finished') app.setStatus(statusMessage('Installing Rigby2D {version}…', { version: update.version }));
     });
     const { relaunch } = await import('@tauri-apps/plugin-process');
     await relaunch();
   } catch (e) {
     log.exception(e, { source: 'updates', context: t('Update failed') });
-    app.setStatus(t('The update failed: {error}', { error: e?.message ?? e }));
+    app.setStatus(statusMessage('The update failed: {error}', { error: e?.message ?? e }));
   }
 }
 

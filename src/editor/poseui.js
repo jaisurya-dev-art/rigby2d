@@ -11,7 +11,7 @@ import { button, iconButton, section } from './ui.js';
 import { has } from './workspaces.js';
 import { frameLevels, tracksOf } from './audio.js';
 import { FPS } from './app.js';
-import { t } from './i18n.js';
+import { joinStatus, statusMessage, t } from './i18n.js';
 
 /** Section state that survives panel rebuilds. */
 const ui = { open: false, name: '', amount: 1, controllerName: '', controllerTo: '' };
@@ -42,7 +42,7 @@ function savePose(app, name) {
   const slots = app.doc.slots.map((s, i) => (set.has(s.bone) ? i : -1)).filter((i) => i >= 0);
   const pose = capturePose(app.doc, app.pose(), uniquePoseName(app, name), bones, slots);
   app.doc.poses.push(pose);
-  app.setStatus(t("Saved pose '{name}': {bones} bone(s), {slots} slot(s)", { name: pose.name, bones: bones.length, slots: slots.length }));
+  app.setStatus(statusMessage("Saved pose '{name}': {bones} bone(s), {slots} slot(s)", { name: pose.name, bones: bones.length, slots: slots.length }));
 }
 
 function poseRow(app, pose, index) {
@@ -55,7 +55,11 @@ function poseRow(app, pose, index) {
         title: app.mode === Mode.Animate ? t('Key this pose at the current frame') : t('Set the setup pose to this pose'),
         onclick: () => {
           write(app, applyAmount(app.doc, app.pose(), pose, ui.amount));
-          app.setStatus(t("Applied pose '{name}'", { name: pose.name }) + (ui.amount < 1 ? t(' at {percent}%', { percent: Math.round(ui.amount * 100) }) : '') + (app.mode === Mode.Animate ? t(' as keys') : ''));
+          app.setStatus(joinStatus(
+            statusMessage("Applied pose '{name}'", { name: pose.name }),
+            ui.amount < 1 ? statusMessage(' at {percent}%', { percent: Math.round(ui.amount * 100) }) : '',
+            app.mode === Mode.Animate ? statusMessage(' as keys') : '',
+          ));
         },
     }),
     iconButton('refresh-cw', {
@@ -65,7 +69,7 @@ function poseRow(app, pose, index) {
           const bones = Object.keys(pose.bones).map((n) => app.doc.bones.findIndex((b) => b.name === n)).filter((i) => i >= 0);
           const slots = Object.keys(pose.slots).map((n) => app.doc.slots.findIndex((s) => s.name === n)).filter((i) => i >= 0);
           app.doc.poses[index] = capturePose(app.doc, app.pose(), pose.name, bones, slots);
-          app.setStatus(t("Updated pose '{name}'", { name: pose.name }));
+          app.setStatus(statusMessage("Updated pose '{name}'", { name: pose.name }));
         },
     }),
     iconButton('trash-2', {
@@ -141,10 +145,10 @@ function controllerRow(app, c, index) {
 function lipSync(app, c) {
   const anim = app.currentAnimation();
   const track = anim && tracksOf(app.doc, anim.name)[0];
-  if (app.mode !== Mode.Animate || !track) return app.setStatus(t('Lip-sync needs Animate mode and an audio track on this animation (Import audio)'));
+  if (app.mode !== Mode.Animate || !track) return app.setStatus(statusMessage('Lip-sync needs Animate mode and an audio track on this animation (Import audio)'));
   const to = app.doc.poses.find((p) => p.name === c.to);
   const from = c.from ? app.doc.poses.find((p) => p.name === c.from) : null;
-  if (!to) return app.setStatus(t("Pose '{name}' not found", { name: c.to }));
+  if (!to) return app.setStatus(statusMessage("Pose '{name}' not found", { name: c.to }));
   const frames = Math.max(1, Math.round(anim.duration * FPS)) + 1;
   const levels = frameLevels(track, FPS, frames);
   const time = app.time;
@@ -153,7 +157,7 @@ function lipSync(app, c) {
     write(app, blendPoses(app.doc, app.pose(), from, to, levels[f]));
   }
   app.time = time;
-  app.setStatus(t("Lip-sync: keyed '{name}' on {frames} frames from {sound}", { name: c.name, frames, sound: track.sound }));
+  app.setStatus(statusMessage("Lip-sync: keyed '{name}' on {frames} frames from {sound}", { name: c.name, frames, sound: track.sound }));
 }
 
 /** The inspector section. */

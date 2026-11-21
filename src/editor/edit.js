@@ -11,7 +11,7 @@ import { Pose } from '../core/pose.js';
 import { FPS, Mode, selBone, selSlot, snap } from './app.js';
 import { CHANNEL_FIELDS, TRANSFORM_CHANNELS as CHANNELS } from './channels.js';
 import { constraintsKeeping, keepPoseOffsets } from './constraintoffsets.js';
-import { t } from './i18n.js';
+import { statusMessage, t } from './i18n.js';
 import { setBoneSetupOnly } from './setupmove.js';
 
 /** Makes sure an animation exists and is selected, creating one if needed. Returns its index. */
@@ -111,22 +111,22 @@ export function channelState(app, bone, channel) {
 /** Keys `channels` of `bones` with their current values. */
 export function keyChannels(app, bones, channels) {
   if (app.mode !== Mode.Animate) {
-    app.setStatus(t('Switch to Animate mode to set keys'));
+    app.setStatus(statusMessage('Switch to Animate mode to set keys'));
     return;
   }
   if (!bones.length) {
-    app.setStatus(t('Select bones to key'));
+    app.setStatus(statusMessage('Select bones to key'));
     return;
   }
   const pose = app.pose();
   for (const b of bones) writeKeys(app, b, pose.local[b], channels);
-  app.setStatus(t('Keyed {channels} of {bones} at frame {frame}', { channels: channels.join(', '), bones: bones.length === 1 ? app.doc.bones[bones[0]].name : t('{count} bones', { count: bones.length }), frame: Math.round(snap(app.time) * FPS) }));
+  app.setStatus(statusMessage('Keyed {channels} of {bones} at frame {frame}', { channels: channels.join(', '), bones: bones.length === 1 ? app.doc.bones[bones[0]].name : statusMessage('{count} bones', { count: bones.length }), frame: Math.round(snap(app.time) * FPS) }));
 }
 
 /** Keys every unkeyed change (K). */
 export function keyChanged(app) {
   if (!app.pending.size) {
-    app.setStatus(app.mode === Mode.Animate ? t('No unkeyed changes to key') : t('Switch to Animate mode to set keys'));
+    app.setStatus(app.mode === Mode.Animate ? statusMessage('No unkeyed changes to key') : statusMessage('Switch to Animate mode to set keys'));
     return;
   }
   const pose = app.pose();
@@ -136,14 +136,14 @@ export function keyChanged(app) {
     writeKeys(app, bone, pose.local[bone], list);
     count += list.length;
   }
-  app.setStatus(t('Keyed {count} changed propert(ies) at frame {frame}', { count, frame: Math.round(snap(app.time) * FPS) }));
+  app.setStatus(statusMessage('Keyed {count} changed propert(ies) at frame {frame}', { count, frame: Math.round(snap(app.time) * FPS) }));
 }
 
 /** Keys the property of the current tool for the selection (L). */
 export function keyTool(app) {
   const channels = { rotate: ['rotate'], translate: ['translate'], scale: ['scale'], shear: ['shear'], pose: ['rotate', 'translate'] }[app.tool];
   if (!channels) {
-    app.setStatus(t('The current tool has no keyable property'));
+    app.setStatus(statusMessage('The current tool has no keyable property'));
     return;
   }
   keyChannels(app, app.selectedBones(), channels);
@@ -158,7 +158,7 @@ export function keyTransforms(app) {
 export function keyShown(app) {
   const anim = app.currentAnimation();
   if (app.mode !== Mode.Animate || !anim) {
-    app.setStatus(t('Switch to Animate mode to set keys'));
+    app.setStatus(statusMessage('Switch to Animate mode to set keys'));
     return;
   }
   const pose = app.pose();
@@ -171,7 +171,7 @@ export function keyShown(app) {
   if (app.pending.size) {
     for (const [bone, channels] of [...app.pending]) writeKeys(app, bone, pose.local[bone], Object.keys(channels));
   }
-  app.setStatus(t('Keyed {count} timeline(s) at frame {frame}', { count, frame: Math.round(snap(app.time) * FPS) }));
+  app.setStatus(statusMessage('Keyed {count} timeline(s) at frame {frame}', { count, frame: Math.round(snap(app.time) * FPS) }));
 }
 
 /** Shows an attachment (or none) in a slot: setup value or a stepped key. */
@@ -205,7 +205,7 @@ export function setSlotTint(app, slot, component, value) {
 /** Keys everything about the selection: all transforms of selected bones, or a slot's attachment. */
 export function keySelection(app) {
   if (app.mode !== Mode.Animate) {
-    app.setStatus(t('Switch to Animate mode (Tab) to set keys'));
+    app.setStatus(statusMessage('Switch to Animate mode (Tab) to set keys'));
     return;
   }
   const s = selSlot(app.sel);
@@ -224,7 +224,7 @@ export function deleteSelection(app) {
       if (i !== null) app.doc.removeBone(i);
     }
     app.pending.clear();
-    if (bones.includes(0)) app.setStatus(t('The root bone cannot be deleted'));
+    if (bones.includes(0)) app.setStatus(statusMessage('The root bone cannot be deleted'));
   } else if (s !== null) {
     app.doc.removeSlot(s);
   }
@@ -265,7 +265,7 @@ export function addPointBone(app, parent, world = null) {
 /** Reparents a bone while keeping it where it is in the world (setup pose). */
 export function reparentBoneKeepWorld(app, bone, newParent) {
   if (bone === 0 || app.doc.isDescendant(newParent, bone)) {
-    app.setStatus(t('A bone cannot be parented to itself or its children'));
+    app.setStatus(statusMessage('A bone cannot be parented to itself or its children'));
     return;
   }
   const setup = new Pose(app.doc);

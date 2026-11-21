@@ -3,7 +3,7 @@
 // this editor (so exports and runtimes always agree), or installed into a Godot or Cocos project.
 
 import { LINKS, VERSION, dialog } from './helpui.js';
-import { t } from './i18n.js';
+import { statusMessage, t } from './i18n.js';
 import { engineIcon, icon } from './icons.js';
 import { fetchBytes, isDesktop, openExternal, pickFolder, saveDownload, writeFilesTo } from './platform.js';
 import { h } from './widgets.js';
@@ -45,11 +45,11 @@ export function openRuntimes(app) {
 
   const download = async (file) => {
     try {
-      status(t('Downloading {file}…', { file }));
+      status(statusMessage('Downloading {file}…', { file }));
       const saved = await saveDownload(release(file), file);
-      status(saved ? t('Saved {file}', { file: saved }) : t('Download cancelled'));
+      status(saved ? statusMessage('Saved {file}', { file: saved }) : statusMessage('Download cancelled'));
     } catch (e) {
-      status(t('Could not download {file}: {error}', { file, error: e.message }));
+      status(statusMessage('Could not download {file}: {error}', { file, error: e.message }));
     }
   };
 
@@ -58,12 +58,12 @@ export function openRuntimes(app) {
     if (!dir) return;
     const file = `rigby2d-godot-addon-${VERSION}-${godotPlatform()}.zip`;
     try {
-      status(t('Downloading {file}…', { file }));
+      status(statusMessage('Downloading {file}…', { file }));
       const files = [...unzip(await fetchBytes(release(file)))].filter(([p]) => !p.endsWith('/')).map(([path, bytes]) => ({ path, bytes }));
       await writeFilesTo(dir, files);
-      status(t('Installed the Godot runtime into {folder} (addons/rigby2d). Open the project in Godot.', { folder: dir }));
+      status(statusMessage('Installed the Godot runtime into {folder} (addons/rigby2d). Open the project in Godot.', { folder: dir }));
     } catch (e) {
-      status(t('Could not install the Godot runtime: {error}', { error: e.message }));
+      status(statusMessage('Could not install the Godot runtime: {error}', { error: e.message }));
     }
   };
 
@@ -72,13 +72,13 @@ export function openRuntimes(app) {
     if (!dir) return;
     const file = `rigby2d-cocos-${VERSION}.zip`;
     try {
-      status(t('Downloading {file}…', { file }));
+      status(statusMessage('Downloading {file}…', { file }));
       const files = [...unzip(await fetchBytes(release(file)))].filter(([p]) => !p.endsWith('/')).map(([path, bytes]) => ({ path, bytes }));
       const sep = dir.includes('\\') ? '\\' : '/';
       await writeFilesTo(`${dir.replace(/[\\/]$/, '')}${sep}assets`, files);
-      status(t('Installed the Cocos Creator runtime into {folder} (assets/rigby2d). Open the project in Cocos Creator.', { folder: dir }));
+      status(statusMessage('Installed the Cocos Creator runtime into {folder} (assets/rigby2d). Open the project in Cocos Creator.', { folder: dir }));
     } catch (e) {
-      status(t('Could not install the Cocos Creator runtime: {error}', { error: e.message }));
+      status(statusMessage('Could not install the Cocos Creator runtime: {error}', { error: e.message }));
     }
   };
 
@@ -87,19 +87,19 @@ export function openRuntimes(app) {
     if (!dir) return;
     const file = `rigby2d-renpy-${VERSION}.zip`;
     try {
-      status(t('Downloading {file}…', { file }));
+      status(statusMessage('Downloading {file}…', { file }));
       // Only the runtime: game/rigby2d and game/rigby2d.rpy (not the README and licences).
       const files = [...unzip(await fetchBytes(release(file)))].filter(([p]) => p.startsWith('game/') && !p.endsWith('/')).map(([path, bytes]) => ({ path, bytes }));
       await writeFilesTo(dir, files);
-      status(t("Installed the Ren'Py runtime into {folder} (game/rigby2d). Show your characters with Rigby().", { folder: dir }));
+      status(statusMessage("Installed the Ren'Py runtime into {folder} (game/rigby2d). Show your characters with Rigby().", { folder: dir }));
     } catch (e) {
-      status(t("Could not install the Ren'Py runtime: {error}", { error: e.message }));
+      status(statusMessage("Could not install the Ren'Py runtime: {error}", { error: e.message }));
     }
   };
 
   const copy = async (text, button) => {
     await navigator.clipboard?.writeText(text);
-    status(t('Copied {text}', { text }));
+    status(statusMessage('Copied {text}', { text }));
     const label = button.querySelector('span');
     const before = label.textContent;
     label.textContent = t('Copied');

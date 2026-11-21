@@ -15,7 +15,7 @@ import { h, popupMenu } from './widgets.js';
 import { button, iconButton, uiIcon } from './ui.js';
 import { has } from './workspaces.js';
 import { addActorMenu, sceneRows } from './sceneui.js';
-import { t } from './i18n.js';
+import { joinStatus, statusMessage, t, tn } from './i18n.js';
 
 /** Collapsed sections and bones (kept for the session). */
 const collapsed = new Set(['images', 'events']);
@@ -462,23 +462,26 @@ export function newConstraint(app, type) {
   // Transform: the selected bones follow a driver, the last one selected, or picked next.
   if (type === 'transform') {
     const bones = app.selectedBones();
-    if (!bones.length) return app.setStatus(t('Select the bones that should follow (Ctrl+click for several), then add the constraint'));
+    if (!bones.length) return app.setStatus(statusMessage('Select the bones that should follow (Ctrl+click for several), then add the constraint'));
     const finish = (driven, driver) => {
       const names = createTransform(app, driven, driver);
-      if (!names.length) return app.setStatus(t('A bone cannot drive itself'));
+      if (!names.length) return app.setStatus(statusMessage('A bone cannot drive itself'));
       app.sel = { constraint: names[0] };
       app.multi.clear();
-      app.setStatus(t('{driven} now follow(s) {driver}. Nothing moved: offsets keep the current pose.', { driven: driven.filter((b) => b !== driver).map((b) => app.doc.bones[b].name).join(', '), driver: app.doc.bones[driver].name }));
+      app.setStatus(statusMessage('{driven} now follow(s) {driver}. Nothing moved: offsets keep the current pose.', { driven: driven.filter((b) => b !== driver).map((b) => app.doc.bones[b].name).join(', '), driver: app.doc.bones[driver].name }));
     };
-    if (bones.length === 1) return app.startPick(t('Click the bone that drives {bone}', { bone: app.doc.bones[bones[0]].name }), (driver) => finish(bones, driver));
+    if (bones.length === 1) return app.startPick(tn('Click the bone that drives {bone}'), (driver) => finish(bones, driver), { bone: app.doc.bones[bones[0]].name });
     return finish(bones.slice(0, -1), bones.at(-1));
   }
   const result = createConstraint(app, type);
-  if (result.startsWith('!')) app.setStatus(result.slice(1));
+  if (result.startsWith('!')) app.setStatus(() => t(result).slice(1));
   else {
     app.sel = { constraint: result };
     app.multi.clear();
-    app.setStatus(t("Created {type} constraint '{name}'", { type: t(label), name: result }) + (type === 'physics' ? `. ${t(PHYSICS_HINT)}` : ''));
+    app.setStatus(joinStatus(
+      statusMessage("Created {type} constraint '{name}'", { type: statusMessage(label), name: result }),
+      type === 'physics' ? joinStatus('. ', statusMessage(PHYSICS_HINT)) : '',
+    ));
   }
   app.changed();
 }

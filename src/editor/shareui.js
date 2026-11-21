@@ -3,7 +3,7 @@
 // community's #showcase forum, ready for the file.
 
 import { track } from './analytics.js';
-import { t } from './i18n.js';
+import { statusMessage, t } from './i18n.js';
 import { COMMUNITY_URL } from './news.js';
 import { hexToRgba } from './output.js';
 import * as platform from './platform.js';
@@ -24,7 +24,7 @@ let last = { format: 'gif', size: 480, fps: 25 };
 export function openShareDialog(app) {
   const doc = app.doc;
   if (!doc.animations.length) {
-    app.setStatus(t('Nothing to share yet: make an animation first'));
+    app.setStatus(statusMessage('Nothing to share yet: make an animation first'));
     return;
   }
   const s = doc.settings;
@@ -160,7 +160,7 @@ export function openShareDialog(app) {
     try {
       target = await platform.pickSaveTarget(`${name}.${ext}`, ext === 'gif' ? 'GIF image' : 'MP4 video', ext, { single: true });
     } catch (e) {
-      app.setStatus(t('Could not share: {error}', { error: e.message ?? e }));
+      app.setStatus(statusMessage('Could not share: {error}', { error: e.message ?? e }));
       return;
     }
     if (!target) return;
@@ -188,10 +188,10 @@ export function openShareDialog(app) {
       done = { path: target.path };
       track('editor-share-reddit');
       await platform.openExternal(submitUrl(title()));
-      app.setStatus(t('Saved {file}: drop it into #showcase on Discord', { file: target.path }));
+      app.setStatus(statusMessage('Saved {file}: drop it into #showcase on Discord', { file: target.path }));
     } catch (e) {
       running = null;
-      app.setStatus(t('Could not share: {error}', { error: e.message ?? e }));
+      app.setStatus(statusMessage('Could not share: {error}', { error: e.message ?? e }));
     }
     draw();
   }

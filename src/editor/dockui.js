@@ -297,6 +297,8 @@ export function installDock({ appEl, onPopOut = null, onChange = null }) {
     get: () => JSON.parse(JSON.stringify(layout)),
     /** Arranges the panels as `next` (from a saved window layout). */
     set,
+    /** Updates the dock's labels in the current interface language. */
+    refresh: render,
     /** Back to the default arrangement (View ▸ Reset layout). */
     reset: () => {
       set(defaultDock());

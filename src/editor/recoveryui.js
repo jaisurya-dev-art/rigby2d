@@ -10,7 +10,7 @@
 import * as log from './log.js';
 import * as platform from './platform.js';
 import { LINKS, VERSION, askChoice, dialog } from './helpui.js';
-import { t } from './i18n.js';
+import { statusMessage, t } from './i18n.js';
 import { h } from './widgets.js';
 import { button, uiIcon } from './ui.js';
 import { HEARTBEAT_MS, QUIT_FILE, crashReport, crashedSessions, deadSessions, newSessionId, sessionAutosave } from './recovery.js';
@@ -157,7 +157,7 @@ export function installRecovery(app) {
     app.saveTarget = original ? platform.desktopFile(original) : null;
     app.saved = ''; // unsaved until saved again
     app.changed();
-    app.setStatus((file.endsWith(QUIT_FILE) ? t('Recovered {name} from the last session. Save to keep it.', { name: session?.name || baseName(original) || t('the project') }) : t('Recovered {name} from an auto-save. Save to keep it.', { name: session?.name || baseName(original) || t('the project') })));
+    app.setStatus((file.endsWith(QUIT_FILE) ? statusMessage('Recovered {name} from the last session. Save to keep it.', { name: session?.name || baseName(original) || statusMessage('the project') }) : statusMessage('Recovered {name} from an auto-save. Save to keep it.', { name: session?.name || baseName(original) || statusMessage('the project') })));
     await autosave('recovered');
     if (session) forget(session);
   }
@@ -271,7 +271,7 @@ export function installRecovery(app) {
       h(
         'div',
         { class: 'dialog-actions' },
-        h('button', { onclick: () => navigator.clipboard?.writeText(report).then(() => app.setStatus(t('Copied the crash report'))) }, t('Copy')),
+        h('button', { onclick: () => navigator.clipboard?.writeText(report).then(() => app.setStatus(statusMessage('Copied the crash report'))) }, t('Copy')),
         button(t('Report on GitHub'), { kind: 'primary', icon: 'external-link', onclick: () => platform.openExternal(issue) }),
       ),
     );

@@ -4,7 +4,7 @@
 
 import { Mode } from './app.js';
 import * as edit from './edit.js';
-import { t } from './i18n.js';
+import { joinStatus, statusMessage, t } from './i18n.js';
 import { SIDES, buildTurn, planTurn, removeTurn, shapeSide, sideShaped, turnOf, turnSlots } from './turn.js';
 import { bakeWarps, keyWarp, pointsOf } from './warp.js';
 import { button, hint, section } from './ui.js';
@@ -15,7 +15,7 @@ function rebuild(app, turn, changes) {
   try {
     buildTurn(app.doc, { ...turn, ...changes });
   } catch (e) {
-    app.setStatus(`${t('Could not rebuild the turn')}: ${e.message}`);
+    app.setStatus(joinStatus(statusMessage('Could not rebuild the turn'), ': ', e.message));
   }
   app.changed();
 }
@@ -26,7 +26,7 @@ const SIDE_LABELS = { left: 'Left', right: 'Right', up: 'Up', down: 'Down' };
 function startShaping(app, turn, side) {
   const doc = app.doc;
   const r = shapeSide(doc, turn, side);
-  if (!r) return app.setStatus(t('Nothing to shape: the turned parts are not meshes'));
+  if (!r) return app.setStatus(statusMessage('Nothing to shape: the turned parts are not meshes'));
   const control = doc.boneIndex(turn.control);
   const rest = turn.rest ?? [0, 0];
   const local = { ...doc.bones[control].setup };
@@ -36,7 +36,7 @@ function startShaping(app, turn, side) {
   app.meshEdit = null;
   app.warpEdit = { name: r.warp.name, anim: r.anim, time: r.time, preview: true, side, turn: turn.name, picked: new Set() };
   bakeWarps(doc);
-  app.setStatus(t('Shaping {side}: drag the orange points until it looks right. Shift+click picks several; drag inside the grid to move them all.', { side: t(SIDE_LABELS[side]) }));
+  app.setStatus(statusMessage('Shaping {side}: drag the orange points until it looks right. Shift+click picks several; drag inside the grid to move them all.', { side: statusMessage(SIDE_LABELS[side]) }));
   app.changed();
 }
 
@@ -116,7 +116,7 @@ export function turnUi(app, b) {
             title: setup ? undefined : t('In Setup mode'),
             onclick: () => {
               const built = buildTurn(doc, planTurn(doc, b));
-              app.setStatus(t('{bone} turns in 2.5D: drag its control bone ({control}) left and right, or key it in an animation', { bone: doc.bones[b].name, control: built.control }));
+              app.setStatus(statusMessage('{bone} turns in 2.5D: drag its control bone ({control}) left and right, or key it in an animation', { bone: doc.bones[b].name, control: built.control }));
               app.changed();
             },
           }),

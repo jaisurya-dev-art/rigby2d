@@ -7,7 +7,7 @@
 import * as log from './log.js';
 import * as platform from './platform.js';
 import { VERSION, askChoice } from './helpui.js';
-import { t } from './i18n.js';
+import { statusMessage, t } from './i18n.js';
 import { icon } from './icons.js';
 import { h } from './widgets.js';
 import { button } from './ui.js';
@@ -233,11 +233,11 @@ export function renderAddonsPage(manager, el) {
           onclick: async (e) => {
             e.target.disabled = true;
             try {
-              app.setStatus(t('Downloading {name}…', { name: a.name }));
+              app.setStatus(statusMessage('Downloading {name}…', { name: a.name }));
               const m = await manager.install({ name: `${a.id}.zip`, bytes: await downloadAddon(a) });
-              if (m) app.setStatus(t('Installed the add-on {name} {version}', { name: m.name, version: m.version }));
+              if (m) app.setStatus(statusMessage('Installed the add-on {name} {version}', { name: m.name, version: m.version }));
             } catch (err) {
-              app.setStatus(t('Could not install the add-on: {error}', { error: err?.message ?? err }));
+              app.setStatus(statusMessage('Could not install the add-on: {error}', { error: err?.message ?? err }));
             }
             draw();
           },
@@ -289,9 +289,9 @@ export function renderAddonsPage(manager, el) {
     if (!file) return;
     try {
       const m = await manager.install(file);
-      if (m) app.setStatus(t('Installed the add-on {name} {version}', { name: m.name, version: m.version }));
+      if (m) app.setStatus(statusMessage('Installed the add-on {name} {version}', { name: m.name, version: m.version }));
     } catch (e) {
-      app.setStatus(t('Could not install the add-on: {error}', { error: e?.message ?? e }));
+      app.setStatus(statusMessage('Could not install the add-on: {error}', { error: e?.message ?? e }));
     }
   };
   const where = h('code', { class: 'addon-folder' }, '…');

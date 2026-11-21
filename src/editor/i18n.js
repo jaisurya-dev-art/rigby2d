@@ -64,3 +64,18 @@ export function t(text, vars) {
   const s = table?.[text] ?? text;
   return vars ? s.replace(/\{(\w+)\}([^{}]*?)\b(\w+)\(s\)/g, (m, k, between, word) => (k in vars ? `{${k}}${between}${Number(vars[k]) === 1 ? word : `${word}s`}` : m)).replace(/\{(\w+)\}/g, (m, k) => (k in vars ? String(vars[k]) : m)) : s;
 }
+
+/** Records the arguments now and translates the status when the editor displays it. */
+export function statusMessage(text, vars) {
+  const args = vars && Object.entries(vars);
+  return () => t(text, args && Object.fromEntries(args.map(([key, value]) => [key, renderStatus(value)])));
+}
+
+/** Combines status text and translated fragments in display order. */
+export function joinStatus(...parts) {
+  return () => parts.map(renderStatus).join('');
+}
+
+export function renderStatus(message) {
+  return typeof message === 'function' ? message() : message;
+}

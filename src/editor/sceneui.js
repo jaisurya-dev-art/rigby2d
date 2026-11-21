@@ -14,7 +14,7 @@ import * as platform from './platform.js';
 import { dragValue, h, popupMenu, select, submenuItem, textField } from './widgets.js';
 import { button, iconButton } from './ui.js';
 import { track as count } from './analytics.js';
-import { t } from './i18n.js';
+import { joinStatus, statusMessage, t } from './i18n.js';
 
 const row = (label, ...content) => [h('label', null, label), h('div', { class: 'cell' }, ...content)];
 const snap = (t) => Math.round(t * FPS) / FPS;
@@ -47,7 +47,7 @@ export async function newScene(app) {
   app.commitHistory(false);
   app.changed();
   count('editor-new-scene');
-  app.setStatus(t('New scene: add characters with + Actor in the Scene section of the tree, and backgrounds with File ▸ Import ▸ PNG images (select the background bone first).'));
+  app.setStatus(statusMessage('New scene: add characters with + Actor in the Scene section of the tree, and backgrounds with File ▸ Import ▸ PNG images (select the background bone first).'));
 }
 
 /** Adds an actor from a work file's bytes at the view's center, selects it and keys nothing yet. */
@@ -62,9 +62,9 @@ async function addFrom(app, name, bytes) {
     app.commitHistory(false);
     app.select({ bone: app.doc.boneIndex(actor.bone) });
     count('editor-add-actor');
-    app.setStatus(t("Added {name}: move it with the transform tools, and add clips in the inspector or the dopesheet's actor lane.", { name: actor.name }));
+    app.setStatus(statusMessage("Added {name}: move it with the transform tools, and add clips in the inspector or the dopesheet's actor lane.", { name: actor.name }));
   } catch (e) {
-    app.setStatus(t('Could not add the actor: {error}', { error: e.message }));
+    app.setStatus(statusMessage('Could not add the actor: {error}', { error: e.message }));
   }
 }
 
@@ -327,7 +327,10 @@ export function pressLane(app, rects, p, e, xToTime, laneTop, ROW) {
     end() {
       tidy(app, hit.actor);
       app.commitHistory(false);
-      app.setStatus(`${hit.actor.name}: ${clip.animation} ${edge === 'move' ? t('at {time} s', { time: clip.start.toFixed(2) }) : t('plays {from}–{to} s', { from: clip.in.toFixed(2), to: clipSpan(clip, anim)[1].toFixed(2) })}`);
+      const timing = edge === 'move'
+        ? statusMessage('at {time} s', { time: clip.start.toFixed(2) })
+        : statusMessage('plays {from}–{to} s', { from: clip.in.toFixed(2), to: clipSpan(clip, anim)[1].toFixed(2) });
+      app.setStatus(joinStatus(`${hit.actor.name}: ${clip.animation} `, timing));
     },
   };
 }
@@ -351,7 +354,7 @@ function clipMenu(app, actor, clip, x, y) {
         const anim = animOf(actor, clip);
         const len = clipLength(clip, anim);
         const now = snap(app.time);
-        if (now <= clip.start || (Number.isFinite(len) && now >= clip.start + len) || clip.loops !== 1) return app.setStatus(t('Split works on a clip that plays once, with the playhead inside it.'));
+        if (now <= clip.start || (Number.isFinite(len) && now >= clip.start + len) || clip.loops !== 1) return app.setStatus(statusMessage('Split works on a clip that plays once, with the playhead inside it.'));
         const at = clip.in + (now - clip.start) * clip.speed;
         const second = { ...clip, start: now, in: at, blend: 0 };
         clip.out = at;

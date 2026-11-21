@@ -10,7 +10,7 @@ import { makeSlot } from '../core/model.js';
 import { Pose } from '../core/pose.js';
 import { setKey } from '../core/animation.js';
 import { FPS, Mode } from './app.js';
-import { t } from './i18n.js';
+import { statusMessage, t } from './i18n.js';
 
 const VERTEX_HIT = 7;
 const EDGE_HIT = 8;
@@ -396,7 +396,7 @@ export class MeshTool {
 
   commit(tgt, state, opts) {
     const removed = writeMesh(this.app.doc, tgt.slot, tgt.att, state, opts);
-    if (removed) this.app.setStatus(t('Mesh changed: removed {count} deform timeline(s) that no longer match it', { count: removed }));
+    if (removed) this.app.setStatus(statusMessage('Mesh changed: removed {count} deform timeline(s) that no longer match it', { count: removed }));
     this.app.changed();
   }
 
@@ -427,7 +427,7 @@ export class MeshTool {
     const world = this.viewport.toWorld(pos);
     if (tgt.mode === 'weights') {
       if (!state.weights) {
-        this.app.setStatus(t('Bind the mesh to bones first (properties panel)'));
+        this.app.setStatus(statusMessage('Bind the mesh to bones first (properties panel)'));
         return;
       }
       this.drag = { kind: 'paint', subtract: e.shiftKey || tgt.edit.subtract };
@@ -530,7 +530,7 @@ export class MeshTool {
       if (sx >= x0 && sx <= x1 && sy >= y0 && sy <= y1) sel.add(i);
     });
     tgt.edit.selected = [...sel].at(-1) ?? null;
-    this.app.setStatus(t('{count} vertex(es) selected', { count: sel.size }));
+    this.app.setStatus(statusMessage('{count} vertex(es) selected', { count: sel.size }));
     this.app.changed();
   }
 
@@ -584,7 +584,7 @@ export class MeshTool {
     const unlock = sel.every((i) => locks.has(i));
     for (const i of sel) unlock ? locks.delete(i) : locks.add(i);
     setMeshLocks(doc, tgt.slot, tgt.att.name, locks);
-    this.app.setStatus(unlock ? t('Unlocked {count} vertex(es)', { count: sel.length }) : t('Locked {count} vertex(es): generating the mesh again keeps them', { count: sel.length }));
+    this.app.setStatus(unlock ? statusMessage('Unlocked {count} vertex(es)', { count: sel.length }) : statusMessage('Locked {count} vertex(es): generating the mesh again keeps them', { count: sel.length }));
     this.app.changed();
     return sel.length;
   }

@@ -12,7 +12,7 @@ import { h } from '../widgets.js';
 import { closeButton } from '../ui.js';
 import { lintLesson } from './lint.js';
 import { overlaps, resolve } from './targets.js';
-import { t } from '../i18n.js';
+import { statusMessage, t } from '../i18n.js';
 
 // Versioned: when lessons are rebuilt, progress from their old versions no longer counts.
 const PROGRESS = 'rigby.tutorials.v2';
@@ -268,7 +268,7 @@ export class Coach {
                   await step.action.run(this.ctx);
                 } catch (err) {
                   // The desktop app downloads the demo and practice characters; say so when that fails.
-                  this.ctx.app.setStatus(t("Could not load the lesson's character: {error}. The desktop app downloads it from the Rigby2D website: check the internet connection.", { error: err?.message ?? err }));
+                  this.ctx.app.setStatus(statusMessage("Could not load the lesson's character: {error}. The desktop app downloads it from the Rigby2D website: check the internet connection.", { error: err?.message ?? err }));
                 } finally {
                   button.disabled = false;
                   this.check();

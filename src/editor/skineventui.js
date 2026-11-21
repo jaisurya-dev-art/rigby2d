@@ -6,7 +6,7 @@ import { listConstraints } from '../core/constraintdata.js';
 import { FPS, Mode } from './app.js';
 import { dragValue, h, textField } from './widgets.js';
 import { button, uiIcon } from './ui.js';
-import { t } from './i18n.js';
+import { statusMessage, t } from './i18n.js';
 
 const row = (label, ...content) => [h('label', null, label), h('div', { class: 'cell' }, ...content)];
 
@@ -26,7 +26,7 @@ export function createSkin(app, from = null) {
   doc.skins.push(skin);
   doc.skin = name;
   app.sel = { skin: name };
-  app.setStatus(t("Skin '{name}' created and active: images added to slots now go into it", { name }));
+  app.setStatus(statusMessage("Skin '{name}' created and active: images added to slots now go into it", { name }));
   app.changed();
 }
 
@@ -228,13 +228,13 @@ function deleteEvent(app, ev) {
 /** Adds (or replaces) a key of the event at the current time of the current animation. */
 function keyEvent(app, ev) {
   const anim = app.currentAnimation();
-  if (!anim) return app.setStatus(t('Choose an animation first'));
+  if (!anim) return app.setStatus(statusMessage('Choose an animation first'));
   const time = Math.round(app.time * FPS) / FPS;
   anim.events = anim.events.filter((k) => !(k.name === ev.name && Math.abs(k.time - time) < 1e-4));
   anim.events.push({ time, name: ev.name });
   anim.events.sort((x, y) => x.time - y.time);
   if (anim.duration < time) anim.duration = time;
-  app.setStatus(t("Keyed event '{name}' at frame {frame}", { name: ev.name, frame: Math.round(time * FPS) }));
+  app.setStatus(statusMessage("Keyed event '{name}' at frame {frame}", { name: ev.name, frame: Math.round(time * FPS) }));
   app.changed();
 }
 

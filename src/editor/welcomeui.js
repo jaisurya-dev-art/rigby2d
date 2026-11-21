@@ -4,7 +4,7 @@
 
 import { DEMOS } from './demos.js';
 import { LINKS, VERSION } from './helpui.js';
-import { language, t } from './i18n.js';
+import { language, statusMessage, t } from './i18n.js';
 import { isDesktop, openExternal, saveDownload } from './platform.js';
 import { ago, recentProjects, splitPath } from './recent.js';
 import { newScene } from './sceneui.js';
@@ -68,8 +68,8 @@ export function openWelcome(app, { tutorials, whatsNew, onClose } = {}) {
         title: t(s.name),
         text: t(s.description),
         fn: async () => {
-          const saved = await saveDownload(s.url, s.file).catch((e) => app.setStatus(t('Could not download {file}: {error}', { file: s.file, error: e.message })));
-          if (saved) app.setStatus(t('Saved {file}', { file: saved }));
+          const saved = await saveDownload(s.url, s.file).catch((e) => app.setStatus(statusMessage('Could not download {file}: {error}', { file: s.file, error: e.message })));
+          if (saved) app.setStatus(statusMessage('Saved {file}', { file: saved }));
         },
       }),
     ),

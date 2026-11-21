@@ -22,7 +22,7 @@ import { actorEntries, actors, imageKey, loadActors, poseActors } from './actors
 import { applyParallax, setupCameraPosition } from '../core/scene.js';
 import { createPrefs } from './prefs.js';
 import { isBackup } from './recovery.js';
-import { t, tn } from './i18n.js';
+import { joinStatus, language, renderStatus, statusMessage, t, tn } from './i18n.js';
 
 /** Default onion-skin tint colors (future = cool, past = warm), shared with the UI. */
 export const ONION_DEFAULTS = { futureColor: [0.55, 0.75, 1], pastColor: [1, 0.55, 0.55] };
@@ -197,7 +197,7 @@ export class App {
     /** Boomerang (ping-pong) preview: with Loop on, playback runs to the end and back. */
     this.boomerang = false;
     this.selectedKeys.clear();
-    this.status = t('Welcome to Rigby2D. Open a demo (File ▸ Open demo), or import a PSD, an SVG or PNGs.');
+    this._status = statusMessage('Welcome to Rigby2D. Open a demo (File ▸ Open demo), or import a PSD, an SVG or PNGs.');
     this.showBones = true;
     /** Shows the output frame (resolution and framing) in the viewport. */
     this.showFrame = false;
@@ -326,6 +326,14 @@ export class App {
     this.changed();
   }
 
+  get status() {
+    return renderStatus(this._status);
+  }
+
+  set status(text) {
+    this._status = text;
+  }
+
   /** Workspace of the open project: its own, or the user's default for projects without one. */
   get workspace() {
     return this.doc.workspace ?? workspaceDef(loadSetting('rigby.workspace', 'game')).id;
@@ -337,7 +345,7 @@ export class App {
     this.doc.workspace = ws.id;
     saveSetting('rigby.workspace', ws.id);
     this.showFrame = ws.features.has('outputFrame');
-    this.setStatus(t('{name} workspace: {description}', { name: t(ws.label), description: t(ws.description) }));
+    this.setStatus(statusMessage('{name} workspace: {description}', { name: statusMessage(ws.label), description: statusMessage(ws.description) }));
   }
 
   /** Replaces the document (new/open/sample) and resets editor state. */
@@ -397,9 +405,9 @@ export class App {
   }
 
   /** Starts picking a bone: the next bone clicked in the viewport or tree goes to `done`. */
-  startPick(prompt, done) {
+  startPick(prompt, done, vars) {
     this.pick = { prompt, done };
-    this.setStatus(t('{prompt} (Esc cancels)', { prompt }));
+    this.setStatus(statusMessage('{prompt} (Esc cancels)', { prompt: statusMessage(prompt, vars) }));
     this.changed();
   }
 
@@ -408,7 +416,7 @@ export class App {
     const p = this.pick;
     this.pick = null;
     if (p && bone !== null && bone !== undefined) p.done(bone);
-    else if (p) this.setStatus(t('Picking cancelled'));
+    else if (p) this.setStatus(statusMessage('Picking cancelled'));
     this.changed();
   }
 
@@ -624,7 +632,7 @@ export class App {
   discardPending(reason = '') {
     if (!this.pending.size) return;
     this.pending.clear();
-    if (reason) this.status = t('Unkeyed changes discarded ({reason}). Key them with K or turn on Auto key.', { reason });
+    if (reason) this.status = statusMessage('Unkeyed changes discarded ({reason}). Key them with K or turn on Auto key.', { reason });
     this.changed();
   }
 
@@ -721,14 +729,14 @@ export class App {
       // A backup (walk.rigby1) opens as a copy: Save asks where to keep it instead of overwriting it.
       const backup = isBackup(path);
       this.saveTarget = !imported && !backup && fs.reusable ? { path, fs } : null;
-      const what = imported ? t('Imported') : backup ? t('Opened the backup') : t('Opened');
+      const what = statusMessage(imported ? tn('Imported') : backup ? tn('Opened the backup') : tn('Opened'));
       if (platform.isDesktop && fs.reusable) rememberProject({ kind: 'file', path });
       track(imported ? 'editor-import-skeleton' : 'editor-open');
-      const note = backup ? t(' (Save asks where to keep it)') : '';
-      this.setStatus(warnings.length ? t('{what} with warnings: {warnings}', { what, warnings: warnings.join('; ') }) : `${what} ${path}${note}`);
+      const note = backup ? statusMessage(' (Save asks where to keep it)') : '';
+      this.setStatus(warnings.length ? statusMessage('{what} with warnings: {warnings}', { what, warnings: warnings.join('; ') }) : joinStatus(what, ' ', path, note));
       return { ok: true, warnings };
     } catch (e) {
-      this.setStatus(t('Could not open {path}: {error}', { path, error: errorText(e) }));
+      this.setStatus(statusMessage('Could not open {path}: {error}', { path, error: errorText(e) }));
       return { ok: false, error: e };
     }
   }
@@ -752,10 +760,10 @@ export class App {
       if (!ranked.length) {
         return showResult(this, {
           ok: false,
-          title: t('Nothing to open'),
+          title: statusMessage('Nothing to open'),
           detail: texAtlas
-            ? t('That is the DragonBones texture atlas (_tex.json). Pick the skeleton (_ske.json) with it, and its image.')
-            : t('Pick a Rigby2D work file (.rigby), a skeleton (.json or .skel) or a DragonBones skeleton (_ske.json), together with its images and atlas.'),
+            ? statusMessage('That is the DragonBones texture atlas (_tex.json). Pick the skeleton (_ske.json) with it, and its image.')
+            : statusMessage('Pick a Rigby2D work file (.rigby), a skeleton (.json or .skel) or a DragonBones skeleton (_ske.json), together with its images and atlas.'),
         });
       }
       // Best kind first; among equals the plainest name (hero_ske.json before hero_show_ske.json).
@@ -812,7 +820,7 @@ export class App {
     actors.clear();
     this.loadDocument(doc, null);
     this.saveTarget = null;
-    this.setStatus(t('New {name} project', { name: t(ws.label).toLowerCase() }));
+    this.setStatus(() => t('New {name} project', { name: t(ws.label).toLowerCase() }));
   }
 
   /** A bundled demo project (see demos.js) with its images loaded; the open document is not replaced. */
@@ -840,9 +848,10 @@ export class App {
       this.playDirection = 1;
       this.frameRequest = true;
       rememberProject({ kind: 'demo', id: demo.id, name: demo.name });
-      this.setStatus(t('{name} demo. Save keeps a copy; demo content is for learning only (license in File ▸ Open demo).', { name: demo.name, description: t(demo.description) }));
+      this.setStatus(statusMessage('{name} demo. Save keeps a copy; demo content is for learning only (license in File ▸ Open demo).', { name: demo.name, description: statusMessage(demo.description) }));
     } catch (e) {
-      this.setStatus(t('Could not open the demo: {error}', { error: errorText(e) }) + (DEMOS_REMOTE ? ' ' + t('Demos download from the Rigby2D website: check the internet connection.') : ''));
+      const note = DEMOS_REMOTE ? joinStatus(' ', statusMessage('Demos download from the Rigby2D website: check the internet connection.')) : '';
+      this.setStatus(joinStatus(statusMessage('Could not open the demo: {error}', { error: errorText(e) }), note));
     }
   }
 
@@ -854,7 +863,7 @@ export class App {
     await this.openFrom(file.path, file.fs);
     if (this.path !== entry.path && !this.status.startsWith('Imported')) {
       forgetProject(entry);
-      this.setStatus(`${this.status} ${t('It was removed from the recent projects.')}`);
+      this.setStatus(joinStatus(this._status, ' ', statusMessage('It was removed from the recent projects.')));
     }
   }
 
@@ -893,11 +902,11 @@ export class App {
       this.syncJson();
       this.baseline = this.saved = this.docJson;
       if (platform.isDesktop && target.fs.reusable) rememberProject({ kind: 'file', path: target.path });
-      const note = warnings.length ? t(' (warnings: {warnings})', { warnings: warnings.join('; ') }) : '';
+      const note = warnings.length ? statusMessage(' (warnings: {warnings})', { warnings: warnings.join('; ') }) : '';
       track('editor-save');
-      this.setStatus(t('Saved {file}', { file: target.path }) + note);
+      this.setStatus(joinStatus(statusMessage('Saved {file}', { file: target.path }), note));
     } catch (e) {
-      this.setStatus(t('Save failed: {error}', { error: errorText(e) }));
+      this.setStatus(statusMessage('Save failed: {error}', { error: errorText(e) }));
     }
   }
 
@@ -918,17 +927,17 @@ export class App {
     try {
       const { atlasPath, warnings } = await io.exportSkeletonJson(target.path, target.fs, this.doc, this.images, version);
       await target.fs.finish();
-      const note = warnings.length ? t(' (warnings: {warnings})', { warnings: warnings.join('; ') }) : '';
+      const note = warnings.length ? statusMessage(' (warnings: {warnings})', { warnings: warnings.join('; ') }) : '';
       track('editor-export-json');
-      showResult(this, { ok: true, title: t('Skeleton JSON {version} exported', { version }), detail: t('With its atlas {path}.', { path: atlasPath }) + note, path: target.path });
+      showResult(this, { ok: true, title: statusMessage('Skeleton JSON {version} exported', { version }), detail: joinStatus(statusMessage('With its atlas {path}.', { path: atlasPath }), note), path: target.path });
     } catch (e) {
-      showResult(this, { ok: false, title: t('Skeleton JSON export failed'), detail: errorText(e) });
+      showResult(this, { ok: false, title: statusMessage('Skeleton JSON export failed'), detail: errorText(e) });
     }
   }
 
   /** Exports the scene for runtimes: a manifest plus the stage and every character as skeleton JSON. */
   async exportScene() {
-    if (!this.doc.scene) return this.setStatus(t('This project has no scene to export (File ▸ New ▸ Scene)'));
+    if (!this.doc.scene) return this.setStatus(statusMessage('This project has no scene to export (File ▸ New ▸ Scene)'));
     const target = await this.guard(() => platform.pickSaveTarget(`${this.doc.name || 'scene'}.scene.json`, t('Rigby2D scene'), 'json'));
     if (!target) return;
     try {
@@ -937,11 +946,11 @@ export class App {
         .map((a) => ({ id: a.id, doc: actors.get(a.id).doc, images: { get: (name) => this.images.get(imageKey(a.id, name)) } }));
       const { files, warnings } = await io.exportScene(target.path, target.fs, this.doc, this.images, list);
       await target.fs.finish();
-      const note = warnings.length ? t(' (warnings: {warnings})', { warnings: warnings.join('; ') }) : '';
+      const note = warnings.length ? statusMessage(' (warnings: {warnings})', { warnings: warnings.join('; ') }) : '';
       track('editor-export-scene');
-      showResult(this, { ok: true, title: t('Scene exported'), detail: `${files.length} files.${note}`, path: files[0] });
+      showResult(this, { ok: true, title: statusMessage('Scene exported'), detail: joinStatus(`${files.length} files.`, note), path: files[0] });
     } catch (e) {
-      showResult(this, { ok: false, title: t('Scene export failed'), detail: errorText(e) });
+      showResult(this, { ok: false, title: statusMessage('Scene export failed'), detail: errorText(e) });
     }
   }
 
@@ -952,11 +961,11 @@ export class App {
     try {
       const { atlasPath, warnings } = await io.exportSkeletonBinary(target.path, target.fs, this.doc, this.images);
       await target.fs.finish();
-      const note = warnings.length ? t(' (warnings: {warnings})', { warnings: warnings.join('; ') }) : '';
+      const note = warnings.length ? statusMessage(' (warnings: {warnings})', { warnings: warnings.join('; ') }) : '';
       track('editor-export-skel');
-      showResult(this, { ok: true, title: t('Binary skeleton exported'), detail: t('With its atlas {path}.', { path: atlasPath }) + note, path: target.path });
+      showResult(this, { ok: true, title: statusMessage('Binary skeleton exported'), detail: joinStatus(statusMessage('With its atlas {path}.', { path: atlasPath }), note), path: target.path });
     } catch (e) {
-      showResult(this, { ok: false, title: t('Binary export failed'), detail: errorText(e) });
+      showResult(this, { ok: false, title: statusMessage('Binary export failed'), detail: errorText(e) });
     }
   }
 
@@ -1002,12 +1011,12 @@ export class App {
       track('editor-export-defold');
       showResult(this, {
         ok: true,
-        title: t('Rigby2D model exported'),
-        detail: t('Add {go} to a collection, or {model} to a game object: the Defold editor plays it in the scene view, and the game plays it. The project needs the rigby2d library.', { go: `${folder}/${name}.go`, model: `${folder}/${name}.rigbymodel` }),
+        title: statusMessage('Rigby2D model exported'),
+        detail: statusMessage('Add {go} to a collection, or {model} to a game object: the Defold editor plays it in the scene view, and the game plays it. The project needs the rigby2d library.', { go: `${folder}/${name}.go`, model: `${folder}/${name}.rigbymodel` }),
         path: target.path,
       });
     } catch (e) {
-      showResult(this, { ok: false, title: t('Defold export failed'), detail: errorText(e) });
+      showResult(this, { ok: false, title: statusMessage('Defold export failed'), detail: errorText(e) });
     }
   }
 
@@ -1015,7 +1024,7 @@ export class App {
   pixelArtNote(hadImages, scale) {
     const grid = io.applyPixelArt(this.doc, hadImages, scale);
     if (!grid) return '';
-    return '. ' + t('Pixel art: the pixel grid is on ({units} unit(s) per pixel) to keep it sharp; change it in the Project panel', { units: grid });
+    return joinStatus('. ', statusMessage('Pixel art: the pixel grid is on ({units} unit(s) per pixel) to keep it sharp; change it in the Project panel', { units: grid }));
   }
 
   async importPsd() {
@@ -1027,7 +1036,7 @@ export class App {
       const n = await io.importPsd(file, this.doc, this.images, info);
       this.frameRequest = true;
       track('editor-import-psd');
-      this.setStatus(t('Imported {count} layers from {file}', { count: n, file: io.basename(file.name) }) + this.pixelArtNote(had, info.pixelScale));
+      this.setStatus(joinStatus(statusMessage('Imported {count} layers from {file}', { count: n, file: io.basename(file.name) }), this.pixelArtNote(had, info.pixelScale)));
     } catch (e) {
       this.setStatus(`PSD import failed: ${errorText(e)}`);
     }
@@ -1047,13 +1056,13 @@ export class App {
       this.commitHistory?.();
       track('editor-import-aseprite');
       const what = r.animations
-        ? t('Imported {layers} layer(s) and {count} animation(s) from {file}', { layers: r.layers, count: r.animations, file: io.basename(file.name) })
-        : t('Imported {count} layers from {file}', { count: r.layers, file: io.basename(file.name) });
-      const baked = r.baked.length ? `. ${t('Blend layers baked into the layers below: {names}', { names: r.baked.join(', ') })}` : '';
-      const left = r.skipped.length ? `. ${t('Left out: {what}', { what: r.skipped.map((x) => t(x)).join(', ') })}` : '';
-      this.setStatus(what + this.pixelArtNote(had, info.pixelScale) + baked + left);
+        ? statusMessage('Imported {layers} layer(s) and {count} animation(s) from {file}', { layers: r.layers, count: r.animations, file: io.basename(file.name) })
+        : statusMessage('Imported {count} layers from {file}', { count: r.layers, file: io.basename(file.name) });
+      const baked = r.baked.length ? joinStatus('. ', statusMessage('Blend layers baked into the layers below: {names}', { names: r.baked.join(', ') })) : '';
+      const left = r.skipped.length ? joinStatus('. ', statusMessage('Left out: {what}', { what: () => r.skipped.map((x) => t(x)).join(', ') })) : '';
+      this.setStatus(joinStatus(what, this.pixelArtNote(had, info.pixelScale), baked, left));
     } catch (e) {
-      this.setStatus(`${t('Aseprite import failed')}: ${errorText(e)}`);
+      this.setStatus(joinStatus(statusMessage('Aseprite import failed'), ': ', errorText(e)));
     }
   }
 
@@ -1087,7 +1096,7 @@ export class App {
       this.changed();
       this.commitHistory?.();
       track('editor-import-svg');
-      this.setStatus(t('Imported {count} layers from {file}', { count: n, file: file.name }));
+      this.setStatus(statusMessage('Imported {count} layers from {file}', { count: n, file: file.name }));
     } catch (e) {
       this.setStatus(`SVG import failed: ${errorText(e)}`);
     }
@@ -1096,7 +1105,7 @@ export class App {
   /** Film: adds sound files as audio tracks of the current animation, starting at frame 0. */
   async importAudio() {
     const anim = this.currentAnimation();
-    if (!anim) return this.setStatus(t('Select an animation first: audio tracks belong to an animation'));
+    if (!anim) return this.setStatus(statusMessage('Select an animation first: audio tracks belong to an animation'));
     const files = await this.guard(() => platform.pickImportFiles(t('Audio'), ['wav', 'mp3', 'ogg', 'm4a', 'aac', 'flac'], true));
     if (!files?.length) return;
     for (const f of files) {
@@ -1105,11 +1114,11 @@ export class App {
         await addSound(name, f.bytes);
         this.doc.audio.push({ sound: name, animation: anim.name, offset: 0, volume: 1 });
       } catch (e) {
-        this.setStatus(t('Cannot decode {name}: {error}', { name, error: errorText(e) }));
+        this.setStatus(statusMessage('Cannot decode {name}: {error}', { name, error: errorText(e) }));
         return;
       }
     }
-    this.setStatus(t("Added {count} audio track(s) to '{name}'", { count: files.length, name: anim.name }));
+    this.setStatus(statusMessage("Added {count} audio track(s) to '{name}'", { count: files.length, name: anim.name }));
   }
 
   async importImages() {
@@ -1120,9 +1129,9 @@ export class App {
       const info = {};
       const n = await io.importPngs(files, selBone(this.sel) ?? 0, this.doc, this.images, info);
       this.frameRequest = true;
-      this.setStatus(t('Imported {count} images', { count: n }) + this.pixelArtNote(had, info.pixelScale));
+      this.setStatus(joinStatus(statusMessage('Imported {count} images', { count: n }), this.pixelArtNote(had, info.pixelScale)));
     } catch (e) {
-      this.setStatus(t('Image import failed: {error}', { error: errorText(e) }));
+      this.setStatus(statusMessage('Image import failed: {error}', { error: errorText(e) }));
     }
   }
 
@@ -1131,7 +1140,7 @@ export class App {
     try {
       return await fn();
     } catch (e) {
-      this.setStatus(t('Dialog failed: {error}', { error: errorText(e) }));
+      this.setStatus(statusMessage('Dialog failed: {error}', { error: errorText(e) }));
       return null;
     }
   }
@@ -1289,6 +1298,7 @@ export class App {
       looping: this.looping,
       boomerang: this.boomerang,
       fps: FPS,
+      language: language(),
       sel: this.sel,
       multi: [...this.multi],
       hoverBone: this.hoverBone,

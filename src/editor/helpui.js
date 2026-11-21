@@ -5,7 +5,7 @@
 
 import { ACTIONS, PRESETS, bindCombo, comboLabel, comboOf, importKeymapFile, keymapFile, newCustom, reservedCombo, resetCustom, unbindCombo } from './keymap.js';
 import { confirmDialog, fetchBytes, openExternal, pickImportFiles as importFiles, pickSaveTarget as saveTarget } from './platform.js';
-import { t, tn } from './i18n.js';
+import { statusMessage, t, tn } from './i18n.js';
 import { h } from './widgets.js';
 import { button, dialog as uiDialog, uiIcon } from './ui.js';
 import { brandMark } from './brandmark.js';
@@ -125,7 +125,7 @@ export function openShortcuts(app, { onClose } = {}) {
   const customize = () => {
     if (!app.customKeymap) app.setCustomKeymap(newCustom(app.keymap));
     else app.setKeymap('custom');
-    app.setStatus(t('Keyboard shortcuts: Custom. Click a key to change it.'));
+    app.setStatus(statusMessage('Keyboard shortcuts: Custom. Click a key to change it.'));
     render();
   };
 
@@ -135,9 +135,9 @@ export function openShortcuts(app, { onClose } = {}) {
       if (!target) return;
       await target.fs.writeFile(target.path, new TextEncoder().encode(keymapFile(app.customKeymap)));
       await target.fs.finish();
-      app.setStatus(t('Saved the keymap: {path}', { path: target.path }));
+      app.setStatus(statusMessage('Saved the keymap: {path}', { path: target.path }));
     } catch (e) {
-      app.setStatus(t('Could not save the keymap: {error}', { error: e.message ?? e }));
+      app.setStatus(statusMessage('Could not save the keymap: {error}', { error: e.message ?? e }));
     }
   };
 
@@ -146,10 +146,10 @@ export function openShortcuts(app, { onClose } = {}) {
       const [file] = await importFiles(t('Rigby2D keymap'), ['json'], false);
       if (!file) return;
       app.setCustomKeymap(importKeymapFile(new TextDecoder().decode(file.bytes)));
-      app.setStatus(t('Keyboard shortcuts loaded from {file}', { file: file.name }));
+      app.setStatus(statusMessage('Keyboard shortcuts loaded from {file}', { file: file.name }));
       render();
     } catch (e) {
-      app.setStatus(t('Could not load the keymap: {error}', { error: e.message ?? e }));
+      app.setStatus(statusMessage('Could not load the keymap: {error}', { error: e.message ?? e }));
     }
   };
 
@@ -220,7 +220,7 @@ export function openShortcuts(app, { onClose } = {}) {
             onclick: () => {
               recording = null;
               app.setKeymap(id);
-              app.setStatus(t('Keyboard shortcuts: {name}', { name: t(p.label) }));
+              app.setStatus(statusMessage('Keyboard shortcuts: {name}', { name: statusMessage(p.label) }));
               render();
             },
           },

@@ -102,7 +102,8 @@ export function installCapture(app) {
     // { log: false }: the caller has logged the details itself.
     app.setStatus = (text, { log: logIt = true } = {}) => {
       setStatus(text);
-      if (text && logIt) log(/\b(failed|cannot|error|invalid)\b/i.test(text) ? 'error' : /\bwarning/i.test(text) ? 'warn' : 'info', text, { source: 'status' });
+      const message = app.status;
+      if (message && logIt) log(/\b(failed|cannot|error|invalid)\b/i.test(message) ? 'error' : /\bwarning/i.test(message) ? 'warn' : 'info', message, { source: 'status' });
     };
   }
 }

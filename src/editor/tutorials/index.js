@@ -7,7 +7,7 @@ import { button, dialog, hint, uiIcon } from '../ui.js';
 import { runArena } from './arena.js';
 import { Coach, finishedLessons, resetProgress } from './coach.js';
 import { LESSONS } from './lessons.js';
-import { t } from '../i18n.js';
+import { statusMessage, t } from '../i18n.js';
 
 const WELCOMED = 'rigby.welcomed.v2';
 
@@ -19,7 +19,7 @@ export function createTutorials(app, viewport, { refresh = () => {} } = {}) {
     // At the end of a lesson, offer the next one.
     onFinish: (lesson) => {
       const next = LESSONS[LESSONS.indexOf(lesson) + 1];
-      app.setStatus(t('Lesson complete: {title}', { title: t(lesson.title) }));
+      app.setStatus(statusMessage('Lesson complete: {title}', { title: statusMessage(lesson.title) }));
       if (next) open(next.id);
     },
   });

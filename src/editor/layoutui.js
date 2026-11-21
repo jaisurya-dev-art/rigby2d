@@ -10,7 +10,7 @@ import { h, select, submenuItem, textField } from './widgets.js';
 import { button, dialog, fieldRow, fields, hint } from './ui.js';
 import { PANELS } from './dock.js';
 import { assignHotkey, hotkeyLabel, loadLayouts, newLayoutId, removeLayout, renameLayout, saveLayouts, updatePanels, upsertLayout } from './layouts.js';
-import { t, tn } from './i18n.js';
+import { joinStatus, statusMessage, t, tn } from './i18n.js';
 
 // Ctrl+Alt+<digit> options for a shortcut: none, then 1–9 and 0.
 const HOTKEY_OPTIONS = [['', tn('No shortcut')], ...[1, 2, 3, 4, 5, 6, 7, 8, 9, 0].map((d) => [String(d), `Ctrl+Alt+${d}`])];
@@ -55,7 +55,7 @@ export function windowLayoutsMenuItem(ctx) {
 
 function loadLayout(ctx, layout) {
   ctx.sync.applyLayout(layout.panels, layout.id, layout.dock, layout.sizes);
-  ctx.app.setStatus(t('Layout: {name}', { name: layout.name }));
+  ctx.app.setStatus(statusMessage('Layout: {name}', { name: layout.name }));
 }
 
 function openSaveLayout(ctx) {
@@ -70,7 +70,7 @@ function openSaveLayout(ctx) {
       const layout = { id: newLayoutId(), name: name.trim() || t('Layout {number}', { number: existing.length + 1 }), hotkey, panels, dock: ctx.sync.captureDock(), sizes: ctx.sync.captureSizes() };
       saveLayouts(upsertLayout(loadLayouts(), layout));
       ctx.sync.setActiveLayout(layout.id); // the saved layout is now the active, clean one
-      ctx.app.setStatus(t('Saved layout "{name}"', { name: layout.name }) + (hotkey !== null ? ` (${hotkeyLabel(hotkey)})` : ''));
+      ctx.app.setStatus(joinStatus(statusMessage('Saved layout "{name}"', { name: layout.name }), hotkey !== null ? ` (${hotkeyLabel(hotkey)})` : ''));
       close();
     },
   });
@@ -131,7 +131,7 @@ function openManageLayouts(ctx) {
                     const panels = await ctx.sync.captureLayout();
                     saveLayouts(updatePanels(loadLayouts(), l.id, panels, ctx.sync.captureDock(), ctx.sync.captureSizes()));
                     ctx.sync.setActiveLayout(l.id);
-                    ctx.app.setStatus(t('Updated "{name}" to the current arrangement', { name: l.name }));
+                    ctx.app.setStatus(statusMessage('Updated "{name}" to the current arrangement', { name: l.name }));
                     render();
                   },
                 }),

@@ -12,7 +12,7 @@ import * as log from './log.js';
 import * as platform from './platform.js';
 import { h, popupMenu } from './widgets.js';
 import { button, checkbox, dialog, fieldRow, fields, hint } from './ui.js';
-import { t, tn } from './i18n.js';
+import { joinStatus, statusMessage, t, tn } from './i18n.js';
 
 /** Replaces the dialog's content; empty parts (null) are left out. */
 const fillWith = (body) => (...children) => body.replaceChildren(...children.filter(Boolean));
@@ -74,12 +74,16 @@ export function openAutoRig(app) {
       app.changed();
       for (const w of report.warnings) log.warn(w, { source: 'autorig' });
       track('editor-autorig');
-      app.setStatus(t('AutoRig: {bones} bones, {meshes} meshes, {ik} IK', { bones: report.bones.length, meshes: report.parts.filter((p) => p.mesh).length, ik: report.ik.length }) + (report.warnings.length ? ' ' + t('({count} note(s) in View ▸ Log)', { count: report.warnings.length }) : '') + '. ' + t('Undo reverts it.'));
+      app.setStatus(joinStatus(
+        statusMessage('AutoRig: {bones} bones, {meshes} meshes, {ik} IK', { bones: report.bones.length, meshes: report.parts.filter((p) => p.mesh).length, ik: report.ik.length }),
+        report.warnings.length ? joinStatus(' ', statusMessage('({count} note(s) in View ▸ Log)', { count: report.warnings.length })) : '',
+        '. ', statusMessage('Undo reverts it.'),
+      ));
       close();
     } catch (e) {
       if (app.doc.toSnapshot() !== before) app.restore(before);
       log.exception(e, { source: 'autorig' });
-      app.setStatus(t('AutoRig failed: {error}', { error: log.errorMessage(e) }));
+      app.setStatus(statusMessage('AutoRig failed: {error}', { error: log.errorMessage(e) }));
     }
   };
 
@@ -191,7 +195,7 @@ export async function openRetarget(app) {
   try {
     ({ doc: source } = await io.openProject(picked.path, picked.fs, new Images()));
   } catch (e) {
-    app.setStatus(t('Could not open {path}: {error}', { path: picked.path, error: log.errorMessage(e) }));
+    app.setStatus(statusMessage('Could not open {path}: {error}', { path: picked.path, error: log.errorMessage(e) }));
     return;
   }
   if (!source.animations.length) {
@@ -218,12 +222,12 @@ export async function openRetarget(app) {
       app.time = 0;
       app.changed();
       track('editor-retarget');
-      app.setStatus(t('Retargeted {animations} (scale {scale}). Undo reverts it.', { animations: reports.map((r) => r.animation).join(', '), scale: reports[0].scale.toFixed(2) }));
+      app.setStatus(statusMessage('Retargeted {animations} (scale {scale}). Undo reverts it.', { animations: reports.map((r) => r.animation).join(', '), scale: reports[0].scale.toFixed(2) }));
       close();
     } catch (e) {
       if (target.toSnapshot() !== before) app.restore(before);
       log.exception(e, { source: 'retarget' });
-      app.setStatus(t('Retarget failed: {error}', { error: log.errorMessage(e) }));
+      app.setStatus(statusMessage('Retarget failed: {error}', { error: log.errorMessage(e) }));
       draw();
     }
   };

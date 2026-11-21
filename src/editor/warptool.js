@@ -5,7 +5,7 @@
 // warps into the meshes' deform keys.
 
 import { Mode } from './app.js';
-import { t } from './i18n.js';
+import { statusMessage } from './i18n.js';
 import { applyToSetup, bakeWarps, chainOffsetsAt, keyWarp, latticeWorld, pointsOf, warpOffsetsAt } from './warp.js';
 
 const HIT = 9; // px
@@ -106,7 +106,7 @@ export class WarpTool {
     const w = this.warp();
     if (!w) return;
     if (this.app.mode === Mode.Animate && !this.animName()) {
-      this.app.setStatus(t('Choose an animation to key the warp'));
+      this.app.setStatus(statusMessage('Choose an animation to key the warp'));
       return;
     }
     const picked = this.picked();

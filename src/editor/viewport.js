@@ -16,7 +16,7 @@ import { ShapeTool } from './shapetool.js';
 import { WarpTool } from './warptool.js';
 import { GLOW_COLORS } from './draworderdnd.js';
 import { h, popupMenu } from './widgets.js';
-import { t, tn } from './i18n.js';
+import { statusMessage, t, tn } from './i18n.js';
 import { canvasColor } from './canvascolors.js';
 
 const SELECTED = 'rgb(255,170,40)';
@@ -1186,12 +1186,12 @@ export class Viewport {
     // Create tool: a click on empty space adds a point bone (dragging draws a regular bone).
     if (app.tool === 'create' && !hit && !add) {
       if (app.mode === Mode.Animate) {
-        app.setStatus(t('Bones can only be created in Setup mode (Tab)'));
+        app.setStatus(statusMessage('Bones can only be created in Setup mode (Tab)'));
         return;
       }
       const parent = selBone(app.sel) ?? 0;
       const i = edit.addPointBone(app, parent, this.toWorld(pos));
-      app.setStatus(t('Created point bone {name}: drag to draw a regular bone', { name: app.doc.bones[i].name }));
+      app.setStatus(statusMessage('Created point bone {name}: drag to draw a regular bone', { name: app.doc.bones[i].name }));
       app.changed();
       return;
     }
@@ -1221,7 +1221,7 @@ export class Viewport {
     } else if (knob !== null) {
       drag = { kind: 'poseAim', index: knob };
     } else if (app.tool === 'create') {
-      if (app.mode === Mode.Animate) app.setStatus(t('Bones can only be created in Setup mode (Tab)'));
+      if (app.mode === Mode.Animate) app.setStatus(statusMessage('Bones can only be created in Setup mode (Tab)'));
       else drag = { kind: 'create', index: selBone(app.sel) ?? 0 };
     } else if (add) {
       drag = { kind: 'box', from: press, to: press };
@@ -1259,7 +1259,7 @@ export class Viewport {
       if (drag?.kind === 'bones' && app.tool === 'shear') {
         const b = hit && selBone(hit) !== null ? selBone(hit) : selBone(app.sel);
         drag.shearMode = this.pickShearMode(pose, b, press);
-        app.setStatus(t('Shear: {mode}', { mode: t({ x: tn('X axis'), y: tn('Y axis'), free: tn('free') }[drag.shearMode]) }));
+        app.setStatus(statusMessage('Shear: {mode}', { mode: statusMessage({ x: tn('X axis'), y: tn('Y axis'), free: tn('free') }[drag.shearMode]) }));
       }
     }
     this.drag = drag ? { ...drag, start, last: start } : null;
@@ -1278,7 +1278,7 @@ export class Viewport {
       const dx = world[0] - d.start[0];
       const dy = world[1] - d.start[1];
       world = Math.abs(dx) >= Math.abs(dy) ? [world[0], d.start[1]] : [d.start[0], world[1]];
-      if (!d.axisLockShown) app.setStatus(t('Moving along one axis (release Shift to move freely)'));
+      if (!d.axisLockShown) app.setStatus(statusMessage('Moving along one axis (release Shift to move freely)'));
       d.axisLockShown = true;
     }
     if (d.kind === 'box') {
@@ -1557,7 +1557,7 @@ export class Viewport {
     for (const h of hits) bones.add(h);
     app.multi = bones;
     app.sel = bones.size ? { bone: hits[0] ?? [...bones][0] } : null;
-    app.setStatus(bones.size ? (bones.size === 1 ? t('1 bone selected') : t('{count} bones selected', { count: bones.size })) : t('Nothing selected'));
+    app.setStatus(bones.size ? (bones.size === 1 ? statusMessage('1 bone selected') : statusMessage('{count} bones selected', { count: bones.size })) : statusMessage('Nothing selected'));
   }
 
   /** Bones without a selected ancestor (their descendants move with them). */
@@ -1638,7 +1638,7 @@ export class Viewport {
     const att = pose.slotAttachment(app.doc, s);
     if (!att) return;
     if (!att.offset) {
-      app.status = t('Only region images can be moved with the transform tools; meshes follow their bones');
+      app.status = statusMessage('Only region images can be moved with the transform tools; meshes follow their bones');
       return;
     }
     const boneWorld = pose.world[app.doc.slots[s].bone];
@@ -1663,7 +1663,7 @@ export class Viewport {
         break;
     }
     if (app.mode === Mode.Animate) {
-      app.status = t('Image placement is part of the setup pose; animate bones to move images over time');
+      app.status = statusMessage('Image placement is part of the setup pose; animate bones to move images over time');
     }
   }
 
@@ -1677,7 +1677,7 @@ export class Viewport {
     const setup = transform(p[0], p[1], (Math.atan2(d[1], d[0]) * 180) / Math.PI);
     const i = app.doc.addBone(makeBone(name, parent, setup, Math.hypot(d[0], d[1])));
     app.sel = { bone: i };
-    app.setStatus(t('Created {name}: drag again to chain a child bone', { name }));
+    app.setStatus(statusMessage('Created {name}: drag again to chain a child bone', { name }));
   }
 }
 

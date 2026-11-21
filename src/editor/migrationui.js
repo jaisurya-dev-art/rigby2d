@@ -4,7 +4,7 @@
 
 import { isSkeletonBinary, readSkeletonBinary } from '../core/binary.js';
 import { dialog } from './helpui.js';
-import { t } from './i18n.js';
+import { statusMessage, t } from './i18n.js';
 import { checkSkeleton } from './migration.js';
 import { openExternal, pickImportFiles } from './platform.js';
 import { h } from './widgets.js';
@@ -22,7 +22,7 @@ export async function openMigrationCheck(app) {
     const obj = isSkeletonBinary(file.bytes) ? readSkeletonBinary(file.bytes) : JSON.parse(new TextDecoder().decode(file.bytes));
     report = checkSkeleton(obj, name.replace(/\.[^.]+$/, ''));
   } catch (e) {
-    app.setStatus(t('Could not check {file}: {error}', { file: name, error: e.message }));
+    app.setStatus(statusMessage('Could not check {file}: {error}', { file: name, error: e.message }));
     return;
   }
   const { body, close } = dialog('migration-dialog', t('Skeleton check: {file}', { file: name }), t('Format {version}', { version: report.version }));

@@ -10,7 +10,7 @@ import { FORMATS, estimateSheet, frameCount } from './spritesheet.js';
 import { h, select } from './widgets.js';
 import { button, checkbox, dialog, fieldRow, fields, hint, section } from './ui.js';
 import { pausePlayback, showResult } from './resultui.js';
-import { t, tn } from './i18n.js';
+import { joinStatus, renderStatus, statusMessage, t, tn } from './i18n.js';
 
 const LAYOUTS = [
   ['packed', tn('Packed (smallest sheet)')],
@@ -41,8 +41,8 @@ let last = { format: 'json', layout: 'packed', scale: 0.5, fps: 30, padding: 2, 
 /** Opens the sprite sheet dialog. */
 export function openSpriteSheetDialog(app) {
   const doc = app.doc;
-  if (doc.scene) return app.setStatus(t('Sprite sheets are made from a character: open the character, not the scene'));
-  if (!doc.animations.length) return app.setStatus(t('Nothing to export: create an animation first'));
+  if (doc.scene) return app.setStatus(statusMessage('Sprite sheets are made from a character: open the character, not the scene'));
+  if (!doc.animations.length) return app.setStatus(statusMessage('Nothing to export: create an animation first'));
   const choice = { ...last, animations: new Set(doc.animations.map((a) => a.name)), skin: doc.skin ?? '', name: safe(doc.name || 'sprites') };
   let running = null;
 
@@ -194,7 +194,7 @@ export function openSpriteSheetDialog(app) {
     running?.worker?.terminate();
     running = null;
     if (el.isConnected) draw();
-    showResult(app, { ok: false, title: t('Sprite sheet export failed'), detail: String(e?.message ?? e) });
+    showResult(app, { ok: false, title: statusMessage('Sprite sheet export failed'), detail: String(e?.message ?? e) });
   }
 
   async function start() {
@@ -205,7 +205,7 @@ export function openSpriteSheetDialog(app) {
       // In the browser a sheet (often hundreds of frames) downloads as one zip.
       target = await platform.pickSaveTarget(first, ext === 'atlas' ? t('Defold atlas') : t('PNG image'), ext, { download: true });
     } catch (e) {
-      showResult(app, { ok: false, title: t('Sprite sheet export failed'), detail: String(e?.message ?? e) });
+      showResult(app, { ok: false, title: statusMessage('Sprite sheet export failed'), detail: String(e?.message ?? e) });
       return;
     }
     if (!target) return;
@@ -249,7 +249,7 @@ export function openSpriteSheetDialog(app) {
         worker.terminate();
         running = null;
         draw();
-        showResult(app, { ok: false, title: t('Sprite sheet export failed'), detail: m.error });
+        showResult(app, { ok: false, title: statusMessage('Sprite sheet export failed'), detail: m.error });
         return;
       }
       if (!m.done) {
@@ -268,15 +268,21 @@ export function openSpriteSheetDialog(app) {
         running = null;
         track('editor-export-spritesheet');
         const s = m.summary;
-        const what = choice.format !== 'json' ? t('{count} frames of {size}', { count: s.frames, size: `${s.width}×${s.height}` }) : s.sheets > 1 ? t('{sheets} sheets of up to {size} with {count} frames ({unique} unique)', { sheets: s.sheets, size: `${s.width}×${s.height}`, count: s.frames, unique: s.unique }) : t('a {size} sheet of {count} frames ({unique} unique)', { size: `${s.width}×${s.height}`, count: s.frames, unique: s.unique });
+        const size = `${s.width}×${s.height}`;
+        const what = choice.format !== 'json'
+          ? statusMessage('{count} frames of {size}', { count: s.frames, size })
+          : s.sheets > 1
+            ? statusMessage('{sheets} sheets of up to {size} with {count} frames ({unique} unique)', { sheets: s.sheets, size, count: s.frames, unique: s.unique })
+            : statusMessage('a {size} sheet of {count} frames ({unique} unique)', { size, count: s.frames, unique: s.unique });
         const where = platform.isDesktop ? (dir === '.' ? target.path : dir) : t('{file} (downloaded)', { file: `${base}${choice.format === 'frames' ? '_frames' : ''}.zip` });
         close();
-        const how = m.gpu ? t(' Drawn on the GPU.') : m.gpuIssue ? t(' Drawn on the CPU ({reason}).', { reason: m.gpuIssue }) : '';
-        showResult(app, { ok: true, title: t('Sprite sheet exported'), detail: `${what[0].toUpperCase()}${what.slice(1)}.${how}`, path: where });
+        const how = m.gpu ? statusMessage(' Drawn on the GPU.') : m.gpuIssue ? statusMessage(' Drawn on the CPU ({reason}).', { reason: m.gpuIssue }) : '';
+        const detail = joinStatus(() => renderStatus(what).replace(/^./u, (c) => c.toUpperCase()), '.', how);
+        showResult(app, { ok: true, title: statusMessage('Sprite sheet exported'), detail, path: where });
       } catch (err) {
         running = null;
         draw();
-        showResult(app, { ok: false, title: t('Sprite sheet export failed'), detail: String(err?.message ?? err) });
+        showResult(app, { ok: false, title: statusMessage('Sprite sheet export failed'), detail: String(err?.message ?? err) });
       }
     };
     worker.postMessage({ snapshot, images, options }, images.map((i) => i.data));

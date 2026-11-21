@@ -8,7 +8,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { LANGUAGES, TABLES, languageFor, setLanguage, t } from '../src/editor/i18n.js';
+import { LANGUAGES, TABLES, joinStatus, languageFor, renderStatus, setLanguage, statusMessage, t } from '../src/editor/i18n.js';
 
 const root = new URL('../src/editor/', import.meta.url);
 
@@ -25,7 +25,7 @@ function sourceTexts() {
   };
   walk(fileURLToPath(root)); // decodes the path (spaces) on every platform
   const out = new Set();
-  const literal = /\btn?\(\s*(?:'((?:\\.|[^'\\])*)'|"((?:\\.|[^"\\])*)")/g;
+  const literal = /\b(?:tn?|statusMessage)\(\s*(?:'((?:\\.|[^'\\])*)'|"((?:\\.|[^"\\])*)")/g;
   for (const f of files) {
     const s = fs.readFileSync(f, 'utf8');
     for (const m of s.matchAll(literal)) out.add((m[1] ?? m[2]).replace(/\\(['"])/g, '$1'));
@@ -75,6 +75,22 @@ test('the language follows the system and falls back to English', () => {
   assert.equal(t('Not a known text'), 'Not a known text');
   setLanguage('en');
   assert.equal(t('Saved {file}', { file: 'a.rigby' }), 'Saved a.rigby');
+});
+
+test('saved statuses retranslate their text while keeping the original arguments', () => {
+  const args = { file: 'a.rigby' };
+  const saved = statusMessage('Saved {file}', args);
+  const status = joinStatus(statusMessage('{what} with warnings: {warnings}', { what: saved, warnings: 'Missing image' }), ' [a.rigby]');
+  args.file = 'b.rigby';
+  try {
+    setLanguage('en');
+    assert.equal(renderStatus(status), 'Saved a.rigby with warnings: Missing image [a.rigby]');
+    setLanguage('zh-CN');
+    assert.equal(renderStatus(status), t('{what} with warnings: {warnings}', { what: t('Saved {file}', { file: 'a.rigby' }), warnings: 'Missing image' }) + ' [a.rigby]');
+    assert.equal(renderStatus('Plain script output'), 'Plain script output');
+  } finally {
+    setLanguage('en');
+  }
 });
 
 test('a word written word(s) after a number placeholder takes the number', () => {
