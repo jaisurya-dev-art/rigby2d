@@ -72,7 +72,7 @@ them.
 | --- | --- |
 | **Name** | Unique name. |
 | **Bone** | The bone it follows. Changing it keeps the images where they are. |
-| **Tint** | A color and alpha multiplied into the attachment. Animatable as color keys. |
+| **Tint** | A color and alpha multiplied into the attachment. Edit either in Animate mode to set a key at the playhead. |
 | **Blend** | `normal`, `additive`, `multiply` or `screen`. |
 | **Attachments** | Which attachment is visible: pick one, or *(none)*. In Animate mode this sets an image-swap key. |
 

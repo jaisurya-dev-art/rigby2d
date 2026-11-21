@@ -2,7 +2,7 @@
 // Writing poses into a skeleton without the editor: as the setup pose, or as keys of an animation
 // at a time (the same values the editor's key buttons write). Used by the MCP server.
 
-import { setKey } from './animation.js';
+import { sample, setKey } from './animation.js';
 import { LINEAR, STEPPED } from './curve.js';
 import { Pose } from './pose.js';
 
@@ -30,6 +30,22 @@ export function poseAt(doc, anim, time) {
     pose.updateWorld(doc);
   }
   return pose;
+}
+
+/** Keys RGB or alpha without replacing the slot's other color components. */
+export function keySlotTint(tl, setup, time, component, value, curve) {
+  const rgb = component === 'rgb';
+  // Match Pose.apply's precedence for split and two-color timelines.
+  const channels = rgb ? ['rgb2', 'rgba2', 'rgb', 'color'] : ['rgba2', 'alpha', 'color'];
+  const channel = channels.find((name) => tl[name].length)
+    ?? (tl.rgb.length || tl.alpha.length || tl.rgb2.length ? component : 'color');
+  let tint = value;
+  if (channel !== component) {
+    tint = sample(tl[channel], time) ?? setup.slice();
+    if (rgb) tint.splice(0, 3, ...value);
+    else tint[3] = value;
+  }
+  setKey(tl[channel], time, tint, curve);
 }
 
 /**

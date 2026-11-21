@@ -6,6 +6,7 @@ import { Animation, setKey } from '../core/animation.js';
 import { EASE_IN_OUT, LINEAR, STEPPED, cloneCurve } from '../core/curve.js';
 import { toAffine, transform } from '../core/math.js';
 import { makeBone, moveAttachment } from '../core/model.js';
+import { keySlotTint } from '../core/keying.js';
 import { Pose } from '../core/pose.js';
 import { FPS, Mode, selBone, selSlot, snap } from './app.js';
 import { CHANNEL_FIELDS, TRANSFORM_CHANNELS as CHANNELS } from './channels.js';
@@ -181,6 +182,21 @@ export function setSlotAttachment(app, slot, name) {
     const time = snap(app.time);
     const anim = app.doc.animations[ensureAnimation(app)];
     setKey(anim.slotTimelineMut(slot).attachment, time, name, STEPPED);
+    growDuration(anim, time);
+  }
+  app.changed();
+}
+
+/** Edits the setup tint or keys the edited part of the tint at the current frame. */
+export function setSlotTint(app, slot, component, value) {
+  const color = app.doc.slots[slot].color;
+  if (app.mode === Mode.Setup) {
+    if (component === 'rgb') color.splice(0, 3, ...value);
+    else color[3] = value;
+  } else {
+    const time = snap(app.time);
+    const anim = app.doc.animations[ensureAnimation(app)];
+    keySlotTint(anim.slotTimelineMut(slot), color, time, component, value, cloneCurve(newKeyCurve(app)));
     growDuration(anim, time);
   }
   app.changed();

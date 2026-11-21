@@ -1,7 +1,11 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
-import { Skeleton } from '../src/core/model.js';
+import { Animation, makeKey } from '../src/core/animation.js';
+import { LINEAR } from '../src/core/curve.js';
+import { keySlotTint } from '../src/core/keying.js';
+import { makeSlot, Skeleton } from '../src/core/model.js';
+import { Pose } from '../src/core/pose.js';
 import { pack } from '../src/editor/pack.js';
 import { robot } from '../src/editor/sample.js';
 
@@ -23,6 +27,37 @@ test('sample is valid and roundtrips', () => {
   assert.equal(Skeleton.fromJson(sk.toJson()).toJson(), sk.toJson());
   assert.ok(sk.slots.every((s) => s.attachments.every((a) => names.has(a.image))));
   assert.deepEqual(sk.animations.map((a) => a.name), ['walk', 'idle']);
+});
+
+test('slot tint edits create an animation key without changing the setup tint', () => {
+  const doc = new Skeleton();
+  doc.slots.push(makeSlot('fx', 0, null));
+  const { color } = doc.slots[0];
+  const tl = new Animation('flash', 2).slotTimelineMut(0);
+  keySlotTint(tl, color, 2, 'rgb', [0.5, 0, 1], LINEAR);
+  keySlotTint(tl, color, 2, 'alpha', 0.25, LINEAR);
+  assert.deepEqual(tl.color, [makeKey(2, [0.5, 0, 1, 0.25])]);
+  assert.deepEqual(color, [1, 1, 1, 1]);
+});
+
+test('slot tint edits follow imported channel precedence and preserve dark tint', () => {
+  const doc = new Skeleton();
+  doc.slots.push(makeSlot('fx', 0, null));
+  const anim = new Animation('flash', 1);
+  doc.animations.push(anim);
+  const tl = anim.slotTimelineMut(0);
+  tl.color.push(makeKey(0, [1, 1, 1, 1]));
+  tl.rgba2.push(makeKey(0, [0.2, 0.3, 0.4, 1, 0.1, 0.2, 0.3]));
+  tl.rgb2.push(makeKey(0, [1, 1, 0, 0.4, 0.5, 0.6]));
+  const { color } = doc.slots[0];
+  keySlotTint(tl, color, 0.5, 'rgb', [0.5, 1, 0], LINEAR);
+  keySlotTint(tl, color, 0.5, 'alpha', 0.25, LINEAR);
+  assert.deepEqual(tl.rgba2[1].value, [0.2, 0.3, 0.4, 0.25, 0.1, 0.2, 0.3]);
+  const pose = new Pose(doc);
+  pose.apply(doc, anim, 0.5, 1);
+  assert.deepEqual(pose.color[0], [0.5, 1, 0, 0.25]);
+  assert.deepEqual(pose.dark[0], [0.4, 0.5, 0.6]);
+  assert.deepEqual(tl.color, [makeKey(0, [1, 1, 1, 1])]);
 });
 
 test('zip writes a valid stored archive', async () => {

@@ -213,18 +213,14 @@ const fromHex = (hex) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) 
 function slotUi(app, s) {
   const setupMode = app.mode === Mode.Setup;
   const slot = app.doc.slots[s];
-  const color = colorButton(toHex(slot.color), {
+  const pose = app.pose();
+  const tint = setupMode ? slot.color : pose.color[s];
+  const color = colorButton(toHex(tint), {
     label: t('Slot color'),
-    disabled: !setupMode,
-    onInput: (v) => {
-      slot.color.splice(0, 3, ...fromHex(v));
-      app.changed();
-    },
+    onInput: (v) => edit.setSlotTint(app, s, 'rgb', fromHex(v)),
   });
-  const alpha = dragValue(slot.color[3], (v) => {
-    slot.color[3] = v;
-    app.changed();
-  }, { speed: 0.005, min: 0, max: 1, decimals: 2, prefix: 'a ', disabled: !setupMode });
+  const alpha = dragValue(tint[3], (v) => edit.setSlotTint(app, s, 'alpha', v),
+    { speed: 0.005, min: 0, max: 1, decimals: 2, prefix: 'a ' });
 
   const out = [
     h('h2', null, t('Slot')),
@@ -261,7 +257,7 @@ function slotUi(app, s) {
     h('div', { class: 'small weak' }, t('Pick which image is visible. In animate mode this sets a key.')),
   ];
 
-  const visible = app.pose().attachment[s];
+  const visible = pose.attachment[s];
   const radio = (value, label) =>
     h(
       'label',
