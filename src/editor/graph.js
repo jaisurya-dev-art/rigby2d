@@ -444,7 +444,11 @@ export class GraphEditor {
     if (e.button === 2) {
       const hit = this.hitPoint(p);
       if (hit?.point && !this.isSelected(hit.point.key, hit.point.c)) this.selectPoints([hit.point], false);
-      if (app.selectedKeys.size) curveMenu(app, e.clientX, e.clientY);
+      if (app.selectedKeys.size) {
+        // The same pointerdown would reach the window's outside-click handler and close the menu.
+        e.stopPropagation();
+        curveMenu(app, e.clientX, e.clientY);
+      }
       app.changed();
       return;
     }
