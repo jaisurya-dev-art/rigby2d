@@ -223,6 +223,8 @@ export default {
   "Code contributors": "代码贡献者",
   "Code: MIT OR Apache-2.0, by the Rigby2D contributors. Includes open-source components listed in THIRD_PARTY_NOTICES.md. The Rigby2D, NILA and Rigbytron names, logos and artwork are trademarks of the Rigby2D project.": "代码：MIT OR Apache-2.0，由 Rigby2D 贡献者编写。包含 THIRD_PARTY_NOTICES.md 中列出的开源组件。Rigby2D、NILA 和 Rigbytron 的名称、标志和美术作品是 Rigby2D 项目的商标。",
   "Collapse": "折叠",
+  "Collapse all bones": "折叠全部骨骼",
+  "Expand all bones": "展开全部骨骼",
   "Community": "社区",
   "Community (r/rigby2d)": "社区（r/rigby2d）",
   "Compress": "压缩",
