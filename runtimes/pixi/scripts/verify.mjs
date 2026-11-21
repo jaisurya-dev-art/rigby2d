@@ -33,6 +33,8 @@ const dts = fs.readFileSync(path.join(here, 'dist/index.d.ts'), 'utf8');
 const specs = [...dts.matchAll(/from\s*['"]([^'"]+)['"]|import\(['"]([^'"]+)['"]\)/g)].map((m) => m[1] ?? m[2]);
 assert.ok(specs.every((s) => s === 'pixi.js'), `declarations import only pixi.js: ${specs.join(', ')}`);
 
+// PixiJS probes the user agent during import, and Node 20 has no navigator.
+globalThis.navigator ??= { userAgent: '' };
 const PIXI = await import('pixi.js');
 const { rigbyPixi } = await import(pathToFileURL(path.join(here, 'dist/index.js')).href);
 assert.deepEqual(Object.keys(rigbyPixi(PIXI)).sort(), ['RigbyData', 'RigbySkeleton', 'loadRigby', 'parseRigby']);

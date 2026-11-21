@@ -8,9 +8,11 @@ import fs from 'node:fs';
 import { test } from 'node:test';
 import { tsImport } from 'tsx/esm/api';
 
-import * as PIXI from 'pixi.js';
-
 import { AnimationState, drawSkeletonGeometry, Pose } from '../src/core/index.js';
+
+// PixiJS probes the user agent during import, and Node 20 has no navigator.
+globalThis.navigator ??= { userAgent: '' };
+const PIXI = await import('pixi.js');
 const { loadRigbyWasm, rigbyPixi } = await tsImport('../runtimes/pixi/rigby-pixi.ts', import.meta.url);
 
 PIXI.DOMAdapter.set({ ...PIXI.DOMAdapter.get(), createCanvas: () => ({ getContext: () => null }) });
