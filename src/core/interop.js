@@ -56,10 +56,13 @@ const rest = (o, known) => {
 const clone = (v) => (v === undefined ? undefined : JSON.parse(JSON.stringify(v)));
 const entries = (o) => (o && typeof o === 'object' ? Object.entries(o) : []);
 
-function versionOf(obj) {
-  const v = String(obj.skeleton?.[VERSION_FIELD] ?? '3.8');
-  const [major, minor] = v.split('.').map(Number);
-  return { text: v, major: major || 3, minor: minor || 0 };
+function usesAbsoluteCurves(obj) {
+  const major = Number(String(obj.skeleton[VERSION_FIELD] ?? '3.8').split('.')[0]);
+  if (major !== 0) return major >= 4;
+  // Some exports use a placeholder version (0.0.00). 4.x rotation keys use value
+  // where older exports use angle, even when a key's curve could fit either format.
+  return entries(obj.animations).some(([, anim]) => entries(anim.bones).some(([, timeline]) =>
+    Array.isArray(timeline.rotate) && timeline.rotate.some((key) => typeof key.value === 'number')));
 }
 
 /** Splits a packed vertex array into unweighted floats or per-vertex weights. */
@@ -94,8 +97,7 @@ function encodeVertices(att) {
  */
 export function readSkeletonJson(obj, name = 'skeleton') {
   if (!isSkeletonJson(obj)) throw new Error('not a skeleton JSON file');
-  const version = versionOf(obj);
-  const v4 = version.major >= 4;
+  const v4 = usesAbsoluteCurves(obj);
   const warnings = [];
   const sk = new Skeleton();
   sk.name = name;

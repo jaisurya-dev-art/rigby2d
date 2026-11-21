@@ -85,6 +85,21 @@ test('detects skeleton JSON files', () => {
   assert.ok(!isSkeletonJson({ bones: [] }));
 });
 
+test('placeholder versions use absolute curves when rotation keys use 4.x values', () => {
+  const json = {
+    skeleton: { [V]: '0.0.00' },
+    bones: [{ name: 'root' }],
+    animations: { walk: { bones: { root: {
+      rotate: [{ value: -20, curve: [0.25, -20, 0.75, 20] }, { time: 1, value: 20 }],
+    } } } },
+  };
+  const { skeleton } = readSkeletonJson(json);
+  assert.equal(skeleton.header.version, '0.0.00');
+  assert.deepEqual(skeleton.animations[0].bones[0].rotate[0].curve.bezier, [0.25, 0, 0.75, 1]);
+  const output = writeSkeletonJson(skeleton, { version: '4.2' }).json;
+  assert.deepEqual(output.animations.walk.bones.root.rotate, json.animations.walk.bones.root.rotate);
+});
+
 test('reads a 3.8 skeleton', () => {
   const { skeleton: sk, warnings } = readSkeletonJson(structuredClone(FIXTURE_38), 'hero');
   assert.deepEqual(warnings, []);

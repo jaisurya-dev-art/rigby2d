@@ -118,6 +118,18 @@ impl Ctx<'_> {
     }
 }
 
+/// Detects 4.x absolute curve points when an export uses the 0.0.00 version placeholder.
+fn uses_absolute_curves(obj: &Json, major: f64) -> bool {
+    if major != 0.0 {
+        return major >= 4.0;
+    }
+    obj.get("animations").entries().iter().any(|(_, anim)| {
+        anim.get("bones").entries().iter().any(|(_, timeline)| {
+            timeline.get("rotate").as_array().iter().any(|key| key.get("value").as_f64().is_some())
+        })
+    })
+}
+
 /// Converts a parsed skeleton JSON file into `SkeletonData`.
 pub fn read_skeleton_json(obj: &Json) -> Result<SkeletonData, LoadError> {
     if !is_skeleton_json(obj) {
@@ -130,7 +142,7 @@ pub fn read_skeleton_json(obj: &Json) -> Result<SkeletonData, LoadError> {
         _ => "3.8".to_string(),
     };
     let major: f64 = version_text.split('.').next().and_then(|s| s.parse().ok()).unwrap_or(3.0);
-    let v4 = (if major == 0.0 { 3.0 } else { major }) >= 4.0;
+    let v4 = uses_absolute_curves(obj, major);
 
     let mut sk = SkeletonData { version: header.get(VERSION_FIELD).as_str().map(str::to_string), ..Default::default() };
 
@@ -966,4 +978,24 @@ fn last_time(raw: &Json, anim: &Animation) -> f64 {
         deep(raw.get(key), &mut max);
     }
     max
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn placeholder_version_with_rotate_values_reads_absolute_curves() {
+        let obj = Json::parse(r#"{
+            "skeleton": {"spine": "0.0.00"},
+            "bones": [{"name": "root"}],
+            "animations": {"walk": {"bones": {"root": {"rotate": [
+                {"value": -20, "curve": [0.25, -20, 0.75, 20]},
+                {"time": 1, "value": 20}
+            ]}}}}
+        }"#).unwrap();
+        let skeleton = read_skeleton_json(&obj).unwrap();
+        let key = &skeleton.animations[0].bones[0].channels[CH_ROTATE][0];
+        assert_eq!(key.curve, Curve::Bezier([0.25, 0.0, 0.75, 1.0]));
+    }
 }
