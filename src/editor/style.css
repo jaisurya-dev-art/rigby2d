@@ -2306,6 +2306,16 @@ a:focus-visible {
   opacity: 0.55;
   transition: opacity 0.12s, background 0.12s;
 }
+#panel-pin {
+  right: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+#panel-pin.on {
+  color: var(--accent);
+  opacity: 1;
+}
 #app.panel-only:hover .panel-detach-btn,
 .panel-detach-btn:focus-visible {
   opacity: 1;

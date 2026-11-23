@@ -513,9 +513,46 @@ export class Viewport {
     ctx.stroke();
   }
 
+  /**
+   * Dashed links from bones to their parents (View ▸ Bone links), so a hierarchy reads where a child
+   * does not start at its parent's tip: from the parent's origin to the child's. Drawn under the bones.
+   */
+  drawBoneLinks(pose, selection) {
+    const app = this.app;
+    const mode = app.boneLinks ?? 'selected';
+    if (mode === 'off') return;
+    const bones = app.doc.bones;
+    let show = null;
+    if (mode === 'selected') {
+      if (!selection.size) return;
+      show = new Set();
+      for (const i of selection) {
+        // The selected bone's ancestors, and its direct children.
+        for (let b = i; b !== null && b !== undefined && !show.has(b); b = bones[b].parent) show.add(b);
+        bones.forEach((b, c) => b.parent === i && show.add(c));
+      }
+    }
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.setLineDash([4, 4]);
+    bones.forEach((b, i) => {
+      const p = b.parent;
+      if (p === null || p === undefined || (show && !(show.has(i) && show.has(p)))) return;
+      const c = this.toScreen(pose.world[i].apply([0, 0]));
+      const tip = this.toScreen(pose.world[p].apply([bones[p].length, 0]));
+      // A child that starts at its parent's tip is already visibly joined.
+      if (!isPointBone(bones[p]) && Math.hypot(c[0] - tip[0], c[1] - tip[1]) < 3) return;
+      const o = this.toScreen(pose.world[p].apply([0, 0]));
+      const color = boneRgb(bones[i].color) ?? BONE;
+      this.line(o, c, rgba(color, show ? 0.8 : 0.45), 1);
+    });
+    ctx.restore();
+  }
+
   drawBones(pose) {
     const app = this.app;
     const selection = new Set(app.selectedBones());
+    this.drawBoneLinks(pose, selection);
     app.doc.bones.forEach((b, i) => {
       const selected = selection.has(i);
       const hovered = i === app.hoverBone;

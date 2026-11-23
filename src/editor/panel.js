@@ -15,6 +15,7 @@ import * as inspector from './inspector.js';
 import * as rigPanel from './rigpanel.js';
 import { installKeyboard } from './keys.js';
 import { closeMenu, isMenuOpen, widgetState, h } from './widgets.js';
+import { uiIcon } from './ui.js';
 import { EV_SYNC, EV_CONTROL, EV_CLOSED, EV_IMAGE, PANELS } from './dock.js';
 import { layoutHotkeyDigit, listenForPlacement } from './panelsync.js';
 import { getCurrentWindow } from '@tauri-apps/api/window';
@@ -91,6 +92,7 @@ function applyLanguage(code) {
   const title = `Rigby2D — ${t(panel.label)}`;
   document.title = title;
   $('#panel-dock').title = t('Dock this panel back into the editor');
+  $('#panel-pin').title = t('Keep this window above other windows, other apps included');
   getCurrentWindow().setTitle(title).catch(() => {});
 }
 applyLanguage(app.prefs.get('interface.language') || languageFor(navigator.languages ?? [navigator.language]));
@@ -193,6 +195,25 @@ function dockBack() {
   getCurrentWindow().destroy().catch(() => {});
 }
 $('#panel-dock').addEventListener('click', () => dockBack());
+
+// Pin: keeps this window above every other window (other apps too), remembered per panel.
+const PIN_KEY = `rigby.panel.pin.${panelId}`;
+function setPinned(on) {
+  const btn = $('#panel-pin');
+  btn.classList.toggle('on', on);
+  btn.setAttribute('aria-pressed', String(on));
+  getCurrentWindow().setAlwaysOnTop(on).catch(() => {});
+  try {
+    localStorage.setItem(PIN_KEY, on ? '1' : '0');
+  } catch {}
+}
+$('#panel-pin').replaceChildren(uiIcon('pin', 'sm'));
+$('#panel-pin').addEventListener('click', () => setPinned(!$('#panel-pin').classList.contains('on')));
+let pinned = false;
+try {
+  pinned = localStorage.getItem(PIN_KEY) === '1';
+} catch {}
+if (pinned) setPinned(true);
 getCurrentWindow().onCloseRequested(() => emit(EV_CLOSED, { panel: panelId }));
 
 /** Ships this window's edits and selection to the editor, once the first full state has arrived. */
