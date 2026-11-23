@@ -1,6 +1,6 @@
 {
   "name": "@rigby2d/pixi-js",
-  "version": "0.7.0",
+  "version": "0.6.1",
   "description": "Rigby2D skeletal animation for PixiJS 8: native display objects on WebGL and WebGPU, with TypeScript types.",
   "license": "MIT OR Apache-2.0",
   "author": "jaisurya-dev-art (https://github.com/jaisurya-dev-art)",
