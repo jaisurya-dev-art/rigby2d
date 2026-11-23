@@ -512,6 +512,10 @@ export function rigbyPixi(PIXI: PixiNamespace = (globalThis as { PIXI?: PixiName
     get skinNames(): string[] {
       return this.data.skinNames;
     }
+    /** Length in seconds of animation `name`, or null without that animation. */
+    animationDuration(name: string): number | null {
+      return this.skeleton.animations.find((a) => a.name === name)?.duration ?? null;
+    }
 
     /** This skeleton's skin (null for the default skin). Each RigbySkeleton has its own. */
     get skin(): string | null {

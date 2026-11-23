@@ -64,12 +64,18 @@ export interface NamedItem {
   name: string;
 }
 
+/** An animation of the skeleton data. */
+export interface AnimationData extends NamedItem {
+  /** Length in seconds. */
+  duration: number;
+}
+
 /** The skeleton data from the shared core (bones, slots, skins, constraints, animations). */
 export interface SkeletonData {
   bones: NamedItem[];
   slots: NamedItem[];
   skins: NamedItem[];
-  animations: NamedItem[];
+  animations: AnimationData[];
   events: SkeletonEventData[];
   /** The skin the data is drawn with (`null`: the default skin). Each RigbySkeleton keeps its own. */
   skin?: string | null;
@@ -267,6 +273,8 @@ export interface RigbySkeleton extends Container {
   skin: string | null;
   readonly animationNames: string[];
   readonly skinNames: string[];
+  /** Length in seconds of animation `name`, or `null` without that animation. */
+  animationDuration(name: string): number | null;
   /** Plays `name` on `track`, crossfading over `mix` seconds. Returns the track entry (not with WebAssembly). */
   play(name: string, loop?: boolean, mix?: number, track?: number): TrackEntry | null | undefined;
   /** Plays `name` after the current animation on `track`. Returns the queued entry (not with WebAssembly). */
