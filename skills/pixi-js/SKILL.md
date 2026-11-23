@@ -120,7 +120,7 @@ hero.state.clearTrack(1);             // stop one track
 | `detachFromBone(child)` | Stops following. |
 | `destroy()` | Stops the ticker hook, clears the tracks and listeners, and destroys the meshes. |
 
-### Saving and restoring tracks (since 0.7.0)
+### Saving and restoring tracks (since 0.6.1)
 
 ```ts
 const saved = hero.snapshotTracks();   // plain values: safe for JSON and save files
