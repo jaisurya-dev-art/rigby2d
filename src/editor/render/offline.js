@@ -5,6 +5,7 @@
 // deterministic.
 
 import { Pose } from '../../core/pose.js';
+import { PHYSICS_SETTLE, hasPhysics, settlePhysics } from './settle.js';
 import { AnimationState } from '../../core/state.js';
 import { PixelGrid } from '../../webgl/pixelgrid.js';
 import { FilmDrawer } from '../../webgl/filmdraw.js';
@@ -68,6 +69,14 @@ export class FrameRenderer {
     // use them; every other project renders through the direct path below, exactly as before.
     this.film = hasFilmFx(doc) ? new FilmDrawer(this.renderer) : null;
     this.particles = this.film ? new ParticleField() : null;
+    this.settlePhysics();
+  }
+
+  /** Settles physics on the first frame (settle.js); rigs without physics render exactly as before. */
+  settlePhysics() {
+    const { doc } = this;
+    const actorDocs = (doc.scene?.actors ?? []).map((a) => actors.get(a.id)?.doc);
+    if (hasPhysics(doc, ...actorDocs)) settlePhysics(doc, this.state, this.pose, this.job.settings.fps, PHYSICS_SETTLE, (dt) => this.poseScene(dt));
   }
 
   /** Poses the stage's parallax layers and every actor for the current frame, `dt` after the last. */

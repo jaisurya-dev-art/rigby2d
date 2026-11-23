@@ -73,7 +73,8 @@ Rendering is fast: at 1080p an MP4 frame takes about 12 ms and a PNG frame about
 PC (PNG frames are encoded on several threads at once).
 
 Renders are deterministic: physics and other time-dependent effects are simulated frame by frame
-from the start of the animation. Video encoding uses the system's encoders through WebCodecs.
+from the start of the animation. Before the first frame, physics settles for 3 seconds on the first
+pose, so hair, tails and cloth already hang at rest instead of dropping into place on frame 1. Video encoding uses the system's encoders through WebCodecs.
 
 ## Poses and face controls
 
