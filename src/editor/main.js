@@ -242,19 +242,23 @@ function menus() {
         },
         { title: t('Draws a thin line in the dopesheet between keys that blend into each other; stepped keys and image switches get none') },
       ),
-      submenuItem(t('Bone links'), () =>
-        [
+      submenuItem(t('Bone links'), () => {
+        // One of three: picking one unticks the others (and the ticked one can't be unticked).
+        const choices = [
           ['off', t('Off'), t('No links between bones')],
           ['selected', t('Selected branch'), t('Links from the selected bones up to the root and down to their children')],
           ['all', t('All bones'), t('A link from every bone to its parent')],
-        ].map(([value, label, title]) =>
+        ];
+        const items = choices.map(([value, label, title]) =>
           checkItem(label, app.boneLinks === value, () => {
             app.boneLinks = value;
             saveSetting('rigby.view.boneLinks', value);
+            items.forEach((item, k) => (item.querySelector('input').checked = choices[k][0] === value));
             app.changed();
           }, { title }),
-        ),
-      ),
+        );
+        return items;
+      }),
       checkItem(
         t('Hide overlays'),
         app.hideOverlays,
