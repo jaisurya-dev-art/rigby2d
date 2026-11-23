@@ -59,7 +59,13 @@ export class Viewport {
     canvas.addEventListener('pointercancel', (e) => this.onPointerUp(e));
     canvas.addEventListener('wheel', (e) => this.onWheel(e), { passive: false });
     canvas.addEventListener('contextmenu', (e) => e.preventDefault());
-    canvas.addEventListener('pointerleave', () => app.setHover(null));
+    canvas.addEventListener('pointerleave', () => {
+      app.setHover(null);
+      if (this.meshTool.hover) {
+        this.meshTool.hover = null;
+        if (app.meshEdit?.mode === 'weights') app.changed({ pose: true });
+      }
+    });
     // Delete / Backspace while dragging a guide removes it (capture phase, to beat the keymap).
     window.addEventListener('keydown', (e) => this.onGuideKey(e), true);
   }
@@ -1109,7 +1115,7 @@ export class Viewport {
     if (this.meshTool.active) {
       this.meshTool.hover = pos;
       if (this.meshPress === this.meshTool && e.buttons & 1) this.meshTool.move(pos);
-      else if (app.meshEdit?.mode === 'weights') app.changed(); // brush outline follows the cursor
+      else if (app.meshEdit?.mode === 'weights') app.changed({ pose: true }); // brush outline and readout follow the cursor
     }
     if (this.meshPress === this.shapeTool && e.buttons & 1) this.shapeTool.move(pos);
     if (this.meshPress === this.warpTool && e.buttons & 1) this.warpTool.move(pos);

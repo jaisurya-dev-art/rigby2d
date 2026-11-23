@@ -10,7 +10,7 @@ import { makeSlot } from '../core/model.js';
 import { Pose } from '../core/pose.js';
 import { setKey } from '../core/animation.js';
 import { FPS, Mode } from './app.js';
-import { statusMessage, t } from './i18n.js';
+import { language, statusMessage, t } from './i18n.js';
 
 const VERTEX_HIT = 7;
 const EDGE_HIT = 8;
@@ -352,10 +352,10 @@ export class MeshTool {
   }
 
   /** Vertex positions as shown: the setup pose, or the animated pose when deforming. */
-  shownPoints(t) {
+  shownPoints(t, state) {
     // Painting weights on a test pose: the brush and the colors follow the posed mesh.
     const posed = t.mode === 'weights' && t.att.weights && (this.app.testPose.size || this.app.wiggle.on);
-    if (t.mode !== 'deform' && !posed) return meshState(this.app.doc, t.slot, t.att).points;
+    if (t.mode !== 'deform' && !posed) return (state ?? meshState(this.app.doc, t.slot, t.att)).points;
     const flat = this.app.pose().worldVertices(this.app.doc, t.slot, t.att);
     const pts = [];
     for (let i = 0; i + 1 < flat.length; i += 2) pts.push([flat[i], flat[i + 1]]);
@@ -370,11 +370,11 @@ export class MeshTool {
     return this.viewport.toScreen(p);
   }
 
-  vertexAt(state, pos) {
+  vertexAt(state, pos, screenPoints = null) {
     let best = -1;
     let bestD = VERTEX_HIT;
     state.points.forEach((p, i) => {
-      const s = this.screen(p);
+      const s = screenPoints ? screenPoints[i] : this.screen(p);
       const d = Math.hypot(s[0] - pos[0], s[1] - pos[1]);
       if (d <= bestD) {
         bestD = d;
@@ -382,6 +382,45 @@ export class MeshTool {
       }
     });
     return best;
+  }
+
+  /** Shows the hovered vertex's influences, in descending weight order. */
+  drawWeightReadout(ctx, weights, point) {
+    const { width, height } = this.viewport;
+    const padding = 7;
+    const lineHeight = 16;
+    const gap = 12;
+    const percent = new Intl.NumberFormat(language(), { style: 'percent', maximumSignificantDigits: 4 });
+    const lines = [...weights].sort((a, b) => b.weight - a.weight).map(({ bone, weight }) => [this.app.doc.bones[bone].name, percent.format(weight)]);
+    const rowsPerColumn = Math.max(1, Math.floor((height - 4 * padding) / lineHeight));
+    const columns = Math.ceil(lines.length / rowsPerColumn);
+    const boxHeight = Math.min(rowsPerColumn, lines.length) * lineHeight + 2 * padding;
+    ctx.font = '12px system-ui, "Segoe UI", sans-serif';
+    ctx.textBaseline = 'middle';
+    ctx.textAlign = 'left';
+    const valueWidth = Math.max(...lines.map(([, weight]) => ctx.measureText(weight).width));
+    const nameWidth = Math.max(...lines.map(([name]) => ctx.measureText(name).width));
+    const columnWidth = Math.min(nameWidth + gap + valueWidth + 2 * padding, (width - 2 * padding) / columns);
+    const boxWidth = columnWidth * columns;
+    const x = Math.max(padding, Math.min(width - boxWidth - padding, point[0] + gap));
+    const y = Math.max(padding, Math.min(height - boxHeight - padding, point[1] + gap));
+    const theme = getComputedStyle(ctx.canvas);
+    ctx.fillStyle = theme.getPropertyValue('--surface-1');
+    ctx.fillRect(x, y, boxWidth, boxHeight);
+    ctx.strokeStyle = theme.getPropertyValue('--line-soft');
+    ctx.lineWidth = 1;
+    ctx.strokeRect(x, y, boxWidth, boxHeight);
+    ctx.fillStyle = theme.getPropertyValue('--fg');
+    lines.forEach(([name, weight], index) => {
+      const col = x + Math.floor(index / rowsPerColumn) * columnWidth;
+      const baseline = y + padding + (index % rowsPerColumn + 0.5) * lineHeight;
+      const textWidth = (columnWidth - 2 * padding) * 0.98;
+      const weightWidth = Math.min(valueWidth, textWidth * 0.5);
+      ctx.fillText(name, col + padding, baseline, Math.max(0, textWidth - weightWidth - gap));
+      ctx.textAlign = 'right';
+      ctx.fillText(weight, col + columnWidth - padding, baseline, weightWidth);
+      ctx.textAlign = 'left';
+    });
   }
 
   /** Index of the outline edge nearest to a screen point and its screen distance. */
@@ -593,7 +632,8 @@ export class MeshTool {
     const t = this.target();
     if (!t) return;
     const state = meshState(this.app.doc, t.slot, t.att);
-    const pts = this.shownPoints(t).map((p) => this.screen(p));
+    const points = this.shownPoints(t, state);
+    const pts = points.map((p) => this.screen(p));
     const weightsMode = t.mode === 'weights' && state.weights;
     const bone = t.edit.bone ?? state.weights?.[0]?.[0]?.bone;
     const weightOf = (i) => state.weights[i].find((w) => w.bone === bone)?.weight ?? 0;
@@ -658,6 +698,10 @@ export class MeshTool {
       ctx.beginPath();
       ctx.arc(this.hover[0], this.hover[1], t.edit.radius ?? 40, 0, Math.PI * 2);
       ctx.stroke();
+      if (weightsMode && !this.drag) {
+        const vertex = this.vertexAt({ points }, this.hover, pts);
+        if (state.weights[vertex]?.length) this.drawWeightReadout(ctx, state.weights[vertex], pts[vertex]);
+      }
     }
     ctx.restore();
   }
