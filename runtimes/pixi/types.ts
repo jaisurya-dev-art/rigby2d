@@ -122,6 +122,34 @@ export interface TrackEntry {
   mix(): number;
 }
 
+/** An animation waiting on a track, as `RigbySkeleton.snapshotTracks` reports it. */
+export interface QueuedAnimationSnapshot {
+  name: string;
+  looping: boolean;
+  mixDuration: number;
+  /** Seconds after the previous one started, or `null` to start when it ends. */
+  delay: number | null;
+}
+
+/**
+ * What a track is playing, in plain values that can be stored (such as in a save file) and given
+ * back to `RigbySkeleton.restoreTracks`.
+ */
+export interface TrackSnapshot {
+  track: number;
+  name: string;
+  looping: boolean;
+  /** Seconds played so far. */
+  time: number;
+  /** Seconds the crossfade into this animation lasted. */
+  mixDuration: number;
+  /** The track's influence (layers). */
+  alpha: number;
+  timeScale: number;
+  /** Animations queued after this one. */
+  queue: QueuedAnimationSnapshot[];
+}
+
 /** Callbacks for an AnimationState. */
 export interface AnimationListener {
   start?(entry: TrackEntry): void;
@@ -273,6 +301,24 @@ export interface RigbySkeleton extends Container {
   skin: string | null;
   readonly animationNames: string[];
   readonly skinNames: string[];
+  /** Names of the skeleton's bones. */
+  readonly boneNames: string[];
+  /** Whether the skeleton has an animation called `name`. */
+  hasAnimation(name: string): boolean;
+  /** Whether the skeleton has a skin called `name`. */
+  hasSkin(name: string): boolean;
+  /**
+   * Whether animation `name` is playing (on `track`, or on any track when omitted). Without a
+   * name: whether anything is playing. Not with WebAssembly.
+   */
+  isPlaying(name?: string, track?: number): boolean;
+  /** What every track is playing now, as plain values. Empty with WebAssembly. */
+  snapshotTracks(): TrackSnapshot[];
+  /**
+   * Replaces what is playing with `snapshots` (from `snapshotTracks`): each animation resumes at
+   * the time it had, with its queue. Animations the skeleton does not have are skipped.
+   */
+  restoreTracks(snapshots: readonly TrackSnapshot[]): this;
   /** Length in seconds of animation `name`, or `null` without that animation. */
   animationDuration(name: string): number | null;
   /** Plays `name` on `track`, crossfading over `mix` seconds. Returns the track entry (not with WebAssembly). */

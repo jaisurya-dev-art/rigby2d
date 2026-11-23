@@ -154,6 +154,30 @@ test('animations, queues and events reach PixiJS listeners', () => {
   robot.destroy();
 });
 
+test('track state can be read, stored and restored', () => {
+  const robot = new RigbySkeleton(robotData(), { animation: 'hold', loop: false, autoUpdate: false });
+  assert.ok(robot.hasAnimation('hold') && !robot.hasAnimation('fly'));
+  assert.ok(robot.boneNames.includes('root'));
+  assert.ok(robot.isPlaying('hold') && robot.isPlaying(undefined, 0) && !robot.isPlaying('release'));
+  assert.ok(robot.animationDuration('hold') > 0);
+  robot.queue('release', true, 0.1);
+  for (let f = 0; f < 10; f++) robot.update(1 / 60);
+  const saved = JSON.parse(JSON.stringify(robot.snapshotTracks()));
+  assert.equal(saved.length, 1);
+  assert.equal(saved[0].name, 'hold');
+  assert.equal(saved[0].queue[0].name, 'release');
+  assert.ok(Math.abs(saved[0].time - 10 / 60) < 1e-6);
+
+  const copy = new RigbySkeleton(robotData(), { autoUpdate: false });
+  copy.restoreTracks(saved);
+  assert.deepEqual(copy.snapshotTracks(), saved);
+  assert.equal(copy.isPlaying('release'), false, 'queued animations are not playing yet');
+  copy.restoreTracks([{ ...saved[0], name: 'fly', queue: [] }]);
+  assert.equal(copy.snapshotTracks().length, 0, 'unknown animations are skipped');
+  robot.destroy();
+  copy.destroy();
+});
+
 test('children attached to a bone follow it', () => {
   const nila = new RigbySkeleton(nilaData(), { animation: 'wave', autoUpdate: false });
   const star = new PIXI.Container();
