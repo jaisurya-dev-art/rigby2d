@@ -10,6 +10,7 @@ import { WebGLRenderer } from '../webgl/renderer.js';
 import { actorSlots } from '../core/scene.js';
 import { imageKey } from './actors.js';
 import { canvasRgba } from './canvascolors.js';
+import { hiddenSlotSkip } from './visibility.js';
 
 const BACKGROUND = [38 / 255, 38 / 255, 38 / 255, 1];
 const GRID = [48 / 255, 48 / 255, 48 / 255, 1];
@@ -121,8 +122,8 @@ export class GLView {
     const lookup = (name) => this.lookup(app.images, name, linear);
     const scene = () => {
       // Onion skinning: ghosts of nearby frames, faded (and optionally masked per bone) behind the pose.
-      for (const g of app.onionDraws?.() ?? []) r.drawSkeleton(app.doc, g.pose, lookup, { tint: g.tint, skip: g.skip });
-      r.drawSkeleton(app.doc, pose, lookup, { between: sceneActors(app, pose, r, lookup) });
+      for (const g of app.onionDraws?.() ?? []) r.drawSkeleton(app.doc, g.pose, lookup, { tint: g.tint, skip: hiddenSlotSkip(app.doc, g.skip) });
+      r.drawSkeleton(app.doc, pose, lookup, { between: sceneActors(app, pose, r, lookup), skip: hiddenSlotSkip(app.doc) });
     };
     r.end();
     let gridded = false;
@@ -132,7 +133,7 @@ export class GLView {
     if (size > 0 && !film) gridded = this.pixelGrid.draw(w, h, camera, size, scene);
     if (film) {
       r.begin(w, h, camera);
-      for (const g of app.onionDraws?.() ?? []) r.drawSkeleton(app.doc, g.pose, lookup, { tint: g.tint, skip: g.skip });
+      for (const g of app.onionDraws?.() ?? []) r.drawSkeleton(app.doc, g.pose, lookup, { tint: g.tint, skip: hiddenSlotSkip(app.doc, g.skip) });
       r.end();
       const world = (name) => {
         const i = app.doc.bones.findIndex((b) => b.name === name);

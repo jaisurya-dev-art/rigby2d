@@ -13,6 +13,7 @@ import { onionBonePanel, rgbCss } from './onionui.js';
 import { createEvent, createSkin } from './skineventui.js';
 import { h, popupMenu } from './widgets.js';
 import { button, iconButton, uiIcon } from './ui.js';
+import { isBoneHidden, isBoneLocked, isSlotHidden, isSlotLocked, toggleBone, toggleSlot } from './visibility.js';
 import { has } from './workspaces.js';
 import { addActorMenu, sceneRows } from './sceneui.js';
 import { joinStatus, statusMessage, t, tn } from './i18n.js';
@@ -70,6 +71,31 @@ export const label = (iconName, text, faint = false) => [h('span', { class: `row
 
 /** A fold toggle: chevron right (folded) or down (open), with an optional count. */
 const chevron = (open, count = null) => [uiIcon(open ? 'chevron-down' : 'chevron-right', 'sm'), count !== null ? h('span', { class: 'twisty-count' }, String(count)) : null];
+
+/**
+ * A row's eye or lock toggle (`kind` 'hidden' or 'locked'), shown on hover and always while on.
+ * `toggle(e)` flips it (Alt+click on a bone: its whole branch).
+ */
+function viewToggle(kind, on, toggle, branchHint) {
+  const hide = kind === 'hidden';
+  const title = hide ? (on ? t('Show in the viewport') : t('Hide in the viewport')) : on ? t('Unlock: pick it in the viewport again') : t('Lock: the viewport no longer picks it');
+  return h(
+    'button',
+    {
+      type: 'button',
+      class: `view-toggle${on ? ' on' : ''}`,
+      'aria-pressed': on ? 'true' : 'false',
+      'aria-label': title,
+      title: branchHint ? `${title}
+${t('Alt+click: the whole branch')}` : title,
+      onclick: (e) => {
+        e.stopPropagation();
+        toggle(e);
+      },
+    },
+    uiIcon(hide ? (on ? 'eye-off' : 'eye') : on ? 'lock' : 'lock-open', 'sm'),
+  );
+}
 
 /** A section's add button (ghost, with a plus). */
 export const addButton = (text, { title, disabled = false, onclick }) => button(text, { kind: 'ghost', size: 'sm', icon: 'plus', title, disabled, onclick });
@@ -239,13 +265,20 @@ export function render(app, el) {
           uiIcon('layers', 'sm'),
         )
       : null;
+    const boneHidden = isBoneHidden(doc, bone);
+    const boneToggles = ['hidden', 'locked'].map((kind) =>
+      viewToggle(kind, kind === 'hidden' ? boneHidden : isBoneLocked(doc, bone), (e) => {
+        toggleBone(doc, kind, bone, e.altKey);
+        app.changed();
+      }, true),
+    );
     const boneRow = skeletonRow(label(doc.bones[bone].length > 0 ? 'bone' : 'crosshair', doc.bones[bone].name), {
       tut: `bone:${doc.bones[bone].name}`,
-      cls: q && named(doc.bones[bone]) ? 'match' : '',
+      cls: `${q && named(doc.bones[bone]) ? 'match' : ''}${boneHidden ? ' view-hidden' : ''}`,
       selected: selected.has(bone),
       // Picking a bone for a field: a click on its row answers it.
       onclick: (e) => (app.pick ? app.finishPick(bone) : select({ bone })(e)),
-      extra: [marks, onionBtn, twisty],
+      extra: [marks, onionBtn, ...boneToggles, twisty],
       bone,
     }, branches);
     if (bone !== 0 && app.mode === Mode.Setup) dragBoneRow(app, boneRow, bone);
@@ -275,7 +308,14 @@ export function render(app, el) {
       // Folded: the visible attachment's name follows the slot's.
       // (Not when it has the slot's own name, as most single-image slots do.)
       const shown = !slotOpen && pose.attachment[i] && pose.attachment[i] !== slot.name ? h('span', { class: 'slot-shown', title: t('Visible attachment') }, pose.attachment[i]) : null;
-      const slotRow = skeletonRow(label('layers', slot.name), { tut: `slot:${slot.name}`, cls: 'slot', selected: selSlot(app.sel) === i, onclick: select({ slot: i }), extra: [shown, slotTwisty] }, slotBranches);
+      const slotHidden = isSlotHidden(doc, i);
+      const slotToggles = ['hidden', 'locked'].map((kind) =>
+        viewToggle(kind, kind === 'hidden' ? slotHidden : isSlotLocked(doc, i), () => {
+          toggleSlot(doc, kind, i);
+          app.changed();
+        }, false),
+      );
+      const slotRow = skeletonRow(label('layers', slot.name), { tut: `slot:${slot.name}`, cls: `slot${slotHidden ? ' view-hidden' : ''}`, selected: selSlot(app.sel) === i, onclick: select({ slot: i }), extra: [shown, ...slotToggles, slotTwisty] }, slotBranches);
       slotRow.dataset.slot = String(i);
       skeleton.push(slotRow);
       if (!slotOpen) continue;

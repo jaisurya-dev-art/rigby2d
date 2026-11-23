@@ -135,6 +135,7 @@ function rawConstraints(sk) {
 /** Updates constraint references after a bone is renamed. */
 export function renameBoneRefs(sk, from, to) {
   renameFilmBone(sk, from, to);
+  for (const set of [sk.hidden, sk.locked]) if (set) set.bones = set.bones.map((n) => (n === from ? to : n));
   for (const c of rawConstraints(sk)) {
     const d = c.data;
     if (Array.isArray(d.bones)) d.bones = d.bones.map((n) => (n === from ? to : n));
@@ -146,6 +147,7 @@ export function renameBoneRefs(sk, from, to) {
 /** Updates constraint references (and per-slot attachment keys) after a slot is renamed. */
 export function renameSlotRefs(sk, from, to) {
   renameFilmSlot(sk, from, to);
+  for (const set of [sk.hidden, sk.locked]) if (set) set.slots = set.slots.map((n) => (n === from ? to : n));
   // Attachment keys kept per slot name (image sequence keys).
   for (const a of sk.animations) {
     for (const slots of Object.values(a.extra?.attachments ?? {})) {

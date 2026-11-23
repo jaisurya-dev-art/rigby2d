@@ -5397,3 +5397,35 @@ input[type='range'] {
 .wn-page-intro.wn-on-film .wn-lede { margin: 0; color: var(--wn-ice-text); font-size: clamp(20px, 2.2vw, 28px); }
 @media (prefers-reduced-motion: reduce) { .wn-film video { transition: opacity 0.3s; transform: none; } }
 .wn-live { display: block; width: min(720px, 64vw, calc((100vh - 330px) * 16 / 9)); aspect-ratio: 16 / 9; height: auto; }
+
+/* Tree: show and lock toggles on bone and slot rows (visibility.js). Shown on hover, and always while on. */
+.row .view-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  margin-left: 2px;
+  padding: 0;
+  border: 0;
+  border-radius: 3px;
+  background: none;
+  color: var(--weak);
+  opacity: 0;
+  cursor: pointer;
+}
+.row:hover .view-toggle,
+.row .view-toggle.on,
+.row .view-toggle:focus-visible {
+  opacity: 1;
+}
+.row .view-toggle:hover {
+  color: var(--fg);
+}
+.row .view-toggle.on {
+  color: var(--accent);
+}
+.row.view-hidden .row-name,
+.row.view-hidden .row-icon {
+  opacity: 0.45;
+}

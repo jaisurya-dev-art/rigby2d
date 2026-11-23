@@ -1976,4 +1976,11 @@ export default {
   "All bones": "所有骨骼",
   "A link from every bone to its parent": "每根骨骼到其父骨骼的连线",
   "Keep this window above other windows, other apps included": "让此窗口始终位于其他窗口（包括其他应用）之上",
+  "Show and unlock all": "全部显示并解锁",
+  "Shows every bone and image hidden from the tree, and unlocks every locked one": "显示在层级树中隐藏的所有骨骼和图片，并解锁所有已锁定的项",
+  "Show in the viewport": "在视口中显示",
+  "Hide in the viewport": "在视口中隐藏",
+  "Unlock: pick it in the viewport again": "解锁：可再次在视口中选取",
+  "Lock: the viewport no longer picks it": "锁定：视口中不再选取它",
+  "Alt+click: the whole branch": "Alt+单击：整个分支",
 };

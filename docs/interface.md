@@ -123,6 +123,20 @@ The tree has collapsible sections:
 Bones also have an onion-skin button that limits onion skinning to that bone and its children.
 See [Onion skin](onion-skin.md).
 
+### Show and lock
+
+Hover a bone or slot row for its **eye** and **lock** buttons:
+
+- **Eye**: hides the bone (or the slot's images) in the viewport, to work on what's behind it. A
+  hidden row is dimmed in the tree.
+- **Lock**: the viewport no longer picks it, so clicks and box selections go to what's around it.
+  You can still select it in the tree and edit it there.
+- **Alt+click** on a bone's eye or lock applies it to the whole branch: the bone, every bone below it
+  and all their slots.
+
+Both only change the editor's view: renders, exports and the runtimes always show everything. They
+are saved in the work file and are part of undo. *View ▸ Show and unlock all* clears them all.
+
 ## Inspector
 
 The inspector shows what is selected:

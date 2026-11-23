@@ -131,6 +131,9 @@ export class Skeleton {
      * { 'slot name/attachment name': [vertex indices] }. Editor data, saved in work files only.
      */
     this.meshLocks = {};
+    /** Editor view state: bones and slots (by name) hidden in the viewport or locked against viewport picking. Work files only. */
+    this.hidden = { bones: [], slots: [] };
+    this.locked = { bones: [], slots: [] };
     /**
      * 2.5D turns (editor/turn.js): { name, bone, angle, bulge, reach, center, top, radius, parts:
      * [{ slot, attachment, depth }], control, animation, constraint }. The skeleton data they build
@@ -712,6 +715,8 @@ function readSkeleton(o) {
   sk.textureFilter = oneOf(o.textureFilter, TEXTURE_FILTERS, 'linear');
   sk.pixelGrid = Number.isFinite(o.pixelGrid) && o.pixelGrid > 0 ? o.pixelGrid : 0;
   sk.meshLocks = readMeshLocks(o.meshLocks);
+  sk.hidden = readNameSets(o.hidden);
+  sk.locked = readNameSets(o.locked);
   sk.warps = Array.isArray(o.warps) ? o.warps.filter((w) => w && typeof w.name === 'string' && w.rect && Number.isInteger(w.cols) && Number.isInteger(w.rows)) : [];
   sk.warpBase = o.warpBase && typeof o.warpBase === 'object' && !Array.isArray(o.warpBase) ? o.warpBase : {};
   sk.turns = Array.isArray(o.turns) ? o.turns.filter((x) => x && typeof x.name === 'string' && typeof x.bone === 'string' && Array.isArray(x.parts)) : [];
@@ -727,6 +732,12 @@ function readSkeleton(o) {
 }
 
 /** Locked mesh vertices: non-empty lists of distinct vertex indices, by 'slot/attachment'. */
+/** Bone and slot names ({ bones, slots }), as the editor's hidden and locked sets are stored. */
+function readNameSets(o) {
+  const names = (list) => (Array.isArray(list) ? [...new Set(list.filter((n) => typeof n === 'string'))] : []);
+  return { bones: names(o?.bones), slots: names(o?.slots) };
+}
+
 function readMeshLocks(o) {
   const out = {};
   if (!o || typeof o !== 'object' || Array.isArray(o)) return out;
@@ -841,6 +852,8 @@ function writeSkeleton(sk) {
   if (sk.textureFilter !== 'linear') out.textureFilter = sk.textureFilter;
   if (sk.pixelGrid > 0) out.pixelGrid = sk.pixelGrid;
   if (Object.keys(sk.meshLocks).length) out.meshLocks = raw(sk.meshLocks);
+  if (sk.hidden.bones.length || sk.hidden.slots.length) out.hidden = raw(sk.hidden);
+  if (sk.locked.bones.length || sk.locked.slots.length) out.locked = raw(sk.locked);
   if (sk.turns.length) out.turns = raw(sk.turns);
   if (sk.warps.length) out.warps = raw(sk.warps);
   if (Object.keys(sk.warpBase).length) out.warpBase = raw(sk.warpBase);
