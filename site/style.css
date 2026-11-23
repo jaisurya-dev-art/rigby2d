@@ -3079,6 +3079,10 @@ dialog.thanks .goal {
   color: var(--steel);
   font-size: 0.8rem;
 }
+.rt-community-title {
+  margin: 36px 0 4px;
+  font-size: 1.15rem;
+}
 .table-scroll {
   overflow-x: auto;
 }
