@@ -190,3 +190,60 @@ print("done", len(rigby.bones()))
   assert.deepEqual(dry.output, ['nod 0.5 animate']);
   assert.deepEqual(await fs.readFile(file), before, 'dry runs save nothing');
 });
+
+test('mcp film: film effects, layer effects and particle emitters', async () => {
+  const { tools, file, tmp } = await project();
+  const rig = await tools.describe_rig({ path: file });
+  const boneName = rig.bones[1].name;
+  const slotName = rig.slots[0].name;
+
+  const frame = await tools.set_film_effects({ path: file, lightAngle: 45, motionBlur: { samples: 4 }, dof: true, grade: { saturation: -0.3, tint: '#ff800040' } });
+  assert.deepEqual(frame.changed, ['light', 'grade', 'motionBlur', 'dof']);
+  assert.equal(frame.film.active, true);
+  assert.deepEqual(frame.film.motionBlur, { samples: 4, shutter: 180 });
+  assert.equal(frame.film.grade.saturation, -0.3);
+  assert.equal(frame.film.grade.tint, '#ff800040');
+  // Values are clamped as the editor clamps them.
+  const clamped = await tools.set_film_effects({ path: file, motionBlur: { samples: 500 } });
+  assert.equal(clamped.film.motionBlur.samples, 64);
+  await assert.rejects(tools.set_film_effects({ path: file, grade: { sharpness: 1 } }), /no setting 'sharpness'/);
+  await assert.rejects(tools.set_film_effects({ path: file }), /at least one/);
+
+  const layer = await tools.set_layer_effects({ path: file, bone: boneName, shadow: { x: 4, color: '#000000' }, glow: true, depth: 2 });
+  assert.equal(layer.layer.shadow.x, 4);
+  assert.equal(layer.layer.shadow.y, -12, 'fields left out keep the default');
+  assert.ok(layer.layer.glow);
+  assert.equal(layer.layer.depth, 2);
+  const off = await tools.set_layer_effects({ path: file, bone: boneName, glow: false });
+  assert.equal(off.layer.glow, undefined);
+  assert.equal(off.layer.shadow.x, 4, 'other effects stay');
+  await tools.set_layer_effects({ path: file, slot: slotName, blur: { radius: 3 } });
+  await assert.rejects(tools.set_layer_effects({ path: file, bone: boneName, slot: slotName }), /either 'bone' or 'slot'/);
+  await assert.rejects(tools.set_layer_effects({ path: file, bone: 'nope' }), /No bone 'nope'/);
+
+  const snow = await tools.set_emitter({ path: file, name: 'snow', settings: { rate: 80, bone: boneName, color: '#ffffffcc', size: [2, 5] } });
+  assert.equal(snow.added, 'snow');
+  assert.equal(snow.emitter.rate, 80);
+  assert.equal(snow.emitter.color, '#ffffffcc');
+  assert.deepEqual(snow.emitter.size, [2, 5]);
+  const changed = await tools.set_emitter({ path: file, name: 'snow', settings: { rate: null } });
+  assert.equal(changed.changed, 'snow');
+  assert.equal(changed.emitter.rate, 40, 'null resets a setting to its default');
+  await assert.rejects(tools.set_emitter({ path: file, name: 'snow', settings: { colour: 1 } }), /no setting 'colour'/);
+
+  // Saved in the work file and listed by inspect_project.
+  const info = await tools.inspect_project({ path: file });
+  assert.equal(info.film.effects.layers.length, 2);
+  assert.deepEqual(info.film.effects.emitters.map((e) => e.name), ['snow']);
+  assert.ok(info.film.effects.dof);
+
+  await tools.set_emitter({ path: file, name: 'snow', remove: true });
+  await tools.set_layer_effects({ path: file, slot: slotName, remove: true });
+  const after = await tools.inspect_project({ path: file });
+  assert.equal(after.film.effects.emitters.length, 0);
+  assert.equal(after.film.effects.layers.length, 1);
+
+  const json = path.join(tmp, 'rigbytron.json');
+  await fs.copyFile(path.join(REPO, 'branding/rigbytron/export/rigbytron.json'), json);
+  await assert.rejects(tools.set_film_effects({ path: json, dof: true }), /stored only in \.rigby work files/);
+});

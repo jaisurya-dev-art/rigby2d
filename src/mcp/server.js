@@ -8,6 +8,7 @@
 import fs from 'node:fs';
 
 import { createServer, serveStdio } from './protocol.js';
+import { authoringReadTools } from './authoring.js';
 import { createEditTools } from './edits.js';
 import { createFilmTools } from './film.js';
 import { createRiggingTools } from './rigging.js';
@@ -83,7 +84,7 @@ async function main() {
       'Scenes: add_actor puts characters (other .rigby files) on a stage, add_clip places their animations on the scene shots, set_actor and set_layer_depth stage them. autorig rigs layered artwork (a PSD or an unrigged .rigby) in one step; detect_parts previews it. retarget_animation copies animations between characters (map_bones previews the bone matching). ' +
       'Rendering video is done in the editor (File > Render animation). ' +
       `Files must be inside the workspace: ${workspace.roots.join(', ')}.`,
-    tools: [...createTools(workspace), ...createEditTools(workspace), ...createFilmTools(workspace), ...createRiggingTools(workspace), ...createSceneTools(workspace), ...createScriptTools(workspace)],
+    tools: [...createTools(workspace), ...createEditTools(workspace), ...createFilmTools(workspace), ...createRiggingTools(workspace), ...createSceneTools(workspace), ...createScriptTools(workspace), ...authoringReadTools(workspace)],
     log,
   });
   log(`ready (workspace: ${workspace.roots.join(', ')})`);

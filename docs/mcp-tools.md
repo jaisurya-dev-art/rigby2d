@@ -9,7 +9,7 @@ root folders. Editing tools save the file in its own format, or a copy when `out
 
 <!-- generated:mcp-tools -->
 
-The server has **45 tools**. Parameters marked **required** must be given; the others are optional.
+The server has **60 tools**. Parameters marked **required** must be given; the others are optional.
 
 ### `inspect_project`
 
@@ -255,14 +255,157 @@ Delete a constraint with its animation keys and skin memberships. Saves the proj
 | `overwrite` | boolean | Replace `output` if it already exists (default false). |
 | `constraint` **required** | string | Constraint name. |
 
-### `batch_edit`
+### `set_constraint_key`
 
-Apply many edits in one call, loading and saving the project once, atomically: all of them are saved, or none. Each operation is { op, ...arguments } where op is one of add_bone, set_bone_setup, add_animation, set_bone_key, delete_bone_key, set_attachment_key, set_event_key, add_constraint, set_constraint, delete_constraint and the arguments are that tool's (without path, output and overwrite). Operations run in order, so later ones can use what earlier ones created (add_animation, then its keys). Much faster than one call per key for building animations. Curves can be presets or a custom bezier [cx1, cy1, cx2, cy2].
+Key a constraint's values in an animation (replacing a key at the same time). Keyable values: IK mix, softness, bendPositive, compress, stretch; transform mixRotate, mixX, mixY, mixScaleX, mixScaleY, mixShearY; path position, spacing, mixRotate, mixX, mixY; physics inertia, strength, damping, mass, wind, gravity, mix; slider time, mix. Values left out keep what the constraint has at that time. The animation grows to include the key. Saves the project.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
 | `path` **required** | string | Project file: a .rigby work file or a skeleton .json / .skel export. Relative paths resolve against the first workspace root. |
-| `operations` **required** | list of object | The edits, in order: { op, ...that tool's arguments } with op one of add_bone, set_bone_setup, add_animation, set_bone_key, delete_bone_key, set_attachment_key, set_event_key, add_constraint, set_constraint, delete_constraint. |
+| `output` | string | Save to this file instead of changing the input (same format as the input, inside the workspace). |
+| `overwrite` | boolean | Replace `output` if it already exists (default false). |
+| `animation` **required** | string | Animation name. |
+| `constraint` **required** | string | Constraint name. |
+| `time` **required** | number | Seconds. |
+| `values` **required** | object |  |
+| `curve` | `'linear'`, `'stepped'`, `'easeIn'`, `'easeOut'`, `'easeInOut'` or list of number | Interpolation to the next key: 'linear' (default), 'stepped', 'easeIn', 'easeOut', 'easeInOut', or a custom cubic bezier [cx1, cy1, cx2, cy2]. |
+
+### `set_ik_target_key`
+
+Key an IK constraint's target bone so it reaches a world point (Y up) at a time, using the pose at that time: the point is converted into the target's parent space and keyed as translate (an offset from the setup pose). Saves the project.
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `path` **required** | string | Project file: a .rigby work file or a skeleton .json / .skel export. Relative paths resolve against the first workspace root. |
+| `output` | string | Save to this file instead of changing the input (same format as the input, inside the workspace). |
+| `overwrite` | boolean | Replace `output` if it already exists (default false). |
+| `animation` **required** | string | Animation name. |
+| `constraint` **required** | string | IK constraint name. |
+| `time` **required** | number |  |
+| `world_point` **required** | list of number |  |
+| `curve` | `'linear'`, `'stepped'`, `'easeIn'`, `'easeOut'`, `'easeInOut'` or list of number | Interpolation to the next key: 'linear' (default), 'stepped', 'easeIn', 'easeOut', 'easeInOut', or a custom cubic bezier [cx1, cy1, cx2, cy2]. |
+
+### `add_skin`
+
+Add a skin (an outfit or variant). With 'copy_from', it starts with a copy of that skin's attachments, bones and constraints; otherwise empty. Fill it with duplicate_attachment. Saves the project.
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `path` **required** | string | Project file: a .rigby work file or a skeleton .json / .skel export. Relative paths resolve against the first workspace root. |
+| `output` | string | Save to this file instead of changing the input (same format as the input, inside the workspace). |
+| `overwrite` | boolean | Replace `output` if it already exists (default false). |
+| `name` **required** | string | New skin name. |
+| `copy_from` | string | Skin to copy. |
+
+### `delete_skin`
+
+Delete a skin and its attachments. If it was the active skin, the default skin becomes active. Saves the project.
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `path` **required** | string | Project file: a .rigby work file or a skeleton .json / .skel export. Relative paths resolve against the first workspace root. |
+| `output` | string | Save to this file instead of changing the input (same format as the input, inside the workspace). |
+| `overwrite` | boolean | Replace `output` if it already exists (default false). |
+| `name` **required** | string | Skin name. |
+
+### `duplicate_attachment`
+
+Copy an attachment of a slot (with its mesh and weights) under a new name, into the same skin or into 'target_skin' (default skin when left out). For skins, copy with the same name into the target skin and change it there. Saves the project.
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `path` **required** | string | Project file: a .rigby work file or a skeleton .json / .skel export. Relative paths resolve against the first workspace root. |
+| `output` | string | Save to this file instead of changing the input (same format as the input, inside the workspace). |
+| `overwrite` | boolean | Replace `output` if it already exists (default false). |
+| `slot` **required** | string | Slot name. |
+| `attachment` **required** | string | Attachment name. |
+| `skin` | string | Skin holding the attachment (default skin when left out). |
+| `new_name` **required** | string | Name of the copy (may equal the original in another skin). |
+| `target_skin` | string | Skin to put the copy in ('default' for the default skin). |
+
+### `make_mesh`
+
+Turn a region attachment into a mesh so it can bend. mode 'outline' (default) traces the image's alpha, as the editor's Generate mesh does (work files only, since it needs the pixels): 'points' outline vertices (default 24) and 'interior' density (none, low, medium, high). mode 'grid' makes a rectangular grid with cells of about 'spacing' world units. The mesh starts rigid to the slot's bone; bind it with auto_weight. Saves the project.
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `path` **required** | string | Project file: a .rigby work file or a skeleton .json / .skel export. Relative paths resolve against the first workspace root. |
+| `output` | string | Save to this file instead of changing the input (same format as the input, inside the workspace). |
+| `overwrite` | boolean | Replace `output` if it already exists (default false). |
+| `slot` **required** | string | Slot name. |
+| `attachment` **required** | string | Attachment name. |
+| `skin` | string | Skin holding the attachment (default skin when left out). |
+| `mode` | `'outline'`, `'grid'` |  |
+| `spacing` | number | Grid cell size in world units (mode 'grid'). |
+| `points` | integer |  |
+| `interior` | `'none'`, `'low'`, `'medium'`, `'high'` |  |
+
+### `auto_weight`
+
+Bind a mesh to bones with automatic weights (by distance to each bone, as the editor's Bind does): each vertex follows the listed bones, at most four. Deform keys whose layout no longer fits are removed and counted. Saves the project.
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `path` **required** | string | Project file: a .rigby work file or a skeleton .json / .skel export. Relative paths resolve against the first workspace root. |
+| `output` | string | Save to this file instead of changing the input (same format as the input, inside the workspace). |
+| `overwrite` | boolean | Replace `output` if it already exists (default false). |
+| `slot` **required** | string | Slot name. |
+| `attachment` **required** | string | Attachment name. |
+| `skin` | string | Skin holding the attachment (default skin when left out). |
+| `bones` **required** | list of string |  |
+
+### `set_weights`
+
+Set the weights of some vertices of a mesh: vertices[i] gets weights[i], a list of { bone, weight }. Weights are normalized and at most four kept; the mesh keeps its setup shape. An unweighted mesh becomes weighted (its other vertices follow the slot bone fully). Saves the project.
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `path` **required** | string | Project file: a .rigby work file or a skeleton .json / .skel export. Relative paths resolve against the first workspace root. |
+| `output` | string | Save to this file instead of changing the input (same format as the input, inside the workspace). |
+| `overwrite` | boolean | Replace `output` if it already exists (default false). |
+| `slot` **required** | string | Slot name. |
+| `attachment` **required** | string | Attachment name. |
+| `skin` | string | Skin holding the attachment (default skin when left out). |
+| `vertices` **required** | list of integer |  |
+| `weights` **required** | list of list of object |  |
+
+### `smooth_weights`
+
+Smooth a weighted mesh's weights: each pass averages every vertex's weights with its triangle neighbours (geometry unchanged). Saves the project.
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `path` **required** | string | Project file: a .rigby work file or a skeleton .json / .skel export. Relative paths resolve against the first workspace root. |
+| `output` | string | Save to this file instead of changing the input (same format as the input, inside the workspace). |
+| `overwrite` | boolean | Replace `output` if it already exists (default false). |
+| `slot` **required** | string | Slot name. |
+| `attachment` **required** | string | Attachment name. |
+| `skin` | string | Skin holding the attachment (default skin when left out). |
+| `iterations` | integer |  |
+
+### `bake_physics`
+
+Simulate physics constraints over an animation and write the result as ordinary bone keys (rotate, translate, scale, shear at 'fps', default 30), for engines without physics or to hand-tune it. By default the baked constraints are then keyed off (mix 0) in this animation only. 'loop' settles one cycle first so the loop joins. Refuses bones that another constraint (IK, transform, path) also moves. Saves the project.
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `path` **required** | string | Project file: a .rigby work file or a skeleton .json / .skel export. Relative paths resolve against the first workspace root. |
+| `output` | string | Save to this file instead of changing the input (same format as the input, inside the workspace). |
+| `overwrite` | boolean | Replace `output` if it already exists (default false). |
+| `animation` **required** | string | Animation name. |
+| `constraints` | list of string | Physics constraints to bake (default all). |
+| `fps` | number |  |
+| `loop` | boolean |  |
+| `disable` | boolean |  |
+
+### `batch_edit`
+
+Apply many edits in one call, loading and saving the project once, atomically: all of them are saved, or none. Each operation is { op, ...arguments } where op is one of add_bone, set_bone_setup, add_animation, set_bone_key, delete_bone_key, set_attachment_key, set_event_key, add_constraint, set_constraint, delete_constraint, set_constraint_key, set_ik_target_key, add_skin, delete_skin, duplicate_attachment, make_mesh, auto_weight, set_weights, smooth_weights, bake_physics and the arguments are that tool's (without path, output and overwrite). Operations run in order, so later ones can use what earlier ones created (add_animation, then its keys). Much faster than one call per key for building animations. Curves can be presets or a custom bezier [cx1, cy1, cx2, cy2].
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `path` **required** | string | Project file: a .rigby work file or a skeleton .json / .skel export. Relative paths resolve against the first workspace root. |
+| `operations` **required** | list of object | The edits, in order: { op, ...that tool's arguments } with op one of add_bone, set_bone_setup, add_animation, set_bone_key, delete_bone_key, set_attachment_key, set_event_key, add_constraint, set_constraint, delete_constraint, set_constraint_key, set_ik_target_key, add_skin, delete_skin, duplicate_attachment, make_mesh, auto_weight, set_weights, smooth_weights, bake_physics. |
 | `output` | string | Save to this file instead of changing the input (same format as the input, inside the workspace). |
 | `overwrite` | boolean | Replace `output` if it already exists (default false). |
 
@@ -485,6 +628,53 @@ Change a slot's setup: the attachment it shows (or hide: true to show none) and 
 | `hide` | boolean |  |
 | `color` | string | #rrggbb or #rrggbbaa. |
 
+### `set_film_effects`
+
+Set the frame-wide film effects of a work file: the light direction used by layer shading, a colour grade over the whole frame, render-time motion blur and depth of field. Only the given ones change; null turns one off. They change only renders (Render, rigby render): skeleton exports and game runtimes never see them. Saves the work file.
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `path` **required** | string | Project file: a .rigby work file or a skeleton .json / .skel export. Relative paths resolve against the first workspace root. |
+| `output` | string | Save to this file instead of changing the input (same format as the input, inside the workspace). |
+| `overwrite` | boolean | Replace `output` if it already exists (default false). |
+| `lightAngle` | number | Light direction in degrees: 0 = from the right, 90 = from above (default 135, upper left). |
+| `grade` | object or null or boolean | Colour grade of the whole frame. An object turns it on (given fields over the defaults: brightness, contrast, saturation (each -1..1), hue (degrees), tint (colour; its alpha is the amount)); null or false turns it off. |
+| `motionBlur` | object or null or boolean | Motion blur: { samples (2..64, default 8), shutter (degrees, 180 = half a frame) }, or null to turn it off. |
+| `dof` | object or null or boolean | Depth of field: { focus (the layer depth in focus), aperture (blur radius per unit of depth away from it) }, or null. Layers get a depth with set_layer_effects. |
+
+### `set_layer_effects`
+
+Set the film effects of one layer: a bone (its whole branch of slots, drawn as one layer) or a single slot. Effects: shadow, shading (light and shade from the light direction), glow, blur and grade; an object turns one on, null or false turns it off, and fields left out keep their value. 'depth' places the layer for depth of field. remove: true deletes the layer's effects. Saves the work file.
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `path` **required** | string | Project file: a .rigby work file or a skeleton .json / .skel export. Relative paths resolve against the first workspace root. |
+| `output` | string | Save to this file instead of changing the input (same format as the input, inside the workspace). |
+| `overwrite` | boolean | Replace `output` if it already exists (default false). |
+| `bone` | string | Bone whose branch is the layer (give 'bone' or 'slot'). |
+| `slot` | string | Slot that is the layer. |
+| `enabled` | boolean |  |
+| `depth` | number | Depth for depth of field (0 = the focus plane by default). |
+| `shadow` | object or null or boolean | Shadow. An object turns it on (given fields over the defaults: x, y (offset in world units), softness, color); null or false turns it off. |
+| `shading` | object or null or boolean | Shading. An object turns it on (given fields over the defaults: width (edge band in units), shade and light (colours)); null or false turns it off. |
+| `glow` | object or null or boolean | Glow. An object turns it on (given fields over the defaults: radius, color, strength); null or false turns it off. |
+| `blur` | object or null or boolean | Blur. An object turns it on (given fields over the defaults: radius); null or false turns it off. |
+| `grade` | object or null or boolean | Grade. An object turns it on (given fields over the defaults: brightness, contrast, saturation (each -1..1), hue (degrees), tint (colour; its alpha is the amount)); null or false turns it off. |
+| `remove` | boolean | Delete this layer's effects. |
+
+### `set_emitter`
+
+Add or change a particle emitter (snow, rain, dust, sparks...), found by name; a new one starts from gentle falling snow. Settings: bone, slot, image, enabled, seed, shape, x, y, width, height, rate, max, warmup, life, angle, spread, speed, gravity, wind, drag, turbulence, size, grow, spin, color, colorEnd, fadeIn, fadeOut, blend. 'bone' moves the emitter with a bone, 'slot' draws the particles just below that slot (null = on top), 'image' is an attachment image name (null = soft dots). Ranges (life, speed, size, spin) are [min, max]. remove: true deletes it. Particles are deterministic (seeded) and only appear in renders. Saves the work file.
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `path` **required** | string | Project file: a .rigby work file or a skeleton .json / .skel export. Relative paths resolve against the first workspace root. |
+| `output` | string | Save to this file instead of changing the input (same format as the input, inside the workspace). |
+| `overwrite` | boolean | Replace `output` if it already exists (default false). |
+| `name` **required** | string | Emitter name. |
+| `settings` | object | Emitter settings; null removes a setting (back to its default). |
+| `remove` | boolean | Delete the emitter. |
+
 ### `detect_parts`
 
 Preview Rigby AutoRig on layered artwork: which body part each layer is (head, torso, upperarm, forearm, hand, arm, thigh, shin, foot, leg, eye, mouth, hair, tail, ...), its side and whether that came from the layer name or its position. Nothing is saved. Use the roles and sides arguments of autorig to correct it. *Read only.*
@@ -640,5 +830,30 @@ Run a Python script against a project with the Rigby2D scripting API (`import ri
 | `dry_run` | boolean | Run without saving. |
 | `output` | string | Save to this file instead of changing the input (same format as the input, inside the workspace). |
 | `overwrite` | boolean | Replace `output` if it already exists (default false). |
+
+### `world_to_local`
+
+Convert a world point (Y up) into a bone's local coordinates, in the setup pose or at a time in an animation. Useful to place keys or attachments at a world position. *Read only.*
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `path` **required** | string | Project file: a .rigby work file or a skeleton .json / .skel export. Relative paths resolve against the first workspace root. |
+| `bone` **required** | string | Bone name. |
+| `point` **required** | list of number |  |
+| `animation` | string | Animation name. |
+| `time` | number |  |
+
+### `lint_animations`
+
+Check animations for common motion problems. Warnings: frame_jump (a bone moves more than 'jump_threshold' world units or turns more than 'rotation_threshold' degrees between frames), loop_seam and loop_attachment (a looping animation's last frame doesn't match its first; animations named idle, breath, walk, run or loop count as loops unless 'loop' says otherwise), missing_attachment (a key shows an attachment the slot doesn't have), overridden_keys (rotate keys on bones a full-mix IK constraint moves). Advisory only. *Read only.*
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `path` **required** | string | Project file: a .rigby work file or a skeleton .json / .skel export. Relative paths resolve against the first workspace root. |
+| `animation` | string | One animation (default all). |
+| `loop` | boolean |  |
+| `fps` | number |  |
+| `jump_threshold` | number |  |
+| `rotation_threshold` | number |  |
 
 <!-- /generated:mcp-tools -->

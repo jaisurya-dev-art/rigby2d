@@ -75,6 +75,8 @@ all of its parameters, generated from the server itself.
 | `convert_project` | Writes skeleton JSON (3.8, 4.2 or 4.3) or binary `.skel` (4.3) from a `.rigby`, `.json` or `.skel` file. | Yes |
 | `export_sprite_sheet` | Renders animations into a sprite sheet (PNG + JSON hash), a Defold atlas with frames, or PNG frames, into a folder. | Yes |
 | `export_defold_model` | Writes a Rigby2D model for Defold from a character (`.rigby`, or `.skel` / `.json` with its atlas): skeleton, images with a Defold atlas, the `.rigbymodel` component and a game object. The Defold editor plays it live. | Yes |
+| `world_to_local` | Converts a world point into a bone's local coordinates, in the setup pose or at a time in an animation. | No |
+| `lint_animations` | Checks motion: jumps between frames, loops whose last frame doesn't match the first, keys showing attachments a slot doesn't have, rotate keys an IK constraint overrides. Advisory. | No |
 
 ### Editing
 
@@ -90,6 +92,14 @@ all of its parameters, generated from the server itself.
 | `add_constraint` | Adds an IK, transform, path, physics or slider constraint, applied after the others. A transform constraint keeps its bones where they are (offsets are worked out for you); physics makes one constraint per bone. Settings use skeleton JSON 4.3 spelling. |
 | `set_constraint` | Changes a constraint's settings (`null` removes one), renames it (keys and skins follow) or moves it in the application order. |
 | `delete_constraint` | Deletes a constraint with its animation keys and skin memberships. |
+| `set_constraint_key` | Keys a constraint's values at a time: IK mix, softness and bend; transform and path mixes; path position and spacing; physics inertia, strength, damping, mass, wind, gravity and mix; slider time and mix. |
+| `set_ik_target_key` | Keys an IK constraint's target so it reaches a world point at a time. |
+| `add_skin` / `delete_skin` | Adds a skin (empty, or a copy of another) or deletes one. |
+| `duplicate_attachment` | Copies an attachment, with its mesh and weights, under a new name or into another skin. |
+| `make_mesh` | Turns a region into a mesh: traced from the image's outline (work files), or a grid. |
+| `auto_weight` | Binds a mesh to bones with automatic weights, as the editor's Bind does. |
+| `set_weights` / `smooth_weights` | Sets some vertices' weights, or smooths them over the mesh. |
+| `bake_physics` | Simulates physics over an animation and writes the motion as bone keys, then keys the constraints off in that animation. |
 | `batch_edit` | Applies many of the edits above in one call: `operations` is a list of `{ op, ...that tool's arguments }` (without `path`), run in order. The project is loaded once and saved once, atomically: if any operation fails, nothing is saved and the error names the operation. Use it to build animations: 40 keys take about 15 ms instead of 0.6 s as separate calls. |
 
 Key values are relative to the setup pose, as in the editor and the file formats: rotate,
@@ -138,6 +148,9 @@ them under `film`.
 | `set_audio_track` | Changes a track's start time or volume. |
 | `remove_audio_track` | Removes a track, and its sound file when nothing else uses it. |
 | `lip_sync` | Lip-syncs an animation to an audio track: with `text` (the words spoken) or `timing_file` (ElevenLabs timestamps, Whisper or word-timing JSON, Rhubarb, Papagayo) keys mouth shapes (visemes) on a mouth slot; otherwise keys a face control from loudness. Reading the audio needs a WAV track; a timing file does not. |
+| `set_film_effects` | Frame-wide film effects: light direction, colour grade, motion blur, depth of field. |
+| `set_layer_effects` | Effects on a bone's branch or a slot: shadow, shading, glow, blur, grade, and its depth for depth of field. |
+| `set_emitter` | Adds, changes or removes a particle emitter (snow, rain, dust, sparks). |
 
 Times can be given in seconds (`time`) or as a `frame` at the project's frame rate.
 
