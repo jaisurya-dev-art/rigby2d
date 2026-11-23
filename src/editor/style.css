@@ -4713,6 +4713,40 @@ textarea:focus-visible,
 .row {
   padding-left: calc(var(--depth, 0) * var(--tree-indent, 14px) + 4px);
 }
+.row.with-branches {
+  position: relative;
+}
+.tree-branches {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  color: var(--fg-muted);
+  opacity: 0.48;
+}
+.row.selected .tree-branches {
+  color: inherit;
+}
+.tree-branch {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: calc(var(--branch-level) * var(--tree-indent) + 8px);
+  width: calc(var(--tree-indent) - 6px);
+  border-inline-start: 1px solid currentColor;
+}
+.tree-branch.elbow::after {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  top: 50%;
+  border-top: 1px solid currentColor;
+}
+.tree-branch.end {
+  bottom: 50%;
+  border-bottom: 1px solid currentColor;
+}
+.tree-branch.end::after {
+  content: none;
+}
 @container tree (max-width: 300px) {
   .row {
     --tree-indent: 9px;

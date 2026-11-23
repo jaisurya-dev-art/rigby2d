@@ -86,6 +86,20 @@ export function row(label, { depth = 0, selected = false, cls = '', onclick, ext
   return h('div', attrs, label, extra);
 }
 
+/** Draws a connector at each ancestor with remaining siblings, then an elbow to this row. */
+function skeletonRow(label, options, branches) {
+  const item = row(label, { ...options, depth: branches.length });
+  if (!branches.length) return item;
+  item.classList.add('with-branches');
+  const last = branches.length - 1;
+  item.prepend(h('span', { class: 'tree-branches', 'aria-hidden': 'true' }, branches.map((continues, level) => {
+    if (!continues && level !== last) return null;
+    const cls = level === last ? ` elbow${continues ? '' : ' end'}` : '';
+    return h('span', { class: `tree-branch${cls}`, style: `--branch-level: ${level}` });
+  })));
+  return item;
+}
+
 /** The selection the tree last showed, so a new one (from the viewport, say) is revealed once. */
 let shownSel = '';
 
@@ -175,9 +189,8 @@ export function render(app, el) {
     if (!childrenOf.has(b.parent)) childrenOf.set(b.parent, []);
     childrenOf.get(b.parent).push(i);
   });
-  const visit = (bone, depth) => {
-    if (keep && !keep.has(bone)) return;
-    const kids = childrenOf.get(bone) ?? [];
+  const visit = (bone, branches) => {
+    const kids = (childrenOf.get(bone) ?? []).filter((child) => !keep || keep.has(child));
     const slots = (slotsOf.get(bone) ?? []).filter(([s]) => !keep || named(s) || named(doc.bones[bone]));
     const key = `bone:${bone}`;
     const hasChildren = kids.length || slots.length;
@@ -226,20 +239,20 @@ export function render(app, el) {
           uiIcon('layers', 'sm'),
         )
       : null;
-    const boneRow = row(label(doc.bones[bone].length > 0 ? 'bone' : 'crosshair', doc.bones[bone].name), {
+    const boneRow = skeletonRow(label(doc.bones[bone].length > 0 ? 'bone' : 'crosshair', doc.bones[bone].name), {
       tut: `bone:${doc.bones[bone].name}`,
-      depth,
       cls: q && named(doc.bones[bone]) ? 'match' : '',
       selected: selected.has(bone),
       // Picking a bone for a field: a click on its row answers it.
       onclick: (e) => (app.pick ? app.finishPick(bone) : select({ bone })(e)),
       extra: [marks, onionBtn, twisty],
       bone,
-    });
+    }, branches);
     if (bone !== 0 && app.mode === Mode.Setup) dragBoneRow(app, boneRow, bone);
     skeleton.push(boneRow);
     if (!open) return;
-    for (const [slot, i] of slots) {
+    for (const [index, [slot, i]] of slots.entries()) {
+      const slotBranches = [...branches, index < slots.length - 1 || kids.length > 0];
       const names = new Set(slot.attachments.map((a) => a.name));
       if (doc.skin) for (const a of doc.skinAttachments(i, doc.skin)) names.add(a.name);
       const slotOpen = openSlots.has(slot.name);
@@ -262,28 +275,27 @@ export function render(app, el) {
       // Folded: the visible attachment's name follows the slot's.
       // (Not when it has the slot's own name, as most single-image slots do.)
       const shown = !slotOpen && pose.attachment[i] && pose.attachment[i] !== slot.name ? h('span', { class: 'slot-shown', title: t('Visible attachment') }, pose.attachment[i]) : null;
-      const slotRow = row(label('layers', slot.name), { tut: `slot:${slot.name}`, depth: depth + 1, cls: 'slot', selected: selSlot(app.sel) === i, onclick: select({ slot: i }), extra: [shown, slotTwisty] });
+      const slotRow = skeletonRow(label('layers', slot.name), { tut: `slot:${slot.name}`, cls: 'slot', selected: selSlot(app.sel) === i, onclick: select({ slot: i }), extra: [shown, slotTwisty] }, slotBranches);
       slotRow.dataset.slot = String(i);
       skeleton.push(slotRow);
       if (!slotOpen) continue;
-      for (const name of names) {
+      for (const [index, name] of [...names].entries()) {
         const visible = pose.attachment[i] === name;
         skeleton.push(
-          row(label('image', name, !visible), {
-            depth: depth + 2,
+          skeletonRow(label('image', name, !visible), {
             cls: `attachment${visible ? ' visible' : ''}`,
             title: visible ? t('Visible attachment') : t('Click to show this attachment (keys it in Animate mode)'),
             onclick: () => {
               app.select({ slot: i });
               edit.setSlotAttachment(app, i, visible ? null : name);
             },
-          }),
+          }, [...slotBranches, index < names.size - 1]),
         );
       }
     }
-    for (const c of kids) visit(c, depth + 1);
+    kids.forEach((child, index) => visit(child, [...branches, index < kids.length - 1]));
   };
-  visit(0, 0);
+  if (!keep || keep.has(0)) visit(0, []);
   const addBone = addButton(t('Bone'), { disabled: app.mode !== Mode.Setup, title: t('Add a child bone to the selected bone'), onclick: () => edit.addChildBone(app, selBone(app.sel) ?? 0) });
   const addPoint = addButton(t('Point'), {
     disabled: app.mode !== Mode.Setup,
