@@ -1,0 +1,46 @@
+# Attaches a release build's files to its GitHub release (draft or published) from the build's
+# artifacts, on GitHub's side, so nothing large has to be uploaded from a local machine. Adds the
+# fixed-name copies (Rigby2D_x64_portable.exe, Rigby2D-AI.mcpb, Rigby2D_universal.dmg,
+# Rigby2D_amd64.AppImage) and SHA256SUMS.txt, and replaces files already attached.
+name: Release assets
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag (e.g. v0.6.1)
+        required: true
+      run_id:
+        description: Run ID of the "Release build" workflow for that tag
+        required: true
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  attach:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      TAG: ${{ inputs.tag }}
+      RUN_ID: ${{ inputs.run_id }}
+    steps:
+      - name: Download the build's artifacts
+        run: |
+          v="${TAG#v}"
+          for a in unsigned linux macos updater; do
+            gh run download "$RUN_ID" -n "rigby2d-$v-$a" -D "dl/$a"
+          done
+          mkdir out
+          find dl -type f -exec cp {} out/ \;
+          cd out
+          cp "Rigby2D_${v}_x64_portable.exe" Rigby2D_x64_portable.exe
+          cp "Rigby2D-AI-$v.mcpb" Rigby2D-AI.mcpb
+          cp "Rigby2D_${v}_universal.dmg" Rigby2D_universal.dmg
+          cp "Rigby2D_${v}_amd64.AppImage" Rigby2D_amd64.AppImage
+          sha256sum $(ls | grep -v -e '\.sig$' -e '^latest\.json$') > SHA256SUMS.txt
+          ls -la
+      - name: Attach to the release
+        run: gh release upload "$TAG" out/* --clobber
