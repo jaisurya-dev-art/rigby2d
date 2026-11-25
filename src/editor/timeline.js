@@ -15,6 +15,8 @@ import { button, dialog, iconButton, segmented, toggleButton, uiIcon } from './u
 // The dopesheet's row order and key-selection-by-index live in keyorder.js (core-only, so the
 // selection round trip can be tested in Node). Re-exported here so the windows import them as before.
 import { shownTracks as tracks, trackKeys, tweenSpans } from './keyorder.js';
+import { askText } from './resultui.js';
+import { breakdownPose, deleteTime, insertTime } from './timeops.js';
 import { drawLanes, laneActors, pressLane } from './sceneui.js';
 import { statusMessage, t, tn } from './i18n.js';
 import { FPS_PRESETS, formatFps } from './output.js';
@@ -167,6 +169,14 @@ export function renderControls(app, el) {
       kind: 'ghost',
       title: t('How paste treats keys already there: Merge, Overwrite (the copied tracks) or Overwrite all (the whole area). Click to switch.'),
       onclick: () => cyclePasteMode(app),
+    }),
+    iconButton('git-commit-horizontal', {
+      title: t('Breakdown: pose the selected bones part of the way between their previous and next keys'),
+      disabled: app.mode !== Mode.Animate,
+      onclick: (e) => {
+        const r = e.currentTarget.getBoundingClientRect();
+        breakdownMenu(app, r.left, r.bottom + 4);
+      },
     }),
     iconButton('move-horizontal', {
       title: t('Retime (scale the selected keys’ timing): show the drag handles for one use. Or right-click + drag anytime.'),
@@ -610,6 +620,9 @@ function keyFill(selected, curve) {
   return canvasColor('--tl-key', 'rgb(230,230,230)');
 }
 
+/** Timeline markers: amber flags on the ruler. */
+const MARKER = 'orange';
+
 /** A copied track's label: purple, like the paste preview. */
 const COPIED_TEXT = 'rgb(185,135,255)';
 
@@ -736,6 +749,20 @@ export class Dopesheet {
       ctx.lineTo(x, RULER - 1);
       ctx.lineTo(x - 3, RULER - 4);
       ctx.fill();
+    }
+    // Markers: a small flag and the name, at the top of the ruler.
+    ctx.font = '10px system-ui, "Segoe UI", sans-serif';
+    ctx.textBaseline = 'top';
+    for (const m of anim.markers ?? []) {
+      const x = timeToX(m.time);
+      ctx.fillStyle = MARKER;
+      ctx.fillRect(x - 0.5, 0, 1.5, RULER);
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x + 7, 3.5);
+      ctx.lineTo(x, 7);
+      ctx.fill();
+      if (m.name) ctx.fillText(m.name, x + 9, 1);
     }
     ctx.restore();
 
@@ -1331,7 +1358,8 @@ export class Dopesheet {
       if (!press.started) {
         // On the ruler: select the keys at that frame, or every key shown.
         if (press.pos[1] < RULER) {
-          rulerMenu(app, press.clientX, press.clientY, Math.round(this.xToTime(press.pos[0]) * FPS));
+          const l = this.layout;
+          rulerMenu(app, press.clientX, press.clientY, Math.round(this.xToTime(press.pos[0]) * FPS), l ? (l.span * FPS) / l.trackW : 1);
           return;
         }
         // A plain right-click: select the key under it if needed, then open the curve menu.
@@ -1495,11 +1523,93 @@ export function selectKeysAt(app, frame) {
   return keys.length;
 }
 
-/** The ruler's right-click menu. */
-function rulerMenu(app, x, y, frame) {
+/**
+ * The breakdown slider: drag it to pose the selected bones (every keyed bone when none is selected)
+ * that far between their previous and next keys, keyed at the playhead. 50% is the halfway pose.
+ */
+function breakdownMenu(app, x, y) {
+  const anim = app.currentAnimation();
+  if (!anim) return;
+  const chosen = app.selectedBones();
+  const bones = chosen.length ? chosen : anim.bones.map((tl) => tl.bone);
+  const value = h('span', { class: 'menu-slider-value' }, '50%');
+  const apply = (f) => {
+    const poses = breakdownPose(app.doc, anim, bones, snap(app.time), f);
+    for (const [b, local] of poses) edit.keyBoneTransform(app, b, { ...app.pose().local[b], ...local });
+    value.textContent = `${Math.round(f * 100)}%`;
+    app.setStatus(poses.length ? statusMessage('Breakdown at {pct}% on {count} bone(s)', { pct: Math.round(f * 100), count: poses.length }) : statusMessage('No bone has keys on both sides of the playhead'));
+    app.changed();
+  };
+  const input = h('input', { type: 'range', min: 0, max: 1, step: 0.01, value: 0.5, 'aria-label': t('Breakdown'), oninput: (e) => apply(Number(e.target.value)) });
+  popupMenu(x, y, [
+    h('div', { class: 'item menu-slider', title: t('0%: the previous key. 100%: the next key.') }, input, value),
+    ...[0.25, 0.5, 0.75].map((f) => ({ label: t('{pct}% of the way', { pct: f * 100 }), action: () => apply(f) })),
+  ]);
+}
+
+/** Asks for a whole number of frames (1 or more), or null when cancelled. */
+async function askFrames(title, value = '1') {
+  const text = await askText({ title, value, okLabel: 'OK' });
+  const n = Math.round(Number(text));
+  return Number.isFinite(n) && n >= 1 ? n : null;
+}
+
+/** Inserts `frames` frames after `frame` in the current animation (every track and marker). */
+function insertFrames(app, frame, frames) {
+  const anim = app.currentAnimation();
+  if (!anim || !frames) return;
+  insertTime(anim, frame / FPS, frames / FPS);
+  app.setStatus(statusMessage('Inserted {count} frame(s) after frame {frame}', { count: frames, frame }));
+  app.changed();
+}
+
+/** Deletes `frames` frames after `frame` (the keys on them go, later keys move back). */
+function deleteFrames(app, frame, frames) {
+  const anim = app.currentAnimation();
+  if (!anim || !frames) return;
+  const { removed } = deleteTime(anim, frame / FPS, (frame + frames) / FPS);
+  app.selectedKeys.clear();
+  app.setStatus(statusMessage('Deleted {count} frame(s) after frame {frame} ({keys} key(s) removed)', { count: frames, frame, keys: removed }));
+  app.changed();
+}
+
+/** The marker of the current animation within `px` pixels of frame `frame` at this zoom, or null. */
+function markerNear(anim, frame, framesPerPx) {
+  return anim?.markers?.find((m) => Math.abs(m.time * FPS - frame) <= Math.max(1, 4 * framesPerPx)) ?? null;
+}
+
+/** The ruler's right-click menu: keys at a frame, inserting and deleting time, markers. */
+function rulerMenu(app, x, y, frame, framesPerPx = 1) {
+  const anim = app.currentAnimation();
+  const marker = markerNear(anim, frame, framesPerPx);
   popupMenu(x, y, [
     { label: t('Select the keys at frame {frame}', { frame }), action: () => selectKeysAt(app, frame) },
     { label: t('Select every key shown'), action: () => selectKeysAt(app, null) },
+    'separator',
+    { label: t('Insert a frame after frame {frame}', { frame }), title: t('Every key after it moves one frame later; the animation grows'), action: () => insertFrames(app, frame, 1) },
+    { label: t('Insert frames…'), action: async () => insertFrames(app, frame, await askFrames(t('Insert how many frames after frame {frame}?', { frame }))) },
+    { label: t('Delete the frame after frame {frame}', { frame }), title: t('Keys on it are removed and later keys move one frame back'), action: () => deleteFrames(app, frame, 1) },
+    { label: t('Delete frames…'), action: async () => deleteFrames(app, frame, await askFrames(t('Delete how many frames after frame {frame}?', { frame }))) },
+    'separator',
+    marker
+      ? { label: t('Rename marker…'), action: async () => {
+          const name = await askText({ title: t('Marker name'), value: marker.name, okLabel: 'Rename' });
+          if (name !== null) {
+            marker.name = name;
+            app.changed();
+          }
+        } }
+      : { label: t('Add a marker at frame {frame}…', { frame }), title: t('A named frame on the timeline, for timing (kept in the work file, not exported)'), action: async () => {
+          const name = await askText({ title: t('Marker name'), value: '', okLabel: 'Add' });
+          if (name === null || !anim) return;
+          anim.markers.push({ time: frame / FPS, name });
+          anim.markers.sort((a, b) => a.time - b.time);
+          app.changed();
+        } },
+    marker && { label: t('Delete marker'), action: () => {
+      anim.markers.splice(anim.markers.indexOf(marker), 1);
+      app.changed();
+    } },
   ]);
 }
 

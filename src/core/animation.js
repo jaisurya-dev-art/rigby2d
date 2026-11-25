@@ -136,6 +136,8 @@ export class Animation {
     this.ik = [];
     /** Timelines Rigby2D keeps but does not evaluate yet (transform/path/physics constraints, sequences). */
     this.extra = {};
+    /** Named frames on the timeline, { time, name } (editor only: kept in work files, never exported). */
+    this.markers = [];
   }
 
   boneTimeline(bone) {

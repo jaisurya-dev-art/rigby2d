@@ -82,6 +82,30 @@ Above the rows, the ruler marks every frame that has a key in the rows shown, so
 whole animation reads at a glance. Right-click the ruler to **select the keys at that frame** (to move
 a whole pose in time) or **every key shown**.
 
+### Inserting and deleting time
+
+Right-click the ruler at a frame:
+
+- *Insert a frame after frame N* (or *Insert frames…* for several): every key after it, in every
+  track (bones, slots, deform, IK and constraints, sequences, draw order, events and markers), moves
+  later, and the animation grows. Use it to give a move more time without retiming keys by hand.
+- *Delete the frame after frame N* (or *Delete frames…*): the keys on those frames are removed, later
+  keys move back, and the animation gets shorter.
+
+### Markers
+
+Right-click the ruler ▸ *Add a marker at frame N…* names a frame: a contact, a beat of the music, a
+line of dialogue. Markers show as amber flags with their names on the ruler. Right-click one to
+rename or delete it. They move with *Insert* and *Delete time*, are kept in the work file and part of
+undo, and are never exported.
+
+### Breakdowns
+
+The **breakdown** button (next to retime) poses the selected bones part of the way between their
+previous and next keys, and keys that pose at the playhead: drag its slider (0% is the previous key,
+100% the next), or pick 25%, 50% or 75%. With nothing selected it works on every keyed bone. It's the
+quickest way to favour one key in an in-between, as with the breakdown tools of Blender and Harmony.
+
 A thin **tween line** joins each key to the next where the value blends between them, so you can see at
 a glance where something moves and where it holds. A stepped key has no line after it, and image
 swaps, draw order and events never have one, since they switch exactly on the key. Turn the lines off

@@ -715,6 +715,7 @@ function readSkeleton(o) {
     anim.events = arr(a.events, 'events').map((e) => ({ ...raw(e), time: num(e.time, 0, 'time'), name: str(e.name, undefined, 'name') }));
     anim.ik = arr(a.ik, 'ik').map((t) => ({ constraint: index(t.constraint, 'constraint'), keys: readKeys(t.keys, 'keys', (v) => ({ ...raw(v) })) }));
     anim.extra = raw(a.extra) ?? {};
+    anim.markers = arr(a.markers, 'markers').map((m) => ({ time: num(m.time, 0, 'time'), name: str(m.name ?? '', undefined, 'name') }));
     return anim;
   });
   sk.images = arr(o.images, 'images').map((i) => ({
@@ -849,6 +850,7 @@ function writeSkeleton(sk) {
     if (a.events.length) o.events = a.events.map((e) => ({ ...e }));
     if (a.ik.length) o.ik = a.ik.map((t) => ({ constraint: t.constraint, keys: writeKeys(t.keys, (v) => ({ ...v })) }));
     if (Object.keys(a.extra).length) o.extra = raw(a.extra);
+    if (a.markers?.length) o.markers = a.markers.map((m) => ({ time: m.time, name: m.name }));
     return o;
   });
   if (sk.images.length) {
