@@ -207,7 +207,7 @@ export class Pose {
     for (const t of anim.deform) {
       if (!t.keys.length) continue;
       const slot = sk.slots[t.slot];
-      const att = slot && sk.attachment(t.slot, t.attachment, t.skin ?? sk.skin);
+      const att = slot && sk.attachment(t.slot, t.attachment, t.skin ?? undefined);
       if (!att) continue;
       const source = sk.meshSource(t.slot, att) ?? att;
       const deltas = sampleDeform(t.keys, time, deformLength(source));
@@ -385,8 +385,10 @@ export class Pose {
   }
 
   skinActive(sk, has) {
-    const skin = sk.skin ? sk.findSkin(sk.skin) : null;
-    return !!skin && has(skin);
+    return (sk.activeSkins?.() ?? (sk.skin ? [sk.skin] : [])).some((name) => {
+      const skin = sk.findSkin(name);
+      return !!skin && has(skin);
+    });
   }
 
   computeWorld(sk) {

@@ -5,7 +5,7 @@
 import { listConstraints } from '../core/constraintdata.js';
 import { Mode, selBone, selSlot } from './app.js';
 import { CONSTRAINT_LABELS, PHYSICS_HINT, createConstraint, createTransform } from './constraintui.js';
-import { dragBoneRow, rootDropTarget } from './bonednd.js';
+import { dragBoneRow, dragSlotRow, rootDropTarget } from './bonednd.js';
 import { dragOrderRow } from './draworderdnd.js';
 import { treeMatches } from './treefind.js';
 import * as edit from './edit.js';
@@ -15,6 +15,7 @@ import { h, popupMenu } from './widgets.js';
 import { button, iconButton, uiIcon } from './ui.js';
 import { isBoneHidden, isBoneLocked, isSlotHidden, isSlotLocked, toggleBone, toggleSlot } from './visibility.js';
 import { has } from './workspaces.js';
+import { askText } from './resultui.js';
 import { addActorMenu, sceneRows } from './sceneui.js';
 import { joinStatus, statusMessage, t, tn } from './i18n.js';
 
@@ -126,6 +127,104 @@ function skeletonRow(label, options, branches) {
   return item;
 }
 
+// ---- Right-click menus ---------------------------------------------------------------------------
+
+/** Asks for a new name and applies it with `rename(name)`; says so when the name is taken. */
+async function renameRow(app, title, value, rename) {
+  const name = await askText({ title, value, okLabel: 'Rename' });
+  if (name && name !== value && !rename(name)) app.setStatus(statusMessage('That name is already used'));
+}
+
+/** Selects the keys of a bone or slot, and says how many (or why there are none). */
+function selectKeys(app, item, name) {
+  const n = edit.selectKeysOf(app, item);
+  app.setStatus(n ? statusMessage('Selected {count} key(s) of {name}', { count: n, name }) : statusMessage('{name} has no keys in this animation', { name }));
+}
+
+/** The menu of a bone's row: what you would otherwise find in the inspector, the row and the toolbar. */
+function boneMenu(app, bone, x, y) {
+  const doc = app.doc;
+  const name = doc.bones[bone].name;
+  const setup = app.mode === Mode.Setup;
+  const hidden = isBoneHidden(doc, bone);
+  const locked = isBoneLocked(doc, bone);
+  const view = (kind, branch) => () => {
+    toggleBone(doc, kind, bone, branch);
+    app.changed();
+  };
+  const hasKids = doc.bones.some((b) => b.parent === bone);
+  popupMenu(x, y, [
+    { label: t('Rename…'), disabled: !setup, title: setup ? null : t('In Setup mode'), action: () => renameRow(app, t('Rename bone'), name, (n) => edit.renameBone(app, bone, n)) },
+    { label: t('Add child bone'), disabled: !setup, action: () => edit.addChildBone(app, bone) },
+    { label: t('Add point bone'), disabled: !setup, action: () => edit.addPointBone(app, bone) },
+    'separator',
+    { label: hidden ? t('Show') : t('Hide'), action: view('hidden', false) },
+    { label: locked ? t('Unlock') : t('Lock'), action: view('locked', false) },
+    hasKids && { label: hidden ? t('Show with its children') : t('Hide with its children'), action: view('hidden', true) },
+    hasKids && { label: locked ? t('Unlock with its children') : t('Lock with its children'), action: view('locked', true) },
+    'separator',
+    { label: t('Select its keys'), disabled: !app.currentAnimation(), title: t('Selects every key of this bone in the current animation'), action: () => selectKeys(app, { bone }, name) },
+    'separator',
+    { label: t('Delete'), disabled: !setup || bone === 0, title: bone === 0 ? t('The root bone cannot be deleted') : null, action: () => {
+      app.select({ bone });
+      edit.deleteSelection(app);
+      app.changed();
+    } },
+  ]);
+}
+
+/** The menu of a slot's row. */
+function slotMenu(app, slot, x, y) {
+  const doc = app.doc;
+  const name = doc.slots[slot].name;
+  const setup = app.mode === Mode.Setup;
+  const view = (kind) => () => {
+    toggleSlot(doc, kind, slot);
+    app.changed();
+  };
+  popupMenu(x, y, [
+    { label: t('Rename…'), disabled: !setup, title: setup ? null : t('In Setup mode'), action: () => renameRow(app, t('Rename slot'), name, (n) => edit.renameSlot(app, slot, n)) },
+    'separator',
+    { label: isSlotHidden(doc, slot) ? t('Show') : t('Hide'), action: view('hidden') },
+    { label: isSlotLocked(doc, slot) ? t('Unlock') : t('Lock'), action: view('locked') },
+    'separator',
+    { label: t('Select its keys'), disabled: !app.currentAnimation(), title: t('Selects every key of this slot in the current animation'), action: () => selectKeys(app, { slot }, name) },
+    'separator',
+    { label: t('Delete'), disabled: !setup, action: () => {
+      app.select({ slot });
+      edit.deleteSelection(app);
+      app.changed();
+    } },
+  ]);
+}
+
+/** Opens `menu(app, index, x, y)` on a right-click of `row`, selecting what the row shows first. */
+function withMenu(app, row, item, menu) {
+  row.addEventListener('contextmenu', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (app.pick) return;
+    app.select(item);
+    menu(app, item.bone ?? item.slot, e.clientX, e.clientY);
+  });
+}
+
+/**
+ * Which skins give a slot images, as small tags on its row (the skins shown now stand out). Up to two
+ * names, then a count; the title lists them all. Nothing for a slot only the default skin fills.
+ */
+function skinTags(doc, slot, active) {
+  const skins = doc.skins.filter((k) => k.slots.some((e) => e.slot === slot && e.attachments.length)).map((k) => k.name);
+  if (!skins.length) return null;
+  const shown = skins.slice(0, 2);
+  return h(
+    'span',
+    { class: 'skin-tags', title: t('In skins: {skins}', { skins: skins.join(', ') }) },
+    shown.map((name) => h('span', { class: `skin-tag${active.has(name) ? ' on' : ''}` }, name)),
+    skins.length > shown.length ? h('span', { class: 'skin-tag more' }, `+${skins.length - shown.length}`) : null,
+  );
+}
+
 /** The selection the tree last showed, so a new one (from the viewport, say) is revealed once. */
 let shownSel = '';
 
@@ -194,6 +293,7 @@ export function render(app, el) {
   const selected = new Set(app.selectedBones());
   const select = (item) => (e) => app.select(item, e.ctrlKey || e.metaKey);
   const pose = app.pose();
+  const active = new Set(doc.activeSkins());
 
   // Find: only the bones and slots whose names match, with the bones above them, all unfolded.
   const q = query.trim().toLowerCase();
@@ -282,12 +382,13 @@ export function render(app, el) {
       bone,
     }, branches);
     if (bone !== 0 && app.mode === Mode.Setup) dragBoneRow(app, boneRow, bone);
+    withMenu(app, boneRow, { bone }, boneMenu);
     skeleton.push(boneRow);
     if (!open) return;
     for (const [index, [slot, i]] of slots.entries()) {
       const slotBranches = [...branches, index < slots.length - 1 || kids.length > 0];
       const names = new Set(slot.attachments.map((a) => a.name));
-      if (doc.skin) for (const a of doc.skinAttachments(i, doc.skin)) names.add(a.name);
+      for (const skin of doc.activeSkins()) for (const a of doc.skinAttachments(i, skin)) names.add(a.name);
       const slotOpen = openSlots.has(slot.name);
       const slotTwisty = names.size
         ? h(
@@ -315,8 +416,11 @@ export function render(app, el) {
           app.changed();
         }, false),
       );
-      const slotRow = skeletonRow(label('layers', slot.name), { tut: `slot:${slot.name}`, cls: `slot${slotHidden ? ' view-hidden' : ''}`, selected: selSlot(app.sel) === i, onclick: select({ slot: i }), extra: [shown, ...slotToggles, slotTwisty] }, slotBranches);
+      const tags = skinTags(doc, i, active);
+      const slotRow = skeletonRow(label('layers', slot.name), { tut: `slot:${slot.name}`, cls: `slot${slotHidden ? ' view-hidden' : ''}`, selected: selSlot(app.sel) === i, onclick: select({ slot: i }), extra: [tags, shown, ...slotToggles, slotTwisty] }, slotBranches);
       slotRow.dataset.slot = String(i);
+      if (app.mode === Mode.Setup) dragSlotRow(app, slotRow, i);
+      withMenu(app, slotRow, { slot: i }, slotMenu);
       skeleton.push(slotRow);
       if (!slotOpen) continue;
       for (const [index, name] of [...names].entries()) {
@@ -459,15 +563,49 @@ export function render(app, el) {
 /** Skins: the active one shows the dot; clicking one makes it active and shows its settings. */
 export function skinsSection(app) {
   const doc = app.doc;
-  const pickSkin = (name) => () => {
+  // A click makes a skin the active one; Ctrl+click (or its + button) also shows it on top of the
+  // active skin, to preview a combination (an outfit, a hat and a weapon). Later ones win.
+  const extra = doc.extraSkins;
+  const toggleExtra = (name) => {
+    doc.extraSkins = extra.includes(name) ? extra.filter((n) => n !== name) : [...extra, name];
+    app.changed();
+  };
+  const pickSkin = (name) => (e) => {
+    if (name !== 'default' && (e.ctrlKey || e.metaKey) && doc.skin !== name) return toggleExtra(name);
     doc.skin = name === 'default' ? null : name;
+    doc.extraSkins = extra.filter((n) => n !== doc.skin);
     app.sel = { skin: name };
     app.multi.clear();
     app.changed();
   };
+  const combineButton = (name) =>
+    doc.skin === name
+      ? null
+      : h(
+          'button',
+          {
+            class: `skin-combine${extra.includes(name) ? ' on' : ''}`,
+            title: extra.includes(name) ? t('Stop showing this skin on top') : t('Show this skin on top of the active one (Ctrl+click)'),
+            'aria-pressed': extra.includes(name) ? 'true' : 'false',
+            onclick: (e) => {
+              e.stopPropagation();
+              toggleExtra(name);
+            },
+          },
+          uiIcon('circle-plus', 'sm'),
+        );
+  const skinIcon = (name) => (doc.skin === name ? 'circle-dot' : extra.includes(name) ? 'circle-plus' : 'circle');
   const skins = [
     row(h('span', { class: 'skin-pick' }, uiIcon(doc.skin ? 'circle' : 'circle-dot', 'sm'), t('default')), { selected: app.sel?.skin === 'default', onclick: pickSkin('default') }),
-    ...doc.skins.map((s) => row(h('span', { class: 'skin-pick' }, uiIcon(doc.skin === s.name ? 'circle-dot' : 'circle', 'sm'), s.name), { selected: app.sel?.skin === s.name, onclick: pickSkin(s.name) })),
+    ...doc.skins.map((s) =>
+      row(h('span', { class: 'skin-pick' }, uiIcon(skinIcon(s.name), 'sm'), s.name), {
+        selected: app.sel?.skin === s.name,
+        cls: extra.includes(s.name) ? 'skin-combined' : '',
+        onclick: pickSkin(s.name),
+        extra: [combineButton(s.name)],
+      }),
+    ),
+    extra.length ? h('div', { class: 'small weak pad skin-combo-note' }, t('Previewing {skins} together. Renders and exports use one skin at a time.', { skins: doc.activeSkins().join(' + ') })) : null,
   ];
   const newSkin = addButton(t('New'), { disabled: app.mode !== Mode.Setup, title: t('New skin (becomes active)'), onclick: () => createSkin(app) });
   return section(app, 'skins', t('Skins'), doc.skins.length + 1, skins, newSkin);

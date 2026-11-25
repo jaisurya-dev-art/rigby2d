@@ -7,11 +7,13 @@ import { EASE_IN_OUT, LINEAR, STEPPED, cloneCurve } from '../core/curve.js';
 import { toAffine, transform } from '../core/math.js';
 import { makeBone, moveAttachment } from '../core/model.js';
 import { keySlotTint } from '../core/keying.js';
+import { renameBoneRefs, renameSlotRefs } from '../core/constraintdata.js';
 import { Pose } from '../core/pose.js';
 import { FPS, Mode, selBone, selSlot, snap } from './app.js';
 import { CHANNEL_FIELDS, TRANSFORM_CHANNELS as CHANNELS } from './channels.js';
 import { constraintsKeeping, keepPoseOffsets } from './constraintoffsets.js';
 import { statusMessage, t } from './i18n.js';
+import { renameOnionBone } from './onion.js';
 import { setBoneSetupOnly } from './setupmove.js';
 
 /** Makes sure an animation exists and is selected, creating one if needed. Returns its index. */
@@ -277,14 +279,50 @@ export function reparentBoneKeepWorld(app, bone, newParent) {
   app.changed();
 }
 
-/** Moves a slot to another bone while keeping its attachments in place (setup pose). */
+/** Moves a slot to another bone while keeping its attachments in place (setup pose), the ones
+ *  other skins define for it included. */
 export function setSlotBoneKeepWorld(app, slot, newBone) {
   const setup = new Pose(app.doc);
   const old = setup.world[app.doc.slots[slot].bone];
   const toNew = setup.world[newBone].inverse().mul(old);
   for (const att of app.doc.slots[slot].attachments) moveAttachment(att, toNew);
+  for (const skin of app.doc.skins) for (const e of skin.slots) if (e.slot === slot) for (const att of e.attachments) moveAttachment(att, toNew);
   app.doc.slots[slot].bone = newBone;
   app.changed();
+}
+
+/** Renames a bone, and every constraint and onion-skin setting that names it. False when the name
+ *  is empty or taken. */
+export function renameBone(app, bone, name) {
+  name = name.trim();
+  const b = app.doc.bones[bone];
+  if (!b || !name || name === b.name || app.doc.boneIndex(name) !== null) return false;
+  renameBoneRefs(app.doc, b.name, name);
+  renameOnionBone(app.onion, b.name, name); // per-bone onion settings are keyed by name
+  b.name = name;
+  app.changed();
+  return true;
+}
+
+/** Renames a slot, and every constraint that names it. False when the name is empty or taken. */
+export function renameSlot(app, slot, name) {
+  name = name.trim();
+  const s = app.doc.slots[slot];
+  if (!s || !name || name === s.name || app.doc.slotIndex(name) !== null) return false;
+  renameSlotRefs(app.doc, s.name, name);
+  s.name = name;
+  app.changed();
+  return true;
+}
+
+/** Selects every key of a bone's (or a slot's) tracks in the current animation; returns how many. */
+export function selectKeysOf(app, { bone = null, slot = null }) {
+  const anim = app.currentAnimation();
+  const tl = !anim ? null : bone !== null ? anim.boneTimeline(bone) : anim.slotTimeline(slot);
+  const keys = tl ? Object.entries(tl).filter(([k, v]) => k !== 'bone' && k !== 'slot' && Array.isArray(v)).flatMap(([, v]) => v) : [];
+  app.selectedKeys = new Set(keys);
+  app.changed();
+  return keys.length;
 }
 
 /** Returns whether `channel` of `bone` has a key at the current frame. */

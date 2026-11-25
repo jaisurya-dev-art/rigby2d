@@ -127,7 +127,9 @@ The tree has collapsible sections:
   tip. **Collapse all bones** shows the root and its immediate children. **Expand all bones** opens
   the full hierarchy. The **Find** box at the top shows only the bones and slots whose names contain
   what you type (with the bones above them), and Esc clears it. In Setup mode, drag a bone's row onto another bone
-  to make that its parent, or onto the skeleton's title for the root; the bone keeps its place.
+  to make that its parent, or onto the skeleton's title for the root; drag a slot's row onto a bone
+  to move the slot there. Either way it keeps its place in the viewport. A slot that skins give
+  images to shows their names as small tags (the skins shown now are highlighted).
 - **Draw order**: slots back to front; *Draw in front* and *Draw behind* move the selected slot, or
   drag a row to drop it anywhere (a side preview shows its image between its new neighbours as you
   drag). See [Draw order](bones-and-slots.md#draw-order).
@@ -137,6 +139,13 @@ The tree has collapsible sections:
 
 Bones also have an onion-skin button that limits onion skinning to that bone and its children.
 See [Onion skin](onion-skin.md).
+
+### Right-click menus
+
+Right-click a bone's row for *Rename…*, *Add child bone*, *Add point bone*, *Hide* and *Lock* (also
+with its children), *Select its keys* in the current animation, and *Delete*. A slot's row has
+*Rename…*, *Hide*, *Lock*, *Select its keys* and *Delete*. Renaming, adding and deleting work in
+Setup mode.
 
 ### Show and lock
 

@@ -153,14 +153,16 @@ export function openSpriteSheetDialog(app) {
   function estimateLine(names) {
     const key = JSON.stringify([names.map((a) => a.name), choice.fps, choice.loop, choice.scale, choice.skin, choice.maxWidth, choice.layout, choice.padding, choice.pot, doc.version ?? app.version]);
     if (estimated.key !== key) {
-      const previousSkin = doc.skin;
+      const [previousSkin, previousExtra] = [doc.skin, doc.extraSkins];
       doc.skin = choice.skin || null;
+      doc.extraSkins = []; // the chosen skin alone, not the editor's preview combination
       try {
         estimated = { key, value: estimateSheet(doc, names.map((a) => a.name), { ...choice }, SCALES.map(([v]) => v)) };
       } catch {
         estimated = { key, value: null };
       } finally {
         doc.skin = previousSkin;
+        doc.extraSkins = previousExtra;
       }
     }
     const e = estimated.value;
@@ -214,10 +216,12 @@ export function openSpriteSheetDialog(app) {
     const dir = dirname(target.path);
     const base = target.path.split(/[\\/]/).pop().replace(/(_frames)?\.[^.]+$/, '') || choice.name;
     const pathFor = (name) => (dir === '.' ? name : joinPath(dir, name));
-    const previousSkin = doc.skin;
+    const [previousSkin, previousExtra] = [doc.skin, doc.extraSkins];
     doc.skin = choice.skin || null;
+    doc.extraSkins = [];
     const snapshot = doc.toSnapshot();
     doc.skin = previousSkin;
+    doc.extraSkins = previousExtra;
     const images = imageData();
     const worker = new Worker(new URL('./spritesheetworker.js', import.meta.url), { type: 'module' });
     worker.onerror = (e) => {

@@ -36,6 +36,7 @@ function renameSkin(app, skin, to) {
   const from = skin.name;
   skin.name = to;
   if (doc.skin === from) doc.skin = to;
+  doc.extraSkins = doc.extraSkins.map((n) => (n === from ? to : n));
   for (const a of doc.animations) {
     for (const d of a.deform) if (d.skin === from) d.skin = to;
     const atts = a.extra?.attachments;
@@ -56,6 +57,7 @@ function deleteSkin(app, skin) {
   const doc = app.doc;
   doc.skins.splice(doc.skins.indexOf(skin), 1);
   if (doc.skin === skin.name) doc.skin = null;
+  doc.extraSkins = doc.extraSkins.filter((n) => n !== skin.name);
   for (const a of doc.animations) {
     a.deform = a.deform.filter((d) => d.skin !== skin.name);
     if (a.extra?.attachments) delete a.extra.attachments[skin.name];

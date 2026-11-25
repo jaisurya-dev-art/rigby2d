@@ -5,7 +5,6 @@ import { identityTransform, transformEquals } from '../core/math.js';
 import { BLEND_MODES, INHERIT_MODES, findAttachment, makeAttachment, makeBone, uniqueName, vertexCount } from '../core/model.js';
 import { FPS, Mode, selBone, selSlot } from './app.js';
 import * as edit from './edit.js';
-import { renameBoneRefs, renameSlotRefs } from '../core/constraintdata.js';
 import { inferSequence, sequenceFrameName } from '../core/sequence.js';
 import { constraintUi } from './constraintui.js';
 import { actorUi, depthUi } from './sceneui.js';
@@ -21,7 +20,6 @@ import { warpUi } from './warpui.js';
 import { effectsUi, filmProjectUi, particlesUi } from './filmfxui.js';
 import { has } from './workspaces.js';
 import { sounds } from './audio.js';
-import { renameOnionBone } from './onion.js';
 import { openLipSync } from './lipsyncui.js';
 import { joinStatus, statusMessage, t, tn } from './i18n.js';
 import { colorButton } from './colorpicker.js';
@@ -98,12 +96,7 @@ function boneUi(app, b) {
     ...row(
       t('Name'),
       textField(bone.name, (name) => {
-        if (name && app.doc.boneIndex(name) === null) {
-          renameBoneRefs(app.doc, bone.name, name);
-          renameOnionBone(app.onion, bone.name, name); // per-bone onion settings are keyed by name
-          bone.name = name;
-          app.changed();
-        }
+        if (name) edit.renameBone(app, b, name);
       }, { disabled: !setupMode }),
     ),
   ];
@@ -230,11 +223,7 @@ function slotUi(app, s) {
       row(
         t('Name'),
         textField(slot.name, (name) => {
-          if (name && app.doc.slotIndex(name) === null) {
-            renameSlotRefs(app.doc, slot.name, name);
-            slot.name = name;
-            app.changed();
-          }
+          if (name) edit.renameSlot(app, s, name);
         }, { disabled: !setupMode }),
       ),
       row(

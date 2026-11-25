@@ -57,7 +57,9 @@ export class FrameRenderer {
     const f = outputFrame({ ...s, width: this.width, height: this.height }, bounds);
     this.camera = { x: f.cx, y: f.cy, zoom: 1 / f.scale };
     this.previousSkin = doc.skin;
+    this.previousExtra = doc.extraSkins;
     doc.skin = job.skin ?? null;
+    doc.extraSkins = []; // each job renders its one skin, not the editor's preview combination
     this.pose = new Pose(doc);
     this.state = new AnimationState();
     this.frame = -1;
@@ -237,6 +239,7 @@ export class FrameRenderer {
     for (const e of this.textures.values()) this.renderer.deleteTexture(e.tex);
     this.textures.clear();
     this.doc.skin = this.previousSkin;
+    this.doc.extraSkins = this.previousExtra ?? [];
   }
 }
 

@@ -22,6 +22,20 @@ skin.
    into the active skin. Slots show skin attachments with the skin's name in brackets.
 3. Click a skin in the tree to make it active and see what it contains.
 
+In the Skeleton section of the tree, a slot that skins give images to shows their names as small
+tags, so you can see which slots belong to which skin.
+
+### Previewing skins together
+
+Games often combine skins: an outfit, a hat and a weapon chosen separately. To preview a
+combination, **Ctrl+click** a skin (or press the **+** button on its row): it shows on top of the
+active skin, marked with a **+**. Add as many as you like; where two give a slot the same
+attachment, the one added last wins, as when a game combines skins. Click a skin normally to go back
+to that skin alone.
+
+The combination is only a preview: it is kept in the work file, but renders, sprite sheets and
+exports use one skin at a time.
+
 | Setting | Meaning |
 | --- | --- |
 | **Name** | The skin's name, as games refer to it. |

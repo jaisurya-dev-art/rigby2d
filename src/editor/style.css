@@ -5413,6 +5413,66 @@ input[type='range'] {
 .row.selected .skin-pick .icon {
   color: inherit;
 }
+/* A skin shown on top of the active one (preview combination) and its + toggle. */
+.row.skin-combined .skin-pick .icon {
+  color: var(--accent);
+}
+.row .skin-combine {
+  margin-left: auto;
+  padding: 0 2px;
+  border: 0;
+  background: none;
+  color: var(--fg-muted);
+  opacity: 0;
+  cursor: pointer;
+}
+.row:hover .skin-combine,
+.row .skin-combine.on,
+.row .skin-combine:focus-visible {
+  opacity: 1;
+}
+.row .skin-combine.on {
+  color: var(--accent);
+}
+.skin-combo-note {
+  line-height: 1.35;
+}
+/* Slot rows: the skins that give the slot images. On a narrow tree the visible image's name gives
+   way first, then the tags (down to a short stub); the slot's own name keeps its room. */
+.row .skin-tags {
+  display: inline-flex;
+  flex: 0 5 auto;
+  gap: 3px;
+  margin-left: auto;
+  min-width: 34px;
+  overflow: hidden;
+}
+.row.slot .row-name {
+  flex-shrink: 0;
+  max-width: 70%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.row.slot .slot-shown {
+  flex-shrink: 100;
+  min-width: 0;
+}
+.row .skin-tag {
+  max-width: 72px;
+  padding: 0 5px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--fg-muted);
+  font-size: 10.5px;
+  line-height: 15px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.row .skin-tag.on {
+  border-color: var(--accent);
+  color: var(--accent);
+}
 .key-add .icon,
 .key-reset .icon,
 .key-edit-remove .icon,
