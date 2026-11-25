@@ -47,6 +47,7 @@ import type {
   SkeletonData,
   SkeletonSource,
   TrackEntry,
+  TrackSnapshot,
   WasmSource,
   AttachToBoneOptions,
 } from './types.js';
@@ -511,6 +512,59 @@ export function rigbyPixi(PIXI: PixiNamespace = (globalThis as { PIXI?: PixiName
     }
     get skinNames(): string[] {
       return this.data.skinNames;
+    }
+    get boneNames(): string[] {
+      return this.skeleton.bones.map((b) => b.name);
+    }
+    hasAnimation(name: string): boolean {
+      return this.skeleton.animations.some((a) => a.name === name);
+    }
+    hasSkin(name: string): boolean {
+      return this.skeleton.skins.some((s) => s.name === name);
+    }
+    /** Whether animation `name` is playing (on `track`, or on any track), or anything at all without a name. */
+    isPlaying(name?: string, track?: number): boolean {
+      return this.state.tracks.some((e) => e && (track === undefined || e.track === track) && (name === undefined || e.name === name));
+    }
+    /** What every track is playing now, as plain values (for save files). Empty with WebAssembly. */
+    snapshotTracks(): TrackSnapshot[] {
+      const out: TrackSnapshot[] = [];
+      for (const e of this.state.tracks) {
+        if (!e) continue;
+        out.push({
+          track: e.track,
+          name: e.name,
+          looping: e.looping,
+          time: e.time,
+          mixDuration: e.mixDuration,
+          alpha: e.alpha,
+          timeScale: e.timeScale,
+          queue: e.queue.map((q) => ({ name: q.name, looping: q.looping, mixDuration: q.mixDuration, delay: q.delay })),
+        });
+      }
+      return out;
+    }
+    /** Replaces what is playing with `snapshots`: each animation resumes at its time, with its queue. */
+    restoreTracks(snapshots: readonly TrackSnapshot[]): this {
+      this.state.tracks.forEach((_, i) => this.state.clearTrack(i));
+      for (const s of snapshots) {
+        if (!this.hasAnimation(s.name)) continue;
+        const entry = this.play(s.name, s.looping, 0, s.track);
+        if (entry) {
+          entry.time = s.time;
+          entry.mixDuration = s.mixDuration;
+          entry.mixTime = s.mixDuration;
+          entry.alpha = s.alpha;
+          entry.timeScale = s.timeScale;
+        }
+        for (const q of s.queue) if (this.hasAnimation(q.name)) this.queue(q.name, q.looping, q.mixDuration, s.track, q.delay);
+      }
+      this.update(0);
+      return this;
+    }
+    /** Length in seconds of animation `name`, or null without that animation. */
+    animationDuration(name: string): number | null {
+      return this.skeleton.animations.find((a) => a.name === name)?.duration ?? null;
     }
 
     /** This skeleton's skin (null for the default skin). Each RigbySkeleton has its own. */
