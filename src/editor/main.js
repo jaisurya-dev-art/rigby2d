@@ -157,6 +157,16 @@ function menus() {
     Edit: [
       { label: t('Undo'), shortcut: sc('edit.undo'), disabled: !app.history.undo.length, action: () => app.undo() },
       { label: t('Redo'), shortcut: sc('edit.redo'), disabled: !app.history.redo.length, action: () => app.redo() },
+      // Every step with what it did; pick one to go back (or forward) to it.
+      submenuItem(t('Undo history'), () => {
+        const { done, undone } = app.historyEntries();
+        const items = [
+          ...done.slice(-24).map((e) => ({ label: e.label, title: t('Go back to before this step'), action: () => app.jumpHistory(e.offset) })),
+          { label: t('Now'), checked: true, disabled: true, action: () => {} },
+          ...undone.slice(0, 12).map((e) => ({ label: e.label, class: 'weak', title: t('Redo up to this step'), action: () => app.jumpHistory(e.offset) })),
+        ];
+        return done.length || undone.length ? items : [{ label: t('Nothing to undo yet'), disabled: true, action: () => {} }];
+      }),
       'separator',
       { label: t('Key changed properties'), shortcut: sc('key.changed'), action: () => edit.keyChanged(app) },
       { label: t("Key the current tool's property"), shortcut: sc('key.tool'), action: () => edit.keyTool(app) },
@@ -244,6 +254,16 @@ function menus() {
           app.showFrame = on;
           app.changed();
         }),
+      checkItem(
+        t('Motion paths'),
+        app.motionPaths,
+        (on) => {
+          app.motionPaths = on;
+          saveSetting('rigby.view.motionPaths', on ? '1' : '0');
+          app.changed();
+        },
+        { title: t('In Animate mode, draws where the tips of the selected bones go over the animation, with a dot per key') },
+      ),
       submenuItem(t('Bone links'), () => {
         // One of three: picking one unticks the others (and the ticked one can't be unticked).
         const choices = [

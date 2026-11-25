@@ -181,3 +181,47 @@ export function pastePose(doc, copied, { flipped = false } = {}) {
   }
   return out;
 }
+
+// ---- IK / FK switching ----------------------------------------------------------------------------
+
+/** A pose of `anim` at `time` (worlds included), with IK constraint `ik`'s mix forced to `mix`. */
+export function poseWithIkMix(doc, anim, time, ik, mix) {
+  const pose = new Pose(doc);
+  if (anim) pose.apply(doc, anim, time, 1);
+  if (pose.ik?.[ik]) pose.ik[ik].mix = mix;
+  pose.updateWorld(doc);
+  return pose;
+}
+
+/**
+ * Switching an IK chain to FK without a jump: the local transforms that put its bones where IK has
+ * them now ([[bone, local]]), to key, after which the mix can go to 0.
+ */
+export function fkMatchingIk(doc, anim, time, ik) {
+  const pose = poseWithIkMix(doc, anim, time, ik, doc.ik[ik].mix ?? 1);
+  const live = new Pose(doc);
+  if (anim) live.apply(doc, anim, time, 1);
+  return doc.ik[ik].bones.map((b) => {
+    const parent = doc.bones[b].parent;
+    const local = parent === null ? pose.world[b].decompose() : pose.world[parent].inverse().mul(pose.world[b]).decompose();
+    // Keep the bone's own position (IK only turns bones); take the rotation, scale and shear.
+    return [b, { ...live.local[b], rotation: local.rotation, scale_x: local.scale_x, scale_y: local.scale_y, shear_x: local.shear_x ?? 0, shear_y: local.shear_y ?? 0 }];
+  });
+}
+
+/**
+ * Switching an FK chain to IK without a jump: where the IK target goes (its local transform) so it
+ * sits at the tip of the chain as FK has it now, after which the mix can go to 1.
+ */
+export function ikTargetMatchingFk(doc, anim, time, ik) {
+  const c = doc.ik[ik];
+  const fk = poseWithIkMix(doc, anim, time, ik, 0);
+  const last = c.bones[c.bones.length - 1];
+  const tip = fk.world[last].apply([doc.bones[last].length, 0]);
+  const target = c.target;
+  const parent = doc.bones[target].parent;
+  const at = parent === null ? tip : fk.world[parent].inverse().apply(tip);
+  const live = new Pose(doc);
+  if (anim) live.apply(doc, anim, time, 1);
+  return [target, { ...live.local[target], x: at[0], y: at[1] }];
+}

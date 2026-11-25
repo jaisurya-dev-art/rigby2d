@@ -82,6 +82,12 @@ Above the rows, the ruler marks every frame that has a key in the rows shown, so
 whole animation reads at a glance. Right-click the ruler to **select the keys at that frame** (to move
 a whole pose in time) or **every key shown**.
 
+### Motion paths
+
+*View ▸ Motion paths* draws, in Animate mode, where the tip of each selected bone goes over the whole
+animation: a line through every frame, a larger dot on each key and a ring at the current frame. Use
+it to check arcs and spacing. It's an editor overlay only.
+
 ### Inserting and deleting time
 
 Right-click the ruler at a frame:

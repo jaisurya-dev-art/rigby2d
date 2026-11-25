@@ -233,6 +233,8 @@ export class App {
     this.pick = filter.pick;
     this.viewFilterOpen = filter.open;
     this.showNames = filter.names;
+    /** Motion paths of the selected bones in Animate mode (View menu), remembered. */
+    this.motionPaths = loadSetting('rigby.view.motionPaths', '0') === '1';
     /** The dopesheet shows only the selection's tracks (its filter button). */
     this.dopesheetSelectedOnly = loadSetting('rigby.timeline.selectedOnly', '0') === '1';
     /** Hides every overlay at once (View ▸ Hide overlays), to watch the animation as it renders. */
@@ -306,7 +308,7 @@ export class App {
     this.structureVersion = 0;
     /** Bumped when playback moves the time: only time-dependent views need to follow it. */
     this.timeVersion = 0;
-    this.history = { undo: [], redo: [] };
+    this.history = { undo: [], redo: [], undoLabels: [], redoLabels: [] };
     /** JSON of the last committed document state, used to coalesce edits into undo steps. */
     this.baseline = this.doc.toSnapshot();
     this.saved = this.baseline;
@@ -398,7 +400,7 @@ export class App {
     this._onionCache = null;
     this.time = 0;
     this.playing = false;
-    this.history = { undo: [], redo: [] };
+    this.history = { undo: [], redo: [], undoLabels: [], redoLabels: [] };
     this.docJson = this.baseline = this.saved = doc.toSnapshot();
     this.frameRequest = true;
     this.changed();
@@ -692,6 +694,7 @@ export class App {
     const prev = this.history.undo.pop();
     if (prev === undefined) return;
     this.history.redo.push(this.docJson);
+    this.history.redoLabels.push(this.history.undoLabels.pop() ?? t('Edit'));
     this.restore(prev);
   }
 
@@ -700,7 +703,45 @@ export class App {
     const next = this.history.redo.pop();
     if (next === undefined) return;
     this.history.undo.push(this.docJson);
+    this.history.undoLabels.push(this.history.redoLabels.pop() ?? t('Edit'));
     this.restore(next);
+  }
+
+  /** Keeps the undo list within Preferences ▸ Editing ▸ Undo steps (labels alongside). */
+  trimHistory() {
+    while (this.history.undo.length > this.prefs.get('editing.undoSteps')) {
+      this.history.undo.shift();
+      this.history.undoLabels.shift();
+    }
+    // Labels can fall out of step if something else touched the lists: pad or trim to match.
+    while (this.history.undoLabels.length < this.history.undo.length) this.history.undoLabels.unshift(t('Edit'));
+    this.history.undoLabels.length = this.history.undo.length;
+  }
+
+  /**
+   * The undo history for Edit ▸ Undo history: the steps done (oldest first) and those undone, each
+   * { label, offset }: -n is n steps back, 0 where you are, +n is n steps redone.
+   */
+  historyEntries() {
+    const done = this.history.undoLabels.map((label, i) => ({ label, offset: i - this.history.undoLabels.length }));
+    const undone = [...this.history.redoLabels].reverse().map((label, i) => ({ label, offset: i + 1 }));
+    return { done, undone };
+  }
+
+  /** Jumps `offset` steps through the history (negative: undo, positive: redo). */
+  jumpHistory(offset) {
+    for (let i = 0; i < -offset; i++) this.undo();
+    for (let i = 0; i < offset; i++) this.redo();
+  }
+
+  /** The status line's text now (status is text or a function that renders it in the language). */
+  statusText() {
+    const s = this.status;
+    try {
+      return String(typeof s === 'function' ? s() : (s ?? '')).trim();
+    } catch {
+      return '';
+    }
   }
 
   restore(json) {
@@ -746,9 +787,12 @@ export class App {
     this.syncJson();
     if (this.docJson !== this.baseline) {
       this.history.undo.push(this.baseline);
+      // What the step did, for Edit ▸ Undo history: the status line the edit left, as it reads now.
+      this.history.undoLabels.push(this.statusText() || t('Edit'));
       this.baseline = this.docJson;
       this.history.redo = [];
-      while (this.history.undo.length > this.prefs.get('editing.undoSteps')) this.history.undo.shift();
+      this.history.redoLabels = [];
+      this.trimHistory();
     }
   }
 
@@ -1369,8 +1413,10 @@ export class App {
       if (opts.undo) {
         this.syncJson();
         this.history.undo.push(this.docJson);
-        while (this.history.undo.length > this.prefs.get('editing.undoSteps')) this.history.undo.shift();
+        this.history.undoLabels.push(t('Edit in another window'));
+        this.trimHistory();
         this.history.redo = [];
+        this.history.redoLabels = [];
       }
       const prev = this.doc;
       this.doc = Skeleton.fromObject(JSON.parse(s.docJson));

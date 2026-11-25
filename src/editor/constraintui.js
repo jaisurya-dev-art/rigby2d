@@ -17,6 +17,8 @@ import { makeBone, makeSlot, uniqueName } from '../core/model.js';
 import { Pose } from '../core/pose.js';
 import { FPS, Mode } from './app.js';
 import { keepPoseOffsets } from './constraintoffsets.js';
+import { keyBoneTransform } from './edit.js';
+import { fkMatchingIk, ikTargetMatchingFk } from './rigops.js';
 import { dragValue, h, select, textField } from './widgets.js';
 import { button, iconButton, uiIcon } from './ui.js';
 import { statusMessage, t, tn } from './i18n.js';
@@ -270,6 +272,28 @@ function animUi(app, c) {
         ),
         row('', checkbox(value.compress, (v) => key({ compress: v }), t('Compress'))),
         row('', checkbox(value.stretch, (v) => key({ stretch: v }), t('Stretch'))),
+      ),
+      // IK/FK switching without a jump: key the other way's controls where the chain is now, then the mix.
+      h(
+        'div',
+        { class: 'buttons' },
+        button(t('Switch to FK here'), {
+          title: t('Keys the bones where IK has them now, then mix 0. The pose stays.'),
+          onclick: () => {
+            for (const [b, local] of fkMatchingIk(doc, anim, time, c.ik)) keyBoneTransform(app, b, local);
+            key({ mix: 0 });
+            app.setStatus(statusMessage('Switched {name} to FK at frame {frame}', { name: c.name, frame: Math.round(time * FPS) }));
+          },
+        }),
+        button(t('Switch to IK here'), {
+          title: t('Moves the target to the chain tip as it is now, keys it, then mix 1. The pose stays.'),
+          onclick: () => {
+            const [target, local] = ikTargetMatchingFk(doc, anim, time, c.ik);
+            keyBoneTransform(app, target, local);
+            key({ mix: 1 });
+            app.setStatus(statusMessage('Switched {name} to IK at frame {frame}', { name: c.name, frame: Math.round(time * FPS) }));
+          },
+        }),
       ),
     ];
   }

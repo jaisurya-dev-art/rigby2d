@@ -8,7 +8,8 @@ import { test } from 'node:test';
 import { transform } from '../src/core/math.js';
 import { Skeleton, makeAttachment, makeBone, makeSlot } from '../src/core/model.js';
 import { Pose } from '../src/core/pose.js';
-import { copyPose, duplicateBranch, otherSide, pastePose } from '../src/editor/rigops.js';
+import { Animation } from '../src/core/animation.js';
+import { copyPose, duplicateBranch, fkMatchingIk, ikTargetMatchingFk, otherSide, pastePose, poseWithIkMix } from '../src/editor/rigops.js';
 
 const close = (a, b, eps = 1e-6) => Math.abs(a - b) < eps;
 
@@ -83,4 +84,40 @@ test('a pose pastes back as it was, or flipped onto the other side', () => {
   const s = doc.bones[to].setup;
   assert.ok(close(t.rotation, s.rotation - 25), 'turns the other way by as much');
   assert.ok(close(t.y, s.y - 4), 'moves the mirrored way');
+});
+
+/** A two-bone leg with an IK target pulling it bent. */
+function leg() {
+  const doc = new Skeleton();
+  const add = (name, parent, t, len) => doc.addBone(makeBone(name, doc.boneIndex(parent), t, len));
+  add('thigh', 'root', transform(0, 100, -90), 50);
+  add('shin', 'thigh', transform(50, 0, 0), 50);
+  add('target', 'root', transform(30, 20, 0), 0);
+  doc.ik.push({ name: 'leg-ik', order: 0, skinRequired: false, bones: [doc.boneIndex('thigh'), doc.boneIndex('shin')], target: doc.boneIndex('target'), mix: 1, softness: 0, bendPositive: true, compress: false, stretch: false, uniform: false });
+  return doc;
+}
+
+const tipOf = (doc, pose, name) => pose.world[doc.boneIndex(name)].apply([doc.bones[doc.boneIndex(name)].length, 0]);
+
+test('switching to FK keeps the pose IK made', () => {
+  const doc = leg();
+  const anim = new Animation('kick', 1);
+  const ik = poseWithIkMix(doc, anim, 0, 0, 1);
+  const tip = tipOf(doc, ik, 'shin');
+  for (const [b, local] of fkMatchingIk(doc, anim, 0, 0)) doc.bones[b].setup = local;
+  const fk = poseWithIkMix(doc, anim, 0, 0, 0);
+  const now = tipOf(doc, fk, 'shin');
+  assert.ok(close(now[0], tip[0], 1e-3) && close(now[1], tip[1], 1e-3), 'the foot stays where IK put it');
+});
+
+test('switching to IK puts the target at the tip FK has', () => {
+  const doc = leg();
+  const anim = new Animation('kick', 1);
+  const fk = poseWithIkMix(doc, anim, 0, 0, 0);
+  const tip = tipOf(doc, fk, 'shin');
+  const [target, local] = ikTargetMatchingFk(doc, anim, 0, 0);
+  doc.bones[target].setup = local;
+  const ik = poseWithIkMix(doc, anim, 0, 0, 1);
+  const now = tipOf(doc, ik, 'shin');
+  assert.ok(close(now[0], tip[0], 1e-3) && close(now[1], tip[1], 1e-3), 'IK reaches exactly where FK was');
 });

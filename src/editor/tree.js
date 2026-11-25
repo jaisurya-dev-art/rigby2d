@@ -142,7 +142,7 @@ function selectKeys(app, item, name) {
 }
 
 /** The menu of a bone's row: what you would otherwise find in the inspector, the row and the toolbar. */
-function boneMenu(app, bone, x, y) {
+export function boneMenu(app, bone, x, y) {
   const doc = app.doc;
   const name = doc.bones[bone].name;
   const setup = app.mode === Mode.Setup;
@@ -177,7 +177,7 @@ function boneMenu(app, bone, x, y) {
 }
 
 /** The menu of a slot's row. */
-function slotMenu(app, slot, x, y) {
+export function slotMenu(app, slot, x, y) {
   const doc = app.doc;
   const name = doc.slots[slot].name;
   const setup = app.mode === Mode.Setup;

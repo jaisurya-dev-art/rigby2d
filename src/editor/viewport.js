@@ -6,7 +6,7 @@ import { animationBounds, describeOutput, outputFrame } from './output.js';
 import { Affine, toAffine, transform, wrapDegrees } from '../core/math.js';
 import { makeBone } from '../core/model.js';
 import { Pose } from '../core/pose.js';
-import { Mode, selBone, selSlot } from './app.js';
+import { FPS, Mode, selBone, selSlot } from './app.js';
 import * as edit from './edit.js';
 import { GLView } from './glview.js';
 import { actorSlots } from '../core/scene.js';
@@ -19,6 +19,7 @@ import { h, popupMenu } from './widgets.js';
 import { statusMessage, t, tn } from './i18n.js';
 import { canvasColor } from './canvascolors.js';
 import { isBoneHidden, isBoneLocked, isSlotHidden, isSlotLocked } from './visibility.js';
+import { boneMenu, slotMenu } from './tree.js';
 
 const SELECTED = 'rgb(255,170,40)';
 const BONE = 'rgb(110,200,230)';
@@ -138,6 +139,7 @@ export class Viewport {
     const overlays = !app.hideOverlays;
     if (overlays) this.drawShapes(pose);
     if (overlays && app.imageGlow) this.drawImageGlow(pose);
+    if (overlays && app.motionPaths && app.mode === Mode.Animate) this.drawMotionPaths();
     if (overlays && app.showBones) this.drawBones(pose);
     if (overlays) this.drawGuides(pose);
     this.meshTool.draw(this.ctx);
@@ -637,6 +639,55 @@ export class Viewport {
     if (app.showNames) this.drawBoneNames(pose, selection);
   }
 
+  /**
+   * Motion paths (View ▸ Motion paths): where the tip of each selected bone goes over the whole
+   * animation, a frame at a time, with a dot per key and the current frame ringed. Recomputed only
+   * when the document, the animation or the selection changes.
+   */
+  drawMotionPaths() {
+    const app = this.app;
+    const anim = app.currentAnimation();
+    const bones = app.selectedBones();
+    if (!anim || !bones.length) return;
+    const key = `${app.version}|${app.anim}|${bones.join(',')}|${app.docEpoch ?? ''}`;
+    if (this.pathCache?.key !== key) {
+      const frames = Math.max(1, Math.round(anim.duration * FPS));
+      const step = frames > 600 ? Math.ceil(frames / 600) : 1;
+      const tracks = bones.map(() => []);
+      const pose = new Pose(app.doc);
+      for (let f = 0; f <= frames; f += step) {
+        pose.reset(app.doc);
+        pose.apply(app.doc, anim, f / FPS, 1);
+        pose.updateWorld(app.doc);
+        bones.forEach((b, i) => tracks[i].push(pose.world[b].apply([app.doc.bones[b].length, 0])));
+      }
+      const keyed = bones.map((b) => new Set(Object.values(anim.boneTimeline(b) ?? {}).filter(Array.isArray).flatMap((ks) => ks.map((k) => Math.round(k.time * FPS / step)))));
+      this.pathCache = { key, tracks, keyed, step };
+    }
+    const { tracks, keyed, step } = this.pathCache;
+    const ctx = this.ctx;
+    const now = Math.round((app.time * FPS) / step);
+    ctx.save();
+    tracks.forEach((pts, i) => {
+      const screen = pts.map((p) => this.toScreen(p));
+      ctx.strokeStyle = rgba(SELECTED, 0.55);
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      screen.forEach(([x, y], k) => (k ? ctx.lineTo(x, y) : ctx.moveTo(x, y)));
+      ctx.stroke();
+      screen.forEach(([x, y], k) => {
+        const isKey = keyed[i].has(k);
+        ctx.fillStyle = isKey ? SELECTED : rgba(SELECTED, 0.5);
+        ctx.beginPath();
+        ctx.arc(x, y, isKey ? 3.5 : 1.5, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      const c = screen[Math.min(now, screen.length - 1)];
+      if (c) this.circle(c, 6, 'transparent', SELECTED, 2);
+    });
+    ctx.restore();
+  }
+
   /** Bone names (Show and select panel ▸ names): beside each bone's middle, on a dark pill. */
   drawBoneNames(pose, selection) {
     const app = this.app;
@@ -1120,6 +1171,17 @@ export class Viewport {
     return out;
   }
 
+  /** Right-click: the tree's menu for the bone or image under the cursor (selecting it first). */
+  contextMenu(pos, x, y) {
+    const app = this.app;
+    if (app.pick || this.meshTool.active || this.shapeTool.active || this.warpTool.active) return;
+    const hit = this.hitTest(app.pose(), pos);
+    if (!hit) return;
+    app.select(hit);
+    if (hit.bone !== undefined) boneMenu(app, hit.bone, x, y);
+    else if (hit.slot !== undefined) slotMenu(app, hit.slot, x, y);
+  }
+
   /** Alt+click: selects the next of everything under the cursor after what is selected now. */
   cyclePick(pos) {
     const app = this.app;
@@ -1237,6 +1299,8 @@ export class Viewport {
     } else if (e.button === 1 || e.button === 2) {
       e.preventDefault();
       this.panning = pos;
+      // A right-click that doesn't move opens the menu of what's under it (pointer up).
+      this.rightPress = e.button === 2 ? { pos, clientX: e.clientX, clientY: e.clientY } : null;
     }
   }
 
@@ -1285,6 +1349,12 @@ export class Viewport {
       else this.guideDragStop(this.eventPos(e), e);
       return;
     }
+    if (e.button === 2 && this.rightPress && e.type === 'pointerup') {
+      const r = this.rightPress;
+      const up = this.eventPos(e);
+      if (Math.hypot(up[0] - r.pos[0], up[1] - r.pos[1]) <= DRAG_THRESHOLD) this.contextMenu(r.pos, r.clientX, r.clientY);
+    }
+    if (e.button === 2) this.rightPress = null;
     if (e.button === 1 || e.button === 2) this.panning = null;
     if (this.meshPress && (e.button === 0 || e.type === 'pointercancel')) {
       this.meshPress.up();

@@ -57,6 +57,7 @@ work in both modes; only the result differs.
 | Fit the skeleton in view | The fit button in the menu bar, or *View ▸ Fit the skeleton in view* (<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F</kbd>). |
 | Zoom to the selection | *View ▸ Frame the selection* (<kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>F</kbd>; <kbd>.</kbd> with the Blender-like keys). |
 | Deselect | <kbd>Esc</kbd>, or click empty space. |
+| Rename, duplicate, hide, lock or delete what's under the cursor | Right-click it (without moving): the same menu as its row in the tree. Right-drag still pans. |
 
 ### Show and select
 
@@ -167,6 +168,13 @@ The tree has collapsible sections:
 
 Bones also have an onion-skin button that limits onion skinning to that bone and its children.
 See [Onion skin](onion-skin.md).
+
+### Undo history
+
+*Edit ▸ Undo history* lists your recent steps by what they did ("Pasted the pose on 1 bone",
+"hand_right is now on forearm_r"), oldest at the top, then *Now*, then the steps you undid. Pick a step
+to go back to just before it, or forward to it. Preferences ▸ Editing ▸ Undo steps sets how many are
+kept.
 
 ### Right-click menus
 

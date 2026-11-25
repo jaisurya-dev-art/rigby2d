@@ -54,6 +54,14 @@ and the chain follows.
 > For walk cycles, key the foot targets, not the leg bones: feet stay planted while the hips move.
 > AutoRig adds IK targets (`ik_foot_l`, `ik_hand_r`, …) for every two-bone limb.
 
+### Switching between IK and FK
+
+In Animate mode, an IK constraint's inspector has **Switch to FK here** and **Switch to IK here**.
+Switching to FK keys the chain's bones exactly where IK has them at this frame, then keys the mix
+to 0, so nothing jumps and you pose the bones directly from there. Switching to IK moves the target
+to the tip of the chain as it is now, keys it, then keys the mix to 1. Use them to plant a foot with
+IK, swing it with FK, and plant it again.
+
 ## Transform
 
 A transform constraint makes **driven** bones follow a **driver** bone. To create one:
