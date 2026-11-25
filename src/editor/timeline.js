@@ -17,6 +17,7 @@ import { button, dialog, iconButton, segmented, toggleButton, uiIcon } from './u
 import { shownTracks as tracks, trackKeys, tweenSpans } from './keyorder.js';
 import { askText } from './resultui.js';
 import { breakdownPose, deleteTime, insertTime } from './timeops.js';
+import { applyAutoCurves } from './curveauto.js';
 import { drawLanes, laneActors, pressLane } from './sceneui.js';
 import { statusMessage, t, tn } from './i18n.js';
 import { FPS_PRESETS, formatFps } from './output.js';
@@ -1652,6 +1653,21 @@ export function curveMenu(app, x, y, { pasteAt = null } = {}) {
     ...clipboard,
     clipboard.length && 'separator',
     { label: t('Linear'), action: setCurve(LINEAR) },
+    {
+      label: t('Auto smooth (no overshoot)'),
+      title: t('Each curve shaped from the keys around it: the motion flows through keys and never goes past them'),
+      action: () => {
+        const anim = app.currentAnimation();
+        if (!anim) return;
+        let n = 0;
+        for (const { track } of tracks(app, anim)) {
+          const keys = trackKeys(anim, track);
+          if (keys?.some((k) => app.selectedKeys.has(k))) n += applyAutoCurves(keys, app.selectedKeys);
+        }
+        app.setStatus(statusMessage('Auto smooth on {count} key(s)', { count: n }));
+        app.changed();
+      },
+    },
     { label: t('Ease in-out'), action: setCurve(EASE_IN_OUT) },
     { label: t('Ease in'), action: setCurve(EASE_IN) },
     { label: t('Ease out'), action: setCurve(EASE_OUT) },

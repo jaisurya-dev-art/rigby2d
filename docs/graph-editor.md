@@ -34,7 +34,8 @@ The time range is the whole animation until you zoom or pan it.
 | Move keys | Drag them: left and right changes time, up and down changes value. Hold <kbd>Shift</kbd> to move along one axis only. |
 | Shape the curve | Drag a key's Bézier handles. The opposite handle mirrors the slope, so the motion stays smooth through the key. |
 | Break the handles | Hold <kbd>Alt</kbd> while dragging a handle to move it on its own, for a sharp change of direction (a bounce, a hit). |
-| Set a preset curve | Right-click: *Linear*, *Ease in-out*, *Ease in*, *Ease out*, *Stepped*. |
+| Set a preset curve | Right-click: *Auto smooth*, *Linear*, *Ease in-out*, *Ease in*, *Ease out*, *Stepped*. |
+| Smooth through several keys | Select them, right-click ▸ *Auto smooth (no overshoot)*: each curve is shaped from the keys around it, so the motion flows through keys that continue in the same direction and eases into peaks and valleys, never going past a keyed value (Blender's auto-clamped handles). Works in the dopesheet too. |
 
 Curves are stored per segment as a cubic Bézier between two keys (as in CSS `cubic-bezier()`), which
 is what the skeleton formats and runtimes use, so what you see is what games play.
