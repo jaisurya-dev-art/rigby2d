@@ -93,6 +93,7 @@ export function siteFooter({ base = '/', lockup = '/blog/lockup.svg' } = {}) {
           [`${base}docs/migrating-from-dragonbones.html`, 'Coming from DragonBones'],
           [`${base}vs/spine/`, 'Rigby2D vs Spine'],
           [`${base}blog/`, 'Devlog'],
+          [`${base}brand/`, 'Brand and logo'],
         ])}
         ${col('Community', [
           [DISCORD, 'Discord', true],

@@ -925,6 +925,113 @@ h3 {
   gap: 10px;
 }
 
+.brand-section {
+  padding-top: 40px;
+  padding-bottom: 24px;
+}
+.brand-section .brand-grid:last-child {
+  margin-bottom: 0;
+}
+.brand-section h2 {
+  margin: 0 0 18px;
+  font-size: 1.5rem;
+}
+.brand-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 18px;
+  margin-bottom: 44px;
+}
+.brand-grid.wide {
+  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+}
+.brand-card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+/* The logo on the background it is made for. */
+.brand-preview {
+  display: grid;
+  place-items: center;
+  height: 200px;
+  padding: 36px;
+}
+.brand-preview img {
+  max-width: 100%;
+  max-height: 100%;
+}
+.brand-preview.on-dark {
+  background: var(--bg);
+}
+.brand-preview.on-light {
+  background: var(--text);
+}
+.brand-preview.on-black {
+  background: #000;
+}
+.brand-preview.on-white {
+  background: #fff;
+}
+.brand-body {
+  padding: 16px 18px 18px;
+}
+.brand-body h3 {
+  margin: 0 0 4px;
+  font-size: 1.02rem;
+}
+.brand-body p {
+  margin: 0 0 14px;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+.brand-actions {
+  display: flex;
+  gap: 8px;
+}
+.brand-colours {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 14px;
+  margin-bottom: 18px;
+}
+.swatch {
+  display: grid;
+  gap: 2px;
+}
+.swatch span {
+  height: 64px;
+  margin-bottom: 8px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+.swatch code {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+.brand-kit-note {
+  align-self: center;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+.brand-note {
+  color: var(--muted);
+}
+.brand-rules {
+  margin: 0 0 18px;
+  padding-left: 20px;
+  color: var(--muted);
+  line-height: 1.7;
+}
+@media (max-width: 520px) {
+  .brand-grid.wide {
+    grid-template-columns: 1fr;
+  }
+}
+
 .license-grid {
   display: grid;
   grid-template-columns: 1fr;

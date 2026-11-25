@@ -260,7 +260,7 @@ function comparePages() {
     async generateBundle(_options, bundle) {
       const { COMPARISONS, comparePage } = await import('./compare/compare.js');
       for (const c of COMPARISONS) this.emitFile({ type: 'asset', fileName: `vs/${c.slug}/index.html`, source: comparePage(c) });
-      const pages = new Set(['', 'demos/', 'addons/', 'cloud/', 'fund/', 'runtimes/', 'studios/', 'blog/', 'editor/', ...COMPARISONS.map((c) => `vs/${c.slug}/`)]);
+      const pages = new Set(['', 'demos/', 'addons/', 'cloud/', 'fund/', 'runtimes/', 'studios/', 'brand/', 'blog/', 'editor/', ...COMPARISONS.map((c) => `vs/${c.slug}/`)]);
       for (const name of Object.keys(bundle)) {
         if (!name.endsWith('.html') || name.startsWith('editor/')) continue;
         pages.add(name.replace(/(^|\/)index\.html$/, '$1'));
@@ -323,6 +323,23 @@ function devlogFiles() {
         ['lockup.svg', 'branding/rigby2d-lockup-transparent.svg'],
       ])
         this.emitFile({ type: 'asset', fileName: `blog/${name}`, source: fs.readFileSync(path.join(repo, src)) });
+    },
+  };
+}
+
+/** The Brand page's downloads: every logo in branding/logos as brand/<name>.svg and .png, at fixed
+ *  names (the page links them for download; built by branding/logos/build.mjs), and all of them with
+ *  the kit's README in brand/rigby2d-brand-kit.zip. */
+function brandFiles() {
+  const dir = path.join(repo, 'branding/logos');
+  return {
+    name: 'rigby-site-brand',
+    async generateBundle() {
+      const { zip } = await import(pathToFileURL(path.join(repo, 'src/editor/zip.js')).href);
+      const files = fs.readdirSync(dir).filter((f) => /\.(svg|png)$/.test(f));
+      for (const f of files) this.emitFile({ type: 'asset', fileName: `brand/${f}`, source: fs.readFileSync(path.join(dir, f)) });
+      const entries = ['README.md', ...files].map((f) => ({ path: `rigby2d-brand-kit/${f}`, bytes: new Uint8Array(fs.readFileSync(path.join(dir, f))) }));
+      this.emitFile({ type: 'asset', fileName: 'brand/rigby2d-brand-kit.zip', source: zip(entries) });
     },
   };
 }
@@ -407,13 +424,13 @@ export default defineConfig({
   root: here,
   base: process.env.SITE_BASE ?? '/',
   clearScreen: false,
-  plugins: [siteChrome(), comparePages(), socialImage(), supportersFile(), documentation(), demoFiles(), starterFiles(), addonFiles(), devlogFiles()],
+  plugins: [siteChrome(), comparePages(), socialImage(), supportersFile(), documentation(), demoFiles(), brandFiles(), starterFiles(), addonFiles(), devlogFiles()],
   // The pages import the runtime, NILA and the docs from outside this folder.
   server: { port: 1430, strictPort: true, fs: { allow: [repo] } },
   build: {
     target: 'es2021',
     outDir: path.join(repo, '_site'),
     emptyOutDir: true,
-    rollupOptions: { input: { main: path.join(here, 'index.html'), demos: path.join(here, 'demos/index.html'), addons: path.join(here, 'addons/index.html'), cloud: path.join(here, 'cloud/index.html'), fund: path.join(here, 'fund/index.html'), runtimes: path.join(here, 'runtimes/index.html'), studios: path.join(here, 'studios/index.html'), docs: path.join(here, 'docs/docs.js') } },
+    rollupOptions: { input: { main: path.join(here, 'index.html'), demos: path.join(here, 'demos/index.html'), addons: path.join(here, 'addons/index.html'), cloud: path.join(here, 'cloud/index.html'), fund: path.join(here, 'fund/index.html'), runtimes: path.join(here, 'runtimes/index.html'), studios: path.join(here, 'studios/index.html'), brand: path.join(here, 'brand/index.html'), docs: path.join(here, 'docs/docs.js') } },
   },
 });
