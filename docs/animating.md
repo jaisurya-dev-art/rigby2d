@@ -73,6 +73,15 @@ The dopesheet shows a row for every keyed channel of the animation: each bone's 
 scale and shear, slot images and colors, mesh deformation, image sequences, IK and other constraints,
 draw order and events. Diamonds are keys; their color tells the curve (stepped keys are purple).
 
+Rows are grouped by bone and slot: bones in hierarchy order (parents first), then slots, each with
+its channels together. A group's name is written once, in bold, on its first row; the rows below show
+only the channel. The **filter** button next to *Dopesheet* and *Graph* shows only the selected bones'
+and slots' rows (every row when nothing is selected), which keeps a 40-bone rig readable.
+
+Above the rows, the ruler marks every frame that has a key in the rows shown, so the timing of the
+whole animation reads at a glance. Right-click the ruler to **select the keys at that frame** (to move
+a whole pose in time) or **every key shown**.
+
 A thin **tween line** joins each key to the next where the value blends between them, so you can see at
 a glance where something moves and where it holds. A stepped key has no line after it, and image
 swaps, draw order and events never have one, since they switch exactly on the key. Turn the lines off

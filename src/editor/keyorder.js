@@ -35,25 +35,38 @@ const CHANNEL_LABELS = {
 /** A channel's label in the interface language (unknown channels as they are). */
 export const channelLabel = (ch) => (CHANNEL_LABELS[ch] ? t(CHANNEL_LABELS[ch]) : ch.replace(/([A-Z])/g, ' $1').toLowerCase());
 
-/** Rows of the dopesheet for the current animation: [{ track, label }]. */
+/**
+ * Rows of the dopesheet for the current animation: [{ track, label, group, owner, part }]. Bones come
+ * in hierarchy order (parents first) with their channels together, then slots in draw order with
+ * their image, colour and deform tracks together; `group` names the bone or slot a row belongs to,
+ * `owner` its name and `part` the channel, so the dopesheet can label a group once.
+ */
 export function tracks(app, anim) {
   const out = [];
   const label = channelLabel;
-  for (const tl of anim.bones) {
+  for (const tl of [...anim.bones].sort((a, b) => a.bone - b.bone)) {
     const name = app.doc.bones[tl.bone]?.name ?? `#${tl.bone}`;
     for (const channel of BONE_CHANNELS) {
-      if (tl[channel].length) out.push({ track: { bone: tl.bone, channel }, label: `${name} · ${label(channel)}` });
+      if (tl[channel].length) out.push({ track: { bone: tl.bone, channel }, label: `${name} · ${label(channel)}`, group: `bone:${tl.bone}`, owner: name, part: label(channel) });
     }
   }
-  for (const tl of anim.slots) {
-    const name = app.doc.slots[tl.slot]?.name ?? `#${tl.slot}`;
-    for (const channel of SLOT_CHANNELS) {
-      if (tl[channel].length) out.push({ track: { slot: tl.slot, channel }, label: `${name} · ${channelLabel(channel)}` });
-    }
-  }
+  const deformOf = new Map();
   anim.deform.forEach((d, i) => {
-    out.push({ track: { deform: i, slot: d.slot }, label: `${app.doc.slots[d.slot]?.name ?? '?'} · ${t('deform')} ${d.attachment}` });
+    if (!deformOf.has(d.slot)) deformOf.set(d.slot, []);
+    deformOf.get(d.slot).push([d, i]);
   });
+  const slotIds = [...new Set([...anim.slots.map((tl) => tl.slot), ...deformOf.keys()])].sort((a, b) => a - b);
+  for (const slot of slotIds) {
+    const tl = anim.slots.find((x) => x.slot === slot);
+    const name = app.doc.slots[slot]?.name ?? `#${slot}`;
+    for (const channel of tl ? SLOT_CHANNELS : []) {
+      if (tl[channel].length) out.push({ track: { slot, channel }, label: `${name} · ${channelLabel(channel)}`, group: `slot:${slot}`, owner: name, part: channelLabel(channel) });
+    }
+    for (const [d, i] of deformOf.get(slot) ?? []) {
+      const part = `${t('deform')} ${d.attachment}`;
+      out.push({ track: { deform: i, slot: d.slot }, label: `${name} · ${part}`, group: `slot:${slot}`, owner: name, part });
+    }
+  }
   anim.ik.forEach((k, i) => out.push({ track: { ik: i }, label: `IK ${app.doc.ik[k.constraint]?.name ?? '?'}` }));
   for (const [skin, slots] of Object.entries(anim.extra?.attachments ?? {})) {
     for (const [slot, atts] of Object.entries(slots)) {
@@ -69,7 +82,27 @@ export function tracks(app, anim) {
   }
   if (anim.drawOrder.length) out.push({ track: { drawOrder: true }, label: t('draw order') });
   if (anim.events.length) out.push({ track: { events: true }, label: t('events') });
+  for (const row of out) {
+    row.group ??= row.label;
+    row.owner ??= row.label;
+    row.part ??= '';
+  }
   return out;
+}
+
+/**
+ * The rows the dopesheet shows: all of them, or with *Selected only* on and something selected, the
+ * selected bones' rows and their slots' (a selected slot: its own). Key order across windows uses
+ * the full list (orderedKeys), so the filter never changes which key an index means.
+ */
+export function shownTracks(app, anim) {
+  const all = tracks(app, anim);
+  if (!app.dopesheetSelectedOnly) return all;
+  const bones = new Set(app.selectedBones?.() ?? []);
+  const slot = app.sel?.slot ?? null;
+  if (!bones.size && slot === null) return all;
+  const slots = new Set(slot !== null ? [slot] : app.doc.slots.flatMap((s, i) => (bones.has(s.bone) ? [i] : [])));
+  return all.filter(({ track }) => (track.bone !== undefined && track.channel ? bones.has(track.bone) : track.slot !== undefined && slots.has(track.slot)));
 }
 
 export function trackKeys(anim, track) {

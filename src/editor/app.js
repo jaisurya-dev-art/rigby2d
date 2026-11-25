@@ -233,6 +233,8 @@ export class App {
     this.pick = filter.pick;
     this.viewFilterOpen = filter.open;
     this.showNames = filter.names;
+    /** The dopesheet shows only the selection's tracks (its filter button). */
+    this.dopesheetSelectedOnly = loadSetting('rigby.timeline.selectedOnly', '0') === '1';
     /** Hides every overlay at once (View ▸ Hide overlays), to watch the animation as it renders. */
     this.hideOverlays = false;
     /**

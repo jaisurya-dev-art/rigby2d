@@ -7,7 +7,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
 import { Animation, makeKey } from '../src/core/animation.js';
-import { applyKeySelection, keySelectionIndices, orderedKeys, tweenSpans, tweens } from '../src/editor/keyorder.js';
+import { applyKeySelection, keySelectionIndices, orderedKeys, shownTracks, tracks, tweenSpans, tweens } from '../src/editor/keyorder.js';
 
 /** A document + animation with keys on several bone channels and some events. */
 function fixture() {
@@ -87,4 +87,30 @@ test('only tracks whose values blend get tween lines', () => {
   assert.equal(tweens({ events: true }), false);
   assert.equal(tweens({ sequence: { skin: 'default', slot: 'a', attachment: 'b' } }), false);
   assert.deepEqual(tweenSpans({ slot: 0, channel: 'attachment' }, [{ time: 0 }, { time: 1 }]), []);
+});
+
+test('rows come grouped by bone, in hierarchy order, labelled once per group', () => {
+  const { app, anim } = fixture();
+  // Keys made for the head first: the rows still list the spine (bone 0) first.
+  anim.bones.reverse();
+  const rows = tracks(app, anim);
+  assert.deepEqual(rows.slice(0, 3).map((r) => [r.group, r.owner, r.part]), [
+    ['bone:0', 'spine', 'rotate'],
+    ['bone:0', 'spine', 'translate'],
+    ['bone:1', 'head', 'rotate'],
+  ]);
+  assert.equal(rows.at(-1).group, rows.at(-1).label, 'rows without an owner are their own group');
+});
+
+test('Selected only shows the rows of the selection; the key order across windows stays whole', () => {
+  const { app, anim } = fixture();
+  const before = orderedKeys(app, anim);
+  app.dopesheetSelectedOnly = true;
+  app.selectedBones = () => [1];
+  app.sel = { bone: 1 };
+  assert.deepEqual(shownTracks(app, anim).map((r) => r.label), ['head · rotate']);
+  assert.deepEqual(orderedKeys(app, anim), before, 'indices still mean the same keys');
+  app.selectedBones = () => [];
+  app.sel = null;
+  assert.equal(shownTracks(app, anim).length, tracks(app, anim).length, 'nothing selected shows every row');
 });

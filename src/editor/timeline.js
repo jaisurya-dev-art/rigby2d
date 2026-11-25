@@ -7,14 +7,14 @@ import { listConstraints } from '../core/constraintdata.js';
 import { keyedChannels, setConstraintCurve } from '../core/constraintkeys.js';
 import { EASE_IN, EASE_IN_OUT, EASE_OUT, LINEAR, STEPPED, cloneCurve, isBezier } from '../core/curve.js';
 import { uniqueName } from '../core/model.js';
-import { FPS, Mode, selBone, selSlot, snap } from './app.js';
+import { FPS, Mode, saveSetting, selBone, selSlot, snap } from './app.js';
 import * as edit from './edit.js';
 import { clearSpan, findTrack, makeClipboard, pasteClipboard, planPaste, previewKeys, reverseClipboard, trackRef } from './keyclip.js';
 import { dragValue, h, isMenuOpen, popupMenu, select, textField } from './widgets.js';
 import { button, dialog, iconButton, segmented, toggleButton, uiIcon } from './ui.js';
 // The dopesheet's row order and key-selection-by-index live in keyorder.js (core-only, so the
 // selection round trip can be tested in Node). Re-exported here so the windows import them as before.
-import { tracks, trackKeys, tweenSpans } from './keyorder.js';
+import { shownTracks as tracks, trackKeys, tweenSpans } from './keyorder.js';
 import { drawLanes, laneActors, pressLane } from './sceneui.js';
 import { statusMessage, t, tn } from './i18n.js';
 import { FPS_PRESETS, formatFps } from './output.js';
@@ -187,6 +187,16 @@ export function renderControls(app, el) {
       changed((id) => (app.timelineView = id)),
       { title: t('Timeline view') },
     ),
+    // Only the selected bones' and slots' rows (all of them when nothing is selected).
+    iconButton('filter', {
+      title: app.dopesheetSelectedOnly ? t('Showing the selection’s tracks only. Click to show every track.') : t('Show only the selected bones’ and slots’ tracks'),
+      active: !!app.dopesheetSelectedOnly,
+      onclick: () => {
+        app.dopesheetSelectedOnly = !app.dopesheetSelectedOnly;
+        saveSetting('rigby.timeline.selectedOnly', app.dopesheetSelectedOnly ? '1' : '0');
+        app.changed();
+      },
+    }),
     // The time readout last, where the eye ends up after the tools, with the playback speed next to it.
     anim ? timeReadout(app, anim) : null,
     speedSelect(
@@ -600,6 +610,9 @@ function keyFill(selected, curve) {
   return canvasColor('--tl-key', 'rgb(230,230,230)');
 }
 
+/** A copied track's label: purple, like the paste preview. */
+const COPIED_TEXT = 'rgb(185,135,255)';
+
 /** The track label colour (the tween lines use it too, fainter). */
 const tlText = () => canvasColor('--tl-text', 'rgb(200,200,200)');
 
@@ -710,6 +723,20 @@ export class Dopesheet {
       if (major) ctx.fillText(String(f), x + 2, 2);
     }
     ctx.stroke();
+    // Summary: a small mark on the ruler at every frame with a key in the rows shown, so the timing
+    // of the whole animation reads at a glance (right-click the ruler to select those keys).
+    const keyed = new Set();
+    for (const { track } of rows) for (const k of trackKeys(anim, track) ?? []) keyed.add(Math.round((k.time ?? 0) * FPS));
+    ctx.fillStyle = canvasColor('--tl-label', 'gray');
+    for (const f of keyed) {
+      const x = timeToX(f / FPS);
+      ctx.beginPath();
+      ctx.moveTo(x, RULER - 7);
+      ctx.lineTo(x + 3, RULER - 4);
+      ctx.lineTo(x, RULER - 1);
+      ctx.lineTo(x - 3, RULER - 4);
+      ctx.fill();
+    }
     ctx.restore();
 
     // Rows.
@@ -732,10 +759,33 @@ export class Dopesheet {
         ctx.fillStyle = 'rgba(255,70,205,0.22)';
         ctx.fillRect(0, y, width, ROW);
       }
-      ctx.font = '12px system-ui, "Segoe UI", sans-serif';
+      // Rows of one bone or slot are labelled once: its name on the first row, then just the
+      // channel, indented, with a line above each new group.
+      const row = rows[r];
+      const first = r === 0 || rows[r - 1].group !== row.group;
+      const copied = copiedTrackIds?.has(trackId(track));
       ctx.textBaseline = 'middle';
-      ctx.fillStyle = copiedTrackIds?.has(trackId(track)) ? 'rgb(185,135,255)' : tlText();
-      ctx.fillText(label, 8, y + ROW / 2, GUTTER - 14);
+      if (first && r > 0) {
+        ctx.fillStyle = canvasColor('--tl-line', 'gray');
+        ctx.fillRect(0, y, GUTTER - 4, 1);
+      }
+      if (!row.part) {
+        ctx.font = '12px system-ui, "Segoe UI", sans-serif';
+        ctx.fillStyle = copied ? COPIED_TEXT : tlText();
+        ctx.fillText(label, 8, y + ROW / 2, GUTTER - 14);
+      } else if (first) {
+        ctx.font = '600 12px system-ui, "Segoe UI", sans-serif';
+        ctx.fillStyle = copied ? COPIED_TEXT : tlText();
+        const ownerW = Math.min(ctx.measureText(row.owner).width, GUTTER - 60);
+        ctx.fillText(row.owner, 8, y + ROW / 2, GUTTER - 60);
+        ctx.font = '11px system-ui, "Segoe UI", sans-serif';
+        ctx.fillStyle = canvasColor('--tl-label', 'gray');
+        ctx.fillText(row.part, 14 + ownerW, y + ROW / 2, Math.max(10, GUTTER - 22 - ownerW));
+      } else {
+        ctx.font = '11px system-ui, "Segoe UI", sans-serif';
+        ctx.fillStyle = copied ? COPIED_TEXT : canvasColor('--tl-label', 'gray');
+        ctx.fillText(row.part, 20, y + ROW / 2, GUTTER - 26);
+      }
     });
     // Keys and everything over them stay right of the labels when zoomed.
     ctx.save();
@@ -1279,6 +1329,11 @@ export class Dopesheet {
     if (press.right) {
       this.press = null;
       if (!press.started) {
+        // On the ruler: select the keys at that frame, or every key shown.
+        if (press.pos[1] < RULER) {
+          rulerMenu(app, press.clientX, press.clientY, Math.round(this.xToTime(press.pos[0]) * FPS));
+          return;
+        }
         // A plain right-click: select the key under it if needed, then open the curve menu.
         const hit = this.hit(press.pos);
         if (hit && !app.selectedKeys.has(hit.key)) app.selectedKeys = new Set([hit.key]);
@@ -1428,6 +1483,26 @@ function listConstraintsOf(anim) {
 }
 
 /** Curve presets and delete for the selected keys. */
+/** Selects the keys at frame `frame` in the rows the dopesheet shows (every key with `frame` null). */
+export function selectKeysAt(app, frame) {
+  const anim = app.currentAnimation();
+  if (!anim) return 0;
+  const keys = [];
+  for (const { track } of tracks(app, anim)) for (const k of trackKeys(anim, track) ?? []) if (frame === null || Math.round((k.time ?? 0) * FPS) === frame) keys.push(k);
+  app.selectedKeys = new Set(keys);
+  app.setStatus(statusMessage('Selected {count} key(s)', { count: keys.length }));
+  app.changed();
+  return keys.length;
+}
+
+/** The ruler's right-click menu. */
+function rulerMenu(app, x, y, frame) {
+  popupMenu(x, y, [
+    { label: t('Select the keys at frame {frame}', { frame }), action: () => selectKeysAt(app, frame) },
+    { label: t('Select every key shown'), action: () => selectKeysAt(app, null) },
+  ]);
+}
+
 export function curveMenu(app, x, y, { pasteAt = null } = {}) {
   const setCurve = (curve) => () => {
     const anim = app.currentAnimation();
