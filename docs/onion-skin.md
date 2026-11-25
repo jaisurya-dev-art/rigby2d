@@ -7,8 +7,8 @@ so you can see arcs, spacing and timing while you animate. It works in Animate m
 
 ## Turning it on
 
-Press **Onion** in the viewport toolbar (Animate mode). The **⚙** button next to it opens the
-settings:
+Press the **Onion skin** button at the right of the viewport toolbar (Animate mode). The options
+button next to it opens the settings:
 
 | Setting | Meaning |
 | --- | --- |

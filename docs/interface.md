@@ -3,7 +3,7 @@
 The editor is one window with five areas around the viewport. Panels can be resized by dragging the
 borders between them (double-click a border to reset it), and in the desktop app the Timeline, Tree
 and Inspector can be popped out into their own windows. The side panels start narrow, so the viewport
-gets most of the room; *View ▸ Layouts* saves an arrangement you like.
+gets most of the room; *View ▸ Panels* saves an arrangement you like.
 
 ![The editor with numbered areas: 1 menus, 2 workspace switch, 3 viewport toolbar, 4 viewport, 5 tree, 6 inspector, 7 timeline controls, 8 dopesheet, 9 status bar](images/interface-tour.jpg "The parts of the editor")
 
@@ -64,7 +64,7 @@ panel windows). The selection is shown the same way.
 | **Scale** | <kbd>X</kbd> | Scales the selection. |
 | **Shear** | <kbd>Z</kbd> | Shears the selection. |
 
-Keys are those of the default *Spine-like* preset; a *Blender-like* preset is under *View*. See
+Keys are those of the default *Spine-like* preset; a *Blender-like* preset is in *Preferences ▸ Interface*. See
 [Keyboard shortcuts](shortcuts.md).
 
 Next to the tools, the active tool's values for the selected bone can be dragged or typed. In
@@ -79,26 +79,41 @@ direction the Translate tool moves.
 
 ### View options
 
-The *View* menu chooses what is drawn over the art:
+The *View* menu has three groups.
 
-- *Show bones*, *Show clipping masks*, *Show bounding boxes*, *Show paths* and *Show points*, one
-  switch per kind (remembered between sessions). A shape you select stays visible even when its kind
-  is hidden, so you can still edit it. The bone button in the menu bar and <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>B</kbd>
-  also show or hide bones.
-- *Show output frame* (Film workspace).
-- **Hide overlays** (<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>H</kbd>, or <kbd>Shift</kbd>+<kbd>Alt</kbd>+<kbd>Z</kbd>
-  with the Blender-like shortcuts) hides bones, shapes, selection outlines and guides at once, to
-  watch the animation as it renders. Press it again to bring them back.
-- *Timeline in Setup mode* keeps the timeline on screen in Setup mode.
-- *Tween lines* draws a thin line in the dopesheet between keys that blend into each other (on by
-  default). See [The dopesheet](animating.md#the-dopesheet).
+**Viewport**, what is drawn over the art (remembered between sessions):
+
+- *Show bones*. The bone button in the menu bar and <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>B</kbd>
+  do the same.
+- *Bone size*: a slider (50% to 250%) for how big bones are drawn, smaller for tiny or pixel-art
+  characters and bigger for large ones. The viewport follows as you drag; *Normal size* puts it back.
+  Bones stay as easy to click at any size.
+- *Shapes*: clipping masks, bounding boxes, paths and points, one switch per kind. A shape you
+  select stays visible even when its kind is hidden, so you can still edit it.
 - *Bone links* draws a dashed line from a bone to its parent wherever the child doesn't start at its
   parent's tip, so the hierarchy reads in the viewport: *Selected branch* (the default: the selected
   bones up to the root and down to their children), *All bones* or *Off*.
+- *Show output frame* and *Preview film effects* (Film workspace).
+- **Hide overlays** (<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>H</kbd>, or <kbd>Shift</kbd>+<kbd>Alt</kbd>+<kbd>Z</kbd>
+  with the Blender-like shortcuts) hides bones, shapes, selection outlines and guides at once, to
+  watch the animation as it renders. Press it again to bring them back.
+- *Show and unlock all* undoes every eye and lock set in the tree.
 
-It also has the **Log** window, *Panel layout*, *Layouts* (see [Saved layouts](#saved-layouts)) and
-zoom commands. The viewport
-renderer and the shortcut preset are in [Preferences](preferences.md) (*Interface*).
+**Timeline**:
+
+- *Timeline in Setup mode* keeps the timeline on screen in Setup mode.
+- *Tween lines* draws a thin line in the dopesheet between keys that blend into each other (on by
+  default). See [The dopesheet](animating.md#the-dopesheet).
+
+**Window**:
+
+- *Panels*: the **Rig panel** (skins, constraints, meshes and events in a panel of their own, left
+  of the viewport, so the tree keeps only the bone hierarchy), your [saved layouts](#saved-layouts),
+  and *Reset panels*.
+- *Themes…* and the **Log** window.
+
+The menu ends with the zoom commands. The viewport renderer and the shortcut preset are in
+[Preferences](preferences.md) (*Interface*).
 
 ## Tree
 
@@ -228,9 +243,21 @@ any colour that is missing or does not read falls back to Rigby Dark's (Rigby Li
 warnings and errors with expandable tracebacks. Filter by level or text, and **Copy** entries for a
 bug report. The status bar button turns red and counts errors you have not seen yet.
 
+## Moving panels
+
+The Tree, Inspector, Timeline and Rig panels sit in three regions around the viewport: left, right and
+bottom. Drag a panel by its tab:
+
+- onto another panel's tab strip, and the two share that space as tabs;
+- onto the edge of a panel, and it gets its own space next to it;
+- onto an edge of the viewport, and it docks on that side.
+
+Drag the borders between panels to resize them; double-click a border to reset it. *View ▸ Panels ▸
+Reset panels* puts everything back.
+
 ## Saved layouts
 
-*View ▸ Layouts* saves your panel arrangement under a name and loads it again later:
+*View ▸ Panels* saves your panel arrangement under a name and loads it again later:
 
 - **Save current layout…** stores where each panel sits and how wide or tall the panel areas are.
   In the desktop app it also stores which panels are popped out into their own windows, and where.
@@ -238,7 +265,7 @@ bug report. The status bar button turns red and counts errors you have not seen 
 - **Manage layouts…** renames, updates and deletes layouts, and binds a shortcut
   (<kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>1</kbd> to <kbd>9</kbd>) that loads a layout.
 
-*View ▸ Panel layout ▸ Reset layout* puts every panel back in its default place and size. Layouts are
+*View ▸ Panels ▸ Reset panels* puts every panel back in its default place and size. Layouts are
 kept on this computer (in the browser editor, in this browser).
 
 ## Detached panels
@@ -253,7 +280,7 @@ next time that panel pops out.
 
 | Item | What it does |
 | --- | --- |
-| *What's new in 0.5…* | A short tour of this release. |
+| *What's new in 0.6…* | A short tour of the latest big release. |
 | *Welcome screen…* | New projects, recent work, demos and lessons. |
 | *Tutorials…*, *Keyboard shortcuts…* | Interactive lessons, and every shortcut with a search. |
 | *Documentation* | These pages. |
@@ -261,5 +288,5 @@ next time that panel pops out.
 | *Community ▸* | *Discord* (the community), the *Devlog* (release news) and this version's *Release notes*. |
 | *Report a problem ▸* | *Report an issue* on GitHub, or *Report a crash…*: a report of recent errors to copy or post. |
 | *Support Rigby2D…* | The monthly goal, the Founding Supporters, everyone who funds Rigby2D and the code contributors, with a link to sponsor. |
-| *Check for updates…* | Desktop app: looks for a new version now (it also checks at startup). |
+| *Check for updates…* | Desktop app: looks for a new version now (it also checks at startup and every few hours; *Preferences ▸ General*). |
 | *About Rigby2D* | Version, licenses and credits. |

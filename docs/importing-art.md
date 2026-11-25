@@ -53,6 +53,8 @@ Next: rig it in one step with [AutoRig](autorig.md), or by hand with
   gets its own animation of the same frames with that layer shown, named after the layer (with
   tags, `walk · Heart`). Every animation hides the other variants at its start, so switching
   animations in a game never leaves one showing.
+- AI assistants can do the same with the MCP tool `import_aseprite`, which writes a new `.rigby`
+  work file (see [AI assistants](mcp.md)).
 - It is pixel art, so the [pixel grid](#pixel-grid) turns on at 1 unit per pixel in a project
   without images, and the art stays sharp.
 - **Blend modes**: Multiply, Screen and Addition layers keep their blend on the slot. Layers in other

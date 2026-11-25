@@ -16,15 +16,15 @@ and meshes, animate it for games or film, and play it anywhere with the included
 ## What you can do with it
 
 <div class="cards">
-<a href="autorig.html" data-icon="wand-sparkles"><strong>Rig in one step</strong>Import a layered PSD or SVG; AutoRig finds the parts and builds bones, meshes and IK.</a>
-<a href="bones-and-slots.html" data-icon="bone"><strong>Rig by hand</strong>Bones, weighted meshes, constraints, skins and events.</a>
+<a href="autorig.html" data-icon="wand-sparkles"><strong>Rig in one step</strong>Import a layered PSD, SVG or Aseprite file; AutoRig finds the parts and builds bones, meshes and IK.</a>
+<a href="bones-and-slots.html" data-icon="bone"><strong>Rig by hand</strong>Bones, weighted meshes, warp deformers, a 2.5D turn, constraints, skins and events.</a>
 <a href="animating.html" data-icon="play"><strong>Animate</strong>Dopesheet, graph editor, onion skin, poses and face controls.</a>
 <a href="retargeting.html" data-icon="repeat-2"><strong>Reuse animation</strong>Retarget animations from one character to another.</a>
 <a href="film.html" data-icon="clapperboard"><strong>Make films</strong>Camera, audio, lip-sync, film effects, and renders to PNG, WebM and MP4.</a>
 <a href="scenes.html" data-icon="drama"><strong>Compose scenes</strong>Several characters, clips, parallax layers and a camera.</a>
 <a href="scripting.html" data-icon="code"><strong>Automate</strong>Python scripts, add-ons, and AI assistants over MCP.</a>
 <a href="cli.html" data-icon="terminal"><strong>Command line</strong>Convert, export, rig, script and render on the GPU with <code>rigby</code>, no window needed.</a>
-<a href="runtimes.html" data-icon="gamepad-2"><strong>Ship to any engine</strong>JSON or <code>.skel</code> for Godot, Unity, Defold, Cocos Creator, Phaser, PixiJS, JavaScript and Rust.</a>
+<a href="runtimes.html" data-icon="gamepad-2"><strong>Ship to any engine</strong>JSON or <code>.skel</code> for Godot, Unity, Defold, Cocos Creator, Phaser, PixiJS, Ren'Py, SDL3, JavaScript and Rust.</a>
 </div>
 
 ## Where to start
@@ -60,7 +60,6 @@ never change the animation data, so exports are identical either way.
 ## Status
 
 Rigby2D is in **public beta**: ready for real projects, and still moving quickly. These pages
-describe the current `develop` branch,
-which is what the [website](https://rigby2d.com/) and its browser editor run.
+describe the latest release, which is also what the [browser editor](https://rigby2d.com/editor/) runs.
 Found something wrong or missing? [Open an issue](https://github.com/jaisurya-dev-art/rigby2d/issues)
 or use *Edit this page on GitHub* below.

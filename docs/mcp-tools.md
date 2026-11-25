@@ -9,7 +9,7 @@ root folders. Editing tools save the file in its own format, or a copy when `out
 
 <!-- generated:mcp-tools -->
 
-The server has **60 tools**. Parameters marked **required** must be given; the others are optional.
+The server has **61 tools**. Parameters marked **required** must be given; the others are optional.
 
 ### `inspect_project`
 
@@ -699,6 +699,16 @@ Rigby AutoRig: rig layered artwork in one step. Identifies body parts from layer
 | `roles` | object | Override detected roles: { layerName: role }. 'none' leaves a layer unrigged. |
 | `sides` | object | Override sides: { layerName: 'l' \| 'r' }. The character's left (l) is on the image's right when it faces the viewer. |
 | `output` | string | Where to save. Required with psd_file (a new .rigby file). |
+| `overwrite` | boolean | Replace `output` if it already exists (default false). |
+
+### `import_aseprite`
+
+Turns an Aseprite file (.aseprite / .ase) into a new .rigby work file, like the editor's File > Import > Aseprite: every image layer becomes a slot on the root bone where it was drawn, with one image per different picture it shows; each tag (or the whole timeline) becomes an animation that swaps the images at Aseprite's frame durations. Hidden layers become variant animations. Pixel art stays sharp. Rig it afterwards with autorig or the edit tools.
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `aseprite_file` **required** | string | The Aseprite file (.aseprite or .ase) inside the workspace. |
+| `output` **required** | string | The new .rigby work file to write. |
 | `overwrite` | boolean | Replace `output` if it already exists (default false). |
 
 ### `map_bones`

@@ -109,6 +109,10 @@ green and a preview follows the time cursor; move it to where the first key shou
   Keys about to be erased show a red ✕ in the preview.
 - A paste that runs past the end of the animation asks whether to extend the animation, paste what
   fits, or cancel.
+- **Paste reversed** (<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>V</kbd>, *Edit ▸ Paste keys reversed*, or
+  right-click ▸ *Paste reversed here*) lays the keys down back to front over the same span, with
+  every ease mirrored, so the copied motion plays backwards: copy a reach and paste it reversed for
+  the return. Stepped keys stay stepped.
 
 Copy and paste work in the detached timeline too.
 

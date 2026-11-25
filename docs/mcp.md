@@ -169,6 +169,7 @@ Times can be given in seconds (`time`) or as a `frame` at the project's frame ra
 | --- | --- |
 | `detect_parts` | Previews AutoRig on a PSD (`psd_file`) or an unrigged `.rigby` (`path`): each layer's body part, its side, and whether that came from the name or the position. Read-only. |
 | `autorig` | Rigs layered artwork: bones, joints where parts meet, weighted meshes for parts that bend, and IK for arms and legs. From `psd_file`, it writes a new `.rigby` to `output`. `roles` and `sides` correct the detection, `meshes` is `deforming`, `all` or `none`, and `ik` turns IK on or off. |
+| `import_aseprite` | Turns an Aseprite file (`aseprite_file`) into a new `.rigby` (`output`), like *File ▸ Import ▸ Aseprite*: a slot per layer, an image per picture, an animation per tag. Rig it afterwards with `autorig` or the edit tools. |
 | `map_bones` | Previews how bones of a `source` character match a target (`path`): by name, similar name, body part, or your `mapping`. Read-only. |
 | `retarget_animation` | Copies one animation (`animation`) or several (`animations`) from `source` to the target. Movement is scaled to the target's size (or `scale`); `mode` is `relative` or `world`. Curves are kept, and slot, event and IK keys follow by name. |
 
