@@ -62,6 +62,11 @@ This table is generated from the editor's keymap, so it always matches the curre
 | Toggle auto key | – | – |
 | Deselect | <kbd>Esc</kbd> | <kbd>Alt</kbd>+<kbd>A</kbd> or <kbd>Esc</kbd> |
 | Fit the skeleton in view | <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F</kbd> | <kbd>F</kbd> or <kbd>Home</kbd> |
+| Frame the selection | <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>F</kbd> | <kbd>.</kbd> |
+| Select all bones | <kbd>Ctrl</kbd>+<kbd>A</kbd> | <kbd>A</kbd> or <kbd>Ctrl</kbd>+<kbd>A</kbd> |
+| Select the parent bone | <kbd>[</kbd> | <kbd>[</kbd> |
+| Select the child bones | <kbd>]</kbd> | <kbd>]</kbd> |
+| Select the whole branch | <kbd>Ctrl</kbd>+<kbd>]</kbd> | <kbd>Ctrl</kbd>+<kbd>]</kbd> |
 | Zoom to 100% | <kbd>Ctrl</kbd>+<kbd>F</kbd> | <kbd>Ctrl</kbd>+<kbd>F</kbd> |
 | Hide or show overlays | <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>H</kbd> | <kbd>Shift</kbd>+<kbd>Alt</kbd>+<kbd>Z</kbd> |
 | Show or hide bones | <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>B</kbd> | <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>B</kbd> |

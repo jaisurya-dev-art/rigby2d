@@ -39,13 +39,32 @@ work in both modes; only the result differs.
 | To | Do |
 | --- | --- |
 | Select a bone or image | Click it. |
+| Pick what's underneath | <kbd>Alt</kbd>+click again and again: it steps through everything under the cursor (the bones nearest first, then each image front to back). The status bar says which one of how many. |
 | Add to or remove from the selection | <kbd>Ctrl</kbd>+click. |
+| Select all bones, or the parent, children or whole branch of the selection | *Edit ▸ Select all bones* (<kbd>Ctrl</kbd>+<kbd>A</kbd>) and *Edit ▸ Select related* (<kbd>[</kbd>, <kbd>]</kbd>, <kbd>Ctrl</kbd>+<kbd>]</kbd>). Hidden and locked bones are left out. |
 | Box select | Drag in empty space (with <kbd>Ctrl</kbd> held, adds to the selection). |
 | Transform the selection | Drag it with the active tool, or drag empty space while bones are selected. |
 | Pan | Right or middle drag. |
 | Zoom | Mouse wheel. |
 | Fit the skeleton in view | The fit button in the menu bar, or *View ▸ Fit the skeleton in view* (<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F</kbd>). |
+| Zoom to the selection | *View ▸ Frame the selection* (<kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>F</kbd>; <kbd>.</kbd> with the Blender-like keys). |
 | Deselect | <kbd>Esc</kbd>, or click empty space. |
+
+### Show and select
+
+The small panel at the top left of the viewport says, for each kind of thing, whether it is
+**shown** (eye), whether a click or a box can **pick** it (arrow), and for bones whether their
+**names** are drawn (tag):
+
+| Row | What it covers |
+| --- | --- |
+| Bones | Every bone. Turn off picking to click and box-select images only. |
+| Images and meshes | All the art. Turn off picking to work on the bones without grabbing the art (clicks go to the bones or pass through); hide them to see the skeleton alone. |
+| Shapes | Clipping masks, bounding boxes, paths and points together (*View ▸ Shapes* sets them one by one; a half-filled dot means some are on). |
+
+Click the arrow at its top left to fold it into one button; the button turns blue while anything is
+hidden or can't be picked. Its settings are remembered, and only change the editor's view. The eye
+and lock on each tree row still work per bone and slot (see [Show and lock](#show-and-lock)).
 
 Hovering a bone — in the viewport, the tree or a timeline track — highlights it in all three at
 once with a short glow, so you can tell which bone is which across the panels (and across detached
@@ -59,7 +78,7 @@ panel windows). The selection is shown the same way.
 | --- | --- | --- |
 | **Pose** | <kbd>B</kbd> | Drag a bone to aim it at the cursor; drag near its origin to move it. The quickest way to pose. |
 | **Create** | <kbd>N</kbd> | Drag to draw a bone (Setup mode). Select a bone first to chain the new one from it. |
-| **Rotate** | <kbd>C</kbd> | Rotates the selection. |
+| **Rotate** | <kbd>C</kbd> | Rotates the selection. Hold <kbd>Shift</kbd> to turn in 15° steps. |
 | **Translate** | <kbd>V</kbd> | Moves the selection. Hold <kbd>Shift</kbd> while dragging to move along one axis only. |
 | **Scale** | <kbd>X</kbd> | Scales the selection. |
 | **Shear** | <kbd>Z</kbd> | Shears the selection. |
@@ -119,7 +138,8 @@ The menu ends with the zoom commands. The viewport renderer and the shortcut pre
 
 The tree has collapsible sections:
 
-- **Skeleton**: bones in their hierarchy, each with its slots. Guide lines join each bone to its
+- **Skeleton**: bones in their hierarchy, each with its slots. Double-click a name, or press
+  <kbd>F2</kbd>, to rename it in place (Setup mode); <kbd>Enter</kbd> applies, <kbd>Esc</kbd> cancels. Guide lines join each bone to its
   children and run down past open branches, so deep rigs stay readable. A slot shows its visible attachment
   next to its name; click **▸** (with the number of attachments) to list them all, and click one to
   show it (in Animate mode, that sets an image-swap key). **+ Bone** adds a child to the selected

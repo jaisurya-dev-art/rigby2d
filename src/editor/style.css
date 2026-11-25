@@ -268,6 +268,86 @@ body {
 .row.weak {
   color: var(--weak);
 }
+/* The viewport's Show and select panel (viewfilter.js), top left below the rulers. */
+#viewfilter {
+  position: absolute;
+  left: 28px;
+  top: 28px;
+  z-index: 2;
+}
+#viewfilter .vf {
+  display: grid;
+  gap: 1px;
+  padding: 3px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--surface-1) 92%, transparent);
+  box-shadow: var(--shadow-popover);
+}
+#viewfilter .vf.folded {
+  padding: 2px;
+}
+#viewfilter .vf-row {
+  display: grid;
+  grid-template-columns: 26px 26px 26px 26px;
+  align-items: center;
+  justify-items: center;
+  height: 24px;
+}
+#viewfilter .vf-head {
+  color: var(--fg-muted);
+}
+#viewfilter .vf-kind,
+#viewfilter .vf-col {
+  display: grid;
+  place-items: center;
+  color: var(--fg-muted);
+}
+#viewfilter button {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--fg-muted);
+  cursor: pointer;
+}
+#viewfilter button:hover:not(:disabled) {
+  background: var(--surface-hover);
+}
+#viewfilter .vf-fold {
+  width: auto;
+  min-width: 24px;
+  grid-auto-flow: column;
+  gap: 2px;
+  padding: 0 3px;
+}
+#viewfilter .vf-fold.filtered {
+  color: var(--accent);
+}
+/* A dot per kind and column: filled when on, a ring when off, half when partly on. */
+#viewfilter .vf-dot span {
+  width: 9px;
+  height: 9px;
+  border: 1.5px solid var(--fg-muted);
+  border-radius: 50%;
+}
+#viewfilter .vf-dot.on span {
+  border-color: var(--accent);
+  background: var(--accent);
+}
+#viewfilter .vf-dot.some span {
+  border-color: var(--accent);
+  background: linear-gradient(90deg, var(--accent) 50%, transparent 50%);
+}
+#viewfilter .vf-dot:disabled {
+  cursor: default;
+  opacity: 0.35;
+}
+
 #viewbar {
   position: absolute;
   left: 8px;
@@ -5436,6 +5516,18 @@ input[type='range'] {
 }
 .skin-combo-note {
   line-height: 1.35;
+}
+/* Renaming in place (double-click or F2 on a tree row). */
+.row .row-rename {
+  flex: 1 1 auto;
+  min-width: 60px;
+  height: 20px;
+  padding: 0 4px;
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-sm);
+  background: var(--surface-0, var(--bg));
+  color: var(--fg-strong, var(--text));
+  font: inherit;
 }
 /* Slot rows: the skins that give the slot images. On a narrow tree the visible image's name gives
    way first, then the tags (down to a short stub); the slot's own name keeps its room. */

@@ -164,6 +164,7 @@ function boneMenu(app, bone, x, y) {
     hasKids && { label: locked ? t('Unlock with its children') : t('Lock with its children'), action: view('locked', true) },
     'separator',
     { label: t('Select its keys'), disabled: !app.currentAnimation(), title: t('Selects every key of this bone in the current animation'), action: () => selectKeys(app, { bone }, name) },
+    hasKids && { label: t('Select its branch'), action: () => edit.selectRelated(app, 'branch') },
     'separator',
     { label: t('Delete'), disabled: !setup || bone === 0, title: bone === 0 ? t('The root bone cannot be deleted') : null, action: () => {
       app.select({ bone });
@@ -198,8 +199,59 @@ function slotMenu(app, slot, x, y) {
   ]);
 }
 
+/**
+ * Renames a bone or slot in its row: the name turns into a text field; Enter or leaving it applies,
+ * Escape cancels. Setup mode only (names are part of the rig).
+ */
+function renameInline(app, row, item) {
+  if (app.mode !== Mode.Setup) {
+    app.setStatus(statusMessage('Rename in Setup mode (Tab)'));
+    return;
+  }
+  const nameEl = row.querySelector('.row-name');
+  if (!nameEl || row.querySelector('.row-rename')) return;
+  const isBone = item.bone !== undefined;
+  const old = isBone ? app.doc.bones[item.bone].name : app.doc.slots[item.slot].name;
+  let done = false;
+  const finish = (apply) => {
+    if (done) return;
+    done = true;
+    const name = input.value.trim();
+    input.remove();
+    nameEl.hidden = false;
+    if (apply && name && name !== old) {
+      const ok = isBone ? edit.renameBone(app, item.bone, name) : edit.renameSlot(app, item.slot, name);
+      if (!ok) app.setStatus(statusMessage('That name is already used'));
+    }
+    app.changed();
+  };
+  const input = h('input', {
+    class: 'row-rename',
+    value: old,
+    spellcheck: false,
+    'aria-label': isBone ? t('Rename bone') : t('Rename slot'),
+    onkeydown: (e) => {
+      e.stopPropagation();
+      if (e.key === 'Enter') finish(true);
+      if (e.key === 'Escape') finish(false);
+    },
+    onblur: () => finish(true),
+    onclick: (e) => e.stopPropagation(),
+    onpointerdown: (e) => e.stopPropagation(),
+  });
+  nameEl.hidden = true;
+  nameEl.after(input);
+  input.focus();
+  input.select();
+}
+
 /** Opens `menu(app, index, x, y)` on a right-click of `row`, selecting what the row shows first. */
 function withMenu(app, row, item, menu) {
+  row.addEventListener('dblclick', (e) => {
+    if (e.target.closest('button, .twisty, input')) return;
+    e.preventDefault();
+    renameInline(app, row, item);
+  });
   row.addEventListener('contextmenu', (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -247,6 +299,17 @@ const navRows = (el) => [...el.querySelectorAll('.tree-section .row[data-bone], 
 
 /** Arrow keys in the tree: up/down move the selection, left folds (or goes to the parent), right unfolds. */
 function treeKeys(app, el, e) {
+  // F2 renames the selected bone or slot in its row.
+  if (e.key === 'F2') {
+    const b = selBone(app.sel);
+    const sl = selSlot(app.sel);
+    const row = b !== null ? el.querySelector(`.row[data-bone="${b}"]`) : sl !== null ? el.querySelector(`.row.slot[data-slot="${sl}"]`) : null;
+    if (row) {
+      e.preventDefault();
+      renameInline(app, row, b !== null ? { bone: b } : { slot: sl });
+    }
+    return;
+  }
   if (!['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key) || e.ctrlKey || e.metaKey || e.altKey) return;
   const rows = navRows(el);
   if (!rows.length) return;

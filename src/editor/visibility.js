@@ -82,3 +82,11 @@ export function hiddenSlotSkip(doc, other = null) {
   const hidden = new Set(doc.slots.flatMap((s, i) => (isSlotHidden(doc, i) ? [i] : [])));
   return (slot, att) => (hidden.has(slot) && att?.type !== 'clipping') || !!other?.(slot, att);
 }
+
+/** hiddenSlotSkip plus the Show and select panel's images switch (viewfilter.js): with images hidden,
+ *  every image and mesh is left out (clipping masks still clip). */
+export function viewSkip(app, other = null) {
+  const base = hiddenSlotSkip(app.doc, other);
+  if (app.showImages !== false) return base;
+  return (slot, att) => att?.type !== 'clipping' || !!base?.(slot, att);
+}

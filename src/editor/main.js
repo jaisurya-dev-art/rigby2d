@@ -21,6 +21,7 @@ import { clipTracks } from './actors.js';
 import { blockNativeContextMenu, desktopFile, isDesktop, launchFile, memoryFs, onFileDrop, openExternal } from './platform.js';
 import * as edit from './edit.js';
 import * as toolbar from './toolbar.js';
+import * as viewfilter from './viewfilter.js';
 import * as tree from './tree.js';
 import { clearViewState, hasViewState } from './visibility.js';
 import * as inspector from './inspector.js';
@@ -165,7 +166,13 @@ function menus() {
       { label: t('Paste keys'), shortcut: sc('edit.pasteKeys'), action: () => pasteKeys(app) },
       { label: t('Paste keys reversed'), shortcut: sc('edit.pasteKeysReversed'), action: () => pasteKeys(app, { reversed: true }), onpreview: setPastePreviewReversed },
       'separator',
+      { label: t('Select all bones'), shortcut: sc('select.all'), action: () => edit.selectRelated(app, 'all') },
       { label: t('Deselect'), shortcut: sc('select.none'), action: () => app.deselect() },
+      submenuItem(t('Select related'), [
+        { label: t('Parent'), shortcut: sc('select.parent'), action: () => edit.selectRelated(app, 'parent') },
+        { label: t('Children'), shortcut: sc('select.children'), action: () => edit.selectRelated(app, 'children') },
+        { label: t('Whole branch'), shortcut: sc('select.branch'), action: () => edit.selectRelated(app, 'branch') },
+      ]),
       { label: t('Delete selection'), shortcut: sc('edit.delete'), action: () => edit.deleteSelection(app) },
       'separator',
       { label: t('Preferences…'), shortcut: sc('app.preferences'), action: () => showPreferences() },
@@ -312,6 +319,7 @@ function menus() {
       { label: logOpen() ? t('Hide log') : t('Log'), action: () => toggleLogWindow() },
       'separator',
       { label: t('Fit the skeleton in view'), shortcut: sc('view.fit'), action: () => (app.frameRequest = true) },
+      { label: t('Frame the selection'), shortcut: sc('view.frameSelected'), action: () => viewport.frameSelected() },
       { label: t('Zoom to 100%'), shortcut: sc('view.actual'), action: () => zoomActual() },
       // The renderer and the shortcut preset are in Preferences (Interface, Keyboard).
     ],
@@ -696,6 +704,7 @@ const panels = [
   { el: $('#rig'), render: rigPanel.render, built: -1 },
   { el: $('#properties .content'), render: inspector.render, built: -1, every: 200, poseEvery: 66 },
   { el: $('#viewbar'), render: toolbar.render, built: -1 },
+  { el: $('#viewfilter'), render: viewfilter.render, built: -1 },
   { el: $('#controls'), render: renderControls, built: -1, every: 66 },
 ];
 

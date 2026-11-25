@@ -98,6 +98,21 @@ function loadShapes() {
   return out;
 }
 
+/** The Show and select panel's state as last left (everything shown and pickable by default). */
+function loadViewFilter() {
+  const out = { showImages: true, pick: { bones: true, images: true }, open: false, names: false };
+  try {
+    const s = JSON.parse(loadSetting('rigby.view.filter', '{}'));
+    if (typeof s?.showImages === 'boolean') out.showImages = s.showImages;
+    if (typeof s?.open === 'boolean') out.open = s.open;
+    if (typeof s?.names === 'boolean') out.names = s.names;
+    for (const k of ['bones', 'images']) if (typeof s?.pick?.[k] === 'boolean') out.pick[k] = s.pick[k];
+  } catch {
+    // A damaged setting keeps the defaults.
+  }
+  return out;
+}
+
 /** Remembers which attachment shapes the viewport shows. */
 export function saveShapes(shapes) {
   saveSetting('rigby.view.shapes', JSON.stringify(shapes));
@@ -211,6 +226,13 @@ export class App {
      * paths and points. The selected one shows either way, so it can still be edited.
      */
     this.showShapes = loadShapes();
+    // The viewport's Show and select panel (viewfilter.js): images drawn or not, what a click can
+    // pick, and whether the panel is unfolded; remembered between sessions.
+    const filter = loadViewFilter();
+    this.showImages = filter.showImages;
+    this.pick = filter.pick;
+    this.viewFilterOpen = filter.open;
+    this.showNames = filter.names;
     /** Hides every overlay at once (View ▸ Hide overlays), to watch the animation as it renders. */
     this.hideOverlays = false;
     /**
@@ -608,6 +630,15 @@ export class App {
       this.sel = item;
       this.multi.clear();
     }
+    this.changed();
+  }
+
+  /** Selects these bones (indices); `active` becomes the one the inspector shows. */
+  selectBones(bones, active = bones[0]) {
+    const set = new Set(bones);
+    this.multi = set.size > 1 ? set : new Set();
+    this.sel = set.size ? { bone: set.has(active) ? active : [...set][0] } : null;
+    this.selectedKeys.clear();
     this.changed();
   }
 

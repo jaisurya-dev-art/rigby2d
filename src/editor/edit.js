@@ -315,6 +315,8 @@ export function renameSlot(app, slot, name) {
   return true;
 }
 
+export { selectRelated } from './selection.js';
+
 /** Selects every key of a bone's (or a slot's) tracks in the current animation; returns how many. */
 export function selectKeysOf(app, { bone = null, slot = null }) {
   const anim = app.currentAnimation();

@@ -62,6 +62,14 @@ export function runAction(app, action, ctx) {
     },
     'select.none': () => (app.pick ? app.finishPick(null) : app.warpEdit ? ((app.warpEdit = null), app.changed()) : app.deselect()),
     'view.fit': () => (app.frameRequest = true),
+    'view.frameSelected': () => {
+      viewport?.frameSelected();
+      app.changed();
+    },
+    'select.all': () => edit.selectRelated(app, 'all'),
+    'select.parent': () => edit.selectRelated(app, 'parent'),
+    'select.children': () => edit.selectRelated(app, 'children'),
+    'select.branch': () => edit.selectRelated(app, 'branch'),
     'view.overlays': () => {
       app.hideOverlays = !app.hideOverlays;
       app.changed();
