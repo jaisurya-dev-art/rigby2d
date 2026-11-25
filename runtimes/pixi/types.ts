@@ -309,14 +309,15 @@ export interface RigbySkeleton extends Container {
   hasSkin(name: string): boolean;
   /**
    * Whether animation `name` is playing (on `track`, or on any track when omitted). Without a
-   * name: whether anything is playing. Not with WebAssembly.
+   * name: whether anything is playing. Throws with WebAssembly.
    */
   isPlaying(name?: string, track?: number): boolean;
-  /** What every track is playing now, as plain values. Empty with WebAssembly. */
+  /** What every track is playing now, as plain values. Throws with WebAssembly. */
   snapshotTracks(): TrackSnapshot[];
   /**
    * Replaces what is playing with `snapshots` (from `snapshotTracks`): each animation resumes at
-   * the time it had, with its queue. Animations the skeleton does not have are skipped.
+   * the time it had, with its queue. Animations the skeleton does not have are skipped, and a crossfade that was under way is
+   * restored as finished. Throws with WebAssembly.
    */
   restoreTracks(snapshots: readonly TrackSnapshot[]): this;
   /** Length in seconds of animation `name`, or `null` without that animation. */

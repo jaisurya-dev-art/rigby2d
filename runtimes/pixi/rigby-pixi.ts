@@ -522,12 +522,18 @@ export function rigbyPixi(PIXI: PixiNamespace = (globalThis as { PIXI?: PixiName
     hasSkin(name: string): boolean {
       return this.skeleton.skins.some((s) => s.name === name);
     }
+    /** Throws with the WebAssembly core, whose tracks live in WebAssembly and can't be read from here. */
+    private _jsTracks(what: string): void {
+      if (this._w) throw new Error(`Rigby2D: ${what} needs the JavaScript core (not available with WebAssembly)`);
+    }
     /** Whether animation `name` is playing (on `track`, or on any track), or anything at all without a name. */
     isPlaying(name?: string, track?: number): boolean {
+      this._jsTracks('isPlaying()');
       return this.state.tracks.some((e) => e && (track === undefined || e.track === track) && (name === undefined || e.name === name));
     }
-    /** What every track is playing now, as plain values (for save files). Empty with WebAssembly. */
+    /** What every track is playing now, as plain values (for save files). Not with WebAssembly. */
     snapshotTracks(): TrackSnapshot[] {
+      this._jsTracks('snapshotTracks()');
       const out: TrackSnapshot[] = [];
       for (const e of this.state.tracks) {
         if (!e) continue;
@@ -544,8 +550,12 @@ export function rigbyPixi(PIXI: PixiNamespace = (globalThis as { PIXI?: PixiName
       }
       return out;
     }
-    /** Replaces what is playing with `snapshots`: each animation resumes at its time, with its queue. */
+    /**
+     * Replaces what is playing with `snapshots`: each animation resumes at its time, with its queue.
+     * A crossfade that was under way when the snapshot was taken is restored as finished.
+     */
     restoreTracks(snapshots: readonly TrackSnapshot[]): this {
+      this._jsTracks('restoreTracks()');
       this.state.tracks.forEach((_, i) => this.state.clearTrack(i));
       for (const s of snapshots) {
         if (!this.hasAnimation(s.name)) continue;

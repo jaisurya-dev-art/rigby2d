@@ -105,8 +105,8 @@ share it and its textures, so a crowd costs one load.
 | `animationNames`, `skinNames` | What the skeleton has. |
 | `boneNames`, `hasAnimation(name)`, `hasSkin(name)` | What the skeleton has, by name. |
 | `animationDuration(name)` | Length in seconds of an animation, or `null` without it. |
-| `isPlaying(name?, track?)` | Whether an animation (or anything, without a name) is playing. |
-| `snapshotTracks()`, `restoreTracks(snapshots)` | What each track plays (name, loop, time, mix, alpha, speed, queue) as plain values, for save files; restoring resumes each animation where it was. Not with WebAssembly. |
+| `isPlaying(name?, track?)` | Whether an animation (or anything, without a name) is playing. Not with WebAssembly. |
+| `snapshotTracks()`, `restoreTracks(snapshots)` | What each track plays (name, loop, time, mix, alpha, speed, queue) as plain values, for save files; restoring resumes each animation where it was (a crossfade under way is restored as finished). Not with WebAssembly. |
 | `update(seconds)` | Advances, poses and redraws. Called by the ticker unless `autoUpdate` is off. |
 | `autoUpdate` | Whether it advances with `PIXI.Ticker.shared` (or the `ticker` option, such as `app.ticker`). Turn it off to drive it yourself. |
 | `boneTransform(name)` | `{ x, y, rotation, scaleX, scaleY }` of a bone, in the skeleton's coordinates. |
