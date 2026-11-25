@@ -9,8 +9,8 @@ import { EASE_IN, EASE_IN_OUT, EASE_OUT, LINEAR, STEPPED, cloneCurve, isBezier }
 import { uniqueName } from '../core/model.js';
 import { FPS, Mode, selBone, selSlot, snap } from './app.js';
 import * as edit from './edit.js';
-import { clearSpan, findTrack, makeClipboard, pasteClipboard, planPaste, previewKeys, trackRef } from './keyclip.js';
-import { dragValue, h, popupMenu, select, textField } from './widgets.js';
+import { clearSpan, findTrack, makeClipboard, pasteClipboard, planPaste, previewKeys, reverseClipboard, trackRef } from './keyclip.js';
+import { dragValue, h, isMenuOpen, popupMenu, select, textField } from './widgets.js';
 import { button, dialog, iconButton, segmented, toggleButton, uiIcon } from './ui.js';
 // The dopesheet's row order and key-selection-by-index live in keyorder.js (core-only, so the
 // selection round trip can be tested in Node). Re-exported here so the windows import them as before.
@@ -238,6 +238,22 @@ export function deleteSelectedKeys(app) {
 // or Escape disarms it (the green and the preview disappear); so does starting a fresh selection.
 let clipboard = null;
 let copiedSource = null; // the original key objects a copy marks green while armed
+// The paste preview shows the keys reversed while Shift is held (Ctrl+Shift+V pastes reversed) or
+// the pointer is over a "Paste reversed" menu item.
+let previewReversed = false;
+let previewMenuReversed = false;
+// The menu flag only counts while a menu is open (Escape can close it under the pointer).
+const reversedPreview = () => previewReversed || (previewMenuReversed && isMenuOpen());
+/** Shows (or stops showing) the paste preview reversed, for menu items that paste reversed. */
+export function setPastePreviewReversed(on) {
+  previewMenuReversed = on;
+}
+if (typeof window !== 'undefined') {
+  const shift = (e) => (previewReversed = e.shiftKey);
+  window.addEventListener('keydown', shift, true);
+  window.addEventListener('keyup', shift, true);
+  window.addEventListener('blur', () => (previewReversed = false));
+}
 let frameSelect = false; // true while the dopesheet is armed to select whole frame columns
 let multiAdd = false; // true makes every selection gesture add to the selection (multi-region)
 // How paste treats existing keys in the pasted area: 'none' merges, 'overwrite' clears the span in
@@ -492,8 +508,11 @@ function resolveTrackKeys(anim, track) {
   return trackKeys(anim, track) ?? null;
 }
 
-/** Pastes the clipboard at the playhead. Prompts when the keys would run past the animation's end. */
-export function pasteKeys(app) {
+/**
+ * Pastes the clipboard at the playhead. Prompts when the keys would run past the animation's end.
+ * `reversed` pastes the keys back to front, so the copied motion plays backwards.
+ */
+export function pasteKeys(app, { reversed = false } = {}) {
   reconcileToDocument(app); // never paste the old project's keys if a new one was opened (e.g. in graph view)
   const anim = app.currentAnimation();
   if (!anim) {
@@ -504,33 +523,34 @@ export function pasteKeys(app) {
     app.setStatus(statusMessage('Nothing to paste: copy keys first (Ctrl+C)'));
     return;
   }
+  const clip = reversed ? reverseClipboard(clipboard) : clipboard;
   const pasteTime = snap(app.time);
-  const plan = planPaste(clipboard, pasteTime, anim.duration, FPS);
+  const plan = planPaste(clip, pasteTime, anim.duration, FPS);
   if (plan.fits) {
-    applyPaste(app, anim, pasteTime, { mode: 'all' });
+    applyPaste(app, anim, pasteTime, { mode: 'all' }, clip);
     return;
   }
   overflowDialog(plan.extraFrames, {
     expand: () => {
       anim.duration = plan.lastTime;
-      applyPaste(app, anim, pasteTime, { mode: 'all' });
+      applyPaste(app, anim, pasteTime, { mode: 'all' }, clip);
     },
-    clip: () => applyPaste(app, anim, pasteTime, { mode: 'clip', limit: anim.duration }),
+    clip: () => applyPaste(app, anim, pasteTime, { mode: 'clip', limit: anim.duration }, clip),
     cancel: () => app.setStatus(statusMessage('Paste cancelled')),
   });
 }
 
-function applyPaste(app, anim, pasteTime, opts) {
+function applyPaste(app, anim, pasteTime, opts, clip) {
   app.playing = false;
   app.mode = Mode.Animate;
   // 'full' clears the whole pasted area first, including tracks the copy did not touch. The span is
   // the copied AREA (blank columns included), matching the preview, not just the keys' extent.
   if (pasteMode === 'full') {
-    const from = pasteTime + (clipboard.cover?.start ?? 0);
-    const end0 = pasteTime + (clipboard.cover?.end ?? clipboard.span);
+    const from = pasteTime + (clip.cover?.start ?? 0);
+    const end0 = pasteTime + (clip.cover?.end ?? clip.span);
     const end = opts.mode === 'clip' ? Math.min(end0, opts.limit) : end0;
     const rows = tracks(app, anim);
-    const copied = new Set(clipboard.groups.map((g) => copiedId(app, anim, g.track)));
+    const copied = new Set(clip.groups.map((g) => copiedId(app, anim, g.track)));
     for (const r of areaRows(app, anim, rows)) {
       const track = rows[r].track;
       if (!track || copied.has(trackId(track))) continue; // copied tracks are cleared by pasteClipboard
@@ -538,7 +558,7 @@ function applyPaste(app, anim, pasteTime, opts) {
       if (keys) clearSpan(keys, from, end);
     }
   }
-  const pasted = pasteClipboard(clipboard, pasteTime, { ...opts, snap, replace: pasteMode !== 'none' }, (ref) => {
+  const pasted = pasteClipboard(clip, pasteTime, { ...opts, snap, replace: pasteMode !== 'none' }, (ref) => {
     const track = findTrack(app.doc, anim, ref, true);
     return track ? resolveTrackKeys(anim, track) : null;
   });
@@ -882,12 +902,17 @@ export class Dopesheet {
         ctx.fillStyle = barFill;
         ctx.fillRect(x0, RULER - 4, Math.max(2, x1 - x0), 4);
       };
+      // A reversed paste mirrors each section within the copied span.
+      const reversed = reversedPreview();
+      const spanFrames = Math.round(clipboard.span * FPS);
       for (const reg of clipboard.regions) {
         regionBand(reg.f0, reg.f1, reg.r0, reg.r1, reg.full, 'rgba(60,220,110,0.10)', 'rgba(60,220,110,0.9)');
-        regionBand(reg.f0 + delta, reg.f1 + delta, reg.r0, reg.r1, reg.full, `rgba(180,120,255,${0.08 + 0.08 * pulse})`, `rgba(180,120,255,${0.6 + 0.3 * pulse})`);
+        const [p0, p1] = reversed ? [originFrame + spanFrames - (reg.f1 - originFrame), originFrame + spanFrames - (reg.f0 - originFrame)] : [reg.f0, reg.f1];
+        regionBand(p0 + delta, p1 + delta, reg.r0, reg.r1, reg.full, `rgba(180,120,255,${0.08 + 0.08 * pulse})`, `rgba(180,120,255,${0.6 + 0.3 * pulse})`);
       }
       const alpha = 0.3 + 0.5 * pulse;
-      const preview = previewKeys(clipboard, pasteTime);
+      const shown = reversed ? reverseClipboard(clipboard) : clipboard;
+      const preview = previewKeys(shown, pasteTime);
       // Purple ghosts of the pasted keys (red when they would land past the end).
       for (const g of preview) {
         const r = rowOf.get(copiedId(app, anim, g.track));
@@ -908,8 +933,8 @@ export class Dopesheet {
         let markRows;
         if (pasteMode === 'full') markRows = areaRows(app, anim, rows);
         else markRows = copiedRows;
-        const cf0 = Math.max(0, Math.round((pasteTime + (clipboard.cover?.start ?? 0)) * FPS));
-        const cf1 = Math.min(frames, Math.round((pasteTime + (clipboard.cover?.end ?? clipboard.span)) * FPS));
+        const cf0 = Math.max(0, Math.round((pasteTime + (shown.cover?.start ?? 0)) * FPS));
+        const cf1 = Math.min(frames, Math.round((pasteTime + (shown.cover?.end ?? shown.span)) * FPS));
         for (const r of markRows) {
           const track = rows[r]?.track;
           if (!track) continue;
@@ -1424,20 +1449,18 @@ export function curveMenu(app, x, y, { pasteAt = null } = {}) {
   const sc = (action) => shortcutLabel(app.keymap, action) || undefined;
   const selected = app.selectedKeys.size > 0;
   // Copy and paste, as on the buttons (Paste here: at the frame right-clicked in the dopesheet).
+  const paste = (reversed) => {
+    if (pasteAt !== null) {
+      app.time = pasteAt;
+      app.changed();
+    }
+    pasteKeys(app, { reversed });
+  };
   const clipboard = [
     selected && { label: t('Cut'), shortcut: sc('edit.cutKeys'), action: () => cutSelectedKeys(app) },
     selected && { label: t('Copy'), shortcut: sc('edit.copyKeys'), action: () => copySelectedKeys(app) },
-    hasClipboard() && {
-      label: pasteAt !== null ? t('Paste here') : t('Paste'),
-      shortcut: sc('edit.pasteKeys'),
-      action: () => {
-        if (pasteAt !== null) {
-          app.time = pasteAt;
-          app.changed();
-        }
-        pasteKeys(app);
-      },
-    },
+    hasClipboard() && { label: pasteAt !== null ? t('Paste here') : t('Paste'), shortcut: sc('edit.pasteKeys'), action: () => paste(false) },
+    hasClipboard() && { label: pasteAt !== null ? t('Paste reversed here') : t('Paste reversed'), shortcut: sc('edit.pasteKeysReversed'), action: () => paste(true), onpreview: setPastePreviewReversed },
   ].filter(Boolean);
   if (!selected) return popupMenu(x, y, clipboard);
   popupMenu(x, y, [

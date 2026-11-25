@@ -192,6 +192,7 @@ export default {
   "An Inkscape, Affinity or Illustrator drawing: each layer becomes a part, placed where it was drawn": "Inkscape・Affinity・Illustrator の図面：各レイヤーが、描いた位置にパーツとして配置されます",
   "Partly supported": "一部対応",
   "Paste keys": "キーを貼り付け",
+  "Paste keys reversed": "キーを逆順で貼り付け",
   "Path attachments": "パスアタッチメント",
   "Path constraints": "パスコンストレイント",
   "Phaser 3.60 or newer: this.load.rigby() and this.add.rigby(). One file for your game.": "Phaser 3.60 以降：this.load.rigby() と this.add.rigby()。ゲームにファイル 1 つ。",

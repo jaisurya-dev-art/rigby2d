@@ -18,6 +18,8 @@ export const PREFS = {
   /** Desktop: play a community animation on the splash screen (when the app bundles any). */
   'general.splashArt': { default: true },
   'updates.check': { default: true },
+  /** How big bones are drawn in the viewport (1 = normal; View ▸ Bone size). */
+  'view.boneSize': { default: 1, min: 0.5, max: 2.5 },
   'editing.undoSteps': { default: 200, min: 20, max: 1000 },
   /** Curve of new transform keys: 'linear', 'ease' (ease in and out) or 'stepped'. */
   'editing.keyCurve': { default: 'linear', options: ['linear', 'ease', 'stepped'] },

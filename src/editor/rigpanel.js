@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 // The Rig panel: what a rig is built from besides its bones, gathered in one place. Skins,
 // constraints by type, meshes and events, each with its add button.
-// It is optional (View ▸ Panel layout): while it is open, the tree lists only the bone hierarchy,
+// It is optional (View ▸ Panels ▸ Rig panel): while it is open, the tree lists only the bone hierarchy,
 // draw order, animations and images. The sections are the tree's own (tree.js), moved here, so
 // nothing is built twice. The project settings stay in the inspector.
 

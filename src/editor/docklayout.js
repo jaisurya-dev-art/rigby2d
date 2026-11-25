@@ -12,7 +12,7 @@
 
 export const REGIONS = ['left', 'right', 'bottom'];
 export const DOCK_PANELS = ['tree', 'inspector', 'timeline', 'rig'];
-/** Panels that can be closed (View ▸ Panel layout): the Rig panel. The others are always placed. */
+/** Panels that can be closed (View ▸ Panels): the Rig panel. The others are always placed. */
 export const OPTIONAL = ['rig'];
 
 const STORE = 'rigby.layout.dock';
@@ -39,7 +39,7 @@ export function rigLeftDock() {
   return l;
 }
 
-/** Built-in layouts, by id: offered in View ▸ Panel layout. */
+/** Built-in layouts, by id. */
 export const PRESETS = { default: defaultDock, 'rig-left': rigLeftDock };
 
 /** Where a panel sits by default: [region, group index]. Optional panels have none. */

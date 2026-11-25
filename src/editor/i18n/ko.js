@@ -192,6 +192,7 @@ export default {
   "An Inkscape, Affinity or Illustrator drawing: each layer becomes a part, placed where it was drawn": "Inkscape, Affinity, Illustrator 그림: 각 레이어가 그린 위치에 파츠로 배치됩니다",
   "Partly supported": "일부 지원",
   "Paste keys": "키 붙여넣기",
+  "Paste keys reversed": "키 역순으로 붙여넣기",
   "Path attachments": "패스 어태치먼트",
   "Path constraints": "패스 제약",
   "Phaser 3.60 or newer: this.load.rigby() and this.add.rigby(). One file for your game.": "Phaser 3.60 이상: this.load.rigby()와 this.add.rigby(). 게임에 파일 하나.",

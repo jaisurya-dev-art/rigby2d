@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
-import { clearSpan, cloneKey, findTrack, makeClipboard, pasteClipboard, planPaste, previewKeys, trackRef } from '../src/editor/keyclip.js';
+import { clearSpan, cloneKey, findTrack, makeClipboard, pasteClipboard, planPaste, previewKeys, reverseClipboard, trackRef } from '../src/editor/keyclip.js';
 
 const FPS = 30;
 const snap = (t) => Math.round(t * FPS) / FPS;
@@ -187,4 +187,32 @@ test('a named clipboard pastes onto the same bone after a delete', () => {
   pasteClipboard(clip, f(10), { mode: 'all', snap }, resolve);
   assert.deepEqual(bones[1].rotate.map((k) => [Math.round(k.time * FPS), k.value]), [[10, 45]]);
   assert.equal(bones[2].rotate.length, 0);
+});
+
+test('reverseClipboard runs the keys back to front with mirrored eases', () => {
+  const ease = { bezier: [0.42, 0, 1, 1] };
+  const clip = makeClipboard([
+    { track: { bone: 0, channel: 'rotate' }, keys: [{ time: f(10), value: 0, curve: ease }, { time: f(12), value: 30, curve: 'stepped' }, { time: f(16), value: 90, curve: 'linear' }] },
+    { track: { event: true }, keys: [{ time: f(11), name: 'step' }] },
+  ]);
+  clip.cover = { start: f(1), end: f(6) };
+  const rev = reverseClipboard(clip);
+  assert.equal(rev.origin, clip.origin);
+  assert.equal(rev.span, clip.span);
+  const [rot, ev] = rev.groups;
+  // Same span, values in reverse order: 90 at frame 10, 30 at frame 14, 0 at frame 16.
+  assert.deepEqual(rot.keys.map((k) => [Math.round(k.time * FPS), k.value]), [[10, 90], [14, 30], [16, 0]]);
+  // 90 -> 30 was the stepped segment (30 -> 90), still stepped (pose to pose, each pose held);
+  // 30 -> 0 was the ease-in (0 -> 30), now the matching ease-out.
+  assert.equal(rot.keys[0].curve, 'stepped');
+  assert.deepEqual(rot.keys[1].curve, { bezier: [0, 0, 0.58, 1] });
+  assert.equal(rot.keys[2].curve, 'linear', 'the last key keeps the last curve of the copy');
+  assert.equal(Math.round(ev.keys[0].time * FPS), 15);
+  assert.ok(!('curve' in ev.keys[0]), 'events get no curve');
+  assert.ok(Math.abs(rev.cover.start) < 1e-9 && Math.abs(rev.cover.end - f(5)) < 1e-9);
+  // The original clipboard is unchanged, and pasting the reversed one lays the keys down reversed.
+  assert.equal(clip.groups[0].keys[0].value, 0);
+  const keys = [];
+  pasteClipboard(rev, f(30), { mode: 'all', snap }, (track) => (track.bone === 0 ? keys : null));
+  assert.deepEqual(keys.map((k) => [Math.round(k.time * FPS), k.value]), [[30, 90], [34, 30], [36, 0]]);
 });

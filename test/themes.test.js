@@ -32,7 +32,7 @@ test('every colour token the stylesheet reads is set by every theme', () => {
   const read = new Set([...css.matchAll(/var\((--[a-z0-9-]+),\s*(#|rgb|white)/g)].map((m) => m[1]));
   // And the colour tokens the stylesheet defines on :root.
   for (const m of css.matchAll(/^\s*(--[a-z0-9-]+):\s*(#[0-9a-fA-F]{3,8}|rgba?\()/gm)) read.add(m[1]);
-  const canvas = readFileSync(new URL('../src/editor/canvascolors.js', import.meta.url), 'utf8') && ['--canvas-bg', '--canvas-grid', '--tl-bg', '--tl-ruler', '--tl-row', '--tl-row-hi', '--tl-line', '--tl-tick', '--tl-label', '--tl-text', '--tl-dim', '--tl-key', '--graph-grid', '--graph-axis', '--ruler-bg', '--ruler-corner', '--ruler-tick', '--ruler-text', '--mark-bowl'];
+  const canvas = readFileSync(new URL('../src/editor/canvascolors.js', import.meta.url), 'utf8') && ['--canvas-bg', '--canvas-grid', '--tl-bg', '--tl-ruler', '--tl-row', '--tl-row-hi', '--tl-line', '--tl-tick', '--tl-label', '--tl-text', '--tl-dim', '--tl-key', '--graph-grid', '--graph-axis', '--ruler-bg', '--ruler-corner', '--ruler-tick', '--ruler-text'];
   for (const name of canvas) read.add(name);
   // Fixed on purpose: the bone hover glow is the same in every theme.
   read.delete('--bone-hover');

@@ -773,6 +773,43 @@ input[type='color'] {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
+/* Menu groups: a small heading over each, and a muted line explaining the item above it. */
+.popup .menu-heading {
+  padding: 6px 10px 2px;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--fg-muted-2);
+  user-select: none;
+}
+.popup .menu-note {
+  max-width: 260px;
+  padding: 0 10px 6px 28px;
+  font-size: 11.5px;
+  line-height: 1.35;
+  color: var(--fg-muted-2);
+  user-select: none;
+}
+/* In a menu with tick boxes, plain items start where the ticked items' text does, so every label lines up. */
+.popup:has(> label.check-item) > button.item {
+  padding-left: 28px;
+}
+/* A slider inside a menu (View ▸ Bone size): it changes the viewport live while the menu stays open. */
+.popup .menu-slider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: default;
+}
+.popup .menu-slider input {
+  width: 150px;
+}
+.menu-slider-value {
+  min-width: 3.2em;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
 /* Undo, redo, fit and bones next to the mode tabs. */
 #menubar .quick-actions {
   display: flex;
@@ -5086,9 +5123,18 @@ body.bone-dragging * {
   width: 100%;
   height: 100%;
 }
-/* The mark's white bowl (its last shape) follows the theme: dark on Rigby Light. */
-:root[data-theme]:not([data-theme='rigby-dark']) .brand-mark path:last-child {
-  fill: var(--mark-bowl);
+/* The mark follows the theme: the brand kit's light-background R on light themes. */
+.brand-mark > span {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.brand-mark .brand-mark-light,
+:root[data-scheme='light'] .brand-mark .brand-mark-dark {
+  display: none;
+}
+:root[data-scheme='light'] .brand-mark .brand-mark-light {
+  display: block;
 }
 .theme-color .theme-swatch {
   width: 22px;

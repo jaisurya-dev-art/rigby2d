@@ -555,6 +555,7 @@ export class Viewport {
   drawBones(pose) {
     const app = this.app;
     const selection = new Set(app.selectedBones());
+    const s = app.prefs?.get('view.boneSize') ?? 1; // View ▸ Bone size
     this.drawBoneLinks(pose, selection);
     app.doc.bones.forEach((b, i) => {
       if (isBoneHidden(app.doc, i)) return;
@@ -574,27 +575,28 @@ export class Viewport {
         // A point bone: a ring with a crosshair, the same size at any zoom, and a tick along its
         // X axis so its rotation reads. Selected, it gets a handle to turn it.
         const ax = this.pointAxis(pose, i);
-        if (glow) this.glowOutline(() => this.arcPath(o, 7), glow, glowOpts);
-        this.circle(o, 7, rgba(color, selected ? 0.45 : 0.25), color, 1.5);
-        this.line([o[0] - 3, o[1]], [o[0] + 3, o[1]], color, 1);
-        this.line([o[0], o[1] - 3], [o[0], o[1] + 3], color, 1);
-        this.line([o[0] + ax[0] * 7, o[1] + ax[1] * 7], [o[0] + ax[0] * 13, o[1] + ax[1] * 13], color, 2);
+        const r = 7 * s;
+        if (glow) this.glowOutline(() => this.arcPath(o, r), glow, glowOpts);
+        this.circle(o, r, rgba(color, selected ? 0.45 : 0.25), color, 1.5);
+        this.line([o[0] - 3 * s, o[1]], [o[0] + 3 * s, o[1]], color, 1);
+        this.line([o[0], o[1] - 3 * s], [o[0], o[1] + 3 * s], color, 1);
+        this.line([o[0] + ax[0] * r, o[1] + ax[1] * r], [o[0] + ax[0] * 13 * s, o[1] + ax[1] * 13 * s], color, 2);
         if (selected && selection.size === 1) {
           const k = this.pointKnob(pose, i);
           this.ctx.save();
           this.ctx.setLineDash([2, 3]);
-          this.line([o[0] + ax[0] * 13, o[1] + ax[1] * 13], k, color, 1);
+          this.line([o[0] + ax[0] * 13 * s, o[1] + ax[1] * 13 * s], k, color, 1);
           this.ctx.restore();
           this.circle(k, 4.5, rgba(color, 0.6), color, 1.5);
         }
         return;
       }
       if (len < 4) {
-        if (glow) this.glowOutline(() => this.arcPath(o, 6), glow, glowOpts);
-        this.circle(o, 6, rgba(color, 0.35), color, 1.5);
+        if (glow) this.glowOutline(() => this.arcPath(o, 6 * s), glow, glowOpts);
+        this.circle(o, 6 * s, rgba(color, 0.35), color, 1.5);
         return;
       }
-      const w = Math.min(12, Math.max(3, len * 0.1));
+      const w = Math.min(12, Math.max(3, len * 0.1)) * s;
       const n = [(-dir[1] / len) * w, (dir[0] / len) * w];
       const mid = [o[0] + dir[0] * 0.18, o[1] + dir[1] * 0.18];
       const shape = [o, [mid[0] + n[0], mid[1] + n[1]], t, [mid[0] - n[0], mid[1] - n[1]]];
@@ -1024,6 +1026,7 @@ export class Viewport {
   hitBone(pose, pos) {
     const app = this.app;
     if (!app.showBones || app.hideOverlays) return null;
+    const s = app.prefs?.get('view.boneSize') ?? 1;
     let best = null;
     app.doc.bones.forEach((b, i) => {
       const m = pose.world[i];
@@ -1033,7 +1036,7 @@ export class Viewport {
       const t = this.toScreen(m.apply([b.length, 0]));
       const d = distToSegment(pos, o, t);
       const len = Math.hypot(t[0] - o[0], t[1] - o[1]);
-      const reach = len < 4 ? (isPointBone(b) ? 9 : 8) : Math.min(12, Math.max(5, len * 0.1));
+      const reach = Math.max(5, (len < 4 ? (isPointBone(b) ? 9 : 8) : Math.min(12, Math.max(5, len * 0.1))) * s);
       if (d <= reach && (best === null || d < best.d)) best = { d, i };
     });
     return best ? best.i : null;

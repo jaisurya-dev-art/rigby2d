@@ -3,12 +3,10 @@
 // File access goes through a platform file system (see platform.js); PNG coding uses canvas.
 
 
-import { Animation, setKey } from '../core/animation.js';
 import { atlasFilter, parseAtlas, regionPlacement, textureFilterOf, writeAtlas } from '../core/atlas.js';
 import { readSkeletonBinary, writeSkeletonBinary } from '../core/binary.js';
 import { isSkeletonJson, readSkeletonJson, writeSkeletonJson } from '../core/interop.js';
 
-import { STEPPED } from '../core/curve.js';
 import { transform } from '../core/math.js';
 import { writeSceneManifest } from '../core/scene.js';
 import { Pose } from '../core/pose.js';
@@ -540,68 +538,23 @@ export async function importPsd(file, doc, images, info = {}) {
  * Aseprite's frame durations. Returns { layers, images, animations, skipped }.
  */
 export async function importAseprite(file, bone, doc, images, info = {}) {
-  const { readAseprite, asepriteParts } = await import('./aseprite.js');
+  const { readAseprite, asepriteParts, addAsepriteParts } = await import('./aseprite.js');
   const parts = asepriteParts(readAseprite(file.bytes), stem(fileName(file.name)) || 'animation');
   if (!parts.slots.length) throw new Error('no layer shows any pixels');
-  const { width: cw, height: ch } = parts;
-  const setup = new Pose(doc);
-  const toBone = setup.world[bone].inverse();
-  const slotIndex = [];
-  const names = [];
-  let pictures = 0;
-  for (const part of parts.slots) {
-    const atts = part.pictures.map((pic, k) => {
-      const canvas = document.createElement('canvas');
-      canvas.width = pic.width;
-      canvas.height = pic.height;
-      canvas.getContext('2d').putImageData(new ImageData(new Uint8ClampedArray(pic.data.buffer, pic.data.byteOffset, pic.data.byteLength), pic.width, pic.height), 0, 0);
-      const name = uniqueImageName(doc, images, k === 0 ? part.name : `${part.name}_${k + 1}`);
-      images.insert(name, canvas);
-      doc.images.push({ name, path: null, width: pic.width, height: pic.height });
-      const local = toBone.apply(layerCenter({ x: pic.x, y: pic.y, width: pic.width, height: pic.height }, cw, ch));
-      pictures++;
-      return makeAttachment(name, name, transform(local[0], local[1], 0), pic.width, pic.height);
-    });
-    const slot = makeSlot(doc.uniqueSlotName(part.name), bone, atts[0]);
-    slot.attachments = atts;
-    slot.blend = part.blend;
-    const first = part.shown[0];
-    slot.attachment = part.hidden || first < 0 ? null : atts[first].name;
-    doc.slots.push(slot);
-    slotIndex.push(doc.slots.length - 1);
-    names.push(atts.map((a) => a.name));
-  }
-  // Animations: stepped image-swap keys on the layers whose picture changes over the frames. A
-  // variant animation also shows its hidden layer; with variants, every animation hides the other
-  // hidden layers at its start, so one never stays on after another animation played.
-  const variants = parts.animations.some((a) => a.variant !== null);
-  for (const anim of parts.animations) {
-    const name = uniqueName(anim.name, (n) => doc.animations.some((a) => a.name === n));
-    const animation = new Animation(name, anim.duration);
-    parts.slots.forEach((part, s) => {
-      const shownHere = !part.hidden || anim.variant === s;
-      if (!shownHere) {
-        if (variants) setKey(animation.slotTimelineMut(slotIndex[s]).attachment, 0, null, STEPPED);
-        return;
-      }
-      // Unchanged from the setup pose throughout: no keys needed.
-      const setupShown = part.hidden ? -1 : part.shown[0];
-      if (anim.steps.every((st) => part.shown[st.frame] === setupShown)) return;
-      const keys = animation.slotTimelineMut(slotIndex[s]).attachment;
-      let last;
-      for (const { frame, time } of anim.steps) {
-        const shown = part.shown[frame];
-        if (shown === last) continue;
-        setKey(keys, time, shown < 0 ? null : names[s][shown], STEPPED);
-        last = shown;
-      }
-    });
-    doc.animations.push(animation);
-  }
+  const result = addAsepriteParts(parts, doc, bone, (base, pic) => {
+    const canvas = document.createElement('canvas');
+    canvas.width = pic.width;
+    canvas.height = pic.height;
+    canvas.getContext('2d').putImageData(new ImageData(new Uint8ClampedArray(pic.data.buffer, pic.data.byteOffset, pic.data.byteLength), pic.width, pic.height), 0, 0);
+    const name = uniqueImageName(doc, images, base);
+    images.insert(name, canvas);
+    doc.images.push({ name, path: null, width: pic.width, height: pic.height });
+    return name;
+  });
   // Aseprite art is pixel art, drawn at its real pixel size: keep it sharp at 1 unit per pixel.
   info.pixelScale = 1;
   if (doc.name === 'untitled') doc.name = stem(fileName(file.name));
-  return { layers: parts.slots.length, images: pictures, animations: parts.animations.length, baked: parts.baked, skipped: parts.skipped };
+  return result;
 }
 
 /** The largest side an imported SVG is drawn at (canvas limits, and memory for many layers). */

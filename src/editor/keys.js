@@ -11,7 +11,7 @@ import { statusMessage } from './i18n.js';
 // on-canvas preview), not on the shared document. A detached window runs these locally — so its
 // own dopesheet shows the overlay — instead of forwarding them to the editor like every other
 // shortcut. The paste's document change still ships to the editor as one undo step (panel.js).
-const LOCAL_ACTIONS = new Set(['edit.cutKeys', 'edit.copyKeys', 'edit.pasteKeys']);
+const LOCAL_ACTIONS = new Set(['edit.cutKeys', 'edit.copyKeys', 'edit.pasteKeys', 'edit.pasteKeysReversed']);
 
 /** True while the user is typing in a text field (only File shortcuts run then). */
 export const isTyping = (el) =>
@@ -74,6 +74,7 @@ export function runAction(app, action, ctx) {
     'edit.cutKeys': () => cutSelectedKeys?.(app),
     'edit.copyKeys': () => copySelectedKeys?.(app),
     'edit.pasteKeys': () => pasteKeys?.(app),
+    'edit.pasteKeysReversed': () => pasteKeys?.(app, { reversed: true }),
     'edit.delete': () => {
       if (viewport && (viewport.meshTool.deleteSelected() || viewport.shapeTool.deleteSelected())) return;
       if (app.selectedKeys.size) deleteSelectedKeys(app);

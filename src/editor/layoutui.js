@@ -6,7 +6,7 @@
 // is layouts.js; the windows are moved by panelsync.js.
 
 import { confirmDialog } from './platform.js';
-import { h, select, submenuItem, textField } from './widgets.js';
+import { h, select, textField } from './widgets.js';
 import { button, dialog, fieldRow, fields, hint } from './ui.js';
 import { PANELS } from './dock.js';
 import { assignHotkey, hotkeyLabel, loadLayouts, newLayoutId, removeLayout, renameLayout, saveLayouts, updatePanels, upsertLayout } from './layouts.js';
@@ -23,7 +23,7 @@ function summary(panels) {
   return ids.length ? ids.map((id) => t(PANELS[id]?.label ?? id)).join(', ') : t('all docked');
 }
 
-/** Items for the View ▸ Layouts submenu (rebuilt each time it opens, so it stays current). */
+/** The saved-layout items of the View ▸ Panels submenu (rebuilt each time it opens, so it stays current). */
 export function windowLayoutsSubmenu(ctx) {
   const layouts = loadLayouts();
   const { id: activeId, dirty } = ctx.sync.activeLayout();
@@ -46,11 +46,6 @@ export function windowLayoutsSubmenu(ctx) {
         })
       : [{ label: t('No saved layouts yet'), disabled: true, action: () => {} }]),
   ];
-}
-
-/** The entry to drop into the View menu (a submenu that unfolds to the right). */
-export function windowLayoutsMenuItem(ctx) {
-  return submenuItem(t('Layouts'), () => windowLayoutsSubmenu(ctx), { title: t('Save and load where the panels sit and how big they are (on the desktop, popped-out panel windows too)') });
 }
 
 function loadLayout(ctx, layout) {
@@ -149,7 +144,7 @@ function openManageLayouts(ctx) {
               unsaved ? h('span', { class: 'layout-badge', title: t('The windows moved since this layout was saved') }, t('unsaved')) : null,
             );
           })
-        : [h('p', { class: 'weak' }, t('No saved layouts yet. Use View ▸ Layouts ▸ Save current layout.'))]),
+        : [h('p', { class: 'weak' }, t('No saved layouts yet. Use View ▸ Panels ▸ Save current layout.'))]),
     );
   };
   render();

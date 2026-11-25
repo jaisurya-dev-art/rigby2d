@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
-// MCP tools for Rigby AutoRig (layered artwork to an editable rig) and animation retargeting
-// (an animation made for one character, played by another).
+// MCP tools for Rigby AutoRig (layered artwork to an editable rig), Aseprite import and animation
+// retargeting (an animation made for one character, played by another).
 
 import fs from 'node:fs/promises';
 import path from 'node:path';
@@ -9,6 +9,8 @@ import { PART_ROLES, autoRig, findParts } from '../core/autorig.js';
 import { makeAttachment, makeSlot, Skeleton, uniqueName } from '../core/model.js';
 import { transform } from '../core/math.js';
 import { mapBones, retarget } from '../core/retarget.js';
+import { addAsepriteParts, asepriteParts, readAseprite } from '../editor/aseprite.js';
+import { applyPixelArt } from '../editor/io.js';
 import { EDIT, OUTPUT, OVERWRITE, edit, save } from './edits.js';
 import { alphaOf as alphaChannel, decodePng, encodePng } from './png.js';
 import { ToolError } from './protocol.js';
@@ -93,6 +95,34 @@ export async function importPsd(file) {
   }
   if (!doc.slots.length) throw new ToolError('The PSD has no pixel layers.');
   return { doc, entries, pixels };
+}
+
+/**
+ * Imports an Aseprite file like the editor's File > Import > Aseprite: every image layer becomes a
+ * slot on the root bone, placed where it was drawn, with one image per different picture it shows,
+ * and each tag (or the whole timeline) an animation that swaps them at Aseprite's frame durations.
+ * Pixel art stays sharp (pixel grid 1, nearest filtering). Returns { doc, entries, report }.
+ */
+export async function importAsepriteFile(file) {
+  const name = path.basename(file, path.extname(file));
+  let parts;
+  try {
+    parts = asepriteParts(readAseprite(new Uint8Array(await fs.readFile(file))), name || 'animation');
+  } catch (e) {
+    throw new ToolError(`Cannot read the Aseprite file: ${e.message}`);
+  }
+  if (!parts.slots.length) throw new ToolError('No layer of the Aseprite file shows any pixels.');
+  const doc = new Skeleton();
+  doc.name = name;
+  const entries = new Map();
+  const report = addAsepriteParts(parts, doc, 0, (base, pic) => {
+    const image = uniqueName(base.trim() || 'image', (n) => doc.images.some((i) => i.name === n));
+    entries.set(`images/${image}.png`, encodePng({ width: pic.width, height: pic.height, data: pic.data }));
+    doc.images.push({ name: image, path: null, width: pic.width, height: pic.height });
+    return image;
+  });
+  applyPixelArt(doc, false, 1);
+  return { doc, entries, report };
 }
 
 /** Alpha of a work file's images, decoded when first asked for. */
@@ -203,6 +233,41 @@ export function createRiggingTools(ws) {
           if (p.format !== 'rigby') throw new ToolError('AutoRig needs artwork with its images: a .rigby work file, or a PSD (psd_file).');
           return rig(doc, alphaFromEntries(p.entries));
         });
+      },
+    },
+    {
+      name: 'import_aseprite',
+      title: 'Import an Aseprite file',
+      description:
+        "Turns an Aseprite file (.aseprite / .ase) into a new .rigby work file, like the editor's File > Import > Aseprite: every image layer becomes a slot on the root bone where it was drawn, with one image per different picture it shows; each tag (or the whole timeline) becomes an animation that swaps the images at Aseprite's frame durations. Hidden layers become variant animations. Pixel art stays sharp. Rig it afterwards with autorig or the edit tools.",
+      inputSchema: {
+        type: 'object',
+        properties: {
+          aseprite_file: { type: 'string', description: 'The Aseprite file (.aseprite or .ase) inside the workspace.' },
+          output: { ...OUTPUT, description: 'The new .rigby work file to write.' },
+          overwrite: OVERWRITE,
+        },
+        required: ['aseprite_file', 'output'],
+        additionalProperties: false,
+      },
+      annotations: EDIT,
+      handler: async (args) => {
+        if (!['.aseprite', '.ase'].includes(path.extname(args.aseprite_file).toLowerCase())) throw new ToolError("'aseprite_file' must be an .aseprite or .ase file.");
+        if (path.extname(args.output).toLowerCase() !== '.rigby') throw new ToolError("'output' must be a .rigby work file.");
+        const { doc, entries, report } = await importAsepriteFile(await ws.existing(args.aseprite_file));
+        const err = doc.validate();
+        if (err) throw new ToolError(`The import would make an invalid project: ${err}`);
+        const target = await ws.writable(args.output);
+        if (!args.overwrite && (await fs.stat(target).then(() => true, () => false))) throw new ToolError(`${args.output} already exists. Pass overwrite: true to replace it.`);
+        const file = await save(ws, { file: target, format: 'rigby', doc, entries }, {});
+        return {
+          file,
+          slots: doc.slots.map((sl) => sl.name),
+          images: report.images,
+          animations: doc.animations.map((a) => ({ name: a.name, duration: Math.round(a.duration * 1000) / 1000 })),
+          ...(report.baked.length ? { baked: report.baked } : {}),
+          ...(report.skipped.length ? { skipped: report.skipped } : {}),
+        };
       },
     },
     {

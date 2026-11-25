@@ -25,11 +25,11 @@ import * as tree from './tree.js';
 import { clearViewState, hasViewState } from './visibility.js';
 import * as inspector from './inspector.js';
 import * as rigPanel from './rigpanel.js';
-import { findPanel, rigLeftDock } from './docklayout.js';
+import { findPanel } from './docklayout.js';
 import { GraphEditor } from './graph.js';
-import { Dopesheet, copySelectedKeys, cutSelectedKeys, deleteSelectedKeys, exitSelectModes, pasteKeys, renderControls } from './timeline.js';
+import { Dopesheet, copySelectedKeys, cutSelectedKeys, deleteSelectedKeys, exitSelectModes, pasteKeys, renderControls, setPastePreviewReversed } from './timeline.js';
 import { Viewport } from './viewport.js';
-import { checkItem, closeMenu, h, isMenuOpen, popupMenu, submenuItem, widgetState } from './widgets.js';
+import { checkItem, closeMenu, h, isMenuOpen, menuHeading, menuNote, popupMenu, submenuItem, widgetState } from './widgets.js';
 import { uiIcon } from './ui.js';
 import * as log from './log.js';
 import { toggleLogWindow, windowOpen as logOpen } from './logwindow.js';
@@ -37,7 +37,7 @@ import { Scripts } from './scripting/scriptui.js';
 import { createTutorials } from './tutorials/index.js';
 import { openAiConnect } from './aiconnect.js';
 import { installPanelSync } from './panelsync.js';
-import { windowLayoutsMenuItem } from './layoutui.js';
+import { windowLayoutsSubmenu } from './layoutui.js';
 import { installDock } from './dockui.js';
 import { openDemoPicker } from './demoui.js';
 import { DEMOS } from './demos.js';
@@ -163,86 +163,71 @@ function menus() {
       { label: t('Cut keys'), shortcut: sc('edit.cutKeys'), disabled: !app.selectedKeys.size, action: () => cutSelectedKeys(app) },
       { label: t('Copy keys'), shortcut: sc('edit.copyKeys'), disabled: !app.selectedKeys.size, action: () => copySelectedKeys(app) },
       { label: t('Paste keys'), shortcut: sc('edit.pasteKeys'), action: () => pasteKeys(app) },
+      { label: t('Paste keys reversed'), shortcut: sc('edit.pasteKeysReversed'), action: () => pasteKeys(app, { reversed: true }), onpreview: setPastePreviewReversed },
       'separator',
       { label: t('Deselect'), shortcut: sc('select.none'), action: () => app.deselect() },
       { label: t('Delete selection'), shortcut: sc('edit.delete'), action: () => edit.deleteSelection(app) },
       'separator',
       { label: t('Preferences…'), shortcut: sc('app.preferences'), action: () => showPreferences() },
     ],
+    // Three groups, each under a heading: what the viewport draws, the timeline, and the window.
     View: [
-      h(
-        'label',
-        { class: 'item' },
-        h('input', {
-          type: 'checkbox',
-          checked: app.showBones,
-          onchange: (e) => {
-            app.showBones = e.target.checked;
+      menuHeading(t('Viewport')),
+      checkItem(t('Show bones'), app.showBones, (on) => {
+        app.showBones = on;
+        app.changed();
+      }),
+      // A live slider: the menu leaves the viewport in view, so the bones resize as it moves.
+      submenuItem(t('Bone size'), () => {
+        const pct = (v) => `${Math.round(v * 100)}%`;
+        const value = h('span', { class: 'menu-slider-value' }, pct(app.prefs.get('view.boneSize')));
+        const input = h('input', {
+          type: 'range',
+          min: 0.5,
+          max: 2.5,
+          step: 0.1,
+          value: app.prefs.get('view.boneSize'),
+          'aria-label': t('Bone size'),
+          oninput: (e) => {
+            app.prefs.set('view.boneSize', Number(e.target.value));
+            value.textContent = pct(app.prefs.get('view.boneSize'));
             app.changed();
           },
-        }),
-        ` ${t('Show bones')}`,
-      ),
-      // Attachment shapes over the art, one switch per kind (remembered between sessions).
-      ...[
-        ['clipping', t('Show clipping masks')],
-        ['boundingbox', t('Show bounding boxes')],
-        ['path', t('Show paths')],
-        ['point', t('Show points')],
-      ].map(([kind, label]) =>
-        h(
-          'label',
-          { class: 'item' },
-          h('input', {
-            type: 'checkbox',
-            checked: app.showShapes[kind],
-            onchange: (e) => {
-              app.showShapes[kind] = e.target.checked;
-              saveShapes(app.showShapes);
+        });
+        return [
+          h('div', { class: 'item menu-slider', title: t('How big bones are drawn in the viewport. Smaller for tiny characters, bigger for large ones.') }, input, value),
+          {
+            label: t('Normal size (100%)'),
+            action: () => {
+              app.prefs.reset('view.boneSize');
               app.changed();
             },
-          }),
-          ` ${label}`,
-        ),
+          },
+        ];
+      }),
+      // Attachment shapes over the art, one switch per kind (remembered between sessions).
+      submenuItem(
+        t('Shapes'),
+        () =>
+          [
+            ['clipping', t('Clipping masks')],
+            ['boundingbox', t('Bounding boxes')],
+            ['path', t('Paths')],
+            ['point', t('Points')],
+          ].map(([kind, label]) =>
+            checkItem(label, app.showShapes[kind], (on) => {
+              app.showShapes[kind] = on;
+              saveShapes(app.showShapes);
+              app.changed();
+            }),
+          ),
+        { title: t('Which attachment shapes are drawn over the art. A selected shape always shows.') },
       ),
       has(app, 'outputFrame') &&
-      h(
-        'label',
-        { class: 'item' },
-        h('input', {
-          type: 'checkbox',
-          checked: app.showFrame,
-          onchange: (e) => {
-            app.showFrame = e.target.checked;
-            app.changed();
-          },
-        }),
-        ` ${t('Show output frame')}`,
-      ),
-      h(
-        'label',
-        { class: 'item', title: t('Off: the timeline hides in Setup mode, so the viewport gets its room') },
-        h('input', {
-          type: 'checkbox',
-          checked: app.timelineInSetup,
-          onchange: (e) => {
-            app.timelineInSetup = e.target.checked;
-            saveSetting('rigby.view.timelineInSetup', app.timelineInSetup ? '1' : '0');
-            app.changed();
-          },
-        }),
-        ` ${t('Timeline in Setup mode')}`,
-      ),
-      checkItem(
-        t('Tween lines'),
-        app.tweenLines,
-        (on) => {
-          app.tweenLines = on;
-          saveSetting('rigby.view.tweenLines', on ? '1' : '0');
+        checkItem(t('Show output frame'), app.showFrame, (on) => {
+          app.showFrame = on;
           app.changed();
-        },
-        { title: t('Draws a thin line in the dopesheet between keys that blend into each other; stepped keys and image switches get none') },
-      ),
+        }),
       submenuItem(t('Bone links'), () => {
         // One of three: picking one unticks the others (and the ticked one can't be unticked).
         const choices = [
@@ -290,16 +275,41 @@ function menus() {
           if (clearViewState(app.doc)) app.changed();
         },
       },
-      { label: logOpen() ? t('Hide log') : t('Log'), action: () => toggleLogWindow() },
-      submenuItem(t('Panel layout'), () => [
-        { label: t('Rig on the left'), title: t('Skins, constraints, meshes and events in a Rig panel left of the viewport'), action: () => applyPreset(rigLeftDock(), t('Rig on the left')) },
-        checkItem(t('Rig panel'), dock.has('rig'), (on) => (on ? dock.open('rig') : dock.close('rig')), { title: t('Skins, constraints, meshes and events in their own panel') }),
+      'separator',
+      menuHeading(t('Timeline')),
+      checkItem(
+        t('Timeline in Setup mode'),
+        app.timelineInSetup,
+        (on) => {
+          app.timelineInSetup = on;
+          saveSetting('rigby.view.timelineInSetup', on ? '1' : '0');
+          app.changed();
+        },
+        { title: t('Off: the timeline hides in Setup mode, so the viewport gets its room') },
+      ),
+      checkItem(
+        t('Tween lines'),
+        app.tweenLines,
+        (on) => {
+          app.tweenLines = on;
+          saveSetting('rigby.view.tweenLines', on ? '1' : '0');
+          app.changed();
+        },
+        { title: t('Draws a thin line in the dopesheet between keys that blend into each other; stepped keys and image switches get none') },
+      ),
+      'separator',
+      menuHeading(t('Window')),
+      // Everything about where panels sit: the optional Rig panel, saved layouts, and the reset.
+      submenuItem(t('Panels'), () => [
+        checkItem(t('Rig panel'), dock.has('rig'), (on) => (on ? dock.open('rig') : dock.close('rig'))),
+        menuNote(t('Skins, constraints, meshes and events in a panel of their own, left of the viewport, out of the tree')),
+        // Save and recall where the panels sit and their sizes (on the desktop, the popped-out windows too).
+        ...(sync ? ['separator', menuHeading(t('Saved layouts')), ...windowLayoutsSubmenu({ app, sync })] : []),
         'separator',
-        { label: t('Reset layout'), title: t('Put the panels back in their default places and sizes'), action: () => resetLayout() },
+        { label: t('Reset panels'), title: t('Put the panels back in their default places and sizes'), action: () => resetLayout() },
       ]),
       { label: t('Themes…'), title: t('Make your own theme, or import one'), action: () => openThemes(app) },
-      // Save and recall where the panels sit and their sizes (on the desktop, the popped-out windows too).
-      ...(sync ? [windowLayoutsMenuItem({ app, sync })] : []),
+      { label: logOpen() ? t('Hide log') : t('Log'), action: () => toggleLogWindow() },
       'separator',
       { label: t('Fit the skeleton in view'), shortcut: sc('view.fit'), action: () => (app.frameRequest = true) },
       { label: t('Zoom to 100%'), shortcut: sc('view.actual'), action: () => zoomActual() },
@@ -606,13 +616,7 @@ app.prefs.onChange((key) => {
   app.changed();
 });
 
-/** View ▸ Panel layout ▸ a preset. */
-function applyPreset(layout, name) {
-  dock.set(layout);
-  app.setStatus(statusMessage('Panel layout: {name}', { name }));
-}
-
-/** View ▸ Reset layout: today's arrangement and region sizes. */
+/** View ▸ Panels ▸ Reset panels: today's arrangement and region sizes. */
 function resetLayout() {
   dock.reset();
   for (const s of splitters) s.reset();

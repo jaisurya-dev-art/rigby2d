@@ -84,6 +84,42 @@ export function makeClipboard(groups) {
   return { origin, span: last - origin, groups: out, count: out.reduce((s, g) => s + g.keys.length, 0) };
 }
 
+/** A bezier curve played backwards: the control points swap ends and mirror. */
+function reverseCurve(curve) {
+  const m = (v) => Math.round((1 - v) * 1e9) / 1e9; // no float dust (1 - 0.42 = 0.58, not 0.5800000000000001)
+  const flip = ([x1, y1, x2, y2]) => [m(x2), m(y2), m(x1), m(y1)];
+  if (curve && typeof curve === 'object') {
+    if (Array.isArray(curve.bezier)) return { bezier: flip(curve.bezier) };
+    if (Array.isArray(curve.beziers)) return { beziers: curve.beziers.map(flip) };
+  }
+  return curve; // linear, and stepped (which still holds the earlier value)
+}
+
+/**
+ * The clipboard played backwards, for "Paste keys reversed": in every track the keys keep their
+ * values but run from last to first over the same span, and each eased segment is mirrored so the
+ * motion plays back exactly in reverse. The copied area (`cover`) is mirrored too.
+ */
+export function reverseClipboard(clip) {
+  const end = clip.origin + clip.span;
+  const groups = clip.groups.map((g) => {
+    const keys = [...g.keys].sort((a, b) => a.time - b.time);
+    const out = keys.map((k, i) => {
+      const nk = cloneKey(k);
+      nk.time = clip.origin + (end - k.time);
+      // A key's curve shapes the segment after it. Reversed, the segment that ended at this key
+      // now starts from it, so it takes the previous key's curve, mirrored. The last key (the
+      // first one copied) keeps the original last key's curve toward whatever follows the paste.
+      if ('curve' in k) nk.curve = i > 0 ? reverseCurve(keys[i - 1].curve) : JSON.parse(JSON.stringify(keys[keys.length - 1].curve));
+      return nk;
+    });
+    return { track: g.track, keys: out.reverse() };
+  });
+  const out = { ...clip, groups };
+  if (clip.cover) out.cover = { start: clip.span - clip.cover.end, end: clip.span - clip.cover.start };
+  return out;
+}
+
 /**
  * How a paste at `pasteTime` (seconds) lands against an animation of `duration` seconds at `fps`.
  * Frame counts are compared so a key sitting exactly on the last frame still counts as fitting.

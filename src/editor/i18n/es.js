@@ -192,6 +192,7 @@ export default {
   "An Inkscape, Affinity or Illustrator drawing: each layer becomes a part, placed where it was drawn": "Un dibujo de Inkscape, Affinity o Illustrator: cada capa se convierte en una parte, colocada donde se dibujó",
   "Partly supported": "Compatible en parte",
   "Paste keys": "Pegar claves",
+  "Paste keys reversed": "Pegar claves invertidas",
   "Path attachments": "Adjuntos de trayectoria",
   "Path constraints": "Restricciones de trayectoria",
   "Phaser 3.60 or newer: this.load.rigby() and this.add.rigby(). One file for your game.": "Phaser 3.60 o posterior: this.load.rigby() y this.add.rigby(). Un solo archivo para tu juego.",

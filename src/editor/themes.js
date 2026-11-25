@@ -191,7 +191,6 @@ export function themeTokens(theme) {
     '--tl-bg': t.app0, '--tl-ruler': t.panel, '--tl-row': t.app, '--tl-row-hi': mix(t.app, t.accent, 0.16),
     '--tl-line': t.line, '--tl-tick': t.textFaint, '--tl-label': t.textMuted, '--tl-text': t.text, '--tl-dim': t.textFaint,
     '--tl-key': t.text,
-    '--mark-bowl': light ? t.text : '#f4f4f5',
     '--ruler-bg': t.app0, '--ruler-corner': t.control, '--ruler-tick': t.lineStrong, '--ruler-text': t.textMuted, '--graph-grid': mix(t.app0, overlay, light ? 0.06 : 0.05), '--graph-axis': mix(t.app0, overlay, light ? 0.22 : 0.18),
   };
   return tokens;
@@ -248,6 +247,8 @@ export function applyTheme(theme, doc = globalThis.document) {
   applied.set(doc, Object.keys(tokens));
   root.style.colorScheme = plain ? '' : normalizeTheme(theme).scheme;
   root.dataset.theme = plain ? DEFAULT_THEME : theme.id || 'custom';
+  // Light or dark, for what follows the theme by kind rather than by colour (the logo).
+  root.dataset.scheme = plain ? 'dark' : normalizeTheme(theme).scheme;
   doc.defaultView?.dispatchEvent(new Event('themechange'));
 }
 

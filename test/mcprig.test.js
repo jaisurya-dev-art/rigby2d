@@ -14,6 +14,8 @@ import { createEditTools } from '../src/mcp/edits.js';
 import { createRiggingTools } from '../src/mcp/rigging.js';
 import { Workspace, createTools } from '../src/mcp/tools.js';
 import { CHARACTER } from './fixtures/figure.js';
+import { blink } from './fixtures/aseprite-writer.js';
+import { loadProject } from '../src/mcp/tools.js';
 
 /** A PSD with one ellipse layer per part (feet at the bottom of a 400 x 640 canvas). */
 function psd(layers, scale = 1) {
@@ -97,4 +99,25 @@ test('mcp retarget: an animation moves to a bigger character with other names', 
   assert.ok(Math.abs(y(b, 'hip') - y(b0, 'hip') - 40 * r.scale) < 1, `${y(b, 'hip') - y(b0, 'hip')}`);
   assert.deepEqual(b.eventsUpToTime, [{ time: 0.5, name: 'land' }]);
   await assert.rejects(tools.retarget_animation({ source: 'a.rigby', path: 'b.rigby', animation: 'jump', name: 'jump_big' }), /already has an animation/);
+});
+
+test('mcp import_aseprite: layers, pictures and tags become a work file', async () => {
+  const { tmp, tools } = await setup();
+  await fs.writeFile(path.join(tmp, 'hero.aseprite'), blink());
+  await assert.rejects(tools.import_aseprite({ aseprite_file: 'hero.aseprite', output: 'hero.json' }), /\.rigby/);
+  const r = await tools.import_aseprite({ aseprite_file: 'hero.aseprite', output: 'hero.rigby' });
+  assert.deepEqual(r.slots, ['body', 'eyes', 'ghost', 'shade']);
+  assert.equal(r.images, 5, 'body, two eye pictures, the ghost and the shade');
+  assert.deepEqual(r.animations.map((a) => a.name), ['blink', 'bounce', 'blink · ghost', 'bounce · ghost']);
+  assert.equal(r.animations[0].duration, 0.45);
+
+  const p = await loadProject(path.join(tmp, 'hero.rigby'));
+  assert.equal(p.doc.pixelGrid, 1, 'pixel art stays sharp');
+  assert.equal(p.doc.textureFilter, 'nearest');
+  assert.ok(p.entries.has('images/eyes_2.png'));
+  const eyes = p.doc.slots.findIndex((s) => s.name === 'eyes');
+  const blinkAnim = p.doc.animations.find((a) => a.name === 'blink');
+  assert.deepEqual(blinkAnim.slotTimelineMut(eyes).attachment.map((k) => k.value), ['eyes', 'eyes_2', 'eyes']);
+
+  await assert.rejects(tools.import_aseprite({ aseprite_file: 'hero.aseprite', output: 'hero.rigby' }), /already exists/);
 });

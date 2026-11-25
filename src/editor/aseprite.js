@@ -3,10 +3,15 @@
 // (github.com/aseprite/aseprite/blob/main/docs/ase-file-specs.md) and the plan an import follows:
 // every image layer becomes a slot, every different picture it shows becomes an image, and the
 // frames (or each tag) become an animation that swaps them. No DOM: tested under Node; io.js turns
-// the pixels into canvases.
+// the pixels into canvases, and the MCP server into PNG files (addAsepriteParts).
 
+import { Animation, setKey } from '../core/animation.js';
+import { STEPPED } from '../core/curve.js';
+import { transform } from '../core/math.js';
+import { makeAttachment, makeSlot, uniqueName } from '../core/model.js';
+import { Pose } from '../core/pose.js';
 import { inflateRaw } from './zip.js';
-import { alphaBounds } from './pngset.js';
+import { alphaBounds, layerCenter } from './pngset.js';
 import { tn } from './i18n.js';
 
 const HEADER_MAGIC = 0xa5e0;
@@ -438,4 +443,62 @@ export function asepriteParts(ase, stem = 'animation') {
   });
   animations.push(...variants);
   return { width: ase.width, height: ase.height, slots: shownSlots, animations, baked, skipped: [...skipped] };
+}
+
+/**
+ * Adds what asepriteParts made to `doc`, on `bone`: a slot per layer placed where it was drawn, one
+ * attachment per picture it shows, and an animation per tag (or for the whole timeline) of stepped
+ * image-swap keys at Aseprite's frame durations. `addPicture(baseName, picture)` stores a picture's
+ * pixels and its entry in doc.images, and returns the image name it used. Returns the counts.
+ */
+export function addAsepriteParts(parts, doc, bone, addPicture) {
+  const { width: cw, height: ch } = parts;
+  const toBone = new Pose(doc).world[bone].inverse();
+  const slotIndex = [];
+  const names = [];
+  let pictures = 0;
+  for (const part of parts.slots) {
+    const atts = part.pictures.map((pic, k) => {
+      const name = addPicture(k === 0 ? part.name : `${part.name}_${k + 1}`, pic);
+      const local = toBone.apply(layerCenter({ x: pic.x, y: pic.y, width: pic.width, height: pic.height }, cw, ch));
+      pictures++;
+      return makeAttachment(name, name, transform(local[0], local[1], 0), pic.width, pic.height);
+    });
+    const slot = makeSlot(doc.uniqueSlotName(part.name), bone, atts[0]);
+    slot.attachments = atts;
+    slot.blend = part.blend;
+    const first = part.shown[0];
+    slot.attachment = part.hidden || first < 0 ? null : atts[first].name;
+    doc.slots.push(slot);
+    slotIndex.push(doc.slots.length - 1);
+    names.push(atts.map((a) => a.name));
+  }
+  // Animations: stepped image-swap keys on the layers whose picture changes over the frames. A
+  // variant animation also shows its hidden layer; with variants, every animation hides the other
+  // hidden layers at its start, so one never stays on after another animation played.
+  const variants = parts.animations.some((a) => a.variant !== null);
+  for (const anim of parts.animations) {
+    const name = uniqueName(anim.name, (n) => doc.animations.some((a) => a.name === n));
+    const animation = new Animation(name, anim.duration);
+    parts.slots.forEach((part, s) => {
+      const shownHere = !part.hidden || anim.variant === s;
+      if (!shownHere) {
+        if (variants) setKey(animation.slotTimelineMut(slotIndex[s]).attachment, 0, null, STEPPED);
+        return;
+      }
+      // Unchanged from the setup pose throughout: no keys needed.
+      const setupShown = part.hidden ? -1 : part.shown[0];
+      if (anim.steps.every((st) => part.shown[st.frame] === setupShown)) return;
+      const keys = animation.slotTimelineMut(slotIndex[s]).attachment;
+      let last;
+      for (const { frame, time } of anim.steps) {
+        const shown = part.shown[frame];
+        if (shown === last) continue;
+        setKey(keys, time, shown < 0 ? null : names[s][shown], STEPPED);
+        last = shown;
+      }
+    });
+    doc.animations.push(animation);
+  }
+  return { layers: parts.slots.length, images: pictures, animations: parts.animations.length, baked: parts.baked, skipped: parts.skipped };
 }
