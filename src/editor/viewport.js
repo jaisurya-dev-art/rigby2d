@@ -18,6 +18,7 @@ import { GLOW_COLORS } from './draworderdnd.js';
 import { h, popupMenu } from './widgets.js';
 import { statusMessage, t, tn } from './i18n.js';
 import { canvasColor } from './canvascolors.js';
+import { isBoneHidden, isBoneLocked, isSlotHidden, isSlotLocked } from './visibility.js';
 
 const SELECTED = 'rgb(255,170,40)';
 const BONE = 'rgb(110,200,230)';
@@ -59,7 +60,13 @@ export class Viewport {
     canvas.addEventListener('pointercancel', (e) => this.onPointerUp(e));
     canvas.addEventListener('wheel', (e) => this.onWheel(e), { passive: false });
     canvas.addEventListener('contextmenu', (e) => e.preventDefault());
-    canvas.addEventListener('pointerleave', () => app.setHover(null));
+    canvas.addEventListener('pointerleave', () => {
+      app.setHover(null);
+      if (this.meshTool.hover) {
+        this.meshTool.hover = null;
+        if (app.meshEdit?.mode === 'weights') app.changed({ pose: true });
+      }
+    });
     // Delete / Backspace while dragging a guide removes it (capture phase, to beat the keymap).
     window.addEventListener('keydown', (e) => this.onGuideKey(e), true);
   }
@@ -282,7 +289,7 @@ export class Viewport {
         for (const q of e.pose.quads(e.doc)) this.drawQuad({ ...q, image: imageKey(actor.id, q.image), color: q.color.map((c, k) => c * tint[k]) }, e.doc, e.pose, dpr, false);
       }
       const q = quadAt.get(i);
-      if (q) this.drawQuad(q, app.doc, pose, dpr, true);
+      if (q && !isSlotHidden(app.doc, i)) this.drawQuad(q, app.doc, pose, dpr, true);
     }
   }
 
@@ -327,6 +334,7 @@ export class Viewport {
     for (let i = 0; i < doc.slots.length; i++) {
       const att = pose.slotAttachment(doc, i);
       if (!att || !(att.type in colors)) continue;
+      if (isSlotHidden(doc, i) && i !== selected) continue;
       // Kinds turned off in the View menu, unless selected (so it can still be edited).
       if (shown && shown[att.type] === false && i !== selected) continue;
       const color = att.color ? `rgb(${att.color.slice(0, 3).map((c) => Math.round(c * 255)).join(',')})` : colors[att.type];
@@ -507,10 +515,49 @@ export class Viewport {
     ctx.stroke();
   }
 
+  /**
+   * Dashed links from bones to their parents (View ▸ Bone links), so a hierarchy reads where a child
+   * does not start at its parent's tip: from the parent's origin to the child's. Drawn under the bones.
+   */
+  drawBoneLinks(pose, selection) {
+    const app = this.app;
+    const mode = app.boneLinks ?? 'selected';
+    if (mode === 'off') return;
+    const bones = app.doc.bones;
+    let show = null;
+    if (mode === 'selected') {
+      if (!selection.size) return;
+      show = new Set();
+      for (const i of selection) {
+        // The selected bone's ancestors, and its direct children.
+        for (let b = i; b !== null && b !== undefined && !show.has(b); b = bones[b].parent) show.add(b);
+        bones.forEach((b, c) => b.parent === i && show.add(c));
+      }
+    }
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.setLineDash([4, 4]);
+    bones.forEach((b, i) => {
+      const p = b.parent;
+      if (p === null || p === undefined || (show && !(show.has(i) && show.has(p)))) return;
+      if (isBoneHidden(app.doc, i) || isBoneHidden(app.doc, p)) return;
+      const c = this.toScreen(pose.world[i].apply([0, 0]));
+      const tip = this.toScreen(pose.world[p].apply([bones[p].length, 0]));
+      // A child that starts at its parent's tip is already visibly joined.
+      if (!isPointBone(bones[p]) && Math.hypot(c[0] - tip[0], c[1] - tip[1]) < 3) return;
+      const o = this.toScreen(pose.world[p].apply([0, 0]));
+      const color = boneRgb(bones[i].color) ?? BONE;
+      this.line(o, c, rgba(color, show ? 0.8 : 0.45), 1);
+    });
+    ctx.restore();
+  }
+
   drawBones(pose) {
     const app = this.app;
     const selection = new Set(app.selectedBones());
+    this.drawBoneLinks(pose, selection);
     app.doc.bones.forEach((b, i) => {
+      if (isBoneHidden(app.doc, i)) return;
       const selected = selection.has(i);
       const hovered = i === app.hoverBone;
       const color = selected ? SELECTED : (boneRgb(b.color) ?? BONE);
@@ -981,6 +1028,7 @@ export class Viewport {
     app.doc.bones.forEach((b, i) => {
       const m = pose.world[i];
       if (!m) return; // a pose from before the skeleton changed (#25)
+      if (isBoneHidden(app.doc, i) || isBoneLocked(app.doc, i)) return;
       const o = this.toScreen(m.apply([0, 0]));
       const t = this.toScreen(m.apply([b.length, 0]));
       const d = distToSegment(pos, o, t);
@@ -1021,6 +1069,7 @@ export class Viewport {
     const app = this.app;
     for (const q of [...quads].reverse()) {
       const att = q.attachment;
+      if (doc === app.doc && (isSlotHidden(doc, q.slot) || isSlotLocked(doc, q.slot))) continue;
       if (q.kind === 'mesh') {
         const t = q.triangles;
         for (let i = 0; i + 2 < t.length; i += 3) {
@@ -1109,7 +1158,7 @@ export class Viewport {
     if (this.meshTool.active) {
       this.meshTool.hover = pos;
       if (this.meshPress === this.meshTool && e.buttons & 1) this.meshTool.move(pos);
-      else if (app.meshEdit?.mode === 'weights') app.changed(); // brush outline follows the cursor
+      else if (app.meshEdit?.mode === 'weights') app.changed({ pose: true }); // brush outline and readout follow the cursor
     }
     if (this.meshPress === this.shapeTool && e.buttons & 1) this.shapeTool.move(pos);
     if (this.meshPress === this.warpTool && e.buttons & 1) this.warpTool.move(pos);
@@ -1169,7 +1218,9 @@ export class Viewport {
     const app = this.app;
     if (!hit || app.mode !== Mode.Animate || selBone(hit) !== null) return hit;
     const slot = selSlot(hit);
-    return slot === null ? hit : { bone: app.doc.slots[slot].bone };
+    if (slot === null) return hit;
+    const bone = app.doc.slots[slot].bone;
+    return isBoneLocked(app.doc, bone) ? null : { bone };
   }
 
   /** Click: select what is under the cursor; Ctrl adds or removes bones; empty space deselects. */
@@ -1549,6 +1600,7 @@ export class Viewport {
     const inside = (p) => p[0] >= x0 && p[0] <= x1 && p[1] >= y0 && p[1] <= y1;
     const hits = [];
     app.doc.bones.forEach((bone, i) => {
+      if (isBoneHidden(app.doc, i) || isBoneLocked(app.doc, i)) return;
       const o = this.toScreen(pose.world[i].apply([0, 0]));
       const t = this.toScreen(pose.world[i].apply([bone.length, 0]));
       if (inside(o) || inside(t)) hits.push(i);

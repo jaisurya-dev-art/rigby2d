@@ -46,8 +46,9 @@ async function mcpTools() {
   const { createRiggingTools } = await import('../../src/mcp/rigging.js');
   const { createScriptTools } = await import('../../src/mcp/scripting.js');
   const { createSceneTools } = await import('../../src/mcp/scene.js');
+  const { authoringReadTools } = await import('../../src/mcp/authoring.js');
   const ws = new Workspace([repo]);
-  const tools = [...createTools(ws), ...createEditTools(ws), ...createFilmTools(ws), ...createRiggingTools(ws), ...createSceneTools(ws), ...createScriptTools(ws)];
+  const tools = [...createTools(ws), ...createEditTools(ws), ...createFilmTools(ws), ...createRiggingTools(ws), ...createSceneTools(ws), ...createScriptTools(ws), ...authoringReadTools(ws)];
   const out = [`The server has **${tools.length} tools**. Parameters marked **required** must be given; the others are optional.`, ''];
   for (const t of tools) {
     const writes = t.annotations?.readOnlyHint === false;

@@ -22,6 +22,7 @@ import { blockNativeContextMenu, desktopFile, isDesktop, launchFile, memoryFs, o
 import * as edit from './edit.js';
 import * as toolbar from './toolbar.js';
 import * as tree from './tree.js';
+import { clearViewState, hasViewState } from './visibility.js';
 import * as inspector from './inspector.js';
 import * as rigPanel from './rigpanel.js';
 import { findPanel, rigLeftDock } from './docklayout.js';
@@ -242,6 +243,23 @@ function menus() {
         },
         { title: t('Draws a thin line in the dopesheet between keys that blend into each other; stepped keys and image switches get none') },
       ),
+      submenuItem(t('Bone links'), () => {
+        // One of three: picking one unticks the others (and the ticked one can't be unticked).
+        const choices = [
+          ['off', t('Off'), t('No links between bones')],
+          ['selected', t('Selected branch'), t('Links from the selected bones up to the root and down to their children')],
+          ['all', t('All bones'), t('A link from every bone to its parent')],
+        ];
+        const items = choices.map(([value, label, title]) =>
+          checkItem(label, app.boneLinks === value, () => {
+            app.boneLinks = value;
+            saveSetting('rigby.view.boneLinks', value);
+            items.forEach((item, k) => (item.querySelector('input').checked = choices[k][0] === value));
+            app.changed();
+          }, { title }),
+        );
+        return items;
+      }),
       checkItem(
         t('Hide overlays'),
         app.hideOverlays,
@@ -264,6 +282,14 @@ function menus() {
             ),
           ]
         : []),
+      {
+        label: t('Show and unlock all'),
+        title: t('Shows every bone and image hidden from the tree, and unlocks every locked one'),
+        disabled: !hasViewState(app.doc),
+        action: () => {
+          if (clearViewState(app.doc)) app.changed();
+        },
+      },
       { label: logOpen() ? t('Hide log') : t('Log'), action: () => toggleLogWindow() },
       submenuItem(t('Panel layout'), () => [
         { label: t('Rig on the left'), title: t('Skins, constraints, meshes and events in a Rig panel left of the viewport'), action: () => applyPreset(rigLeftDock(), t('Rig on the left')) },

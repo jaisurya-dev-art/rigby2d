@@ -14,6 +14,7 @@ import { poseAt, writeTargets } from '../core/keying.js';
 import { findAttachment } from '../core/model.js';
 import { VISEMES, keyLipSync, matchMouths, readTiming, tidy, timeTextByLoudness, visemeCues } from '../core/lipsync.js';
 import { EDIT, NAME, OUTPUT, OVERWRITE, animationOf, boneIndex, checkName, edit, roundTime, slotIndex } from './edits.js';
+import { filmFxSummary, filmFxTools } from './filmfx.js';
 import { ToolError } from './protocol.js';
 import { PATH } from './tools.js';
 
@@ -59,6 +60,7 @@ export function filmSummary(doc) {
     poses: doc.poses.map((p) => ({ name: p.name, bones: Object.keys(p.bones), slots: Object.keys(p.slots) })),
     faceControls: doc.controllers.map((c) => ({ name: c.name, from: c.from ?? 'setup pose', to: c.to, value: c.value })),
     audio: doc.audio.map((t) => ({ sound: t.sound, animation: t.animation, offset: t.offset, volume: t.volume })),
+    effects: filmFxSummary(doc),
   };
 }
 
@@ -498,6 +500,7 @@ export function createFilmTools(ws) {
         return { slot: slot.name, attachment: slot.attachment, color: rgbaToHex(slot.color) + Math.round(slot.color[3] * 255).toString(16).padStart(2, '0') };
       },
     ),
+    ...filmFxTools(tool, requireWorkFile),
   ];
 }
 

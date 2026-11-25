@@ -80,6 +80,8 @@ jobs:
       - run: node runtimes/defold/package.mjs
       # Ren'Py runtime: the runtime zip (drops into a game's game/ folder) and the demo game.
       - run: node runtimes/renpy/package.mjs
+      # SDL3 runtime: the SDL3 layer with the C++ runtime core, as a CMake project.
+      - run: node runtimes/sdl3/package.mjs
       # Unity runtime: the C# core against the JavaScript runtime (golden tests), then the package
       # as a tarball for Unity's "Install package from tarball".
       - run: node runtimes/unity/com.rigby2d.unity/Tests~/run.mjs
@@ -116,6 +118,7 @@ jobs:
           cp runtimes/rust/target/wasm32-unknown-unknown/release/rigby_wasm.wasm "release/rigby2d-pixi-${V}.wasm"
           cp dist-cocos/rigby2d-cocos-*.zip release/
           cp "runtimes/renpy/dist/rigby2d-renpy-${V}.zip" "runtimes/renpy/dist/rigby2d-renpy-demo-${V}.zip" release/
+          cp "runtimes/sdl3/dist/rigby2d-sdl3-${V}.zip" release/
           ls -la release
 
       - id: unsigned

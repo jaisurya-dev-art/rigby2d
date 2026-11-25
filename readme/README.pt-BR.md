@@ -82,18 +82,20 @@
 
 ## Recursos
 
-- **AutoRig**: um PSD em camadas vira um rig editável em um passo: ossos, articulações, malhas que dobram e IK.
-- **Ferramentas de rig completas**: ossos, malhas com pesos, malhas vinculadas, sequências de imagens, skins, eventos, recortes e caminhos, com restrições de IK, transformação, caminho, física e controle deslizante.
-- **Animação**: modos Setup e Animate, folha de animação, editor de curvas com alças Bézier, papel cebola, biblioteca de poses, controles faciais e redirecionamento de animações entre personagens.
-- **Espaço de filme**: 4K, timecode, câmera animável, faixas de áudio, sincronia labial por visemas com transcrição Whisper no próprio computador, e renderização em sequências PNG, WebM com transparência e MP4.
-- **Composição de cenas**: vários personagens em um palco como atores com clipes no estilo de editor de vídeo (corte, velocidade, loops, transições, áudio próprio), camadas pintadas com paralaxe e uma câmera; reproduzidas em jogos por todos os runtimes.
-- **Seu trabalho está seguro**: salvamentos que nunca deixam um arquivo pela metade, backups `.rigby1` como o `.blend1` do Blender, salvamento automático e recuperação após falhas que devolve o trabalho não salvo na próxima abertura.
-- **Tela de boas-vindas, atualização automática e runtimes pelo editor**: novos projetos, trabalhos recentes, projetos iniciais e lições ao abrir; atualizações assinadas no app para desktop; *Arquivo ▸ Obter runtimes* para Unity, Godot, Defold, Cocos Creator e Phaser.
-- **Preferências e complementos**: idioma (inglês, japonês, chinês, coreano, espanhol, português), escala da interface, atalhos, passos de desfazer, backups e salvamento automático, e uma galeria de complementos em Python que rodam isolados.
-- **Vindo de outras ferramentas**: abre exportações do Spine (com um verificador de migração) e projetos do DragonBones.
-- **Scripts em Python** e ferramentas próprias, e um **servidor MCP** integrado para que assistentes de IA como o Claude inspecionem, façam o rig e animem seus projetos.
-- **JSON de esqueleto (3.8, 4.2, 4.3) e `.skel` binário sem perdas**, com atlas de texturas, reproduzidos pelos **runtimes JavaScript, Phaser, Rust, C++ (Defold), Unity, Godot e Cocos Creator**.
-- **Tutoriais** e projetos de demonstração integrados (**NILA**, **Rigbytron** e uma **cena** com os dois), também na [página de demos](https://rigby2d.com/demos/) com as exportações prontas para jogos (conteúdo de demonstração © Rigby2D, sob a própria [licença de demos](../branding/DEMO-LICENSE.md)).
+- **AutoRig**: um PSD, SVG ou arquivo do Aseprite em camadas vira um rig editável em um passo: ossos, articulações, malhas que dobram e IK.
+- **Uma interface com uma só linguagem de design**: encaixe qualquer painel em qualquer lugar ou nas abas de outro, um painel Rig, layouts salvos e temas (Rigby Dark, Mammoth, Rigby Light ou o seu próprio `.rigbytheme`).
+- **Ferramentas completas de rigging**: ossos e ossos de ponto, malhas com pesos com pontos travados e furos, malhas vinculadas, sequências de imagens, skins, eventos, recortes e caminhos, com restrições de IK, transformação, caminho, física e slider que nunca saltam. Teste uma pose ou deixe o osso balançar enquanto pinta pesos, e mova uma articulação depois de montar o rig sem mover a arte.
+- **Giro 2.5D e deformadores de warp**: uma única alça gira e inclina uma cabeça em profundidade, cada lado pode ser moldado à mão e treliças aninhadas dobram qualquer malha. Tudo é reproduzido em todos os runtimes.
+- **Animação**: modos Setup e Animate, dopesheet com linhas de interpolação, editor de curvas com alças Bézier, onion skin, biblioteca de poses, controles faciais e retargeting entre personagens.
+- **Espaço de filme**: 4K, timecode, câmera animável, faixas de áudio, lip-sync por visemas com transcrição Whisper no próprio dispositivo e **efeitos de filme** (sombra projetada, sombreamento de luz, brilho, desfoque, correção de cor, partículas, desfoque de movimento, profundidade de campo), renderizados na GPU em sequências PNG, WebM com transparência e MP4.
+- **Composição de cenas**: vários personagens em um palco como atores com clipes no estilo de editor de vídeo (corte, velocidade, loops, crossfades, áudio próprio), camadas pintadas com paralaxe e uma câmera, reproduzidos em jogos pelos runtimes. Veja [Cenas](https://rigby2d.com/docs/scenes.html).
+- **Seu trabalho fica seguro**: salvamentos que nunca deixam um arquivo pela metade, backups `.rigby1` como o `.blend1` do Blender, salvamento automático e recuperação após falhas. Veja [Salvamento e recuperação](https://rigby2d.com/docs/recovery.html).
+- **Preferências e complementos**: idioma (inglês, japonês, chinês, coreano, espanhol, português), escala da interface, atalhos com teclas Reference ou no estilo do Blender e uma galeria de complementos em Python que rodam isolados. Veja [Complementos](https://rigby2d.com/docs/addons.html).
+- **Vindo de outras ferramentas**: abre exportações do Spine (com um verificador de migração), projetos do DragonBones e arquivos do Aseprite (as tags viram animações). Veja [Vindo do Spine](https://rigby2d.com/docs/migrating-from-spine.html) e [Vindo do DragonBones](https://rigby2d.com/docs/migrating-from-dragonbones.html).
+- **Automação**: scripts em Python, a linha de comando `rigby` (converter, validar, exportar, AutoRig e renders na GPU a partir de scripts e CI; veja [Linha de comando](https://rigby2d.com/docs/cli.html)) e um **servidor MCP** integrado para que assistentes de IA como o Claude inspecionem, façam rig e animem seus projetos.
+- **JSON de esqueleto (3.8, 4.2, 4.3) e `.skel` binário sem perdas**, com atlas de texturas, reproduzidos por nove runtimes: **JavaScript, Phaser, PixiJS, Rust, C++ (Defold), Unity, Godot, Cocos Creator e Python (Ren'Py)**, todos conferidos quadro a quadro com o editor. *Arquivo ▸ Obter runtimes* os instala.
+- **Sprite sheets** para engines que reproduzem quadros: empacotadas com JSON no estilo TexturePacker/Aseprite, um atlas do Defold ou quadros PNG, com loops que se emendam.
+- **Tela de boas-vindas, tutoriais e demos**: lições no app, atualizações automáticas assinadas no desktop e projetos de demonstração (o **Mammoth**, **NILA**, **Rigbytron** e uma **cena** com os dois), também na [página de demos](https://rigby2d.com/demos/) com as exportações prontas para jogos (conteúdo de demonstração © Rigby2D, sob sua própria [licença de demos](../branding/DEMO-LICENSE.md)).
 
 ## Como começar
 

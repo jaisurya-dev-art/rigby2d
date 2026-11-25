@@ -199,6 +199,11 @@ export class App {
     this.selectedKeys.clear();
     this._status = statusMessage('Welcome to Rigby2D. Open a demo (File ▸ Open demo), or import a PSD, an SVG or PNGs.');
     this.showBones = true;
+    /**
+     * Dashed links from each bone to its parent in the viewport (View ▸ Bone links): 'off', 'selected'
+     * (the selected bones' branch: up to the root and down to their children) or 'all'.
+     */
+    this.boneLinks = ['off', 'selected', 'all'].includes(loadSetting('rigby.view.boneLinks', 'selected')) ? loadSetting('rigby.view.boneLinks', 'selected') : 'selected';
     /** Shows the output frame (resolution and framing) in the viewport. */
     this.showFrame = false;
     /**

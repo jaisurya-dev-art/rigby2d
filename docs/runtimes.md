@@ -10,6 +10,7 @@ characters on a stage with a moving camera and parallax.
 <a href="#godot" data-mark="godot"><strong>Godot <span class="status">Complete</span></strong><code>RigbySkeleton2D</code> and <code>RigbyScene2D</code> nodes, a GDExtension on the Rust core. <small>Godot 4.3+ · Windows, macOS, Linux</small></a>
 <a href="#unity" data-mark="unity"><strong>Unity <span class="status">Complete</span></strong><code>RigbySkeleton</code> and <code>RigbyScene</code> components in C#, multi-core, no garbage. <small>Unity 2021.3+ and Unity 6 · every platform</small></a>
 <a href="#defold" data-mark="defold"><strong>Defold <span class="status">New</span></strong>A native extension: the runtime in C++, golden-tested like the Rust one, a model component the Defold editor plays live, and a Lua player. <small>Defold 1.14+ · every platform</small></a>
+<a href="#sdl3"><strong>SDL3 <span class="status">Preview</span></strong>C++ for SDL3's 2D renderer: the Defold runtime's golden-tested core, drawn with <code>SDL_RenderGeometry</code>. <small>SDL 3.2+ · CMake · every SDL3 renderer</small></a>
 <a href="#cocos-creator" data-mark="cocos"><strong>Cocos Creator <span class="status">Complete</span></strong>A <code>RigbySkeleton</code> component for 2D scenes, drawn in order with sprites and UI. <small>Cocos Creator 3.8 · web and native</small></a>
 <a href="#phaser" data-mark="phaser"><strong>Phaser <span class="status">Complete</span></strong>A plugin: <code>this.add.rigby()</code>, on the JavaScript runtime. <small>Phaser 3.60+ and 4 · WebGL</small></a>
 <a href="#pixijs" data-mark="pixijs"><strong>PixiJS <span class="status">New</span></strong>Native PixiJS display objects, batched with your sprites. <small>PixiJS 8 · WebGL and WebGPU</small></a>
@@ -209,6 +210,32 @@ weapons and effects on bones, and `rigby2d.new_scene({ scene = "/assets/intro/in
 plays a whole scene, with the stage's camera to follow. The demo (`rigby2d-defold-demo` on the Releases page) plays
 Rigbytron as a Rigby2D model and NILA from a script. See the [Defold guide](../runtimes/defold/README.md) for every call.
 
+## SDL3
+
+For C++ games on [SDL3](https://libsdl.org)'s 2D renderer. Download `rigby2d-sdl3-<version>.zip`
+from the release (a CMake project), or build `runtimes/sdl3` from the repository:
+
+```cpp
+#include "rigby_sdl.h"
+
+rigby::sdl::Skeleton nila;                       // load once, share between characters
+std::string err;
+nila.load(renderer, "nila.skel", "nila.atlas", err);
+rigby::sdl::Character c(nila);
+c.state.set_animation(nila.data, 0, "idle", true, 0.0);
+
+// every frame
+c.update(dt);
+c.draw(renderer, rigby::sdl::View(640, 600, 0.5f));   // origin on screen, pixels per unit
+```
+
+The animation runtime is the C++ core of the [Defold](#defold) runtime, tested against the editor
+frame by frame; the SDL3 layer loads the atlas pages as textures (PNG with SDL 3.4, or SDL3_image on 3.2) and draws with
+`SDL_RenderGeometry`, so every SDL3 renderer works. Screen blending uses a custom SDL blend mode
+(the software renderer falls back to additive), and two-colour tint is not drawn. See the
+[SDL3 guide](https://github.com/jaisurya-dev-art/rigby2d/blob/main/runtimes/sdl3/README.md) and the
+example player in `runtimes/sdl3/example`.
+
 ## Cocos Creator
 
 The `RigbySkeleton` component for Cocos Creator 3.8: a 2D renderer, so under a Canvas it draws in
@@ -318,6 +345,18 @@ editor's [lip-sync](lip-sync.md). They blink, can look at the mouse (pupils and
 by frame, so it needs no native library and runs everywhere Ren'Py does. See the
 [Ren'Py guide](https://github.com/jaisurya-dev-art/rigby2d/blob/main/runtimes/renpy/README.md) and
 the demo game in `runtimes/renpy/demo`.
+
+## Community runtimes
+
+Runtimes built outside the project. They live on their own repositories, under their own licences,
+and their authors maintain them; report their issues there.
+
+| Runtime | Engine | Notes |
+| --- | --- | --- |
+| [RigAxis](https://github.com/zrurf/RigAxis) by zrurf | Unreal Engine 5 | `.skel`, skeleton `.json` and `.atlas` importers, tracks with crossfades, Blueprint events, a bone follower, scenes with parallax and camera. Bundles the Rigby2D Rust runtime. Tested on Windows. |
+
+Built something on Rigby2D? Tell us on [Discord](https://discord.gg/PGgaTwbNH) or open an issue, and we'll
+list it here.
 
 ## Performance
 

@@ -93,6 +93,8 @@ add up to 1.
 | **Mode** | *Add* or *Subtract* (hold <kbd>Shift</kbd> to subtract while painting). |
 
 Drag over the mesh to paint. Colors show the paint bone's weight: red is full weight, blue none.
+Hover a vertex to see every bone that moves it, with its share as a percentage, strongest first
+(for example *shin 87% · thigh 13%*).
 **Unbind** removes the weights; the mesh then follows its slot's bone only.
 
 ### Testing weights while you paint

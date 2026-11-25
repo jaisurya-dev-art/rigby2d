@@ -17,6 +17,7 @@ import { zip } from '../editor/zip.js';
 import { ToolError } from './protocol.js';
 import { PATH, loadProject } from './tools.js';
 import { constraintTools } from './constrainttools.js';
+import { authoringTools } from './authoring.js';
 
 const CURVES = { linear: LINEAR, stepped: STEPPED, easeIn: EASE_IN, easeOut: EASE_OUT, easeInOut: EASE_IN_OUT };
 const CHANNELS = ['rotate', 'translate', 'scale', 'shear'];
@@ -384,9 +385,10 @@ export function createEditTools(ws) {
       },
     },
     ...constraintTools(base, EDIT),
+    ...authoringTools(base, EDIT),
   ];
   // Each tool loads the project, applies its edit, validates and saves.
-  for (const t of tools) t.handler = (args) => edit(ws, args, (doc) => t.apply(doc, args));
+  for (const t of tools) t.handler = (args) => edit(ws, args, (doc, p) => t.apply(doc, args, p));
   return [...tools, batchTool(ws, tools)];
 }
 
@@ -440,11 +442,11 @@ function batchTool(ws, tools) {
         const problems = checkArguments(op.schema, o);
         if (problems.length) throw new ToolError(`Operation ${i + 1} (${o.op}): ${problems.join('; ')}.`);
       });
-      return edit(ws, args, (doc) => {
+      return edit(ws, args, (doc, p) => {
         const counts = {};
         args.operations.forEach((o, i) => {
           try {
-            ops.get(o.op).tool.apply(doc, o);
+            ops.get(o.op).tool.apply(doc, o, p);
           } catch (e) {
             throw new ToolError(`Operation ${i + 1} (${o.op}) failed, so nothing was saved: ${e.message}`);
           }

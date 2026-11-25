@@ -92,6 +92,9 @@ The *View* menu chooses what is drawn over the art:
 - *Timeline in Setup mode* keeps the timeline on screen in Setup mode.
 - *Tween lines* draws a thin line in the dopesheet between keys that blend into each other (on by
   default). See [The dopesheet](animating.md#the-dopesheet).
+- *Bone links* draws a dashed line from a bone to its parent wherever the child doesn't start at its
+  parent's tip, so the hierarchy reads in the viewport: *Selected branch* (the default: the selected
+  bones up to the root and down to their children), *All bones* or *Off*.
 
 It also has the **Log** window, *Panel layout*, *Layouts* (see [Saved layouts](#saved-layouts)) and
 zoom commands. The viewport
@@ -101,7 +104,8 @@ renderer and the shortcut preset are in [Preferences](preferences.md) (*Interfac
 
 The tree has collapsible sections:
 
-- **Skeleton**: bones in their hierarchy, each with its slots. A slot shows its visible attachment
+- **Skeleton**: bones in their hierarchy, each with its slots. Guide lines join each bone to its
+  children and run down past open branches, so deep rigs stay readable. A slot shows its visible attachment
   next to its name; click **▸** (with the number of attachments) to list them all, and click one to
   show it (in Animate mode, that sets an image-swap key). **+ Bone** adds a child to the selected
   bone, as long as its parent, and **+ Point** a [point bone](bones-and-slots.md#point-bones) at its
@@ -118,6 +122,20 @@ The tree has collapsible sections:
 
 Bones also have an onion-skin button that limits onion skinning to that bone and its children.
 See [Onion skin](onion-skin.md).
+
+### Show and lock
+
+Hover a bone or slot row for its **eye** and **lock** buttons:
+
+- **Eye**: hides the bone (or the slot's images) in the viewport, to work on what's behind it. A
+  hidden row is dimmed in the tree.
+- **Lock**: the viewport no longer picks it, so clicks and box selections go to what's around it.
+  You can still select it in the tree and edit it there.
+- **Alt+click** on a bone's eye or lock applies it to the whole branch: the bone, every bone below it
+  and all their slots.
+
+Both only change the editor's view: renders, exports and the runtimes always show everything. They
+are saved in the work file and are part of undo. *View ▸ Show and unlock all* clears them all.
 
 ## Inspector
 
@@ -227,7 +245,9 @@ kept on this computer (in the browser editor, in this browser).
 
 In the desktop app, the Timeline, Tree and Inspector can each be popped out into a window of its own,
 for example on a second monitor. Everything stays in sync with the main window, and a
-[saved layout](#saved-layouts) remembers where the windows are.
+[saved layout](#saved-layouts) remembers where the windows are. The pin button at the top right of a
+popped-out window keeps it above every other window, other apps included, and it stays pinned the
+next time that panel pops out.
 
 ## The Help menu
 

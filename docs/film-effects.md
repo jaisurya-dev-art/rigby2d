@@ -65,3 +65,9 @@ include film effects, on the GPU. Motion blur multiplies the rendering work by i
 
 Projects on a [pixel grid](importing-art.md#pixel-grid) draw film effects at full resolution instead of through
 the grid.
+
+## With an AI assistant
+
+The [MCP server](mcp.md) sets the same effects: `set_film_effects` (light, grade, motion blur, depth
+of field), `set_layer_effects` (a bone's branch or a slot) and `set_emitter` (particles).
+`inspect_project` lists them under `film.effects`.
