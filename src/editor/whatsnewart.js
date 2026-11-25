@@ -54,7 +54,9 @@ function stage(draw, { interactive = false } = {}) {
     }
     ctx.setTransform(scale, 0, 0, scale, 0, 0);
     ctx.clearRect(0, 0, W, H);
-    draw(ctx, (now - t0) / 1000, state, now);
+    // The rAF timestamp is the frame's start, which can fall just before t0: never pass negative
+    // seconds, or `Math.floor(s * 4) % 2` style frame picks index -1 and crash (issue #48).
+    draw(ctx, Math.max(0, now - t0) / 1000, state, now);
     requestAnimationFrame(frame);
   };
   requestAnimationFrame(frame);
