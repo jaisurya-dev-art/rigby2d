@@ -182,6 +182,9 @@ export function menuNote(text) {
 
 export function submenuItem(label, items, { title } = {}) {
   const btn = h('button', { class: 'item submenu', title: title ?? null }, h('span', null, label), h('span', { class: 'shortcut submenu-arrow' }, icon('chevron-right', 14)));
+  // Kept for command search (commandsearch.js), which lists the items of every submenu too.
+  btn.submenuLabel = label;
+  btn.submenuItems = items;
   let child = null;
   const closeChild = () => {
     child?.remove();

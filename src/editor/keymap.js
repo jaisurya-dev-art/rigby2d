@@ -54,6 +54,7 @@ export const ACTIONS = [
   ['file.export', tn('Export')],
   ['menu.close', tn('Close menus')],
   ['app.preferences', tn('Preferences')],
+  ['app.commands', tn('Find a command')],
 ];
 
 const COMMON = {
@@ -70,6 +71,7 @@ const COMMON = {
   'edit.delete': ['delete', 'backspace'],
   'menu.close': ['escape'],
   'app.preferences': ['ctrl+,'],
+  'app.commands': ['ctrl+shift+p'],
   'view.bones': ['ctrl+shift+b'],
 };
 
@@ -143,6 +145,7 @@ export const PRESETS = {
       'select.none': ['alt+a', 'escape'],
       'view.fit': ['f', 'home'],
       'view.frameSelected': ['.'],
+      'app.commands': ['f3', 'ctrl+shift+p'],
       'select.all': ['a', 'ctrl+a'],
       'select.parent': ['['],
       'select.children': [']'],

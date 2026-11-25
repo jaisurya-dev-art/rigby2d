@@ -8,7 +8,7 @@ import { Window, getCurrentWindow } from '@tauri-apps/api/window';
 
 import './style.css';
 import { App, Mode, saveSetting, saveShapes } from './app.js';
-import { shortcutLabel, withShortcut } from './keymap.js';
+import { ACTIONS as KEY_ACTIONS, shortcutLabel, withShortcut } from './keymap.js';
 import { icon } from './icons.js';
 import { installKeyboard, isTyping, runAction } from './keys.js';
 import { openRenderDialog } from './renderui.js';
@@ -22,6 +22,8 @@ import { blockNativeContextMenu, desktopFile, isDesktop, launchFile, memoryFs, o
 import * as edit from './edit.js';
 import * as toolbar from './toolbar.js';
 import * as viewfilter from './viewfilter.js';
+import { menuCommands } from './commandmatch.js';
+import { openCommandSearch } from './commandsearch.js';
 import * as tree from './tree.js';
 import { clearViewState, hasViewState } from './visibility.js';
 import * as inspector from './inspector.js';
@@ -330,6 +332,7 @@ function menus() {
       'separator',
       { label: t('Welcome screen…'), action: () => openWelcome(app, { tutorials, whatsNew }) },
       { label: t('Tutorials…'), action: () => tutorials.open() },
+      { label: t('Find a command…'), shortcut: sc('app.commands'), action: () => openCommands() },
       { label: t('Keyboard shortcuts…'), action: () => openShortcuts(app) },
       { label: t('Documentation'), shortcut: '↗', action: () => openExternal(LINKS.docs) },
       { label: t('Connect an AI assistant…'), action: () => openAiConnect() },
@@ -647,7 +650,23 @@ sync = installPanelSync(app, {
 });
 const dopesheet = new Dopesheet(app, $('#dopesheet'), $('#dopesheet canvas'));
 const graph = new GraphEditor(app, $('#graph'), $('#graph canvas'));
-installKeyboard(app, { viewport, zoomActual, deleteSelectedKeys, copySelectedKeys, cutSelectedKeys, pasteKeys, exitSelectModes, closeMenu, isMenuOpen, openPreferences: () => showPreferences() });
+const keyCtx = { viewport, zoomActual, deleteSelectedKeys, copySelectedKeys, cutSelectedKeys, pasteKeys, exitSelectModes, closeMenu, isMenuOpen, openPreferences: () => showPreferences(), openCommands: () => openCommands() };
+installKeyboard(app, keyCtx);
+
+/** Command search: every menu item (with its menu as the path) and every keyboard action not already in a menu. */
+function openCommands() {
+  closeMenu();
+  openCommandSearch(() => {
+    const out = [];
+    for (const [title, items] of Object.entries(menus())) out.push(...menuCommands(items, [t(title)]));
+    const named = new Set(out.map((c) => c.label));
+    for (const [id, label] of KEY_ACTIONS) {
+      if (named.has(t(label)) || id === 'app.commands' || id === 'menu.close') continue;
+      out.push({ label: t(label), path: [t('Keyboard')], shortcut: shortcutLabel(app.keymap, id), run: () => runAction(app, id, keyCtx) });
+    }
+    return out;
+  });
+}
 const renderMenuBar = buildMenuBar();
 
 // In the browser, leaving the page (the home link, closing the tab) asks first when there are unsaved

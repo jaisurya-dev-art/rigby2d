@@ -96,6 +96,7 @@ export function runAction(app, action, ctx) {
     'file.export': () => app.exportSkeletonJson(app.saveVersion()),
     'menu.close': () => closeMenu?.(),
     'app.preferences': () => ctx.openPreferences?.(),
+    'app.commands': () => ctx.openCommands?.(),
   };
   handlers[action]?.();
 }

@@ -19,6 +19,14 @@ gets most of the room; *View ▸ Panels* saves an arrangement you like.
 | 8 | **Dopesheet / Graph** | Keys over time, or their curves. |
 | 9 | **Status bar** | Messages, rig statistics and zoom, and the **Log** button. |
 
+## Command search
+
+Press <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd> (<kbd>F3</kbd> with the Blender-like keys), or
+*Help ▸ Find a command…*, and type part of what you want: *frame*, *paste rev*, *tween*. It lists every
+menu item, submenus included, with the menu it sits in and its shortcut, and every keyboard action.
+Use <kbd>↑</kbd> <kbd>↓</kbd> and <kbd>Enter</kbd> to run one, <kbd>Esc</kbd> to close. Commands that
+can't run now (nothing selected, the wrong mode) are listed last and greyed out.
+
 ## Modes: Setup and Animate
 
 Every edit means one of two things, chosen by the mode:
@@ -311,6 +319,7 @@ next time that panel pops out.
 | --- | --- |
 | *What's new in 0.6…* | A short tour of the latest big release. |
 | *Welcome screen…* | New projects, recent work, demos and lessons. |
+| *Find a command…* | [Command search](#command-search): run any menu item or action by name. |
 | *Tutorials…*, *Keyboard shortcuts…* | Interactive lessons, and every shortcut with a search. |
 | *Documentation* | These pages. |
 | *Connect an AI assistant…* | Sets up the [MCP server](mcp.md) for an AI assistant. |

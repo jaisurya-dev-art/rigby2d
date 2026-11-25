@@ -83,6 +83,7 @@ This table is generated from the editor's keymap, so it always matches the curre
 | Export | <kbd>Ctrl</kbd>+<kbd>E</kbd> | <kbd>Ctrl</kbd>+<kbd>E</kbd> |
 | Close menus | <kbd>Esc</kbd> | <kbd>Esc</kbd> |
 | Preferences | <kbd>Ctrl</kbd>+<kbd>,</kbd> | <kbd>Ctrl</kbd>+<kbd>,</kbd> |
+| Find a command | <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd> | <kbd>F3</kbd> or <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd> |
 
 <!-- /generated:shortcuts -->
 
