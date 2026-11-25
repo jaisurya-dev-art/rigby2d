@@ -97,6 +97,11 @@ export function runAction(app, action, ctx) {
     'menu.close': () => closeMenu?.(),
     'app.preferences': () => ctx.openPreferences?.(),
     'app.commands': () => ctx.openCommands?.(),
+    'edit.duplicate': () => edit.duplicateSelection(app),
+    'edit.mirrorDuplicate': () => edit.duplicateSelection(app, { mirror: true }),
+    'pose.copy': () => edit.copyPoseOfSelection(app),
+    'pose.paste': () => edit.pastePoseHere(app),
+    'pose.pasteFlipped': () => edit.pastePoseHere(app, { flipped: true }),
   };
   handlers[action]?.();
 }

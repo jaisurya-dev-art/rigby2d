@@ -38,8 +38,8 @@ test('binding a key adds it, and takes it from the action that had it', () => {
 });
 
 test('replacing a key keeps its place in the list', () => {
-  const { custom } = bindCombo(newCustom('blender'), 'view.fit', 'ctrl+h', 'f');
-  assert.deepEqual(customBindings(custom)['view.fit'], ['ctrl+h', 'home']);
+  const { custom } = bindCombo(newCustom('blender'), 'select.all', 'ctrl+h', 'a');
+  assert.deepEqual(customBindings(custom)['select.all'], ['ctrl+h', 'ctrl+a']);
 });
 
 test('changes that match the base preset are dropped', () => {

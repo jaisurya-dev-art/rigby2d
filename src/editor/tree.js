@@ -157,6 +157,8 @@ function boneMenu(app, bone, x, y) {
     { label: t('Rename…'), disabled: !setup, title: setup ? null : t('In Setup mode'), action: () => renameRow(app, t('Rename bone'), name, (n) => edit.renameBone(app, bone, n)) },
     { label: t('Add child bone'), disabled: !setup, action: () => edit.addChildBone(app, bone) },
     { label: t('Add point bone'), disabled: !setup, action: () => edit.addPointBone(app, bone) },
+    { label: t('Duplicate bone'), disabled: !setup || bone === 0, action: () => edit.duplicateSelection(app) },
+    { label: t('Mirror to the other side'), disabled: !setup || bone === 0, action: () => edit.duplicateSelection(app, { mirror: true }) },
     'separator',
     { label: hidden ? t('Show') : t('Hide'), action: view('hidden', false) },
     { label: locked ? t('Unlock') : t('Lock'), action: view('locked', false) },

@@ -30,6 +30,19 @@ closed or open, and hand drawings are part of it.
 Applying at less than 100% blends from the current pose toward the saved one: a half smile, a
 slight lean.
 
+## Copying and flipping a pose
+
+*Edit ▸ Copy pose* (<kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>C</kbd>) copies how the selected bones (every
+bone when none is selected) are posed at this frame. *Edit ▸ Paste pose* (<kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>V</kbd>)
+puts it back at the playhead: keys in Animate mode, the setup pose in Setup mode. Use it to hold a
+pose, or to reuse one in another animation.
+
+*Paste pose flipped* (<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Alt</kbd>+<kbd>V</kbd>) swaps left and
+right: the left arm's pose goes onto the right arm (by name: `_l`/`_r`, `.L`/`.R`, `left`/`right`) and
+centre bones turn the other way. Each bone's change from its setup pose is mirrored, so it works for
+any rig whose two sides were built as mirrors (for example with *Mirror to the other side*). That's
+the quick way to make the second half of a walk cycle.
+
 ## Face controls
 
 Face controls are sliders (in the Film workspace) that blend from one pose to another. Use them to

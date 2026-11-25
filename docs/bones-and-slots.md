@@ -21,6 +21,18 @@ Bones are created in **Setup mode**:
 Every project has a `root` bone at the origin. <kbd>Delete</kbd> removes the selected bone together
 with its children.
 
+### Duplicating and mirroring
+
+In Setup mode, select a bone and use *Edit ▸ Duplicate bone* (<kbd>Ctrl</kbd>+<kbd>D</kbd>;
+<kbd>Shift</kbd>+<kbd>D</kbd> with the Blender-like keys) or the tree's right-click menu. The copy has
+every bone below it and their slots, under the same parent, with `_copy` added to the names.
+
+*Edit ▸ Mirror to the other side* (<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>D</kbd>) builds the other
+side from one: select `arm_l`, and you get `arm_r` with its hand, mirrored across the vertical line
+through the root, with the images flipped and weighted meshes moved to the new bones. Side names
+follow the usual patterns (`_l`/`_r`, `.L`/`.R`, `l_`/`r_`, `left`/`right`); a name with no side gets
+`_mirror`, and a name that's already taken gets a number.
+
 ### Moving a joint after the rig is built
 
 To fix a joint that is in the wrong place, select the bone in Setup mode and move, turn or scale it

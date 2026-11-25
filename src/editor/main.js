@@ -7,7 +7,7 @@ import { emit } from '@tauri-apps/api/event';
 import { Window, getCurrentWindow } from '@tauri-apps/api/window';
 
 import './style.css';
-import { App, Mode, saveSetting, saveShapes } from './app.js';
+import { App, Mode, saveSetting, saveShapes, selBone } from './app.js';
 import { ACTIONS as KEY_ACTIONS, shortcutLabel, withShortcut } from './keymap.js';
 import { icon } from './icons.js';
 import { installKeyboard, isTyping, runAction } from './keys.js';
@@ -167,6 +167,13 @@ function menus() {
       { label: t('Copy keys'), shortcut: sc('edit.copyKeys'), disabled: !app.selectedKeys.size, action: () => copySelectedKeys(app) },
       { label: t('Paste keys'), shortcut: sc('edit.pasteKeys'), action: () => pasteKeys(app) },
       { label: t('Paste keys reversed'), shortcut: sc('edit.pasteKeysReversed'), action: () => pasteKeys(app, { reversed: true }), onpreview: setPastePreviewReversed },
+      'separator',
+      { label: t('Copy pose'), shortcut: sc('pose.copy'), title: t('The selected bones (or every bone) as they are posed now'), action: () => edit.copyPoseOfSelection(app) },
+      { label: t('Paste pose'), shortcut: sc('pose.paste'), disabled: !app.poseClipboard, action: () => edit.pastePoseHere(app) },
+      { label: t('Paste pose flipped'), shortcut: sc('pose.pasteFlipped'), disabled: !app.poseClipboard, title: t('Left and right swapped (bones named _l/_r, .L/.R, left/right), centre bones turned the other way'), action: () => edit.pastePoseHere(app, { flipped: true }) },
+      'separator',
+      { label: t('Duplicate bone'), shortcut: sc('edit.duplicate'), disabled: app.mode !== Mode.Setup || !(selBone(app.sel) > 0), title: t('The selected bone with every bone below it and their slots'), action: () => edit.duplicateSelection(app) },
+      { label: t('Mirror to the other side'), shortcut: sc('edit.mirrorDuplicate'), disabled: app.mode !== Mode.Setup || !(selBone(app.sel) > 0), title: t('A copy of the selected branch on the other side: arm_l becomes arm_r, mirrored'), action: () => edit.duplicateSelection(app, { mirror: true }) },
       'separator',
       { label: t('Select all bones'), shortcut: sc('select.all'), action: () => edit.selectRelated(app, 'all') },
       { label: t('Deselect'), shortcut: sc('select.none'), action: () => app.deselect() },

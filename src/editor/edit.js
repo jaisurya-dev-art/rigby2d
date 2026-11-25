@@ -14,6 +14,7 @@ import { CHANNEL_FIELDS, TRANSFORM_CHANNELS as CHANNELS } from './channels.js';
 import { constraintsKeeping, keepPoseOffsets } from './constraintoffsets.js';
 import { statusMessage, t } from './i18n.js';
 import { renameOnionBone } from './onion.js';
+import { copyPose, duplicateBranch, pastePose } from './rigops.js';
 import { setBoneSetupOnly } from './setupmove.js';
 
 /** Makes sure an animation exists and is selected, creating one if needed. Returns its index. */
@@ -316,6 +317,43 @@ export function renameSlot(app, slot, name) {
 }
 
 export { selectRelated } from './selection.js';
+
+/**
+ * Duplicates the selected bone with its branch and slots (Setup mode); `mirror` makes the other
+ * side's copy. Selects the copy.
+ */
+export function duplicateSelection(app, { mirror = false } = {}) {
+  const bone = selBone(app.sel) ?? (selSlot(app.sel) !== null ? app.doc.slots[selSlot(app.sel)].bone : null);
+  if (app.mode !== Mode.Setup) return app.setStatus(statusMessage('Duplicate in Setup mode (Tab)'));
+  if (bone === null || bone === 0) return app.setStatus(statusMessage('Select a bone to duplicate (not the root)'));
+  const name = app.doc.bones[bone].name;
+  const copy = duplicateBranch(app.doc, bone, { mirror });
+  app.select({ bone: copy });
+  app.setStatus(mirror ? statusMessage('Mirrored {name} to {copy}', { name, copy: app.doc.bones[copy].name }) : statusMessage('Duplicated {name} as {copy}', { name, copy: app.doc.bones[copy].name }));
+  app.changed();
+  return copy;
+}
+
+/** Copies the pose of the selected bones (every bone when none is selected) at the current frame. */
+export function copyPoseOfSelection(app) {
+  app.poseClipboard = copyPose(app.doc, app.pose(), app.selectedBones());
+  const n = Object.keys(app.poseClipboard).length;
+  app.setStatus(statusMessage('Copied the pose of {count} bone(s)', { count: n }));
+}
+
+/** Pastes the copied pose at the current frame (keys in Animate mode, the setup pose in Setup mode). */
+export function pastePoseHere(app, { flipped = false } = {}) {
+  if (!app.poseClipboard) return app.setStatus(statusMessage('Copy a pose first'));
+  const targets = pastePose(app.doc, app.poseClipboard, { flipped });
+  if (app.mode === Mode.Animate) ensureAnimation(app);
+  for (const [bone, t] of targets) {
+    const full = { ...app.pose().local[bone], ...t };
+    if (app.mode === Mode.Animate) keyBoneTransform(app, bone, full);
+    else app.doc.bones[bone].setup = { ...app.doc.bones[bone].setup, ...t };
+  }
+  app.setStatus(flipped ? statusMessage('Pasted the pose flipped on {count} bone(s)', { count: targets.length }) : statusMessage('Pasted the pose on {count} bone(s)', { count: targets.length }));
+  app.changed();
+}
 
 /** Selects every key of a bone's (or a slot's) tracks in the current animation; returns how many. */
 export function selectKeysOf(app, { bone = null, slot = null }) {
