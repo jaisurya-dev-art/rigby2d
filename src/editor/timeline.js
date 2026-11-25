@@ -710,7 +710,8 @@ export class Dopesheet {
     this.layout = { trackLeft, trackW, duration, t0, span: viewSpan };
 
     // Ruler with frame ticks. Zoomed, everything right of the labels is clipped to the track area.
-    ctx.fillStyle = canvasColor('--tl-ruler', 'rgb(45,45,45)');
+    const rulerBg = canvasColor('--tl-ruler', 'rgb(45,45,45)');
+    ctx.fillStyle = rulerBg;
     ctx.fillRect(0, 0, width, RULER);
     ctx.save();
     if (view) {
@@ -763,7 +764,14 @@ export class Dopesheet {
       ctx.lineTo(x + 7, 3.5);
       ctx.lineTo(x, 7);
       ctx.fill();
-      if (m.name) ctx.fillText(m.name, x + 9, 1);
+      if (m.name) {
+        // On the ruler's own colour, so the frame numbers behind the name don't show through it.
+        const w = ctx.measureText(m.name).width;
+        ctx.fillStyle = rulerBg;
+        ctx.fillRect(x + 8, 0, w + 4, 12);
+        ctx.fillStyle = MARKER;
+        ctx.fillText(m.name, x + 10, 1);
+      }
     }
     ctx.restore();
 
