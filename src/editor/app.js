@@ -309,6 +309,7 @@ export class App {
     /** Bumped when playback moves the time: only time-dependent views need to follow it. */
     this.timeVersion = 0;
     this.history = { undo: [], redo: [], undoLabels: [], redoLabels: [] };
+    this.labelledSerial = this.statusSerial;
     /** JSON of the last committed document state, used to coalesce edits into undo steps. */
     this.baseline = this.doc.toSnapshot();
     this.saved = this.baseline;
@@ -357,12 +358,19 @@ export class App {
     this.changed();
   }
 
+  /** Counts status changes, so a history step only takes the status line as its label when the
+   *  status changed since the last step (an edit that says nothing is labelled "Edit"). */
+  statusSerial = 0;
+  labelledSerial = 0;
+
   get status() {
     return renderStatus(this._status);
   }
 
   set status(text) {
     this._status = text;
+    this.statusSerial++;
+    this.statusAt = Date.now();
   }
 
   /** Workspace of the open project: its own, or the user's default for projects without one. */
@@ -401,6 +409,7 @@ export class App {
     this.time = 0;
     this.playing = false;
     this.history = { undo: [], redo: [], undoLabels: [], redoLabels: [] };
+    this.labelledSerial = this.statusSerial;
     this.docJson = this.baseline = this.saved = doc.toSnapshot();
     this.frameRequest = true;
     this.changed();
@@ -788,7 +797,10 @@ export class App {
     if (this.docJson !== this.baseline) {
       this.history.undo.push(this.baseline);
       // What the step did, for Edit ▸ Undo history: the status line the edit left, as it reads now.
-      this.history.undoLabels.push(this.statusText() || t('Edit'));
+      // The status line names the step only when the edit itself just set it (not a notice from opening).
+      const fresh = this.statusSerial !== this.labelledSerial && Date.now() - (this.statusAt ?? 0) < 2000;
+      this.history.undoLabels.push((fresh && this.statusText()) || t('Edit'));
+      this.labelledSerial = this.statusSerial;
       this.baseline = this.docJson;
       this.history.redo = [];
       this.history.redoLabels = [];
