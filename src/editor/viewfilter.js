@@ -21,8 +21,8 @@ function kinds(app) {
       label: t('Bones'),
       shown: app.showBones,
       setShown: (on) => (app.showBones = on),
-      pick: app.pick.bones,
-      setPick: (on) => (app.pick.bones = on),
+      pick: app.pickable.bones,
+      setPick: (on) => (app.pickable.bones = on),
       names: app.showNames,
       setNames: (on) => (app.showNames = on),
     },
@@ -32,8 +32,8 @@ function kinds(app) {
       label: t('Images and meshes'),
       shown: app.showImages,
       setShown: (on) => (app.showImages = on),
-      pick: app.pick.images,
-      setPick: (on) => (app.pick.images = on),
+      pick: app.pickable.images,
+      setPick: (on) => (app.pickable.images = on),
     },
     {
       id: 'shapes',
@@ -52,11 +52,11 @@ function kinds(app) {
 
 /** Remembers the panel's state (the images' visibility, what can be picked, folded or not). */
 export function saveViewFilter(app) {
-  saveSetting('rigby.view.filter', JSON.stringify({ showImages: app.showImages, pick: app.pick, open: app.viewFilterOpen, names: app.showNames }));
+  saveSetting('rigby.view.filter', JSON.stringify({ showImages: app.showImages, pick: app.pickable, open: app.viewFilterOpen, names: app.showNames }));
 }
 
 /** Whether anything is off, so the folded button can say so. */
-const anyOff = (app) => !app.showBones || !app.showImages || !app.pick.bones || !app.pick.images || SHAPE_KINDS.some((k) => app.showShapes[k] === false);
+const anyOff = (app) => !app.showBones || !app.showImages || !app.pickable.bones || !app.pickable.images || SHAPE_KINDS.some((k) => app.showShapes[k] === false);
 
 export function render(app, el) {
   const changed = () => {

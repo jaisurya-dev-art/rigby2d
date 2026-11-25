@@ -1135,7 +1135,7 @@ export class Viewport {
   hitBones(pose, pos) {
     const app = this.app;
     // Hidden, or not pickable in the Show and select panel.
-    if (!app.showBones || app.hideOverlays || app.pick?.bones === false) return [];
+    if (!app.showBones || app.hideOverlays || app.pickable?.bones === false) return [];
     const s = app.prefs?.get('view.boneSize') ?? 1;
     const found = [];
     app.doc.bones.forEach((b, i) => {
@@ -1226,7 +1226,7 @@ export class Viewport {
     for (const q of [...quads].reverse()) {
       const att = q.attachment;
       // Hidden or locked in the tree, or images hidden or not pickable in the Show and select panel.
-      if (doc === app.doc && (isSlotHidden(doc, q.slot) || isSlotLocked(doc, q.slot) || app.showImages === false || app.pick?.images === false)) continue;
+      if (doc === app.doc && (isSlotHidden(doc, q.slot) || isSlotLocked(doc, q.slot) || app.showImages === false || app.pickable?.images === false)) continue;
       if (q.kind === 'mesh') {
         const t = q.triangles;
         for (let i = 0; i + 2 < t.length; i += 3) {
@@ -1775,7 +1775,7 @@ export class Viewport {
     const inside = (p) => p[0] >= x0 && p[0] <= x1 && p[1] >= y0 && p[1] <= y1;
     const hits = [];
     app.doc.bones.forEach((bone, i) => {
-      if (isBoneHidden(app.doc, i) || isBoneLocked(app.doc, i) || !app.showBones || app.pick?.bones === false) return;
+      if (isBoneHidden(app.doc, i) || isBoneLocked(app.doc, i) || !app.showBones || app.pickable?.bones === false) return;
       const o = this.toScreen(pose.world[i].apply([0, 0]));
       const t = this.toScreen(pose.world[i].apply([bone.length, 0]));
       if (inside(o) || inside(t)) hits.push(i);

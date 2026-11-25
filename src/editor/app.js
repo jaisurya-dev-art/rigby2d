@@ -230,7 +230,7 @@ export class App {
     // pick, and whether the panel is unfolded; remembered between sessions.
     const filter = loadViewFilter();
     this.showImages = filter.showImages;
-    this.pick = filter.pick;
+    this.pickable = filter.pick;
     this.viewFilterOpen = filter.open;
     this.showNames = filter.names;
     /** Motion paths of the selected bones in Animate mode (View menu), remembered. */
