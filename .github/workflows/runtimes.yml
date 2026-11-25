@@ -46,9 +46,10 @@ jobs:
         run: |
           g++ -std=c++17 -O2 -Wall -Wextra -Werror -I runtimes/sdl3/include -I runtimes/defold/rigby2d/include             runtimes/sdl3/test/geometry.cpp runtimes/defold/rigby2d/commonsrc/rigby_*.cpp -o "$RUNNER_TEMP/geometry-sdl3"
           "$RUNNER_TEMP/geometry-sdl3" "$GITHUB_WORKSPACE"
-          # Build the layer and the example player against SDL3 itself, built from source.
+          # Build the layer and the example player against SDL3 itself, built from source (no window
+          # system on the runner, so SDL is built for the console).
           git clone --depth 1 --branch release-3.2.0 https://github.com/libsdl-org/SDL.git "$RUNNER_TEMP/SDL"
-          cmake -S "$RUNNER_TEMP/SDL" -B "$RUNNER_TEMP/SDL/build" -DCMAKE_BUILD_TYPE=Release -DSDL_TESTS=OFF -DSDL_EXAMPLES=OFF
+          cmake -S "$RUNNER_TEMP/SDL" -B "$RUNNER_TEMP/SDL/build" -DCMAKE_BUILD_TYPE=Release -DSDL_TESTS=OFF -DSDL_EXAMPLES=OFF -DSDL_UNIX_CONSOLE_BUILD=ON
           cmake --build "$RUNNER_TEMP/SDL/build" --parallel
           cmake --install "$RUNNER_TEMP/SDL/build" --prefix "$RUNNER_TEMP/sdl3"
           cmake -S runtimes/sdl3 -B "$RUNNER_TEMP/rigby-sdl3" -DCMAKE_PREFIX_PATH="$RUNNER_TEMP/sdl3" -DRIGBY_SDL_IMAGE=OFF
