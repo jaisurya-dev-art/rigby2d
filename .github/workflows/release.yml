@@ -11,10 +11,10 @@ on:
   workflow_dispatch:
     inputs:
       signing_policy:
-        description: SignPath signing policy (test-signing to try the setup without the release certificate)
+        description: Signing (none for a preview build; test-signing to try the setup without the release certificate)
         type: choice
-        options: [release-signing, test-signing]
-        default: test-signing
+        options: [none, release-signing, test-signing]
+        default: none
   push:
     tags: ['v*']
 
@@ -269,8 +269,8 @@ jobs:
     needs: build
     runs-on: windows-latest
     # Signing starts once SignPath is set up (see the top of this file). Release tags use the
-    # release-signing policy; a manual run (Run workflow) can pick test-signing to try the setup.
-    if: ${{ vars.SIGNPATH_ORGANIZATION_ID != '' }}
+    # release-signing policy; a manual run (Run workflow) signs nothing unless a policy is picked.
+    if: ${{ vars.SIGNPATH_ORGANIZATION_ID != '' && inputs.signing_policy != 'none' }}
     steps:
       - uses: signpath/github-action-submit-signing-request@v3
         with:
