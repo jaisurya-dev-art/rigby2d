@@ -2520,7 +2520,7 @@ h3 {
 /* Where the money goes: three steps in a row, the current one lit. */
 .fund-steps {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 16px;
   margin: 32px 0 18px;
   padding: 0;
@@ -2582,10 +2582,55 @@ h3 {
   color: var(--muted);
 }
 
+/* The founder's note on the Support page: a face and a first-person reason. */
+.fund-founder {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 32px;
+  align-items: center;
+  max-width: 880px;
+}
+.fund-founder-photo {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  border: 2px solid rgba(181, 211, 231, 0.35);
+}
+.fund-founder-note {
+  margin: 8px 0 12px;
+  font-size: 19px;
+  line-height: 1.6;
+  color: var(--text);
+}
+.fund-founder-sign {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--steel);
+}
+/* The tier most people pick: lifted, with a badge. */
+.tier.popular {
+  position: relative;
+  border-color: rgba(181, 211, 231, 0.55);
+  box-shadow: 0 0 0 1px rgba(181, 211, 231, 0.25), 0 18px 40px rgba(0, 0, 0, 0.35);
+}
+.tier-badge {
+  position: absolute;
+  top: -11px;
+  right: 16px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #0e1a24;
+  background: var(--ice);
+}
 /* Tiers: whole cards are links; the studio tiers stand apart. */
 .tiers {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 14px;
 }
 .tier {
@@ -2865,6 +2910,10 @@ a.patron:hover {
   }
 }
 @media (max-width: 720px) {
+  .fund-founder {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
   .fund-steps {
     grid-template-columns: 1fr;
   }
@@ -3706,3 +3755,11 @@ dialog.thanks .goal {
 @keyframes mammoth-push { from { transform: scale(1.08); } to { transform: scale(1); } }
 @media (max-width: 720px) { .mammoth-title { font-size: 14.2vw; } .mammoth-art { inset: 0; -webkit-mask-image: none; mask-image: none; background-image: url('./mammoth/hero-sm.jpg'); background-position: 68% 30%; } .mammoth-art::after { background: linear-gradient(0deg, rgba(3,8,11,.97) 0%, rgba(3,8,11,.6) 50%, rgba(3,8,11,.1) 100%); } }
 @media (prefers-reduced-motion: reduce) { .mammoth-art, .mammoth-kick, .mammoth-title, .mammoth-tag, .mammoth-cta, .mammoth-notes { animation: none; opacity: 1; } }
+
+/* Four goals and four personal tiers: two per row on mid-size screens. */
+@media (max-width: 1000px) and (min-width: 721px) {
+  .fund-steps,
+  .tiers {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

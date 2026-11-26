@@ -373,7 +373,7 @@ function menus() {
         { label: t('Report a crash…'), title: t('A report of the recent errors, to copy or post'), action: () => recovery.openCrashReport() },
       ]),
       'separator',
-      { label: t('Support Rigby2D…'), title: t('Rigby2D is free. Supporters pay for code signing and keep it moving.'), action: () => openSupporters() },
+      { label: t('Support Rigby2D…'), title: t('Rigby2D is free. Supporters fund its development.'), action: () => openSupporters() },
       ...(inTauri ? [{ label: t('Check for updates…'), action: () => checkForUpdates(app) }] : []),
       { label: t('About Rigby2D'), action: () => openAbout() },
     ],

@@ -319,7 +319,7 @@ export function openAbout() {
       ),
     ),
     h('div', { class: 'about-links' }, link(t('Website'), LINKS.website), link(t('Documentation'), LINKS.docs), link(t('Source code'), LINKS.repo), link(t('Release notes'), LINKS.releaseNotes), link(t('Support Rigby2D'), LINKS.fund)),
-    h('p', { class: 'about-fine' }, t('Rigby2D is free and stays free. Supporters pay for code signing and keep it moving.')),
+    h('p', { class: 'about-fine' }, t('Rigby2D is free and stays free. Supporters fund its development, one day a week at a time.')),
     h(
       'p',
       { class: 'about-fine' },
@@ -379,7 +379,7 @@ export async function openSupporters() {
   const goalCard = h(
     'section',
     { class: 'sp-goal' },
-    h('div', { class: 'sp-goal-top' }, h('span', { class: 'sp-goal-title' }, goal.title ?? t('Signed by Rigby2D')), h('span', { class: 'sp-goal-amount' }, t('{percent}% of ${monthly} a month', { percent, monthly: goal.monthly ?? 25 }))),
+    h('div', { class: 'sp-goal-top' }, h('span', { class: 'sp-goal-title' }, goal.title ?? t('Rigby2D Fridays')), h('span', { class: 'sp-goal-amount' }, t('{percent}% of ${monthly} a month', { percent, monthly: goal.monthly ?? 250 }))),
     h('div', { class: 'sp-bar', role: 'progressbar', 'aria-valuemin': '0', 'aria-valuemax': '100', 'aria-valuenow': String(percent) }, fill),
     h(
       'div',

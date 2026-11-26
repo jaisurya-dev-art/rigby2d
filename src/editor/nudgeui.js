@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 // Friendly prompts, at the right moment and rarely: after you render, export or AutoRig something,
-// a card offers to share it on Discord; after a few days of use, one asks for a GitHub star. Each
+// a card offers to share it on Discord (or, from the third time, to support Rigby2D); after a few days
+// of use, one asks for a GitHub star. Each
 // stops for good once acted on, and after a couple of "Not now"s (nudge.js). Milestones come from
 // analytics.js (the same moments it counts), as `rigby-milestone` events.
 
@@ -8,7 +9,7 @@ import { t } from './i18n.js';
 import { icon, engineIcon } from './icons.js';
 import { h } from './widgets.js';
 
-import { countDay, load, mayShow, save, SHAREABLE } from './nudge.js';
+import { countDay, countWork, fundDue, load, mayShow, save, SHAREABLE } from './nudge.js';
 
 let card = null;
 
@@ -57,7 +58,26 @@ export function installNudges({ share, star, fund }) {
       save(s);
       return;
     }
-    if (!SHAREABLE.has(name) || !mayShow(load(), 'share', Date.now(), { gap: 7, maxDismiss: 3 })) return;
+    if (!SHAREABLE.has(name)) return;
+    const s = load();
+    countWork(s);
+    save(s);
+    // Just after Rigby2D did a job for you: the support card, now and then (never with the share card).
+    if (fund && fundDue(s, Date.now())) {
+      setTimeout(
+        () =>
+          show('fund', {
+            mark: icon('heart', 20),
+            title: t('Rigby2D is free, and stays free'),
+            text: t("It's built by one developer around a day job. A few dollars a month buys a full day every week on Rigby2D."),
+            primary: t('Support Rigby2D'),
+            onPrimary: fund,
+          }),
+        1200,
+      );
+      return;
+    }
+    if (!mayShow(s, 'share', Date.now(), { gap: 7, maxDismiss: 3 })) return;
     setTimeout(
       () =>
         show('share', {
@@ -70,23 +90,7 @@ export function installNudges({ share, star, fund }) {
       1200,
     );
   });
-  // After ten days of use, once in a while: Rigby2D is free, and a few supporters keep it so. Never on
-  // the same day as the star prompt.
-  const fundDue = days >= 10 && fund && mayShow(load(), 'fund', Date.now(), { gap: 45, maxDismiss: 2 });
   const starDue = days >= 3 && mayShow(load(), 'star', Date.now(), { gap: 30, maxDismiss: 2 });
-  if (fundDue && !starDue) {
-    setTimeout(
-      () =>
-        show('fund', {
-          mark: icon('heart', 20),
-          title: t('Rigby2D is free, and stays free'),
-          text: t('A few dollars a month pays for code signing in its name, so new users stop seeing security warnings.'),
-          primary: t('Support Rigby2D'),
-          onPrimary: fund,
-        }),
-      120_000,
-    );
-  }
   if (starDue) {
     setTimeout(
       () =>

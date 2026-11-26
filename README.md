@@ -172,9 +172,10 @@ test/           node:test suites
 
 ## Support Rigby2D
 
-Rigby2D is free and open source, and it stays that way. Monthly support pays for what one person
-can't, starting with **code signing in Rigby2D's name**, so Windows and macOS stop warning the people
-who download it. The first goal is $25 a month; the first 20 monthly supporters are Founding Supporters.
+Rigby2D is free and open source, and it stays that way. Today it's built by one developer in the
+hours around a day job. Monthly support buys those hours back: the first goal, **$250 a month, is one
+full day every week on Rigby2D**, then half time, then full time. Nothing is ever locked behind a tier,
+and the first 20 monthly supporters are Founding Supporters.
 
 <a href="https://github.com/sponsors/jaisurya-dev-art"><img src="https://img.shields.io/badge/Sponsor_on_GitHub-7ba7c7?style=for-the-badge&logo=githubsponsors&logoColor=white" alt="Sponsor on GitHub"></a>
 &nbsp;[Where the money goes](https://rigby2d.com/fund/)

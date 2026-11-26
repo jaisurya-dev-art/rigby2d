@@ -12,7 +12,7 @@ export function loadSupporters() {
   cached ??= fetch('/supporters.json', { cache: 'no-cache' })
     .then((r) => r.json())
     .catch(() => ({}))
-    .then((d) => ({ goal: { title: 'Signed by Rigby2D', monthly: 25, percent: 0, ...d.goal }, github: d.github ?? [], others: d.others ?? [], founding: d.founding ?? [], kofi: d.kofi ?? null, contributors: d.contributors ?? [] }));
+    .then((d) => ({ goal: { title: 'Rigby2D Fridays', monthly: 250, percent: 0, ...d.goal }, github: d.github ?? [], others: d.others ?? [], founding: d.founding ?? [], kofi: d.kofi ?? null, contributors: d.contributors ?? [] }));
   return cached;
 }
 

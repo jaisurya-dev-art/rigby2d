@@ -42,11 +42,11 @@ async function show() {
     'dialog',
     { class: 'thanks', 'aria-labelledby': 'thanks-title' },
     el('h2', { id: 'thanks-title' }, 'Thanks for downloading Rigby2D'),
-    el('p', {}, 'Your download has started. Rigby2D is free and stays free. A few dollars a month pays for code signing in its name, so Windows and macOS stop warning the next person who downloads it.'),
+    el('p', {}, 'Your download has started. Rigby2D is free and stays free, built by one developer in the hours around a day job. A few dollars a month buys back those hours: first a full day every week on Rigby2D, then full time.'),
     el(
       'div',
       { class: 'goal' },
-      el('div', { class: 'goal-top' }, el('span', { class: 'goal-title' }, g?.title ?? 'Signed by Rigby2D'), el('span', { class: 'goal-amount' }, `$${g?.monthly ?? 25} a month`)),
+      el('div', { class: 'goal-top' }, el('span', { class: 'goal-title' }, g?.title ?? 'Rigby2D Fridays'), el('span', { class: 'goal-amount' }, `$${g?.monthly ?? 250} a month`)),
       el('div', { class: 'goal-bar' }, fill),
     ),
     el(
