@@ -840,9 +840,51 @@ h3 {
   grid-template-columns: 1fr 1fr;
   gap: 16px;
 }
+/* Home page videos: the latest trailer large, the newest tutorials stacked beside it. */
+.showcase.videos {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  grid-template-rows: auto auto;
+  gap: 16px;
+}
+.showcase.videos .featured {
+  grid-row: span 2;
+  aspect-ratio: auto;
+}
+.showcase.videos .featured img {
+  height: 100%;
+  object-fit: cover;
+}
+.showcase.videos .video:not(.featured) .play {
+  /* The thumbnails carry their own titles: the play button sits in a corner, clear of them. */
+  left: auto;
+  top: auto;
+  right: 14px;
+  bottom: 14px;
+  margin: 0;
+  transform: scale(0.56);
+  transform-origin: 100% 100%;
+}
+.videos-more {
+  margin: 14px 0 0;
+  text-align: right;
+}
+.videos-more a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--ice);
+  font-weight: 600;
+  text-decoration: none;
+}
 @media (max-width: 820px) {
-  .showcase.two {
+  .showcase.two,
+  .showcase.videos {
     grid-template-columns: 1fr;
+  }
+  .showcase.videos .featured {
+    grid-row: auto;
+    aspect-ratio: 16 / 9;
   }
 }
 
