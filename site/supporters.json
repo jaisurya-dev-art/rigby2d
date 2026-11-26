@@ -2,7 +2,7 @@
   "goal": {
     "title": "Rigby2D Fridays",
     "monthly": 250,
-    "percent": 3
+    "percent": 2
   },
   "github": [
     {
@@ -31,7 +31,7 @@
       "name": "jaisurya-dev-art",
       "url": "https://github.com/jaisurya-dev-art",
       "avatar": "https://avatars.githubusercontent.com/u/72857308?v=4&s=96",
-      "commits": 403
+      "commits": 418
     },
     {
       "login": "maruccimauro",
