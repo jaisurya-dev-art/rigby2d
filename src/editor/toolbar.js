@@ -1,15 +1,16 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 // Viewport toolbar: tools, numeric fields for the active tool with key buttons, transform axes
-// (local / parent / world) and auto key.
+// (local / parent / world), Bone only (with its one-time tip), Show and select, and auto key.
 
 import { Affine, wrapDegrees } from '../core/math.js';
-import { Mode, TOOLS, selBone, selSlot } from './app.js';
+import { Mode, TOOLS, saveSetting, selBone, selSlot } from './app.js';
 import * as edit from './edit.js';
 import { shortcutLabel, withShortcut } from './keymap.js';
 import { onionPanel } from './onionui.js';
 import { guidesPanel } from './guidesui.js';
+import { viewFilterButton } from './viewfilter.js';
 import { dragValue, h } from './widgets.js';
-import { iconButton, segmented, toggleButton, tooltip, uiIcon } from './ui.js';
+import { button, iconButton, segmented, toggleButton, tooltip, uiIcon } from './ui.js';
 import { t, tn } from './i18n.js';
 
 const AXES = [
@@ -188,6 +189,11 @@ export function render(app, el) {
           title: t('Moves, turns or scales just the bone: its child bones and images stay where they are drawn. Off: they move with it.'),
         })
       : null;
+  if (boneOnly) {
+    boneOnly.dataset.tut = 'boneonly';
+    boneOnly.classList.add('boneonly');
+  }
+  app.onBoneOnlyMove ??= () => boneOnlyTip(app);
 
   el.replaceChildren(
     ...[
@@ -198,10 +204,53 @@ export function render(app, el) {
       axes,
       boneOnly,
       h('span', { class: 'toolbar-spacer' }),
+      viewFilterButton(app),
       weights,
       onion,
       guides,
       autoKey,
     ].filter(Boolean),
   );
+}
+
+/**
+ * The first time a bone is moved with Bone only on, a small tip over the toggle says why the images
+ * stayed behind, with a way to turn it off. Shown once: either button, or Escape, ends it for good.
+ */
+function boneOnlyTip(app) {
+  if (app.boneOnlyTipDone || document.querySelector('.boneonly-tip')) return;
+  const toggle = document.querySelector('[data-tut="boneonly"]');
+  const center = document.querySelector('#center');
+  if (!toggle || !center) return;
+  app.boneOnlyTipDone = true;
+  saveSetting('rigby.tip.boneOnly', '1');
+  const close = () => {
+    tip.remove();
+    window.removeEventListener('keydown', onKey);
+  };
+  const onKey = (e) => e.key === 'Escape' && close();
+  const tip = h(
+    'div',
+    { class: 'boneonly-tip', role: 'status' },
+    h('div', { class: 'boneonly-tip-text' }, t('Bone only is on: the bone moves without its images and child bones, to fix a joint. Turn it off to move everything together.')),
+    h(
+      'div',
+      { class: 'boneonly-tip-actions' },
+      button(t('Turn off Bone only'), {
+        size: 'sm',
+        onclick: () => {
+          app.boneOnly = false;
+          app.changed();
+          close();
+        },
+      }),
+      button(t('Got it'), { size: 'sm', kind: 'primary', onclick: close }),
+    ),
+  );
+  center.append(tip);
+  const c = center.getBoundingClientRect();
+  const r = toggle.getBoundingClientRect();
+  tip.style.left = `${Math.max(8, Math.min(r.left - c.left, c.width - tip.offsetWidth - 8))}px`;
+  tip.style.bottom = `${c.bottom - r.top + 8}px`;
+  window.addEventListener('keydown', onKey);
 }

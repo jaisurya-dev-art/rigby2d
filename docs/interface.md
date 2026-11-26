@@ -11,7 +11,7 @@ gets most of the room; *View ▸ Panels* saves an arrangement you like.
 | --- | --- | --- |
 | 1 | **Menu bar** | *File* (with *New*, *Open recent*, *Import* and *Export* submenus), *Edit*, *View*, *Scripts* and *Help* (see [The Help menu](#the-help-menu)), the **SETUP** and **ANIMATE** mode tabs, and buttons for *Undo*, *Redo*, *Fit the skeleton in view* and *Show or hide bones* (hover one to see its shortcut). When an update is ready, an **Update available** button appears here too. |
 | 2 | **Workspace switch** | **Game** or **Film**: which tools are shown. See [Workspaces](#workspaces). |
-| 3 | **Viewport toolbar** | Transform tools, the active tool's values with a key button, axes, **Bone only** (Setup mode), **Weights** (when a mesh is selected), onion skin, guides and auto key. |
+| 3 | **Viewport toolbar** | Transform tools, the active tool's values with a key button, axes, **Bone only** (Setup mode), **Show** (what the viewport draws and what a click picks), **Weights** (when a mesh is selected), onion skin, guides and auto key. |
 | 4 | **Viewport** | The character. Select, pose and edit here. |
 | 5 | **Tree** | The skeleton (bones, slots, attachments) and the draw order, skins, constraints, events, animations and images. |
 | 6 | **Inspector** | Properties of the selection (a bone, slot, constraint, skin or event) and, on its **Project** tab, the project settings. Poses and face controls sit at the bottom. |
@@ -61,9 +61,10 @@ work in both modes; only the result differs.
 
 ### Show and select
 
-The small panel at the top left of the viewport says, for each kind of thing, whether it is
-**shown** (eye), whether a click or a box can **pick** it (arrow), and for bones whether their
-**names** are drawn (tag):
+The **Show** button on the viewport toolbar opens a small table that says, for each kind of
+thing, whether it is **shown** (eye), whether a click or a box can **pick** it (arrow), and for
+bones whether their **names** are drawn (tag). Click a dot to switch it; the table stays open until
+you click elsewhere:
 
 | Row | What it covers |
 | --- | --- |
@@ -71,8 +72,9 @@ The small panel at the top left of the viewport says, for each kind of thing, wh
 | Images and meshes | All the art. Turn off picking to work on the bones without grabbing the art (clicks go to the bones or pass through); hide them to see the skeleton alone. |
 | Shapes | Clipping masks, bounding boxes, paths and points together (*View ▸ Shapes* sets them one by one; a half-filled dot means some are on). |
 
-Click the arrow at its top left to fold it into one button; the button turns blue while anything is
-hidden or can't be picked. Its settings are remembered, and only change the editor's view. The eye
+While anything is hidden or can't be picked, the **Show** button turns blue and its eye is crossed
+out, so a hidden kind is never forgotten. The settings are remembered, and only change the editor's
+view: the project, its undo history and its exports are the same either way. The eye
 and lock on each tree row still work per bone and slot (see [Show and lock](#show-and-lock)).
 
 Hovering a bone — in the viewport, the tree or a timeline track — highlights it in all three at

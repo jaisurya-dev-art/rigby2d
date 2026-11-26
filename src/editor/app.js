@@ -100,11 +100,10 @@ function loadShapes() {
 
 /** The Show and select panel's state as last left (everything shown and pickable by default). */
 function loadViewFilter() {
-  const out = { showImages: true, pick: { bones: true, images: true }, open: false, names: false };
+  const out = { showImages: true, pick: { bones: true, images: true }, names: false };
   try {
     const s = JSON.parse(loadSetting('rigby.view.filter', '{}'));
     if (typeof s?.showImages === 'boolean') out.showImages = s.showImages;
-    if (typeof s?.open === 'boolean') out.open = s.open;
     if (typeof s?.names === 'boolean') out.names = s.names;
     for (const k of ['bones', 'images']) if (typeof s?.pick?.[k] === 'boolean') out.pick[k] = s.pick[k];
   } catch {
@@ -226,12 +225,11 @@ export class App {
      * paths and points. The selected one shows either way, so it can still be edited.
      */
     this.showShapes = loadShapes();
-    // The viewport's Show and select panel (viewfilter.js): images drawn or not, what a click can
-    // pick, and whether the panel is unfolded; remembered between sessions.
+    // The viewport toolbar's Show and select popover (viewfilter.js): images drawn or not, what a
+    // click can pick, bone names; remembered between sessions.
     const filter = loadViewFilter();
     this.showImages = filter.showImages;
     this.pickable = filter.pick;
-    this.viewFilterOpen = filter.open;
     this.showNames = filter.names;
     /** Motion paths of the selected bones in Animate mode (View menu), remembered. */
     this.motionPaths = loadSetting('rigby.view.motionPaths', '0') === '1';
@@ -244,8 +242,13 @@ export class App {
      * Animate mode, so Setup gives the viewport that room.
      */
     this.timelineInSetup = loadSetting('rigby.view.timelineInSetup', '0') === '1';
-    /** Setup mode: moving, turning or scaling a bone leaves its child bones and images in place. */
-    this._boneOnly = loadSetting('rigby.setup.boneOnly', '1') === '1';
+    /**
+     * Setup mode: moving, turning or scaling a bone leaves its child bones and images in place. Off
+     * by default, so a dragged bone carries its art like in other tools; on to fix a joint.
+     */
+    this._boneOnly = loadSetting('rigby.setup.boneOnly', '0') === '1';
+    /** The one-time tip that explains Bone only when a bone is first moved with it on (toolbar.js). */
+    this.boneOnlyTipDone = loadSetting('rigby.tip.boneOnly', '0') === '1';
     /** Tween lines in the dopesheet: a thin line between keys that blend into each other (View menu). */
     this.tweenLines = loadSetting('rigby.view.tweenLines', '1') === '1';
     /**

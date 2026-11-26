@@ -86,8 +86,10 @@ export function setBoneLocal(app, bone, t) {
   } else if (app.mode === Mode.Setup) {
     // "Bone only" (toolbar): the bone's children and images stay where they are drawn. The Pose tool
     // turns whole chains, so it always carries them along.
-    if (app.boneOnly && app.tool !== 'pose') setBoneSetupOnly(app.doc, bone, t, new Set(app.selectedBones()));
-    else app.doc.bones[bone].setup = t;
+    if (app.boneOnly && app.tool !== 'pose') {
+      setBoneSetupOnly(app.doc, bone, t, new Set(app.selectedBones()));
+      app.onBoneOnlyMove?.(); // the toolbar's one-time tip
+    } else app.doc.bones[bone].setup = t;
     // A bone driven by a transform constraint stays where it is moved: the move sets the offsets.
     const name = app.doc.bones[bone].name;
     for (const d of constraintsKeeping(app.doc, name)) keepPoseOffsets(app.doc, d, name);

@@ -329,46 +329,47 @@ body {
   padding: 10px;
 }
 
-/* The viewport's Show and select panel (viewfilter.js), top left below the rulers. */
-#viewfilter {
-  position: absolute;
-  left: 28px;
-  top: 28px;
-  z-index: 2;
-}
-#viewfilter .vf {
+/* The viewport toolbar's Show and select popover (viewfilter.js). */
+.vf-popover .vf {
   display: grid;
   gap: 1px;
-  padding: 3px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-md);
-  background: color-mix(in srgb, var(--surface-1) 92%, transparent);
-  box-shadow: var(--shadow-popover);
-}
-#viewfilter .vf.folded {
   padding: 2px;
 }
-#viewfilter .vf-row {
+.vf-popover .vf-row {
   display: grid;
-  grid-template-columns: 26px 26px 26px 26px;
+  grid-template-columns: minmax(150px, auto) 28px 28px 28px;
   align-items: center;
   justify-items: center;
+  height: 26px;
+}
+.vf-popover .vf-head {
+  color: var(--fg-muted);
+}
+.vf-popover .vf-title {
+  justify-self: start;
+  padding: 0 6px;
+  font-weight: 600;
+  color: var(--fg);
+}
+.vf-popover .vf-kind {
+  justify-self: start;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 6px;
+  color: var(--fg);
+}
+.vf-popover .vf-kind svg,
+.vf-popover .vf-col {
+  display: grid;
+  place-items: center;
+  color: var(--fg-muted);
+}
+.vf-popover button {
+  display: grid;
+  place-items: center;
+  width: 26px;
   height: 24px;
-}
-#viewfilter .vf-head {
-  color: var(--fg-muted);
-}
-#viewfilter .vf-kind,
-#viewfilter .vf-col {
-  display: grid;
-  place-items: center;
-  color: var(--fg-muted);
-}
-#viewfilter button {
-  display: grid;
-  place-items: center;
-  width: 24px;
-  height: 22px;
   padding: 0;
   border: 0;
   border-radius: var(--radius-sm);
@@ -376,37 +377,60 @@ body {
   color: var(--fg-muted);
   cursor: pointer;
 }
-#viewfilter button:hover:not(:disabled) {
+.vf-popover button:hover:not(:disabled) {
   background: var(--surface-hover);
 }
-#viewfilter .vf-fold {
-  width: auto;
-  min-width: 24px;
-  grid-auto-flow: column;
-  gap: 2px;
-  padding: 0 3px;
-}
-#viewfilter .vf-fold.filtered {
-  color: var(--accent);
-}
 /* A dot per kind and column: filled when on, a ring when off, half when partly on. */
-#viewfilter .vf-dot span {
-  width: 9px;
-  height: 9px;
+.vf-popover .vf-dot span {
+  width: 10px;
+  height: 10px;
   border: 1.5px solid var(--fg-muted);
   border-radius: 50%;
 }
-#viewfilter .vf-dot.on span {
+.vf-popover .vf-dot.on span {
   border-color: var(--accent);
   background: var(--accent);
 }
-#viewfilter .vf-dot.some span {
+.vf-popover .vf-dot.some span {
   border-color: var(--accent);
   background: linear-gradient(90deg, var(--accent) 50%, transparent 50%);
 }
-#viewfilter .vf-dot:disabled {
+.vf-popover .vf-dot:disabled {
   cursor: default;
   opacity: 0.35;
+}
+/* The toolbar button: accent while something is hidden or can't be picked. */
+#viewbar .vf-button.filtered {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+/* Bone only changes what a drag does, so its on state is plain to see. */
+#viewbar .ui-toggle.boneonly.on {
+  color: var(--ui-accent);
+  font-weight: 600;
+}
+
+/* The one-time Bone only tip, over its toggle (toolbar.js). */
+.boneonly-tip {
+  position: absolute;
+  z-index: 5;
+  display: grid;
+  gap: 8px;
+  max-width: 320px;
+  padding: 10px 12px;
+  border: 1px solid var(--ui-accent);
+  border-radius: var(--radius-md);
+  background: var(--surface-1);
+  box-shadow: var(--shadow-popover);
+  color: var(--fg);
+  font-size: var(--text-sm, 13px);
+  line-height: 1.4;
+}
+.boneonly-tip-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
 }
 
 #viewbar {
@@ -489,13 +513,20 @@ body {
   color: var(--danger);
   fill: currentColor;
 }
-/* Narrow viewports: tools and toggles show only their icons (names stay in the tooltips). */
+/* Narrow viewports: the tools show only their icons first (names stay in the tooltips); the toggles
+   keep their names longer, because a toggle's icon alone doesn't say what it changes. */
 @container (max-width: 1240px) {
-  #viewbar .tool-label,
+  #viewbar .tool-label {
+    display: none;
+  }
+  #viewbar .tool {
+    padding: 0 6px;
+  }
+}
+@container (max-width: 940px) {
   #viewbar .ui-toggle span {
     display: none;
   }
-  #viewbar .tool,
   #viewbar .ui-toggle {
     padding: 0 6px;
   }
@@ -2098,7 +2129,8 @@ div.log-entry {
   cursor: help;
 }
 /* "Predictions active" notice beside the ANIMATE button. */
-#menubar .onion-notice {
+#menubar .onion-notice,
+#menubar .boneonly-notice {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -2110,10 +2142,12 @@ div.log-entry {
   border-radius: 4px;
   padding: 1px 7px;
 }
-#menubar .onion-notice[hidden] {
+#menubar .onion-notice[hidden],
+#menubar .boneonly-notice[hidden] {
   display: none;
 }
-#menubar .onion-notice:hover {
+#menubar .onion-notice:hover,
+#menubar .boneonly-notice:hover {
   background: color-mix(in srgb, var(--warning-tint, rgb(240, 150, 60)) 12%, transparent);
 }
 /* Quick palette panel (inside a .popup). */

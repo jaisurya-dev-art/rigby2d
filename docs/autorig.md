@@ -73,8 +73,8 @@ share the part's bone, and their slot gets each alternate as an attachment.
 ## After AutoRig
 
 - Check the joints by rotating bones with the Rotate tool, and move any joint that is off: in Setup
-  mode, translate the bone. With **Bone only** on (the default), its children and images stay where
-  they are drawn; see [Moving a joint](bones-and-slots.md#moving-a-joint-after-the-rig-is-built).
+  mode, turn on **Bone only** in the viewport toolbar and translate the bone: its children and images
+  stay where they are drawn. Turn it off again afterwards; see [Moving a joint](bones-and-slots.md#moving-a-joint-after-the-rig-is-built).
 - Repaint mesh weights where a bend looks soft or stiff. See [Meshes](meshes.md#weights).
 - Add [physics](constraints.md#physics) to hair, earrings and cloth.
 - Save [poses](poses-and-faces.md) for expressions, and set up [lip-sync](lip-sync.md).

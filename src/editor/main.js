@@ -21,7 +21,6 @@ import { clipTracks } from './actors.js';
 import { blockNativeContextMenu, desktopFile, isDesktop, launchFile, memoryFs, onFileDrop, openExternal } from './platform.js';
 import * as edit from './edit.js';
 import * as toolbar from './toolbar.js';
-import * as viewfilter from './viewfilter.js';
 import { menuCommands } from './commandmatch.js';
 import { openCommandSearch } from './commandsearch.js';
 import * as tree from './tree.js';
@@ -472,6 +471,23 @@ function buildMenuBar() {
     uiIcon('onion', 'sm'),
     h('span', null, t('Onion skin on')),
   );
+  // Notice that Bone only is on (Setup mode): a dragged bone leaves its images and child bones
+  // behind, so say so where it can't be missed, with a click to turn it off.
+  const boneOnlyNotice = h(
+    'button',
+    {
+      class: 'boneonly-notice',
+      'data-tut': 'boneonly-notice',
+      hidden: true,
+      title: t('Bone only is on: a bone moves without its images and child bones. Click to turn it off.'),
+      onclick: () => {
+        app.boneOnly = false;
+        app.changed();
+      },
+    },
+    uiIcon('pin', 'sm'),
+    h('span', null, t('Bone only on')),
+  );
   // Workspace switcher: which tools the editor shows for this project.
   const workspaces = Object.values(WORKSPACES);
   const tabs = workspaces.map((ws) => h('button', { class: 'workspace-tab', 'data-tut': `workspace:${ws.id}`, title: t(ws.description), onclick: () => app.workspace !== ws.id && app.setWorkspace(ws.id) }, t(ws.label)));
@@ -483,7 +499,7 @@ function buildMenuBar() {
     : h('a', { class: 'home-link', href: '../', title: t('Rigby2D website: home, documentation and downloads'), 'data-goatcounter-click': 'editor-home' }, brandMark(18, 'home-mark'), h('span', null, t('Rigby2D')));
   const docTitle = inTauri ? null : h('span', { class: 'doc-title' });
   bar.replaceChildren(
-    ...[home, home && h('span', { class: 'vsep' }), ...titles, h('span', { class: 'vsep' }), mode, quickBar, onionNotice, h('span', { class: 'spacer' }), docTitle, docTitle && h('span', { class: 'spacer' }), updateBadge(app), switcher].filter(Boolean),
+    ...[home, home && h('span', { class: 'vsep' }), ...titles, h('span', { class: 'vsep' }), mode, quickBar, onionNotice, boneOnlyNotice, h('span', { class: 'spacer' }), docTitle, docTitle && h('span', { class: 'spacer' }), updateBadge(app), switcher].filter(Boolean),
   );
   // Called every frame: touch the DOM only when something shown changed.
   let shown = '';
@@ -509,6 +525,8 @@ function buildMenuBar() {
     }
     // The notice follows the live onion state, independent of the cached menubar state below.
     onionNotice.hidden = !app.onionActive();
+    const boneOnlyHidden = !(app.mode === Mode.Setup && app.boneOnly);
+    if (boneOnlyNotice.hidden !== boneOnlyHidden) boneOnlyNotice.hidden = boneOnlyHidden;
     if (docTitle) {
       const name = app.path ? app.path.split(/[\\/]/).pop() : `${app.doc.name && app.doc.name !== 'untitled' ? app.doc.name : t('untitled')} ${t('(not saved yet)')}`;
       const dirty = app.dirty();
@@ -750,7 +768,6 @@ const panels = [
   { el: $('#rig'), render: rigPanel.render, built: -1 },
   { el: $('#properties .content'), render: inspector.render, built: -1, every: 200, poseEvery: 66 },
   { el: $('#viewbar'), render: toolbar.render, built: -1 },
-  { el: $('#viewfilter'), render: viewfilter.render, built: -1 },
   { el: $('#controls'), render: renderControls, built: -1, every: 66 },
 ];
 
