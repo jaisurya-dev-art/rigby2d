@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
-// Rigby2D runtime (C++): binary skeleton files (.skel, format 4.3), converted to the skeleton JSON
+// Rigby2D runtime (C++): binary skeleton files (.skel, formats 4.2 and 4.3), converted to the skeleton JSON
 // structure so one reader handles both. Port of binary.rs: only encodings observed in exports are
 // read; anything else is reported as unsupported.
 
@@ -1246,6 +1246,539 @@ bool read_animation(Reader& r, const std::vector<Json>& bones, const std::vector
     return true;
 }
 
+// ---- reading format 4.2 -------------------------------------------------------------------------
+// Port of binary42.rs: a 4.2 file is read into the 4.2 skeleton JSON structure (separate ik,
+// transform and path lists), which the skeleton JSON reader converts as it does 4.2 JSON. Only what
+// the observed 4.2 export pair shows is read; anything else stops as unsupported.
+
+const uint8_t IK42_BEND_POSITIVE = 0x02;
+const uint8_t IK42_MIX = 0x20;
+const uint8_t IK42_KEY = 0x0a;
+const char* const TRANSFORM42_OFFSETS[5] = {"rotation", "x", "y", "scaleX", "scaleY"};
+
+bool read_weights_42(Reader& r, uint32_t count, Json& out) {
+    out = Json::array();
+    for (uint32_t v = 0; v < count; v++) {
+        uint32_t n;
+        TRY(r.varint(n));
+        out.arr.push_back(num((double)n));
+        for (uint32_t k = 0; k < n; k++) {
+            uint32_t b;
+            TRY(r.varint(b));
+            out.arr.push_back(num((double)b));
+            for (int i = 0; i < 3; i++) {
+                double f;
+                TRY(r.real(f));
+                out.arr.push_back(num(f));
+            }
+        }
+    }
+    return true;
+}
+
+/// A region, a weighted mesh, or a weighted, open, constant-speed path.
+bool read_attachment_42(Reader& r, uint8_t flags, const std::string& key, bool nonessential, Json& a) {
+    a = Json::object();
+    if ((flags & 0x07) == 0 && (flags & ~0x80) == 0) {
+        double rotation = 0.0;
+        if (flags & 0x80) TRY(r.real(rotation));
+        double v[6];
+        for (int i = 0; i < 6; i++) TRY(r.real(v[i]));
+        if (rotation != 0.0) a.set("rotation", num(rotation));
+        if (v[0] != 0.0) a.set("x", num(v[0]));
+        if (v[1] != 0.0) a.set("y", num(v[1]));
+        if (v[2] != 1.0) a.set("scaleX", num(v[2]));
+        if (v[3] != 1.0) a.set("scaleY", num(v[3]));
+        a.set("width", num(v[4]));
+        a.set("height", num(v[5]));
+        return true;
+    }
+    if (flags == (2 | 0x80)) {
+        a.set("type", str("mesh"));
+        uint32_t hull, count;
+        TRY(r.varint(hull));
+        a.set("hull", num((double)hull));
+        TRY(r.varint(count));
+        Json vertices;
+        TRY(read_weights_42(r, count, vertices));
+        a.set("vertices", vertices);
+        Json uvs = Json::array();
+        for (uint32_t i = 0; i < count * 2; i++) {
+            double f;
+            TRY(r.real(f));
+            uvs.arr.push_back(num(f));
+        }
+        a.set("uvs", uvs);
+        Json tris = Json::array();
+        long nt = 3L * ((long)(2 * count) - (long)hull - 2);
+        for (long i = 0; i < nt; i++) {
+            uint32_t t;
+            TRY(r.varint(t));
+            tris.arr.push_back(num((double)t));
+        }
+        a.set("triangles", tris);
+        if (nonessential) {
+            uint32_t ne;
+            TRY(r.varint(ne));
+            Json edges = Json::array();
+            for (uint32_t i = 0; i < ne; i++) {
+                uint32_t e;
+                TRY(r.varint(e));
+                edges.arr.push_back(num((double)e));
+            }
+            a.set("edges", edges);
+            double w, h;
+            TRY(r.real(w));
+            TRY(r.real(h));
+            a.set("width", num(w));
+            a.set("height", num(h));
+        }
+        return true;
+    }
+    if (flags == (4 | 0x20 | 0x40)) {
+        a.set("type", str("path"));
+        uint32_t count;
+        TRY(r.varint(count));
+        a.set("vertexCount", num((double)count));
+        Json vertices;
+        TRY(read_weights_42(r, count, vertices));
+        a.set("vertices", vertices);
+        Json lengths = Json::array();
+        for (uint32_t i = 0; i < count / 3; i++) {
+            double f;
+            TRY(r.real(f));
+            lengths.arr.push_back(num(f));
+        }
+        a.set("lengths", lengths);
+        if (nonessential) {
+            std::string color;
+            TRY(r.color(color));
+            if (color != "ff7f00ff") a.set("color", str(color));
+        }
+        return true;
+    }
+    return r.unsupported(fmt_flags("Attachment options in format 4.2", flags, key));
+}
+
+bool read_skin_42(Reader& r, const std::vector<Json>& slots, bool nonessential, Json& skin) {
+    skin = Json::object();
+    uint32_t n;
+    TRY(r.varint(n));
+    for (uint32_t s = 0; s < n; s++) {
+        uint32_t si;
+        TRY(r.varint(si));
+        Json slot_json;
+        TRY(name_at(r, slots, si, "slot", slot_json));
+        Json atts = Json::object();
+        uint32_t count;
+        TRY(r.varint(count));
+        for (uint32_t k = 0; k < count; k++) {
+            Opt<std::string> key;
+            TRY(r.reference(key));
+            uint8_t flags;
+            TRY(r.byte(flags));
+            Json a;
+            TRY(read_attachment_42(r, flags, key.value_or(""), nonessential, a));
+            atts.set(key.value_or(""), a);
+        }
+        skin.set(slot_json.is_str() ? slot_json.s : "", atts);
+    }
+    return true;
+}
+
+bool read_deform_keys_42(Reader& r, uint32_t frames, Json& keys) {
+    keys = Json::array();
+    for (uint32_t f = 0; f < frames; f++) {
+        Json key = Json::object();
+        double time;
+        TRY(r.real(time));
+        if (time != 0.0) key.set("time", num(time));
+        if (f > 0) {
+            uint8_t c;
+            TRY(r.byte(c));
+            Json& prev = keys.arr.back();
+            if (c == 1) {
+                prev.set("curve", str("stepped"));
+            } else if (c == 2) {
+                Json cv = Json::array();
+                for (int i = 0; i < 4; i++) {
+                    double v;
+                    TRY(r.real(v));
+                    cv.arr.push_back(num(v));
+                }
+                prev.set("curve", cv);
+            } else if (c != 0) {
+                return r.bad("invalid curve type");
+            }
+        }
+        uint32_t count;
+        TRY(r.varint(count));
+        if (count > 0) {
+            uint32_t offset;
+            TRY(r.varint(offset));
+            if (offset != 0) key.set("offset", num((double)offset));
+            Json v = Json::array();
+            for (uint32_t i = 0; i < count; i++) {
+                double x;
+                TRY(r.real(x));
+                v.arr.push_back(num(x));
+            }
+            key.set("vertices", v);
+        }
+        keys.arr.push_back(key);
+    }
+    return true;
+}
+
+bool read_animation_42(Reader& r, const std::vector<Json>& bones, const std::vector<Json>& ik, Json& anim) {
+    anim = Json::object();
+    uint32_t n;
+    TRY(r.varint(n));  // total timeline count
+    TRY(r.varint(n));
+    if (n != 0) return r.unsupported("Slot keys in format 4.2");
+    Json bone_tl = Json::object();
+    TRY(r.varint(n));
+    for (uint32_t i = 0; i < n; i++) {
+        uint32_t bi;
+        TRY(r.varint(bi));
+        Json bone;
+        TRY(name_at(r, bones, bi, "bone", bone));
+        Json timelines = Json::object();
+        uint32_t nt;
+        TRY(r.varint(nt));
+        for (uint32_t t = 0; t < nt; t++) {
+            uint8_t kind;
+            TRY(r.byte(kind));
+            uint32_t frames, beziers;
+            TRY(r.varint(frames));
+            TRY(r.varint(beziers));
+            if (kind >= 10) {
+                char buf[48];
+                snprintf(buf, sizeof buf, "Bone timeline type %u", kind);
+                return r.unsupported(buf);
+            }
+            BoneValueArg arg;
+            arg.count = BONE_TIMELINE_COUNTS[kind];
+            arg.def = std::string(BONE_TIMELINE_NAMES[kind]).compare(0, 5, "scale") == 0 ? 1.0 : 0.0;
+            Json keys;
+            TRY(read_curve_keys(r, frames, bone_value, &arg, keys));
+            timelines.set(BONE_TIMELINE_NAMES[kind], keys);
+        }
+        bone_tl.set(bone.is_str() ? bone.s : "", timelines);
+    }
+    if (!bone_tl.obj.empty()) anim.set("bones", bone_tl);
+
+    Json ik_tl = Json::object();
+    TRY(r.varint(n));
+    for (uint32_t i = 0; i < n; i++) {
+        uint32_t ci, frames, beziers;
+        TRY(r.varint(ci));
+        if (ci >= ik.size()) return r.bad("invalid constraint index in .skel data");
+        TRY(r.varint(frames));
+        TRY(r.varint(beziers));
+        if (frames != 1) return r.unsupported("IK keys with curves in format 4.2");
+        uint8_t flags;
+        TRY(r.byte(flags));
+        if (flags != IK42_KEY) return r.unsupported("IK key options in format 4.2");
+        Json key = Json::object();
+        double time;
+        TRY(r.real(time));
+        if (time != 0.0) key.set("time", num(time));
+        key.set("mix", num(0.0));
+        Json keys = Json::array();
+        keys.arr.push_back(key);
+        ik_tl.set(ik[ci].get("name").s, keys);
+    }
+    if (!ik_tl.obj.empty()) anim.set("ik", ik_tl);
+    const char* other[3] = {"Transform", "Path", "Physics"};
+    for (int i = 0; i < 3; i++) {
+        TRY(r.varint(n));
+        if (n != 0) return r.unsupported(std::string(other[i]) + " constraint keys in format 4.2");
+    }
+
+    Json skins_tl = Json::object();
+    TRY(r.varint(n));
+    for (uint32_t i = 0; i < n; i++) {
+        uint32_t skin;
+        TRY(r.varint(skin));
+        if (skin != 0) return r.bad("invalid skin index in .skel data");
+        Json slots_tl = Json::object();
+        uint32_t ns;
+        TRY(r.varint(ns));
+        for (uint32_t k = 0; k < ns; k++) {
+            uint32_t si;
+            TRY(r.varint(si));
+            std::string slot;
+            TRY(r.slot_name(si, slot));
+            Json atts = Json::object();
+            uint32_t na;
+            TRY(r.varint(na));
+            for (uint32_t a = 0; a < na; a++) {
+                Opt<std::string> attachment;
+                TRY(r.reference(attachment));
+                uint8_t kind;
+                TRY(r.byte(kind));
+                uint32_t frames, beziers;
+                TRY(r.varint(frames));
+                if (kind != 0) return r.unsupported("Attachment timeline types in format 4.2");
+                TRY(r.varint(beziers));
+                Json keys;
+                TRY(read_deform_keys_42(r, frames, keys));
+                Json tl = Json::object();
+                tl.set("deform", keys);
+                atts.set(attachment.value_or(""), tl);
+            }
+            slots_tl.set(slot, atts);
+        }
+        skins_tl.set("default", slots_tl);
+    }
+    if (!skins_tl.obj.empty()) anim.set("attachments", skins_tl);
+    TRY(r.varint(n));
+    if (n != 0) return r.unsupported("Draw order keys in format 4.2");
+    TRY(r.varint(n));
+    if (n != 0) return r.unsupported("Event keys in format 4.2");
+    return true;
+}
+
+bool bone_list_42(Reader& r, const std::vector<Json>& bones, Json& out) {
+    out = Json::array();
+    uint32_t n;
+    TRY(r.varint(n));
+    for (uint32_t i = 0; i < n; i++) {
+        uint32_t bi;
+        TRY(r.varint(bi));
+        Json b;
+        TRY(name_at(r, bones, bi, "bone", b));
+        out.arr.push_back(b);
+    }
+    return true;
+}
+
+Json constraint_start_42(const std::string& name, uint32_t order) {
+    Json c = Json::object();
+    c.set("name", str(name));
+    if (order != 0) c.set("order", num((double)order));
+    return c;
+}
+
+/// Reads a 4.2 file after its header and string table into `out`.
+bool read_skeleton_42(Reader& r, bool nonessential, Json& out) {
+    std::vector<Json> bones;
+    uint32_t n;
+    TRY(r.varint(n));
+    for (uint32_t i = 0; i < n; i++) {
+        Json b = Json::object();
+        Opt<std::string> name;
+        TRY(r.string(name));
+        b.set("name", str(name.value_or("")));
+        if (i > 0) {
+            uint32_t p;
+            TRY(r.varint(p));
+            Json parent;
+            TRY(name_at(r, bones, p, "bone", parent));
+            b.set("parent", parent);
+        }
+        double t[7], length;
+        for (int k = 0; k < 7; k++) TRY(r.real(t[k]));
+        TRY(r.real(length));
+        uint8_t inherit_i;
+        TRY(r.byte(inherit_i));
+        if (inherit_i >= 5) return r.unsupported("Bone inherit mode on '" + name.value_or("") + "'");
+        bool skin;
+        TRY(r.boolean(skin));
+        if (skin) return r.unsupported("Skin bones in format 4.2 ('" + name.value_or("") + "')");
+        if (length != 0.0) b.set("length", num(length));
+        const char* keys[7] = {"rotation", "x", "y", "scaleX", "scaleY", "shearX", "shearY"};
+        const double defs[7] = {0, 0, 0, 1, 1, 0, 0};
+        for (int k = 0; k < 7; k++)
+            if (t[k] != defs[k]) b.set(keys[k], num(t[k]));
+        if (inherit_i != 0) b.set("inherit", str(INHERIT[inherit_i]));
+        if (nonessential) {
+            std::string color;
+            TRY(r.color(color));
+            Opt<std::string> icon;
+            TRY(r.string(icon));
+            // One more byte: the 4.3 visibility flag, not confirmed as such in 4.2, so not mapped.
+            uint8_t unused;
+            TRY(r.byte(unused));
+        }
+        bones.push_back(b);
+    }
+
+    std::vector<Json> slots;
+    TRY(r.varint(n));
+    for (uint32_t i = 0; i < n; i++) {
+        Json sl = Json::object();
+        Opt<std::string> name;
+        TRY(r.string(name));
+        sl.set("name", str(name.value_or("")));
+        uint32_t bi;
+        TRY(r.varint(bi));
+        Json bone;
+        TRY(name_at(r, bones, bi, "bone", bone));
+        sl.set("bone", bone);
+        std::string color, dark;
+        TRY(r.color(color));
+        TRY(r.color(dark));
+        if (color != "ffffffff" || dark != "ffffffff") return r.unsupported("Slot colors in format 4.2 ('" + name.value_or("") + "')");
+        Opt<std::string> attachment;
+        TRY(r.reference(attachment));
+        if (attachment.has) sl.set("attachment", str(attachment.value));
+        uint8_t blend;
+        TRY(r.byte(blend));
+        if (blend != 0) return r.unsupported("Slot blend modes in format 4.2 ('" + name.value_or("") + "')");
+        if (nonessential) {
+            bool visible;
+            TRY(r.boolean(visible));
+        }
+        r.slots.push_back(name.value_or(""));
+        slots.push_back(sl);
+    }
+
+    std::vector<Json> ik, transform, path;
+    TRY(r.varint(n));
+    for (uint32_t i = 0; i < n; i++) {
+        Opt<std::string> name;
+        uint32_t order, ti;
+        TRY(r.string(name));
+        TRY(r.varint(order));
+        Json list, target;
+        TRY(bone_list_42(r, bones, list));
+        TRY(r.varint(ti));
+        TRY(name_at(r, bones, ti, "bone", target));
+        uint8_t flags;
+        TRY(r.byte(flags));
+        if ((flags & ~IK42_BEND_POSITIVE) != IK42_MIX) return r.unsupported(fmt_flags("IK constraint options", flags, name.value_or("")));
+        Json c = constraint_start_42(name.value_or(""), order);
+        c.set("bones", list);
+        c.set("target", target);
+        if (!(flags & IK42_BEND_POSITIVE)) c.set("bendPositive", Json::boolean(false));
+        ik.push_back(c);
+    }
+    TRY(r.varint(n));
+    for (uint32_t i = 0; i < n; i++) {
+        Opt<std::string> name;
+        uint32_t order, ti;
+        TRY(r.string(name));
+        TRY(r.varint(order));
+        Json list, target;
+        TRY(bone_list_42(r, bones, list));
+        TRY(r.varint(ti));
+        TRY(name_at(r, bones, ti, "bone", target));
+        Json c = constraint_start_42(name.value_or(""), order);
+        c.set("bones", list);
+        c.set("target", target);
+        uint8_t offsets;
+        TRY(r.byte(offsets));
+        if (offsets & 0x07) return r.unsupported(fmt_flags("Transform constraint options", offsets, name.value_or("")));
+        for (int k = 0; k < 5; k++) {
+            if (offsets & (8 << k)) {
+                double v;
+                TRY(r.real(v));
+                c.set(TRANSFORM42_OFFSETS[k], num(v));
+            }
+        }
+        uint8_t more;
+        TRY(r.byte(more));
+        if (more & 0x80) return r.unsupported(fmt_flags("Transform constraint options", more, name.value_or("")));
+        if (more & 0x01) {
+            double v;
+            TRY(r.real(v));
+            c.set("shearY", num(v));
+        }
+        double mix[6];
+        for (int k = 0; k < 6; k++) {
+            mix[k] = 0.0;
+            if (more & (2 << k)) TRY(r.real(mix[k]));
+        }
+        for (int k = 0; k < 6; k++) {
+            double def = MIX_SAME_AS[k] < 0 ? 1.0 : mix[MIX_SAME_AS[k]];
+            if (mix[k] != def) c.set(MIX_KEYS[k], num(mix[k]));
+        }
+        transform.push_back(c);
+    }
+    TRY(r.varint(n));
+    for (uint32_t i = 0; i < n; i++) {
+        Opt<std::string> name;
+        uint32_t order, si;
+        TRY(r.string(name));
+        TRY(r.varint(order));
+        bool skin;
+        TRY(r.boolean(skin));
+        if (skin) return r.unsupported("Path constraint options on '" + name.value_or("") + "'");
+        Json list, target;
+        TRY(bone_list_42(r, bones, list));
+        TRY(r.varint(si));
+        TRY(name_at(r, slots, si, "slot", target));
+        Json c = constraint_start_42(name.value_or(""), order);
+        c.set("bones", list);
+        c.set("target", target);
+        uint8_t modes;
+        TRY(r.byte(modes));
+        unsigned rotate_i = (modes >> 3) & 3;
+        if ((modes & ~0x1f) || rotate_i >= 3) return r.unsupported(fmt_flags("Path constraint options", modes, name.value_or("")));
+        const char* position = POSITION_MODES[modes & 1];
+        const char* spacing = SPACING_MODES[(modes >> 1) & 3];
+        const char* rotate = ROTATE_MODES[rotate_i];
+        if (strcmp(position, "percent") != 0) c.set("positionMode", str(position));
+        if (strcmp(spacing, "length") != 0) c.set("spacingMode", str(spacing));
+        if (strcmp(rotate, "tangent") != 0) c.set("rotateMode", str(rotate));
+        double v[5];
+        for (int k = 0; k < 5; k++) TRY(r.real(v[k]));
+        if (v[0] != 0.0) c.set("position", num(v[0]));
+        if (v[1] != 0.0) c.set("spacing", num(v[1]));
+        if (v[2] != 1.0) c.set("mixRotate", num(v[2]));
+        if (v[3] != 1.0) c.set("mixX", num(v[3]));
+        if (v[4] != v[3]) c.set("mixY", num(v[4]));
+        path.push_back(c);
+    }
+    TRY(r.varint(n));
+    if (n != 0) return r.unsupported("Physics constraints in format 4.2");
+
+    Json skin = Json::object();
+    skin.set("name", str("default"));
+    Json attachments;
+    TRY(read_skin_42(r, slots, nonessential, attachments));
+    skin.set("attachments", attachments);
+    TRY(r.varint(n));
+    if (n != 0) return r.unsupported("Named skins in format 4.2");
+    TRY(r.varint(n));
+    if (n != 0) return r.unsupported("Events in format 4.2");
+
+    Json animations = Json::object();
+    TRY(r.varint(n));
+    for (uint32_t i = 0; i < n; i++) {
+        Opt<std::string> name;
+        TRY(r.string(name));
+        Json anim;
+        TRY(read_animation_42(r, bones, ik, anim));
+        animations.set(name.value_or(""), anim);
+    }
+    if (r.p != r.len) return r.bad("unexpected data after the animations");
+    Json arr = Json::array();
+    arr.arr = bones;
+    out.set("bones", arr);
+    arr.arr = slots;
+    out.set("slots", arr);
+    if (!ik.empty()) {
+        arr.arr = ik;
+        out.set("ik", arr);
+    }
+    if (!transform.empty()) {
+        arr.arr = transform;
+        out.set("transform", arr);
+    }
+    if (!path.empty()) {
+        arr.arr = path;
+        out.set("path", arr);
+    }
+    Json skins = Json::array();
+    skins.arr.push_back(skin);
+    out.set("skins", skins);
+    out.set("animations", animations);
+    return true;
+}
+
 }  // namespace
 
 bool is_skeleton_binary(const uint8_t* bytes, size_t size) {
@@ -1274,7 +1807,7 @@ bool read_skeleton_binary(const uint8_t* bytes, size_t size, Json& out, std::str
     Opt<std::string> version_opt;
     CHECK(r.string(version_opt));
     std::string version = version_opt.value_or("");
-    if (version.compare(0, 3, "4.3") != 0) {
+    if (version.compare(0, 3, "4.3") != 0 && version.compare(0, 3, "4.2") != 0) {
         r.unsupported("Binary format " + version);
         err = r.err;
         return false;
@@ -1309,6 +1842,10 @@ bool read_skeleton_binary(const uint8_t* bytes, size_t size, Json& out, std::str
         Opt<std::string> s;
         CHECK(r.string(s));
         r.strings.push_back(s);
+    }
+    if (version.compare(0, 3, "4.2") == 0) {
+        CHECK(read_skeleton_42(r, nonessential, out));
+        return true;
     }
 
     // Bones.

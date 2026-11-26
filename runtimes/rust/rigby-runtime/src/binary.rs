@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
-//! Binary skeleton files (".skel", format 4.3), converted to the skeleton JSON structure so one
+//! Binary skeleton files (".skel"; reads 4.2 and 4.3, see binary42.rs for 4.2), converted to the skeleton JSON structure so one
 //! reader handles both. Mirrors the clean-room layout of the JavaScript runtime (src/core/binary.js):
 //! only encodings observed in exports are read; anything else is reported as unsupported.
 
@@ -7,9 +7,9 @@ use crate::json::Json;
 use crate::reader::{LoadError, VERSION_FIELD};
 use std::collections::HashMap;
 
-const INHERIT: [&str; 5] = ["normal", "onlyTranslation", "noRotationOrReflection", "noScale", "noScaleOrReflection"];
+pub(crate) const INHERIT: [&str; 5] = ["normal", "onlyTranslation", "noRotationOrReflection", "noScale", "noScaleOrReflection"];
 const BLEND: [&str; 4] = ["normal", "additive", "multiply", "screen"];
-const BONE_TIMELINES: [(&str, usize); 10] = [
+pub(crate) const BONE_TIMELINES: [(&str, usize); 10] = [
     ("rotate", 1),
     ("translate", 2),
     ("translatex", 1),
@@ -21,9 +21,9 @@ const BONE_TIMELINES: [(&str, usize); 10] = [
     ("shearx", 1),
     ("sheary", 1),
 ];
-const POSITION_MODES: [&str; 2] = ["fixed", "percent"];
-const SPACING_MODES: [&str; 4] = ["length", "fixed", "percent", "proportional"];
-const ROTATE_MODES: [&str; 3] = ["tangent", "chain", "chainScale"];
+pub(crate) const POSITION_MODES: [&str; 2] = ["fixed", "percent"];
+pub(crate) const SPACING_MODES: [&str; 4] = ["length", "fixed", "percent", "proportional"];
+pub(crate) const ROTATE_MODES: [&str; 3] = ["tangent", "chain", "chainScale"];
 const TRANSFORM_PROPERTIES: [&str; 6] = ["rotate", "x", "y", "scaleX", "scaleY", "shearY"];
 const TRANSFORM_OFFSETS: [&str; 6] = ["rotation", "x", "y", "scaleX", "scaleY", "shearY"];
 /// Mix key, the property it applies to, and the mix it defaults to (index) when omitted.
@@ -38,7 +38,7 @@ const TRANSFORM_MIXES: [(&str, &str, Option<usize>); 6] = [
 const PHYSICS_GLOBALS: [&str; 7] = ["inertia", "strength", "damping", "mass", "wind", "gravity", "mix"];
 const SEQUENCE_MODES: [Option<&str>; 5] = [Some("hold"), Some("once"), Some("loop"), None, Some("onceReverse")];
 
-fn unsupported<T>(what: impl std::fmt::Display) -> Result<T, LoadError> {
+pub(crate) fn unsupported<T>(what: impl std::fmt::Display) -> Result<T, LoadError> {
     Err(LoadError(format!("{what} is not supported in .skel files yet; use skeleton JSON for this skeleton")))
 }
 
@@ -57,19 +57,19 @@ fn shortest(v: f32) -> f64 {
     format!("{v}").parse::<f64>().unwrap_or(v as f64)
 }
 
-fn num(v: f64) -> Json {
+pub(crate) fn num(v: f64) -> Json {
     Json::Num(v)
 }
 
-fn s(v: &str) -> Json {
+pub(crate) fn s(v: &str) -> Json {
     Json::Str(v.to_string())
 }
 
-struct Reader<'a> {
+pub(crate) struct Reader<'a> {
     b: &'a [u8],
-    p: usize,
+    pub(crate) p: usize,
     strings: Vec<Option<String>>,
-    slots: Vec<String>,
+    pub(crate) slots: Vec<String>,
     transform_mapped: HashMap<String, Vec<&'static str>>,
 }
 
@@ -80,12 +80,12 @@ impl Reader<'_> {
         }
         Ok(())
     }
-    fn byte(&mut self) -> Result<u8, LoadError> {
+    pub(crate) fn byte(&mut self) -> Result<u8, LoadError> {
         self.check(1)?;
         self.p += 1;
         Ok(self.b[self.p - 1])
     }
-    fn bool(&mut self) -> Result<bool, LoadError> {
+    pub(crate) fn bool(&mut self) -> Result<bool, LoadError> {
         Ok(self.byte()? != 0)
     }
     fn uint(&mut self) -> Result<u32, LoadError> {
@@ -94,10 +94,10 @@ impl Reader<'_> {
         self.p += 4;
         Ok(v)
     }
-    fn float(&mut self) -> Result<f64, LoadError> {
+    pub(crate) fn float(&mut self) -> Result<f64, LoadError> {
         Ok(shortest(f32::from_bits(self.uint()?)))
     }
-    fn varint(&mut self) -> Result<u32, LoadError> {
+    pub(crate) fn varint(&mut self) -> Result<u32, LoadError> {
         let mut result: u32 = 0;
         let mut shift = 0;
         loop {
@@ -114,7 +114,7 @@ impl Reader<'_> {
         let r = self.varint()?;
         Ok(((r >> 1) as i32 ^ -((r & 1) as i32)) as i64)
     }
-    fn string(&mut self) -> Result<Option<String>, LoadError> {
+    pub(crate) fn string(&mut self) -> Result<Option<String>, LoadError> {
         let n = self.varint()? as usize;
         if n == 0 {
             return Ok(None);
@@ -127,7 +127,7 @@ impl Reader<'_> {
     fn str_json(&mut self) -> Result<Json, LoadError> {
         Ok(self.string()?.map(Json::Str).unwrap_or(Json::Null))
     }
-    fn reference(&mut self) -> Result<Option<String>, LoadError> {
+    pub(crate) fn reference(&mut self) -> Result<Option<String>, LoadError> {
         let i = self.varint()? as usize;
         if i == 0 {
             return Ok(None);
@@ -137,7 +137,7 @@ impl Reader<'_> {
             None => bad("invalid string reference in .skel data"),
         }
     }
-    fn color(&mut self) -> Result<String, LoadError> {
+    pub(crate) fn color(&mut self) -> Result<String, LoadError> {
         Ok(format!("{:08x}", self.uint()?))
     }
     fn color3(&mut self) -> Result<String, LoadError> {
@@ -146,12 +146,12 @@ impl Reader<'_> {
         self.p += 3;
         Ok(hex)
     }
-    fn slot_name(&self, i: usize) -> Result<String, LoadError> {
+    pub(crate) fn slot_name(&self, i: usize) -> Result<String, LoadError> {
         self.slots.get(i).cloned().ok_or_else(|| LoadError("invalid slot index in .skel data".into()))
     }
 }
 
-fn name_at(list: &[Json], i: u32, what: &str) -> Result<Json, LoadError> {
+pub(crate) fn name_at(list: &[Json], i: u32, what: &str) -> Result<Json, LoadError> {
     list.get(i as usize).map(|v| v.get("name").clone()).ok_or_else(|| LoadError(format!("invalid {what} index in .skel data")))
 }
 
@@ -171,7 +171,7 @@ pub fn is_skeleton_binary(bytes: &[u8]) -> bool {
 pub fn read_skeleton_binary(bytes: &[u8]) -> Result<Json, LoadError> {
     let mut r = Reader { b: bytes, p: 8, strings: Vec::new(), slots: Vec::new(), transform_mapped: HashMap::new() };
     let version = r.string()?.unwrap_or_default();
-    if !version.starts_with("4.3") {
+    if !version.starts_with("4.3") && !version.starts_with("4.2") {
         return unsupported(format!("Binary format {version}"));
     }
     let mut skeleton = Json::obj();
@@ -198,6 +198,9 @@ pub fn read_skeleton_binary(bytes: &[u8]) -> Result<Json, LoadError> {
     for _ in 0..n {
         let st = r.string()?;
         r.strings.push(st);
+    }
+    if version.starts_with("4.2") {
+        return crate::binary42::read_skeleton_42(&mut r, out, nonessential, bytes.len());
     }
 
     // Bones.
@@ -928,7 +931,7 @@ fn read_attachment(r: &mut Reader, flags: u8, key: &str, nonessential: bool) -> 
 }
 
 /// Keys of `n` values; the curve of a segment follows the segment's second key.
-fn read_curve_keys(r: &mut Reader, frames: u32, mut read: impl FnMut(&mut Reader, &mut Json) -> Result<usize, LoadError>) -> Result<Vec<Json>, LoadError> {
+pub(crate) fn read_curve_keys(r: &mut Reader, frames: u32, mut read: impl FnMut(&mut Reader, &mut Json) -> Result<usize, LoadError>) -> Result<Vec<Json>, LoadError> {
     let mut keys: Vec<Json> = Vec::new();
     for f in 0..frames {
         let mut key = Json::obj();
@@ -1240,46 +1243,8 @@ fn read_animation(r: &mut Reader, bones: &[Json], slots: &[Json], constraints: &
                 match kind {
                     0 => {
                         r.varint()?;
-                        let mut keys: Vec<Json> = Vec::new();
-                        for f in 0..frames {
-                            let mut key = Json::obj();
-                            let time = r.float()?;
-                            if time != 0.0 {
-                                key.set("time", num(time));
-                            }
-                            if f > 0 {
-                                let c = r.byte()?;
-                                let prev = keys.last_mut().unwrap();
-                                match c {
-                                    0 => {}
-                                    1 => prev.set("curve", s("stepped")),
-                                    2 => {
-                                        let mut cv = Vec::new();
-                                        for _ in 0..4 {
-                                            let v = r.float()?;
-                                            cv.push(num(v));
-                                        }
-                                        prev.set("curve", Json::Arr(cv));
-                                    }
-                                    other => return Err(LoadError(format!("invalid curve type {other}"))),
-                                }
-                            }
-                            let count = r.varint()?;
-                            if count > 0 {
-                                let offset = r.varint()?;
-                                if offset != 0 {
-                                    key.set("offset", num(offset as f64));
-                                }
-                                let mut v = Vec::new();
-                                for _ in 0..count {
-                                    let x = r.float()?;
-                                    v.push(num(x));
-                                }
-                                key.set("vertices", Json::Arr(v));
-                            }
-                            keys.push(key);
-                        }
-                        timelines.set("deform", Json::Arr(keys));
+                        let keys = read_deform_keys(r, frames)?;
+                        timelines.set("deform", keys);
                     }
                     1 => {
                         let mut keys = Vec::new();
@@ -1383,4 +1348,48 @@ fn read_animation(r: &mut Reader, bones: &[Json], slots: &[Json], constraints: &
     }
     r.color()?;
     Ok(anim)
+}
+
+/// Deform keys: time, the previous segment's curve, then a value count, start offset and values.
+pub(crate) fn read_deform_keys(r: &mut Reader, frames: u32) -> Result<Json, LoadError> {
+    let mut keys: Vec<Json> = Vec::new();
+    for f in 0..frames {
+        let mut key = Json::obj();
+        let time = r.float()?;
+        if time != 0.0 {
+            key.set("time", num(time));
+        }
+        if f > 0 {
+            let c = r.byte()?;
+            let prev = keys.last_mut().unwrap();
+            match c {
+                0 => {}
+                1 => prev.set("curve", s("stepped")),
+                2 => {
+                    let mut cv = Vec::new();
+                    for _ in 0..4 {
+                        let v = r.float()?;
+                        cv.push(num(v));
+                    }
+                    prev.set("curve", Json::Arr(cv));
+                }
+                other => return Err(LoadError(format!("invalid curve type {other}"))),
+            }
+        }
+        let count = r.varint()?;
+        if count > 0 {
+            let offset = r.varint()?;
+            if offset != 0 {
+                key.set("offset", num(offset as f64));
+            }
+            let mut v = Vec::new();
+            for _ in 0..count {
+                let x = r.float()?;
+                v.push(num(x));
+            }
+            key.set("vertices", Json::Arr(v));
+        }
+        keys.push(key);
+    }
+    Ok(Json::Arr(keys))
 }

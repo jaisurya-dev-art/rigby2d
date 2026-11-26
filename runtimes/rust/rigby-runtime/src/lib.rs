@@ -16,6 +16,7 @@
 
 pub mod atlas;
 pub mod binary;
+mod binary42;
 pub mod clipping;
 pub mod curve;
 pub mod json;

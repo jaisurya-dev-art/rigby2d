@@ -2,7 +2,7 @@
 
 Play Rigby2D animations in Defold 1.14 or newer. The `rigby2d` library is a native extension: the
 Rigby2D runtime in C++ (`rigby2d/commonsrc`), a port of the Rust runtime that matches the JavaScript
-runtime frame by frame (golden-tested in CI). It loads skeleton exports (binary `.skel` 4.3 or
+runtime frame by frame (golden-tested in CI). It loads skeleton exports (binary `.skel` 4.2 or 4.3, or
 skeleton `.json` 3.8 / 4.2 / 4.3) with their `.atlas`, and plays them: meshes and weights, IK,
 transform, path, physics and slider constraints, skins, image sequences, clipping, draw order,
 events, two-color tint and blend modes, with layered tracks, crossfades and queued animations,

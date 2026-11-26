@@ -5,7 +5,7 @@ Rust, C++ and C# cores are ports of it, tested against it frame by frame.
 
 | Folder | What it is | Status |
 | --- | --- | --- |
-| [`rust/rigby-runtime`](rust/rigby-runtime) | The runtime in Rust: loads skeleton `.json` (3.8, 4.2, 4.3) and binary `.skel` (4.3) with `.atlas`, evaluates poses, constraints and playback, plays scenes (`.scene.json`), and builds textured, clipped draw batches. No dependencies. | Complete |
+| [`rust/rigby-runtime`](rust/rigby-runtime) | The runtime in Rust: loads skeleton `.json` (3.8, 4.2, 4.3) and binary `.skel` (4.2, 4.3) with `.atlas`, evaluates poses, constraints and playback, plays scenes (`.scene.json`), and builds textured, clipped draw batches. No dependencies. | Complete |
 | [`rust/rigby-godot`](rust/rigby-godot) | Godot 4.3+ GDExtension: the `RigbySkeleton2D` and `RigbyScene2D` nodes. | Windows x64, macOS and Linux x64 downloads on [Releases](https://github.com/jaisurya-dev-art/rigby2d/releases); build from source elsewhere |
 | [`rust/rigby-wasm`](rust/rigby-wasm) | The Rust runtime as a WebAssembly module with a small C ABI (no wasm-bindgen), used by the PixiJS runtime's opt-in WebAssembly mode. | Preview |
 | [`godot`](godot) | Godot addon (`addons/rigby2d`, with [user guide](godot/addons/rigby2d/README.md)), demo scene and tests. | Complete |

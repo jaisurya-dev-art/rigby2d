@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
-// Binary skeleton files (".skel", format 4.3), converted to the skeleton JSON structure so one
+// Binary skeleton files (".skel"; reads 4.2 and 4.3, see Binary42.cs for 4.2), converted to the skeleton JSON structure so one
 // reader handles both. Mirrors the clean-room layout of the JavaScript runtime (src/core/binary.js):
 // only encodings observed in exports are read; anything else is reported as unsupported.
 // A port of runtimes/rust/rigby-runtime/src/binary.rs.
@@ -12,7 +12,7 @@ using System.Text;
 
 namespace Rigby2D
 {
-    public static class SkeletonBinary
+    public static partial class SkeletonBinary
     {
         static readonly string[] InheritModes = { "normal", "onlyTranslation", "noRotationOrReflection", "noScale", "noScaleOrReflection" };
         static readonly string[] BlendModes = { "normal", "additive", "multiply", "screen" };
@@ -174,7 +174,7 @@ namespace Rigby2D
         {
             var r = new R { B = bytes, P = 8 };
             string version = r.String() ?? "";
-            if (!version.StartsWith("4.3", StringComparison.Ordinal)) throw Unsupported($"Binary format {version}");
+            if (!version.StartsWith("4.3", StringComparison.Ordinal) && !version.StartsWith("4.2", StringComparison.Ordinal)) throw Unsupported($"Binary format {version}");
             var skeleton = Json.Obj();
             skeleton.Set(SkeletonJson.VersionField, S(version));
             foreach (var k in new[] { "x", "y", "width", "height" }) skeleton.Set(k, N(r.Float()));
@@ -190,6 +190,7 @@ namespace Rigby2D
             var output = Json.Obj();
             output.Set("skeleton", skeleton);
             for (uint i = 0, n = r.Varint(); i < n; i++) r.Strings.Add(r.String());
+            if (version.StartsWith("4.2", System.StringComparison.Ordinal)) return Read42(r, output, nonessential);
 
             // Bones.
             var bones = new List<Json>();

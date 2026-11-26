@@ -57,7 +57,7 @@ Check a project for problems: structure, images missing from its work file, atla
 
 ### `convert_project`
 
-Write a project as skeleton JSON (format 3.8, 4.2 or 4.3) or binary .skel (4.3). Reads .rigby, .json or .skel. Writes skeleton data only; atlas and images are not repacked. Refuses to replace an existing file unless overwrite is true.
+Write a project as skeleton JSON (format 3.8, 4.2 or 4.3) or binary .skel (4.3). Reads .rigby, .json or .skel (4.2 or 4.3). Writes skeleton data only; atlas and images are not repacked. Refuses to replace an existing file unless overwrite is true.
 
 | Parameter | Type | Description |
 | --- | --- | --- |

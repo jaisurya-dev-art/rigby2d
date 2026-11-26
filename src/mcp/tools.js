@@ -671,7 +671,7 @@ export function createTools(ws) {
     {
       name: 'convert_project',
       title: 'Convert project',
-      description: 'Write a project as skeleton JSON (format 3.8, 4.2 or 4.3) or binary .skel (4.3). Reads .rigby, .json or .skel. Writes skeleton data only; atlas and images are not repacked. Refuses to replace an existing file unless overwrite is true.',
+      description: 'Write a project as skeleton JSON (format 3.8, 4.2 or 4.3) or binary .skel (4.3). Reads .rigby, .json or .skel (4.2 or 4.3). Writes skeleton data only; atlas and images are not repacked. Refuses to replace an existing file unless overwrite is true.',
       inputSchema: {
         type: 'object',
         properties: {

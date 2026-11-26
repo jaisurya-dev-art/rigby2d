@@ -4,7 +4,7 @@
 | --- | --- | --- |
 | `.rigby` | The work file: a ZIP with `project.json` (the whole document) and `images/*.png`, plus `audio/*` for audio tracks. | *File ▸ Save* |
 | `.json` | Skeleton JSON, format 3.8, 4.2 or 4.3. | *Export ▸ JSON + atlas* |
-| `.skel` | Binary skeleton, format 4.3. | *Export ▸ Binary .skel + atlas* |
+| `.skel` | Binary skeleton. Rigby2D writes format 4.3 and reads 4.2 and 4.3 ([see below](#binary-skel-42)). | *Export ▸ Binary .skel + atlas* |
 | `.atlas` + `.png` | Texture atlas: the packed images and where each one sits. | Every export |
 | `.scene.json` | A scene for runtimes: actors, clips and depths, naming the stage and character skeletons next to it. | *Export ▸ Scene for runtimes* |
 
@@ -55,3 +55,14 @@ seconds from the clip before. `depth` moves top-level stage bones for parallax: 
 - Y points **up** (runtimes for Y-down engines, such as Godot, convert).
 - Angles are in degrees, counterclockwise.
 - Times are in seconds.
+
+## Binary .skel 4.2
+
+Older binary skeletons in format 4.2 open in the editor, convert with `rigby convert` and the MCP
+tools, and load in the Rust, C++ (Defold) and C# (Unity) runtimes. Rigby2D always writes 4.3.
+
+Reading 4.2 covers bones, slots, IK, transform and path constraints, regions, weighted meshes and
+paths, and animations with bone, IK and deform keys. A 4.2 file that uses anything else (slot colours
+or blend modes, named skins, events, physics, slot or draw-order keys) stops with a message naming
+it; export that skeleton as JSON instead, which is read in full.
+

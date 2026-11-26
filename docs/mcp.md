@@ -72,7 +72,7 @@ all of its parameters, generated from the server itself.
 | `describe_animation` | Key times of every bone, slot, deform, IK and draw-order timeline of one animation, its events, attachment swaps. | No |
 | `sample_pose` | Evaluates the setup pose or an animation at a time with the runtime: world transforms of every bone, visible attachments, draw order, events so far, bounds. | No |
 | `validate_project` | Structure, images missing from the work file, atlas or images folder, animations without keys, whether skeleton JSON 4.3 round-trips the data, whether binary `.skel` export is possible. | No |
-| `convert_project` | Writes skeleton JSON (3.8, 4.2 or 4.3) or binary `.skel` (4.3) from a `.rigby`, `.json` or `.skel` file. | Yes |
+| `convert_project` | Writes skeleton JSON (3.8, 4.2 or 4.3) or binary `.skel` (4.3) from a `.rigby`, `.json` or `.skel` (4.2 or 4.3) file. | Yes |
 | `export_sprite_sheet` | Renders animations into a sprite sheet (PNG + JSON hash), a Defold atlas with frames, or PNG frames, into a folder. | Yes |
 | `export_defold_model` | Writes a Rigby2D model for Defold from a character (`.rigby`, or `.skel` / `.json` with its atlas): skeleton, images with a Defold atlas, the `.rigbymodel` component and a game object. The Defold editor plays it live. | Yes |
 | `world_to_local` | Converts a world point into a bone's local coordinates, in the setup pose or at a time in an animation. | No |

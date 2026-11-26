@@ -1,7 +1,7 @@
 # Runtimes
 
 Rigby2D animations play in games and apps through the included runtimes. All of them load skeleton
-`.json` (3.8, 4.2, 4.3) or binary `.skel` (4.3) with an `.atlas`, and evaluate meshes, weights, skins,
+`.json` (3.8, 4.2, 4.3) or binary `.skel` (4.2, 4.3) with an `.atlas`, and evaluate meshes, weights, skins,
 image sequences, clipping, IK, transform, path, physics and slider constraints, draw order, events and
 layered tracks with crossfades. They also play [scenes](scenes.md#in-games-and-apps): several
 characters on a stage with a moving camera and parallax.

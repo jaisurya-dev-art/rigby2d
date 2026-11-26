@@ -130,7 +130,7 @@ as an export, ready to drop in.
   premultiplied or straight alpha and the color space itself, so there are no dark or bright
   fringes. Two-color tint and the normal, additive, multiply and screen blend modes are included,
   and the shader works in the Built-in and Universal render pipelines.
-- **Reads what you export.** Skeleton JSON 3.8, 4.2 and 4.3 and binary `.skel` 4.3, checked at
+- **Reads what you export.** Skeleton JSON 3.8, 4.2 and 4.3 and binary `.skel` 4.2 and 4.3, checked at
   import with readable warnings, so a broken file is reported in the Console with its name rather
   than failing in Play mode.
 - **The same results everywhere.** The C# runtime is tested against the JavaScript runtime that the

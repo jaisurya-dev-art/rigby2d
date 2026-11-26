@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
-// Binary skeleton files (".skel"), format 4.3. Converts between the binary encoding and the
-// skeleton JSON object structure, so all other code works with one representation.
+// Binary skeleton files (".skel"): reads formats 4.2 and 4.3, writes 4.3. Converts between the
+// binary encoding and the skeleton JSON object structure, so all other code works with one
+// representation. A 4.2 file is read into the 4.2 JSON structure (separate ik, transform and path
+// lists), which the skeleton JSON importer converts as it does 4.2 JSON.
 //
 // The layout was determined clean-room by comparing paired JSON and binary exports of the same
 // skeleton (black-box observation of exported data). Only encodings that were observed are
@@ -13,6 +15,9 @@
 // and event timelines.
 // Not yet supported: point attachments, rgb/alpha/rgb2 slot keys, other path/physics/slider key
 // types, ping-pong and loop-reverse sequence modes, and slider skin/additive/mix settings.
+// Format 4.2 (observed from one paired export, see readSkeleton42 and below): bones, slots, IK,
+// transform and path constraints, weighted meshes, weighted path attachments, regions, and
+// animations with bone, IK mix and deform keys. Everything else in a 4.2 file stops with an error.
 //
 // Encoding: big-endian floats/ints; varints (7 bits per byte, low bits first; signed values are
 // zig-zag encoded); strings are a varint byte length + 1 (0 = null) then UTF-8; "ref" strings are
@@ -261,7 +266,8 @@ export function readSkeletonBinary(bytes) {
   const hash = toBase64(bytes.subarray(0, 8));
   r.p = 8;
   const version = r.string();
-  if (!/^4\.3/.test(version ?? '')) throw new Unsupported(`Binary format ${version}`);
+  if (!/^4\.[23]/.test(version ?? '')) throw new Unsupported(`Binary format ${version}`);
+  r.v42 = version.startsWith('4.2');
   const skeleton = { hash, [VERSION_FIELD]: version, x: r.float(), y: r.float(), width: r.float(), height: r.float() };
   const referenceScale = r.float();
   if (referenceScale !== 100) skeleton.referenceScale = referenceScale;
@@ -276,6 +282,8 @@ export function readSkeletonBinary(bytes) {
   const nStrings = r.varint();
   for (let i = 0; i < nStrings; i++) r.strings.push(r.string());
   out._strings = r.strings.slice();
+
+  if (r.v42) return readSkeleton42(r, out, nonessential, bytes);
 
   // Bones.
   out.bones = [];
@@ -693,7 +701,7 @@ function readSkin(r, out, nonessential) {
     for (let k = 0; k < n; k++) {
       const key = r.ref();
       const flags = r.byte();
-      atts[key] = readAttachment(r, flags, key, nonessential);
+      atts[key] = r.v42 ? readAttachment42(r, flags, key, nonessential) : readAttachment(r, flags, key, nonessential);
     }
   }
   return skin;
@@ -1053,6 +1061,267 @@ function readAnimation(r, out, eventNames) {
   }
   const color = r.color();
   if (color !== 'ffffffff') anim._color = color;
+  return anim;
+}
+
+// ---- reading format 4.2 -------------------------------------------------------------------------
+//
+// Observed by comparing a paired 4.2 JSON and binary export. Only what that pair shows is read; any
+// flag, section or attachment kind it doesn't have stops with Unsupported. Where 4.2 differs from
+// 4.3: a bone's length comes before its inherit byte, and it has no icon floats; constraints are four
+// lists (IK, transform, path, physics), each entry with its application order; weighted vertices
+// have no size hint and meshes no trailing byte; IK keys are a flags byte, then the time; and an
+// animation ends after its draw order and event keys (no slider sections, no colour).
+
+/** IK constraint flags: bend positive, and mix 1 (other mixes haven't been seen in 4.2). */
+const IK42_BEND_POSITIVE = 0x02;
+const IK42_MIX = 0x20;
+/** Transform offsets present: first flags byte, bits 3 to 7. */
+const TRANSFORM42_OFFSETS = ['rotation', 'x', 'y', 'scaleX', 'scaleY'];
+/** Second flags byte: bit 0 shearY, bits 1 to 6 these mixes (absent = 0), with their defaults. */
+const TRANSFORM42_MIXES = [
+  ['mixRotate', 1],
+  ['mixX', 1],
+  ['mixY', 'mixX'],
+  ['mixScaleX', 1],
+  ['mixScaleY', 'mixScaleX'],
+  ['mixShearY', 1],
+];
+/** The one IK key seen: mix 0, bend positive, no softness, compress or stretch. */
+const IK42_KEY = 0x0a;
+
+/** Reads a 4.2 file after its header, into the 4.2 skeleton JSON structure. */
+function readSkeleton42(r, out, nonessential, bytes) {
+  out.bones = [];
+  const nBones = r.varint();
+  for (let i = 0; i < nBones; i++) {
+    const b = { name: r.string() };
+    if (i > 0) b.parent = out.bones[r.varint()].name;
+    const [rotation, x, y, scaleX, scaleY, shearX, shearY] = [r.float(), r.float(), r.float(), r.float(), r.float(), r.float(), r.float()];
+    const length = r.float();
+    const inherit = INHERIT[r.byte()];
+    if (!inherit) throw new Unsupported(`Bone inherit mode on '${b.name}'`);
+    if (r.bool()) throw new Unsupported(`Skin bones in format 4.2 ('${b.name}')`);
+    if (length) b.length = length;
+    if (rotation) b.rotation = rotation;
+    if (x) b.x = x;
+    if (y) b.y = y;
+    if (scaleX !== 1) b.scaleX = scaleX;
+    if (scaleY !== 1) b.scaleY = scaleY;
+    if (shearX) b.shearX = shearX;
+    if (shearY) b.shearY = shearY;
+    if (inherit !== 'normal') b.inherit = inherit;
+    if (nonessential) {
+      const color = r.color();
+      if (color !== DEFAULT_BONE_COLOR) b.color = color;
+      const icon = r.string();
+      if (icon !== null) b.icon = icon;
+      // One more byte. In 4.3 it is the bone's visibility, but the observed 4.2 pair doesn't confirm
+      // that meaning (bones with 0 here are visible in its JSON), so it is read and not mapped.
+      r.byte();
+    }
+    out.bones.push(b);
+  }
+
+  out.slots = [];
+  const nSlots = r.varint();
+  for (let i = 0; i < nSlots; i++) {
+    const s = { name: r.string(), bone: out.bones[r.varint()].name };
+    const color = r.color();
+    const dark = r.color();
+    if (color !== 'ffffffff' || dark !== 'ffffffff') throw new Unsupported(`Slot colors in format 4.2 ('${s.name}')`);
+    const attachment = r.ref();
+    if (attachment !== null) s.attachment = attachment;
+    if (r.byte() !== 0) throw new Unsupported(`Slot blend modes in format 4.2 ('${s.name}')`);
+    if (nonessential && !r.bool()) s._visible = false;
+    out.slots.push(s);
+    r.slots.push(s);
+  }
+
+  // Constraints: the IK, transform, path and physics lists, each entry with its application order.
+  const head = () => ({ name: r.string(), order: r.varint() });
+  const withOrder = (name, order, c) => ({ name, ...(order ? { order } : {}), ...c });
+  const boneList = () => {
+    const bones = [];
+    for (let n = r.varint(); n > 0; n--) bones.push(out.bones[r.varint()].name);
+    return bones;
+  };
+  out.ik = [];
+  for (let i = r.varint(); i > 0; i--) {
+    const { name, order } = head();
+    const bones = boneList();
+    const target = out.bones[r.varint()].name;
+    const flags = r.byte();
+    if ((flags & ~IK42_BEND_POSITIVE) !== IK42_MIX) throw new Unsupported(`IK constraint options (flags 0x${flags.toString(16)}) on '${name}'`);
+    const c = withOrder(name, order, { bones, target });
+    if (!(flags & IK42_BEND_POSITIVE)) c.bendPositive = false;
+    out.ik.push(c);
+  }
+  out.transform = [];
+  for (let i = r.varint(); i > 0; i--) {
+    const { name, order } = head();
+    const bones = boneList();
+    const c = withOrder(name, order, { bones, target: out.bones[r.varint()].name });
+    const offsets = r.byte();
+    if (offsets & 0x07) throw new Unsupported(`Transform constraint options (flags 0x${offsets.toString(16)}) on '${name}'`);
+    TRANSFORM42_OFFSETS.forEach((key, k) => {
+      if (offsets & (8 << k)) c[key] = r.float();
+    });
+    const more = r.byte();
+    if (more & 0x80) throw new Unsupported(`Transform constraint options (0x${more.toString(16)}) on '${name}'`);
+    if (more & 0x01) c.shearY = r.float();
+    const mix = {};
+    TRANSFORM42_MIXES.forEach(([key], k) => {
+      mix[key] = more & (2 << k) ? r.float() : 0;
+    });
+    for (const [key, def] of TRANSFORM42_MIXES) if (mix[key] !== (typeof def === 'string' ? mix[def] : def)) c[key] = mix[key];
+    out.transform.push(c);
+  }
+  out.path = [];
+  for (let i = r.varint(); i > 0; i--) {
+    const { name, order } = head();
+    if (r.bool()) throw new Unsupported(`Path constraint options on '${name}'`);
+    const bones = boneList();
+    const c = withOrder(name, order, { bones, target: out.slots[r.varint()].name });
+    const modes = r.byte();
+    const rotateMode = ROTATE_MODES[(modes >> 3) & 3];
+    if (modes & ~0x1f || !rotateMode) throw new Unsupported(`Path constraint options (flags 0x${modes.toString(16)}) on '${name}'`);
+    const positionMode = POSITION_MODES[modes & 1];
+    const spacingMode = SPACING_MODES[(modes >> 1) & 3];
+    if (positionMode !== 'percent') c.positionMode = positionMode;
+    if (spacingMode !== 'length') c.spacingMode = spacingMode;
+    if (rotateMode !== 'tangent') c.rotateMode = rotateMode;
+    const [position, spacing, mixRotate, mixX, mixY] = [r.float(), r.float(), r.float(), r.float(), r.float()];
+    if (position) c.position = position;
+    if (spacing) c.spacing = spacing;
+    if (mixRotate !== 1) c.mixRotate = mixRotate;
+    if (mixX !== 1) c.mixX = mixX;
+    if (mixY !== mixX) c.mixY = mixY;
+    out.path.push(c);
+  }
+  if (r.varint() !== 0) throw new Unsupported('Physics constraints in format 4.2');
+  for (const key of ['ik', 'transform', 'path']) if (!out[key].length) delete out[key];
+
+  out.skins = [{ name: 'default', attachments: readSkin(r, out, nonessential) }];
+  if (r.varint() !== 0) throw new Unsupported('Named skins in format 4.2');
+  if (r.varint() !== 0) throw new Unsupported('Events in format 4.2');
+
+  out.animations = {};
+  for (let i = r.varint(); i > 0; i--) {
+    const name = r.string();
+    out.animations[name] = readAnimation42(r, out);
+  }
+  if (r.p !== bytes.length) throw new Error(`unexpected data after the animations (${bytes.length - r.p} bytes)`);
+  return out;
+}
+
+/** A 4.2 attachment: a region, a weighted mesh, or a weighted, open, constant-speed path. */
+function readAttachment42(r, flags, key, nonessential) {
+  const type = flags & 0x07;
+  if (type === ATTACHMENT_REGION && (flags & ~FLAG_ROTATION) === 0) {
+    const a = { rotation: flags & FLAG_ROTATION ? r.float() : 0, x: r.float(), y: r.float(), scaleX: r.float(), scaleY: r.float(), width: r.float(), height: r.float() };
+    for (const [k, def] of [['rotation', 0], ['x', 0], ['y', 0], ['scaleX', 1], ['scaleY', 1]]) if (a[k] === def) delete a[k];
+    return a;
+  }
+  if (flags === (ATTACHMENT_MESH | FLAG_WEIGHTED)) {
+    const a = { type: 'mesh', hull: r.varint() };
+    const count = r.varint();
+    a.vertices = readWeights42(r, count);
+    a.uvs = [];
+    for (let k = 0; k < count * 2; k++) a.uvs.push(r.float());
+    a.triangles = [];
+    for (let k = 0; k < 3 * (2 * count - a.hull - 2); k++) a.triangles.push(r.varint());
+    if (nonessential) {
+      a.edges = [];
+      for (let k = r.varint(); k > 0; k--) a.edges.push(r.varint());
+      a.width = r.float();
+      a.height = r.float();
+    }
+    return a;
+  }
+  if (flags === (ATTACHMENT_PATH | PATH_CONSTANT_SPEED | PATH_WEIGHTED)) {
+    const a = { type: 'path', vertexCount: r.varint() };
+    a.vertices = readWeights42(r, a.vertexCount);
+    a.lengths = [];
+    for (let k = 0; k < a.vertexCount / 3; k++) a.lengths.push(r.float());
+    if (nonessential) setColor(a, r.color());
+    return a;
+  }
+  throw new Unsupported(`Attachment options in format 4.2 (flags 0x${flags.toString(16)}) on '${key}'`);
+}
+
+/** Weighted vertices without a size hint: per vertex, a bone count, then bone, x, y and weight. */
+function readWeights42(r, count) {
+  const out = [];
+  for (let v = 0; v < count; v++) {
+    const n = r.varint();
+    out.push(n);
+    for (let k = 0; k < n; k++) out.push(r.varint(), r.float(), r.float(), r.float());
+  }
+  return out;
+}
+
+function readAnimation42(r, out) {
+  const anim = {};
+  r.varint(); // total timeline count
+  if (r.varint() !== 0) throw new Unsupported('Slot keys in format 4.2');
+  for (let i = r.varint(); i > 0; i--) {
+    const bone = out.bones[r.varint()].name;
+    const timelines = ((anim.bones ??= {})[bone] = {});
+    for (let t = r.varint(); t > 0; t--) {
+      const type = r.byte();
+      const frames = r.varint();
+      r.varint(); // bezier count
+      const spec = BONE_TIMELINES[type];
+      if (!spec) throw new Unsupported(`Bone timeline type ${type}`);
+      const [kind, count] = spec;
+      const def = kind.startsWith('scale') ? 1 : 0;
+      timelines[kind] = readCurveKeys(r, frames, (rr, key) => {
+        if (count === 1) {
+          const v = rr.float();
+          if (v !== def) key.value = v;
+        } else {
+          const x = rr.float();
+          const y = rr.float();
+          if (x !== def) key.x = x;
+          if (y !== def) key.y = y;
+        }
+        return count;
+      });
+    }
+  }
+  for (let i = r.varint(); i > 0; i--) {
+    const constraint = out.ik?.[r.varint()]?.name;
+    if (constraint === undefined) throw new Error('invalid constraint index in .skel data');
+    const frames = r.varint();
+    r.varint(); // bezier count
+    if (frames !== 1) throw new Unsupported('IK keys with curves in format 4.2');
+    const flags = r.byte();
+    if (flags !== IK42_KEY) throw new Unsupported(`IK key options in format 4.2 (flags 0x${flags.toString(16)})`);
+    const key = {};
+    const time = r.float();
+    if (time) key.time = time;
+    key.mix = 0;
+    (anim.ik ??= {})[constraint] = [key];
+  }
+  for (const what of ['Transform', 'Path', 'Physics']) if (r.varint() !== 0) throw new Unsupported(`${what} constraint keys in format 4.2`);
+  for (let i = r.varint(); i > 0; i--) {
+    const skin = out.skins[r.varint()]?.name;
+    if (!skin) throw new Error('invalid skin index in .skel data');
+    for (let k = r.varint(); k > 0; k--) {
+      const slot = r.slotName(r.varint());
+      for (let a = r.varint(); a > 0; a--) {
+        const attachment = r.ref();
+        const type = r.byte();
+        const frames = r.varint();
+        if (type !== ATTACHMENT_DEFORM) throw new Unsupported(`Attachment timeline type ${type} in format 4.2`);
+        r.varint(); // bezier count
+        ((((anim.attachments ??= {})[skin] ??= {})[slot] ??= {})[attachment] ??= {}).deform = readDeformKeys(r, frames);
+      }
+    }
+  }
+  if (r.varint() !== 0) throw new Unsupported('Draw order keys in format 4.2');
+  if (r.varint() !== 0) throw new Unsupported('Event keys in format 4.2');
   return anim;
 }
 
