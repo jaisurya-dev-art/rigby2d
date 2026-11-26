@@ -24,6 +24,7 @@ export const LINKS = {
   releaseNotes: VERSION ? `${REPO}/releases/tag/v${VERSION}` : `${REPO}/releases`,
   fund: `${SITE}fund/`,
   sponsor: 'https://github.com/sponsors/jaisurya-dev-art',
+  kofi: 'https://ko-fi.com/rigby2d',
 };
 
 /**
@@ -405,7 +406,7 @@ export async function openSupporters() {
       'div',
       { class: 'sp-footer' },
       h('p', { class: 'weak' }, t('Nothing is locked behind a tier. Support keeps Rigby2D free for everyone.')),
-      h('div', { class: 'buttons' }, button(t('Where the money goes'), { icon: 'external-link', onclick: () => openExternal(LINKS.fund) }), button(t('Sponsor on GitHub'), { kind: 'primary', icon: 'external-link', onclick: () => openExternal(LINKS.sponsor) })),
+      h('div', { class: 'buttons' }, button(t('Where the money goes'), { icon: 'external-link', onclick: () => openExternal(LINKS.fund) }), button(t('Ko-fi'), { icon: 'external-link', title: t('A card or PayPal, no GitHub account needed'), onclick: () => openExternal(LINKS.kofi) }), button(t('Sponsor on GitHub'), { kind: 'primary', icon: 'external-link', onclick: () => openExternal(LINKS.sponsor) })),
     ),
   ];
   body.append(...parts.filter(Boolean));

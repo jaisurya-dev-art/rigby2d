@@ -843,6 +843,8 @@ export default {
   "Paste here": "粘贴到此处",
   "Paste keys": "粘贴关键帧",
   "Bone size": "骨骼大小",
+  "Ko-fi": "Ko-fi",
+  "A card or PayPal, no GitHub account needed": "可用银行卡或 PayPal，无需 GitHub 账号",
   "Rigby2D Fridays": "Rigby2D 星期五",
   "Rigby2D is free and stays free. Supporters fund its development, one day a week at a time.": "Rigby2D 免费，并将永远免费。支持者资助它的开发，每周一天，一步一步来。",
   "Rigby2D is free. Supporters fund its development.": "Rigby2D 是免费的。支持者资助它的开发。",

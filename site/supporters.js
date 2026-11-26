@@ -4,6 +4,8 @@
 // download thank-you card.
 
 export const SPONSOR_URL = 'https://github.com/sponsors/jaisurya-dev-art';
+/** Ko-fi: a card or PayPal, for people without a GitHub account. */
+export const KOFI_URL = 'https://ko-fi.com/rigby2d';
 
 let cached = null;
 
@@ -12,7 +14,7 @@ export function loadSupporters() {
   cached ??= fetch('/supporters.json', { cache: 'no-cache' })
     .then((r) => r.json())
     .catch(() => ({}))
-    .then((d) => ({ goal: { title: 'Rigby2D Fridays', monthly: 250, percent: 0, ...d.goal }, github: d.github ?? [], others: d.others ?? [], founding: d.founding ?? [], kofi: d.kofi ?? null, contributors: d.contributors ?? [] }));
+    .then((d) => ({ goal: { title: 'Rigby2D Fridays', monthly: 250, percent: 0, ...d.goal }, github: d.github ?? [], others: d.others ?? [], founding: d.founding ?? [], kofi: d.kofi ?? KOFI_URL, contributors: d.contributors ?? [] }));
   return cached;
 }
 

@@ -80,8 +80,8 @@ for (const d of deals ?? []) {
 const next = {
   // Where to give, and the goal the /fund page shows (monthly dollars, kept when GitHub has none).
   goal: goal?.kind === 'MONTHLY_SPONSORSHIP_AMOUNT'
-    ? { title: current.goal?.title || 'Signed by Rigby2D', monthly: goal.targetValue, percent: goal.percentComplete }
-    : (current.goal ?? { title: 'Signed by Rigby2D', monthly: 25, percent: 0 }),
+    ? { title: current.goal?.title || 'Rigby2D Fridays', monthly: goal.targetValue, percent: goal.percentComplete }
+    : (current.goal ?? { title: 'Rigby2D Fridays', monthly: 250, percent: 0 }),
   // tier: the monthly amount of their tier, when known (needs SPONSORS_TOKEN); it decides the perks shown.
   github: !sponsors
     ? (current.github ?? [])
@@ -95,7 +95,10 @@ const next = {
   // Logins of the first 20 monthly supporters, Founding Supporters for good (filled in automatically
   // with SPONSORS_TOKEN, or by hand).
   founding,
+  // Supporters from Ko-fi (or anywhere else), added by hand: { name, url?, tier? }.
   others: current.others ?? [],
+  // The Ko-fi page, for people without a GitHub account (set by hand, kept by every sync).
+  kofi: current.kofi ?? null,
   contributors: code ?? current.contributors ?? [],
 };
 const text = `${JSON.stringify(next, null, 2)}\n`;

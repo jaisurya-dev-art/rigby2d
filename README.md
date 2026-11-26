@@ -178,6 +178,7 @@ full day every week on Rigby2D**, then half time, then full time. Nothing is eve
 and the first 20 monthly supporters are Founding Supporters.
 
 <a href="https://github.com/sponsors/jaisurya-dev-art"><img src="https://img.shields.io/badge/Sponsor_on_GitHub-7ba7c7?style=for-the-badge&logo=githubsponsors&logoColor=white" alt="Sponsor on GitHub"></a>
+<a href="https://ko-fi.com/rigby2d"><img src="https://img.shields.io/badge/Support_on_Ko--fi-7ba7c7?style=for-the-badge&logo=kofi&logoColor=white" alt="Support on Ko-fi"></a>
 &nbsp;[Where the money goes](https://rigby2d.com/fund/)
 
 ## Contributing
