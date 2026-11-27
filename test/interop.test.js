@@ -310,3 +310,33 @@ a
   const again = parseAtlas(writeAtlas(pages)).pages;
   assert.deepEqual(again.map((p) => p.regions.map((r) => [r.name, r.x, r.y, r.width, r.height, r.rotate, r.index])), pages.map((p) => p.regions.map((r) => [r.name, r.x, r.y, r.width, r.height, r.rotate, r.index])));
 });
+
+test('names starting with _ survive JSON export; only binary-only fields are dropped (#50)', () => {
+  // Names a rig from another tool may use, including ones spelled like the binary-only fields.
+  const json = {
+    skeleton: { [V]: '4.2.0' },
+    bones: [{ name: 'root' }, { name: '_pivot', parent: 'root', _iconA: 2, _visible: false }],
+    slots: [
+      { name: '_fx', bone: '_pivot', attachment: '_trans4x4' },
+      { name: 'body', bone: 'root', attachment: '_color' },
+    ],
+    skins: [{ name: 'default', attachments: { _fx: { _trans4x4: { width: 4, height: 4 } }, body: { _color: { width: 8, height: 8 } } } }],
+    events: { _hit: { int: 1 } },
+    animations: { _walk: { events: [{ time: 0.5, name: '_hit' }] } },
+  };
+  const { skeleton } = readSkeletonJson(json, 'pluto');
+  for (const version of ['3.8', '4.2', '4.3']) {
+    const out = writeSkeletonJson(skeleton, { version }).json;
+    assert.deepEqual(out.slots.map((s) => [s.name, s.attachment]), [['_fx', '_trans4x4'], ['body', '_color']], version);
+    const skin = Array.isArray(out.skins) ? out.skins[0].attachments : out.skins.default;
+    assert.deepEqual(Object.keys(skin._fx), ['_trans4x4'], version);
+    assert.deepEqual(Object.keys(skin.body), ['_color'], version);
+    assert.ok(out.animations._walk && out.events._hit, version);
+    // The binary-only bone fields are gone.
+    assert.equal(out.bones[1]._iconA, undefined, version);
+    assert.equal(out.bones[1]._visible, undefined, version);
+    // And the export reads back with every name.
+    const back = readSkeletonJson(out, 'pluto').skeleton;
+    assert.deepEqual(back.slots.map((s) => s.attachments.map((a) => a.name)), [['_trans4x4'], ['_color']], version);
+  }
+});

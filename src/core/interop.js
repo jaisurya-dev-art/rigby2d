@@ -656,12 +656,17 @@ export function writeSkeletonJson(sk, { version = '3.8', binary = false } = {}) 
   return result;
 }
 
+/** The binary-only fields readSkeletonBinary keeps (binary.js): never names, which users may start with `_`. */
+const PRIVATE_KEYS = new Set(['_strings', '_iconA', '_iconB', '_visible', '_color', '_sourceSlot', '_skinIndex']);
+
 function stripPrivate(o) {
   if (Array.isArray(o)) o.forEach(stripPrivate);
   else if (o && typeof o === 'object') {
     for (const k of Object.keys(o)) {
-      if (k.startsWith('_')) delete o[k];
-      else stripPrivate(o[k]);
+      const v = o[k];
+      // A slot, attachment, animation or event named like a private field holds an object: keep it.
+      if (PRIVATE_KEYS.has(k) && !(v && typeof v === 'object' && !Array.isArray(v))) delete o[k];
+      else stripPrivate(v);
     }
   }
 }
