@@ -21,7 +21,7 @@
       },
       "repositoryUrl": {
         "url": "https://github.com/jaisurya-dev-art/rigby2d",
-        "wellKnown": "https://github.com/jaisurya-dev-art/rigby2d/blob/develop/.well-known/funding-manifest-urls"
+        "wellKnown": "https://github.com/jaisurya-dev-art/rigby2d/raw/develop/.well-known/funding-manifest-urls"
       },
       "licenses": ["spdx:MIT", "spdx:Apache-2.0"],
       "tags": ["animation", "2d", "game-development", "graphics", "editor", "desktop-app", "javascript", "rust", "cpp", "csharp"]
