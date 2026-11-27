@@ -4,7 +4,7 @@
 // changed project, so it can run in a Web Worker (worker.js, the sandbox the editor uses) or in
 // process (the tests). host.js applies the results to the editor as one undo step.
 //
-// Requests: { type: 'init' | 'run' | 'tool' | 'forget' | 'files' | 'removeFiles' | 'readInfo', … }.
+// Requests: { type: 'init' | 'run' | 'tool' | 'console' | 'consoleNames' | 'forget' | 'files' | 'removeFiles' | 'readInfo', … }.
 
 import { Skeleton } from '../../core/model.js';
 import { Pose } from '../../core/pose.js';
@@ -110,9 +110,14 @@ export class ScriptEngine {
         });
       case 'tool':
         return this.transaction(msg.state, msg.script, () => {
-          this.rigby._run(msg.script, msg.label);
+          this.rigby._run(msg.script, msg.label, JSON.stringify(msg.args ?? {}));
           return {};
         });
+      case 'console':
+        // One line (or block) typed in the console: its value, if it is an expression.
+        return this.transaction(msg.state, 'console', () => ({ value: JSON.parse(this.rigby._console(msg.source)) }));
+      case 'consoleNames':
+        return { ok: true, names: JSON.parse(this.rigby._console_names(msg.prefix ?? '')) };
       case 'forget':
         this.rigby._forget(msg.name);
         return { ok: true };

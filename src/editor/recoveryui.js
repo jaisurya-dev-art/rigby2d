@@ -13,11 +13,72 @@ import { LINKS, VERSION, askChoice, dialog } from './helpui.js';
 import { statusMessage, t } from './i18n.js';
 import { h } from './widgets.js';
 import { button, uiIcon } from './ui.js';
+import { listConstraints } from '../core/constraintdata.js';
+import { vertexCount } from '../core/model.js';
 import { HEARTBEAT_MS, QUIT_FILE, crashReport, crashedSessions, deadSessions, newSessionId, sessionAutosave } from './recovery.js';
 
 const SESSIONS_KEY = 'rigby.sessions';
 const DIR = 'recovery';
 const at = (name) => `${DIR}/${name}`;
+
+/** The GPU as WebGL reports it, read once: { gpu, webgl, maxTexture }. */
+let gpuInfo = null;
+function readGpu() {
+  if (gpuInfo) return gpuInfo;
+  gpuInfo = { gpu: 'unknown', webgl: 'none', maxTexture: null };
+  try {
+    const canvas = document.createElement('canvas');
+    const gl = canvas.getContext('webgl2') ?? canvas.getContext('webgl');
+    if (!gl) return gpuInfo;
+    const debug = gl.getExtension('WEBGL_debug_renderer_info');
+    const vendor = gl.getParameter(debug ? debug.UNMASKED_VENDOR_WEBGL : gl.VENDOR);
+    const renderer = gl.getParameter(debug ? debug.UNMASKED_RENDERER_WEBGL : gl.RENDERER);
+    gpuInfo = { gpu: renderer && vendor && !String(renderer).includes(vendor) ? `${vendor} · ${renderer}` : String(renderer || vendor), webgl: typeof WebGL2RenderingContext !== 'undefined' && gl instanceof WebGL2RenderingContext ? 'WebGL 2' : 'WebGL 1', maxTexture: gl.getParameter(gl.MAX_TEXTURE_SIZE) };
+    gl.getExtension('WEBGL_lose_context')?.loseContext();
+  } catch {
+    // No GPU details: the report says unknown.
+  }
+  return gpuInfo;
+}
+
+/**
+ * What a bug report needs to reproduce rendering and performance problems: the GPU and WebGL, the
+ * viewport renderer, the screen, memory, and the size of the open project (no names or paths).
+ */
+export function systemInfo(app) {
+  const g = readGpu();
+  const mb = (bytes) => `${Math.round(bytes / 1048576)} MB`;
+  const heap = performance.memory ? `${mb(performance.memory.usedJSHeapSize)} used of ${mb(performance.memory.jsHeapSizeLimit)}` : null;
+  const doc = app?.doc;
+  let project = null;
+  if (doc) {
+    const atts = doc.slots.flatMap((s) => s.attachments).concat(doc.skins.flatMap((k) => k.slots.flatMap((s) => s.attachments)));
+    const meshes = atts.filter((a) => a.type === 'mesh' || a.type === 'linkedmesh');
+    const vertices = meshes.reduce((n, a) => n + vertexCount(a), 0);
+    const pixels = doc.images.reduce((n, i) => n + (i.width ?? 0) * (i.height ?? 0), 0);
+    const largest = doc.images.reduce((m, i) => Math.max(m, i.width ?? 0, i.height ?? 0), 0);
+    const n = (count, one, many = `${one}s`) => `${count} ${count === 1 ? one : many}`;
+    project = [
+      `${n(doc.bones.length, 'bone')}, ${n(doc.slots.length, 'slot')}, ${n(meshes.length, 'mesh', 'meshes')}${meshes.length ? ` (${n(vertices, 'vertex', 'vertices')})` : ''}, ${n(listConstraints(doc).length, 'constraint')}`,
+      `${n(doc.images.length, 'image')}${doc.images.length ? ` (${(pixels / 1e6).toFixed(1)} Mpx, largest ${largest}px)` : ''}, ${n(doc.skins.length + 1, 'skin')}, ${n(doc.animations.length, 'animation')}`,
+      doc.scene ? `scene with ${doc.scene.actors?.length ?? 0} actors` : null,
+      doc.film ? 'film effects' : null,
+    ]
+      .filter(Boolean)
+      .join('; ');
+  }
+  return {
+    GPU: g.gpu,
+    WebGL: `${g.webgl}${g.maxTexture ? `, textures up to ${g.maxTexture}px` : ''}`,
+    Viewport: app?.viewport ? (app.viewport.glView ? 'WebGL' : 'Canvas 2D (WebGL unavailable)') : null,
+    Screen: `${screen.width}x${screen.height} at ${devicePixelRatio}x, window ${innerWidth}x${innerHeight}`,
+    Memory: [navigator.deviceMemory ? `${navigator.deviceMemory} GB device` : null, heap ? `JS heap ${heap}` : null].filter(Boolean).join(', ') || null,
+    CPU: navigator.hardwareConcurrency ? `${navigator.hardwareConcurrency} threads` : null,
+    Language: navigator.language,
+    Workspace: app?.workspace ?? null,
+    Project: project,
+  };
+}
 
 /** Session records by id, kept in localStorage: written synchronously, so even a closing page saves them. */
 function readSessions() {
@@ -244,7 +305,7 @@ export function installRecovery(app) {
 
   function makeReport() {
     const errors = log.entries.filter((x) => x.level === 'error').slice(-8);
-    return crashReport({ version: VERSION, platform: `${platform.isDesktop ? 'desktop' : 'browser'}, ${navigator.userAgent}`, errors });
+    return crashReport({ version: VERSION, platform: `${platform.isDesktop ? 'desktop' : 'browser'}, ${navigator.userAgent}`, system: systemInfo(app), errors });
   }
 
   function showBanner(saved) {

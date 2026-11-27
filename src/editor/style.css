@@ -40,6 +40,16 @@
   --success: #5fbf86;
   --warning: #d9a03f;
   --danger: #d9655c;
+  /* Python in the script editor, from the theme's colours (themes.js derives other themes' the same way). */
+  --code-keyword: color-mix(in srgb, var(--ui-accent) 60%, var(--danger));
+  --code-string: var(--warning);
+  --code-number: var(--success);
+  --code-comment: var(--fg-faint);
+  --code-function: color-mix(in srgb, var(--warning) 45%, var(--fg));
+  --code-definition: color-mix(in srgb, var(--ui-accent) 75%, var(--fg));
+  --code-class: color-mix(in srgb, var(--success) 50%, var(--ui-accent));
+  --code-property: color-mix(in srgb, var(--ui-accent) 55%, var(--fg));
+  --code-decorator: var(--warning);
   /* The shared bone hover (viewport glow, tree, timeline). */
   --bone-hover: rgba(255, 70, 205, 0.9);
   /* Type: five sizes, three weights. */
@@ -1727,10 +1737,10 @@ div.log-entry {
 
 /* ---- script editor ---- */
 .script-window {
-  left: calc(50% - 380px);
-  top: 70px;
-  width: min(760px, calc(100vw - 32px));
-  height: min(520px, calc(100vh - 120px));
+  left: calc(50% - 420px);
+  top: 60px;
+  width: min(840px, calc(100vw - 32px));
+  height: min(600px, calc(100vh - 100px));
 }
 .script-body {
   flex: 1;
@@ -1782,17 +1792,83 @@ div.log-entry {
 .script-name {
   width: 220px;
 }
+/* The code editor (CodeMirror, scripting/codeeditor.js) fills the space between the bars. */
 .script-code {
   flex: 1;
+  min-height: 0;
   margin: 0 8px;
-  padding: 8px;
-  resize: none;
+  overflow: hidden;
   background: var(--bg);
-  color: var(--text);
   border: 1px solid var(--border);
   border-radius: 4px;
-  font: 13px/1.45 ui-monospace, 'Cascadia Mono', Consolas, monospace;
-  tab-size: 4;
+}
+.script-code .cm-editor {
+  height: 100%;
+}
+/* The console: output above, a prompt line below. */
+.script-console {
+  display: flex;
+  flex-direction: column;
+  height: 34%;
+  min-height: 110px;
+  margin: 6px 8px 0;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font: 12.5px/1.45 var(--font-mono, ui-monospace, Consolas, monospace);
+}
+.script-console[hidden] {
+  display: none;
+}
+.script-console-out {
+  flex: 1;
+  overflow: auto;
+  padding: 6px 8px;
+  white-space: pre-wrap;
+  user-select: text;
+}
+.script-console-line.in::before {
+  content: '>>> ';
+  color: var(--weak);
+}
+.script-console-line.in {
+  color: var(--weak);
+}
+.script-console-line.value {
+  color: var(--code-property);
+}
+.script-console-line.warn {
+  color: var(--warning);
+}
+.script-console-line.err,
+.script-console-line.error {
+  color: var(--danger);
+}
+.script-console-prompt {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 3px 8px;
+  border-top: 1px solid var(--border);
+}
+.script-console-prompt > .weak {
+  padding-top: 6px;
+}
+.script-console-in {
+  flex: 1;
+  min-width: 0;
+  max-height: 8em;
+  overflow: auto;
+}
+.script-console-in .cm-editor {
+  background: transparent;
+}
+.script-console-in .cm-content {
+  padding: 4px 0;
+}
+.script-window .ui-btn.on {
+  background: var(--ui-accent-soft);
+  border-color: var(--accent);
 }
 .script-window button.primary {
   background: var(--accent);

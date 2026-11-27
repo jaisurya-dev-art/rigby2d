@@ -61,6 +61,12 @@ banner. **Report…** (also *Help ▸ Report a problem ▸ Report a crash…*) s
 version and platform and your folder names hidden. You can copy it or post it as a GitHub issue.
 Nothing is sent unless you choose to. *View ▸ Log* has the full details.
 
+The report also lists what a fix needs to reproduce the problem: the graphics card and WebGL
+version (with the largest texture it takes), whether the viewport draws with WebGL or Canvas 2D,
+the screen size, memory, processor threads, language, the workspace, and the size of the open
+project (counts of bones, slots, meshes, constraints, images, skins and animations, never their
+names).
+
 ## The recovery folder
 
 - **Desktop:** the `recovery` folder in the app's data. On Windows:

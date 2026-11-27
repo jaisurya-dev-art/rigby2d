@@ -79,6 +79,20 @@ test('crash reports hide home folder names', () => {
   assert.match(text, /Users\\…\\walk\.rigby/);
 });
 
+test('crash reports list the system details, aligned, skipping unknown ones', () => {
+  const text = crashReport({
+    version: '0.6.2',
+    platform: 'desktop',
+    when: new Date(0),
+    system: { GPU: 'NVIDIA · RTX 3060', WebGL: 'WebGL 2, textures up to 16384px', Memory: null, Project: '12 bones, 9 slots' },
+    errors: [{ source: 'editor', message: 'boom' }],
+  });
+  assert.match(text, /System:\n {2}GPU: {5}NVIDIA · RTX 3060\n {2}WebGL: {3}WebGL 2, textures up to 16384px\n {2}Project: 12 bones, 9 slots\n\nErrors:\n\[editor\] boom/);
+  assert.ok(!text.includes('Memory'));
+  // Without details the report has no System section.
+  assert.ok(!crashReport({ version: '1', platform: 'x', errors: [] }).includes('System:'));
+});
+
 test('preferences keep valid values and fall back to defaults', () => {
   assert.equal(validPref('files.backups', 4), 4);
   assert.equal(validPref('files.backups', 99), PREFS['files.backups'].max);

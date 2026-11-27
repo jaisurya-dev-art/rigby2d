@@ -62,7 +62,7 @@ export class ScriptHost {
     this.state = 'idle';
     this.engine = null;
     this.starting = null;
-    /** Tools by id (`script\u0000label`): { id, script, label, description }. */
+    /** Tools by id (`script\u0000label`): { id, script, label, description, params (form fields) }. */
     this.tools = new Map();
     this.running = false;
   }
@@ -123,7 +123,7 @@ export class ScriptHost {
     const r = await this.transaction(name, `Script '${name}' failed`, { type: 'run', name, source });
     if (!r.ok) return r;
     for (const [id, t] of this.tools) if (t.script === name) this.tools.delete(id);
-    for (const t of r.result.tools ?? []) this.tools.set(toolId(name, t.label), { id: toolId(name, t.label), script: name, label: t.label, description: t.description });
+    for (const t of r.result.tools ?? []) this.tools.set(toolId(name, t.label), { id: toolId(name, t.label), script: name, label: t.label, description: t.description, params: t.params ?? [] });
     this.onChange();
     return { ok: true, value: (r.result.tools ?? []).map((t) => t.label) };
   }
@@ -135,22 +135,40 @@ export class ScriptHost {
     this.onChange();
   }
 
-  /** Runs a tool as one undo step. */
-  async runTool(id) {
+  /** Runs a tool as one undo step; `args` are its form's values ({ parameter: value }). */
+  async runTool(id, args = {}) {
     const t = this.tools.get(id);
     if (!t || !this.engine) return { ok: false, error: 'No such tool' };
     const before = this.app.status;
-    const r = await this.transaction(t.script, `Tool '${t.label}' failed`, { type: 'tool', script: t.script, label: t.label });
+    const r = await this.transaction(t.script, `Tool '${t.label}' failed`, { type: 'tool', script: t.script, label: t.label, args });
     // A tool that reports its own result (rigby.status) keeps it in the status bar.
     if (r.ok && this.app.status === before) this.app.setStatus(`Ran ${t.label}`);
     return r;
   }
 
   /**
+   * Runs console input against the project, as one undo step when it changes something. Returns
+   * { ok, value (repr of an expression's value, or null), output (printed lines), error, trace }.
+   */
+  async runConsole(source) {
+    await this.ready();
+    const output = [];
+    const r = await this.transaction('console', 'Console', { type: 'console', source }, { quiet: true, output });
+    return r.ok ? { ok: true, value: r.result.value ?? null, output } : { ...r, output };
+  }
+
+  /** Names defined in the console that start with `prefix`. */
+  async consoleNames(prefix) {
+    if (this.state !== 'ready' || this.running) return [];
+    const r = await this.engine.request({ type: 'consoleNames', prefix });
+    return r.ok ? r.names : [];
+  }
+
+  /**
    * Sends the project to Python with `msg` and applies what comes back. Success: the edits become
    * one undo step. Failure: nothing changes, and the error (with its Python traceback) is logged.
    */
-  async transaction(source, failure, msg) {
+  async transaction(source, failure, msg, { quiet = false, output = null } = {}) {
     const app = this.app;
     if (this.running) return { ok: false, error: 'A script is already running' };
     // Playback defers undo history; stop it so earlier edits get their own undo step and the
@@ -176,10 +194,14 @@ export class ScriptHost {
       this.running = false;
       this.onChange();
     }
-    for (const entry of r.logs ?? []) log.log(entry.level, entry.text, { source });
+    for (const entry of r.logs ?? []) {
+      // The console shows what it prints itself; the log still gets warnings.
+      if (output) output.push(entry);
+      if (!output || entry.level !== 'info') log.log(entry.level, entry.text, { source });
+    }
     if (!r.ok) {
       log.error(`${failure}: ${r.error}`, { source, trace: r.trace ?? null });
-      app.setStatus(`${failure}: ${r.error} (details in View ▸ Log)`, { log: false });
+      if (!quiet) app.setStatus(`${failure}: ${r.error} (details in View ▸ Log)`, { log: false });
       return { ok: false, error: r.error, trace: r.trace ?? null };
     }
     if (r.snapshot) app.doc = Skeleton.fromObject(JSON.parse(r.snapshot));

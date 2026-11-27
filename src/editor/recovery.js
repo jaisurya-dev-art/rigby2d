@@ -79,10 +79,19 @@ export function deadSessions(records, { now = Date.now(), current = null, alive 
   return records.filter((r) => r && r.id && r.id !== current && !alive.has(r.id) && (r.clean || now - (r.beat ?? 0) > STALE_MS) && !hasAutosave(r));
 }
 
-/** The text of a crash report: version, platform, the errors with their traces, home folders hidden. */
-export function crashReport({ version, platform, errors, when = new Date() }) {
+/**
+ * The text of a crash report: version, platform, system details (`system`: label -> value, from
+ * systemInfo), the errors with their traces, home folders hidden.
+ */
+export function crashReport({ version, platform, errors, system = null, when = new Date() }) {
   const hide = (s) => String(s ?? '').replace(/([\\/](?:Users|home)[\\/])[^\\/\s]+/gi, '$1…');
   const lines = [`Rigby2D ${version || 'dev'} on ${platform}`, `Time: ${when.toISOString()}`, ''];
+  const details = Object.entries(system ?? {}).filter(([, v]) => v !== null && v !== undefined && v !== '');
+  if (details.length) {
+    const width = Math.max(...details.map(([k]) => k.length));
+    lines.push('System:', ...details.map(([k, v]) => `  ${`${k}:`.padEnd(width + 2)}${hide(v)}`), '');
+  }
+  if (errors.length) lines.push('Errors:');
   for (const e of errors) {
     lines.push(`[${e.source ?? 'editor'}] ${hide(e.message)}`);
     if (e.trace) lines.push(...hide(e.trace).split('\n').slice(0, 12).map((l) => `    ${l}`));

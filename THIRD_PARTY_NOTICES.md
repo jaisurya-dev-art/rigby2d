@@ -17,6 +17,13 @@ The editor ships Pyodide to run Python scripts: the files in `pyodide/` of the b
 The source code of these components, as distributed, is available from the links above and from
 the npm package.
 
+## Code editor (Script editor and console)
+
+The editor bundles **CodeMirror 6** for its code editor: the `codemirror` and `@codemirror/*`
+packages (state, view, commands, language, autocomplete, lint, search, lang-python) and the
+`@lezer/*` parser packages they use. MIT License, Copyright (C) 2018-2021 by Marijn Haverbeke and
+others. Source: <https://github.com/codemirror/dev>. License text: <https://github.com/codemirror/dev/blob/main/LICENSE>.
+
 ## Speech recognition (automatic lip-sync timing)
 
 The editor ships these to transcribe audio for lip-sync, bundled into the build's assets:

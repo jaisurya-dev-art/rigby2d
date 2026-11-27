@@ -9,6 +9,10 @@ import { joinStatus, statusMessage, t } from '../i18n.js';
 import { h, submenuItem } from '../widgets.js';
 import { button, closeButton } from '../ui.js';
 import { ScriptHost } from './host.js';
+import { askToolArgs } from './toolform.js';
+import { parseApi } from './apidoc.js';
+import { createCodeEditor, errorLine, rigbyCompletion } from './codeeditor.js';
+import moduleSource from './rigby.py?raw';
 
 const STORAGE = 'rigby.scripts';
 
@@ -40,6 +44,10 @@ def mirror():
 
 const GUIDE_URL = 'https://rigby2d.com/docs/scripting.html';
 
+/** The API index for completion, parsed from rigby.py once. */
+let apiIndex = null;
+const scriptApi = () => (apiIndex ??= parseApi(moduleSource));
+
 /** The scripting API at a glance, shown inside the script editor (the full guide is on rigby2d.com). */
 const REFERENCE = `import rigby
 
@@ -53,13 +61,26 @@ BONES     rigby.bones()  rigby.bone(name)  rigby.selected_bones()  rigby.select(
   bone.keys(channel)   bone.delete_key(channel, time=None)
   channels: 'rotate' (degrees added), 'translate' / 'shear' ((x, y) added), 'scale' ((x, y) factors)
   curves: 'linear' 'stepped' 'ease_in' 'ease_out' 'ease_in_out'
-SLOTS     rigby.slots()  rigby.slot(name)   slot.bone  slot.attachments
-          slot.attachment = name | None     slot.color = (r, g, b, a)
+  bone.remove()
+SLOTS     rigby.slots()  rigby.slot(name)  rigby.add_slot(name, bone='root')   slot.bone  slot.attachments
+          slot.attachment = name | None     slot.color = (r, g, b, a)   slot.remove()
+          slot.key_attachment(name, time=None)  slot.key_color(rgba, time=None)  slot.keys('attachment'|'color')
+DRAW      rigby.draw_order()  rigby.set_draw_order(slots)  anim.key_draw_order(slots | None, time=None)
+MESHES    m = slot.mesh(name=None)   m.vertices  m.uvs  m.triangles  m.weights  m.world()
+          m.set_vertices([(x, y), ...])   m.key([(dx, dy), ...], time=None)   (unweighted meshes)
 ANIMATION rigby.animations()  rigby.animation(name)  rigby.add_animation(name, duration=0)
           rigby.current_animation()   anim.duration   anim.key(bone, channel, time, value)   anim.open()
+SKINS     rigby.skins()  rigby.add_skin(name, copy=None)  rigby.set_skin(name)
+          skin.add(slot, attachment)  skin.remove_attachment(slot, attachment)  skin.show()
+EVENTS    rigby.add_event(name, int=0, float=0, string='')   event.key(time=None, string=None)
+          anim.event_keys()   anim.delete_event_key(event, time=None)
+CONSTRAINTS rigby.constraints()  rigby.add_ik(name, bones, target)  rigby.add_transform(name, bone, source)
+          rigby.add_physics(name, bone)   c.mix  c.set(mix=0.5)  c.key(time=None, mix=1)  c.remove()
 OUTPUT    print(...)  rigby.log / warn / error(...)  rigby.status(text)
-TOOLS     @rigby.tool("Label", description="...")  def fn(): ...   adds fn to the Scripts menu
+TOOLS     @rigby.tool("Label", description="...")  def fn(bone: rigby.Bone, amount: float = 10): ...
+          adds fn to the Scripts menu; its parameters become a form (params={"amount": {"min": 0}})
 ERRORS    rigby.RigbyError: unknown names, invalid values
+CONSOLE   the Console button: type Python against the project, Enter runs
 
 One run (or one tool run) is one undo step; if it raises, the project is left as it was.
 Full guide: the Guide button, or rigby2d.com/docs/scripting.html`;
@@ -91,6 +112,8 @@ export class Scripts {
     /** Called after Stop restarts Python, to load add-ons again. */
     this.afterStop = null;
     this.window = null;
+    /** Lines typed in the console, oldest first (Up and Down walk them). */
+    this.consoleHistory = [];
   }
 
   changed() {
@@ -175,10 +198,23 @@ export class Scripts {
     await this.afterStop?.();
   }
 
+  /** Runs a tool, after its form when it has parameters. */
+  async runTool(tool) {
+    const args = await askToolArgs(this.app, tool);
+    if (args === null) return null;
+    return this.host.runTool(tool.id, args);
+  }
+
   /** Scripts menu entries. */
   menu() {
     const state = this.host.state;
-    const tool = (x) => ({ label: x.label, title: x.description || t('From {script}', { script: x.script }), disabled: this.host.running, action: () => this.host.runTool(x.id) });
+    // A tool with parameters asks for them first (toolform.js); its label ends in … like any item that opens a form.
+    const tool = (x) => ({
+      label: x.params?.length ? `${x.label}…` : x.label,
+      title: x.description || t('From {script}', { script: x.script }),
+      disabled: this.host.running,
+      action: () => this.runTool(x),
+    });
     // Each add-on's tools sit in a submenu named after it (one tool stays a plain item), so the menu
     // stays short however many add-ons are installed; tools from your own scripts follow.
     const byScript = new Map();
@@ -206,31 +242,101 @@ export class Scripts {
     ];
   }
 
+  /** Opens the Script editor (its console as it was left: open or closed). */
   openEditor() {
-    if (this.window) return this.window.el.querySelector('textarea').focus();
+    if (this.window) return this.window.focus();
     this.window = scriptEditor(this);
   }
 }
 
-/** The script editor: library on the left, code on the right, Run and Save. */
+const CONSOLE_KEY = 'rigby.scriptConsole';
+
+/** Whether the console was open when the Script editor was last used (it opens the same way). */
+function consoleWasOpen() {
+  try {
+    return localStorage.getItem(CONSOLE_KEY) === 'open';
+  } catch {
+    return false;
+  }
+}
+
+function rememberConsole(open) {
+  try {
+    localStorage.setItem(CONSOLE_KEY, open ? 'open' : 'closed');
+  } catch {
+    // Not remembered: the console starts closed next time.
+  }
+}
+
+/** The script editor: library on the left, code on the right, the console below, Run and Save. */
 function scriptEditor(scripts) {
+  const openConsole = consoleWasOpen();
   /** Scripts made with ＋ New that are not saved yet (in memory only, so nothing half-written loads at startup). */
   const unsaved = [];
   /** Edited text not saved yet, by script name: switching scripts keeps it. */
   const drafts = new Map();
   let current = null;
+  const api = scriptApi();
+  const doc = () => scripts.app.doc;
   const name = h('input', { type: 'text', class: 'script-name', spellcheck: false, placeholder: 'script.py' });
-  const code = h('textarea', { class: 'script-code', spellcheck: false, wrap: 'off' });
+  const codeHost = h('div', { class: 'script-code' });
   const list = h('div', { class: 'script-list' });
   const state = h('span', { class: 'weak' });
   const reference = h('pre', { class: 'script-reference', hidden: true }, REFERENCE);
+  const code = createCodeEditor(codeHost, {
+    completion: rigbyCompletion(api, doc),
+    onRun: () => run(false),
+    onChange: (text) => {
+      if (current === null) return;
+      const before = drafts.has(current);
+      drafts.set(current, text);
+      if (!before) draw();
+    },
+  });
+
+  // ---- console ----
+  const output = h('div', { class: 'script-console-out', role: 'log', 'aria-live': 'polite' });
+  const consoleInputHost = h('div', { class: 'script-console-in' });
+  const consoleEl = h('div', { class: 'script-console', hidden: !openConsole }, output, h('div', { class: 'script-console-prompt' }, h('span', { class: 'weak' }, '>>>'), consoleInputHost));
+  const echo = (cls, text) => {
+    output.append(h('div', { class: `script-console-line ${cls}` }, text));
+    output.scrollTop = output.scrollHeight;
+  };
+  const consoleInput = createCodeEditor(consoleInputHost, {
+    console: true,
+    history: scripts.consoleHistory,
+    placeholder: t('Python: try rigby.bones(). Enter runs, Shift+Enter adds a line'),
+    completion: rigbyCompletion(api, doc, (prefix) => scripts.host.consoleNames(prefix), () => scripts.consoleHistory.join('\n')),
+    onSubmit: async (source) => {
+      scripts.consoleHistory.push(source);
+      echo('in', source.replace(/\n/g, '\n... '));
+      if (scripts.host.state !== 'ready') echo('weak', t('Starting Python…'));
+      let r;
+      try {
+        r = await scripts.host.runConsole(source);
+      } catch (e) {
+        echo('err', log.errorMessage(e));
+        return;
+      }
+      for (const o of r.output ?? []) echo(o.level === 'info' ? 'print' : o.level, o.text);
+      if (r.ok && r.value !== null) echo('value', r.value);
+      if (!r.ok) echo('err', r.error);
+      draw();
+    },
+  });
+  const toggleConsole = (show = consoleEl.hidden) => {
+    consoleEl.hidden = !show;
+    consoleButton.classList.toggle('on', show);
+    rememberConsole(show);
+    if (show) consoleInput.focus();
+  };
 
   const saved = (n) => scripts.library.find((x) => x.name === n);
   const names = () => [...scripts.library.map((x) => x.name), ...unsaved];
   const load = (n) => {
     current = n;
     name.value = n ?? '';
-    code.value = drafts.get(n) ?? saved(n)?.source ?? '';
+    code.setValue(drafts.get(n) ?? saved(n)?.source ?? '');
     draw();
   };
   /** New script: a new entry in the list, selected, with its name ready to type over. */
@@ -252,6 +358,7 @@ function scriptEditor(scripts) {
   };
   const run = async (save) => {
     busy(true);
+    code.clearError();
     state.textContent = scripts.host.state === 'ready' ? t('Running…') : t('Starting Python…');
     try {
       const n = fileName();
@@ -259,7 +366,8 @@ function scriptEditor(scripts) {
         state.textContent = `A script named ${n} already exists`;
         return;
       }
-      const r = save ? await scripts.save(n, code.value) : await scripts.run(n, code.value);
+      const source = code.value();
+      const r = save ? await scripts.save(n, source) : await scripts.run(n, source);
       if (save) {
         // Saved under its (possibly new) name: the old entry or draft goes.
         if (current && current !== n) {
@@ -276,7 +384,12 @@ function scriptEditor(scripts) {
         r.value.length ? statusMessage('; tools: {tools}', { tools: r.value.join(', ') }) : '',
       ));
       state.textContent = r.ok ? t('Done') : t('Failed: {error}', { error: r.error });
-      if (!r.ok) openLogWindow();
+      if (!r.ok) {
+        // Point at the line the error comes from; the full traceback is in the log.
+        const line = errorLine(r.trace, n);
+        if (line) code.showError(line, r.error);
+        else openLogWindow();
+      }
     } finally {
       busy(false);
       draw();
@@ -292,25 +405,6 @@ function scriptEditor(scripts) {
     if (next) load(next);
     else newScript();
   };
-  code.addEventListener('input', () => {
-    if (current === null) return;
-    const before = drafts.has(current);
-    drafts.set(current, code.value);
-    if (!before) draw();
-  });
-  code.addEventListener('keydown', (e) => {
-    // The editor's shortcuts stay out of the code; Tab indents, Ctrl+Enter runs.
-    e.stopPropagation();
-    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
-      e.preventDefault();
-      run(false);
-    } else if (e.key === 'Tab') {
-      e.preventDefault();
-      const { selectionStart: a, selectionEnd: b } = code;
-      code.setRangeText('    ', a, b, 'end');
-      drafts.set(current, code.value);
-    }
-  });
   name.addEventListener('keydown', (e) => e.stopPropagation());
 
   const draw = () => {
@@ -336,6 +430,16 @@ function scriptEditor(scripts) {
     el.remove();
     scripts.window = null;
   };
+  const consoleButton = button(t('Console'), { icon: 'terminal', title: t('Type Python and see the result at once (the open project, one undo step per line that changes it)'), onclick: () => toggleConsole() });
+  // Lit while the reference shows, like Console.
+  const referenceButton = button(t('API reference'), {
+    icon: 'book-open',
+    title: t('Show or hide the scripting API'),
+    onclick: () => {
+      reference.hidden = !reference.hidden;
+      referenceButton.classList.toggle('on', !reference.hidden);
+    },
+  });
   const header = h('div', { class: 'float-header' }, h('b', null, t('Script editor')), h('span', { class: 'float-spacer' }), closeButton(close));
   const el = h(
     'div',
@@ -349,8 +453,9 @@ function scriptEditor(scripts) {
         'div',
         { class: 'script-main' },
         h('div', { class: 'script-bar' }, name, h('span', { class: 'float-spacer' }), state),
-        code,
+        codeHost,
         reference,
+        consoleEl,
         h(
           'div',
           { class: 'script-bar' },
@@ -366,7 +471,8 @@ function scriptEditor(scripts) {
             t('Remove'),
           ),
           h('span', { class: 'float-spacer' }),
-          h('button', { title: t('Show or hide the scripting API'), onclick: () => (reference.hidden = !reference.hidden) }, 'API reference'),
+          consoleButton,
+          referenceButton,
           button(t('Guide'), { icon: 'external-link', title: t('The scripting guide on rigby2d.com'), onclick: () => openExternal(GUIDE_URL) }),
         ),
       ),
@@ -377,9 +483,11 @@ function scriptEditor(scripts) {
   // The first script, or the example when the library is empty.
   if (scripts.library.length) load(scripts.library[0].name);
   else newScript(EXAMPLE);
+  if (openConsole) consoleButton.classList.add('on');
   code.focus();
   return {
     el,
+    focus: () => code.focus(),
     refresh: () => {
       state.textContent = '';
       draw();

@@ -2132,4 +2132,10 @@ export default {
   "Unlock: pick it in the viewport again": "解锁：可再次在视口中选取",
   "Lock: the viewport no longer picks it": "锁定：视口中不再选取它",
   "Alt+click: the whole branch": "Alt+单击：整个分支",
+  "Python: try rigby.bones(). Enter runs, Shift+Enter adds a line": "Python：试试 rigby.bones()。Enter 运行，Shift+Enter 换行",
+  "Console": "控制台",
+  "API reference": "API 参考",
+  "Type Python and see the result at once (the open project, one undo step per line that changes it)": "输入 Python 并立即看到结果（作用于打开的项目，每行改动为一步撤销）",
+  "No {kind} in this project": "此项目中没有 {kind}",
+  "Choose…": "选择…",
 };

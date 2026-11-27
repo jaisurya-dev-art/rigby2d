@@ -15,7 +15,8 @@ const LOCAL_ACTIONS = new Set(['edit.cutKeys', 'edit.copyKeys', 'edit.pasteKeys'
 
 /** True while the user is typing in a text field (only File shortcuts run then). */
 export const isTyping = (el) =>
-  el && ((el.tagName === 'INPUT' && !el.readOnly && !['checkbox', 'radio', 'color'].includes(el.type)) || el.tagName === 'TEXTAREA');
+  // contentEditable: the script editor's code editor (CodeMirror) and its console.
+  el && ((el.tagName === 'INPUT' && !el.readOnly && !['checkbox', 'radio', 'color'].includes(el.type)) || el.tagName === 'TEXTAREA' || el.isContentEditable === true);
 
 /**
  * Runs a keymap action against `app`. `ctx` supplies the parts only some windows have: `viewport`
