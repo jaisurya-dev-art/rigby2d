@@ -208,7 +208,8 @@ export const COMMANDS = {
     summary: 'Export for games: skeleton + packed atlas, a Defold model, or sprite sheets',
     usage: 'rigby export <project> --format json|skel|defold|spritesheet --out <file|folder> [options]',
     details:
-      'json, skel   --out is the skeleton file; <name>.atlas and <name>.png are packed next to it.\n' +
+      'json, skel   --out is the skeleton file; <name>.atlas and <name>.png are packed next to it\n' +
+      '             (and <name>_2.png, ... when the images need more than one 8192px page).\n' +
       'defold       --out is a folder in a Defold project: .rigbyskel, .atlas, images/, .rigbymodel and .go.\n' +
       'spritesheet  --out is a folder: frames rendered into sheets (--sheet json|defold|frames).',
     positionals: ['project'],

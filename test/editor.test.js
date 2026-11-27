@@ -6,7 +6,7 @@ import { LINEAR } from '../src/core/curve.js';
 import { keySlotTint } from '../src/core/keying.js';
 import { makeSlot, Skeleton } from '../src/core/model.js';
 import { Pose } from '../src/core/pose.js';
-import { pack } from '../src/editor/pack.js';
+import { pack, packPages } from '../src/editor/pack.js';
 import { robot } from '../src/editor/sample.js';
 
 test('pack places without overlap', () => {
@@ -19,6 +19,48 @@ test('pack places without overlap', () => {
       assert.ok(!overlap, `${a.name} overlaps ${b.name}`);
     }
   });
+});
+
+const overlaps = (a, b) => a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height;
+
+test('packPages keeps one page when everything fits', () => {
+  const items = Array.from({ length: 19 }, (_, k) => ({ name: `i${k}`, width: 10 * (k + 1), height: 7 * (19 - k) }));
+  assert.deepEqual(packPages(items), [pack(items)]);
+});
+
+test('packPages spreads images that do not fit in one page over more pages', () => {
+  // Twelve 3000px images: no 8192px page holds more than four.
+  const items = Array.from({ length: 12 }, (_, k) => ({ name: `big${k}`, width: 3000, height: 3000 }));
+  assert.throws(() => pack(items), /do not fit in an 8192px atlas/);
+  const pages = packPages(items);
+  assert.equal(pages.length, 3);
+  const names = pages.flatMap((p) => p.regions.map((r) => r.name)).sort();
+  assert.deepEqual(names, items.map((i) => i.name).sort());
+  for (const { width, height, regions } of pages) {
+    assert.ok(width <= 8192 && height <= 8192);
+    regions.forEach((a, i) => {
+      assert.ok(a.x >= 0 && a.y >= 0 && a.x + a.width <= width && a.y + a.height <= height);
+      for (const b of regions.slice(i + 1)) assert.ok(!overlaps(a, b), `${a.name} overlaps ${b.name}`);
+    });
+  }
+  // Small images fill the pages the big ones leave room in, rather than opening new ones.
+  const mixed = [...items, ...Array.from({ length: 40 }, (_, k) => ({ name: `s${k}`, width: 100, height: 100 }))];
+  assert.equal(packPages(mixed).length, 3);
+  // A smaller page size gives more pages.
+  assert.equal(packPages(items.slice(0, 2), 4096).length, 2);
+});
+
+test('packPages gives an image as big as a page a page of its own', () => {
+  const items = [{ name: 'bg', width: 8192, height: 8192 }, { name: 'sky', width: 8190, height: 3000 }, { name: 'a', width: 300, height: 200 }, { name: 'b', width: 64, height: 64 }];
+  const pages = packPages(items);
+  assert.deepEqual(pages[0], { width: 8192, height: 8192, regions: [{ name: 'bg', x: 0, y: 0, width: 8192, height: 8192 }] });
+  assert.deepEqual(pages[1], { width: 8192, height: 4096, regions: [{ name: 'sky', x: 0, y: 0, width: 8190, height: 3000 }] });
+  assert.equal(pages.length, 3);
+  assert.deepEqual(pages[2].regions.map((r) => r.name), ['a', 'b']);
+});
+
+test('packPages names the image that is too big for any page', () => {
+  assert.throws(() => packPages([{ name: 'ok', width: 10, height: 10 }, { name: 'sky', width: 9000, height: 400 }]), /image 'sky' \(9000x400\) is bigger than an atlas page \(8192x8192 at most\)/);
 });
 
 test('sample is valid and roundtrips', () => {

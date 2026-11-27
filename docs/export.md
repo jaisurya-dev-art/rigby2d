@@ -14,8 +14,10 @@ file stays the source; export again whenever it changes.
 | *Export ▸ Sprite sheet…* | Animations rendered as frames: a packed sheet with its data, a Defold atlas with frames, or PNG frames. See [Sprite sheets](#sprite-sheets). |
 | *Export ▸ Scene for runtimes…* (scenes only) | A [scene](scenes.md#in-games-and-apps): `name.scene.json`, plus the stage and each character as skeleton JSON 4.3 with their own atlas |
 
-The images actually used are packed into one atlas page. Its filter follows the project's
-**Textures** setting (`Linear` or, for pixel art, `Nearest`).
+The images actually used are packed into one atlas page, up to 8192 × 8192 pixels. When they don't fit
+on one page, the export adds more: `name_2.png`, `name_3.png` and so on, all listed in `name.atlas`, and
+every runtime loads them. Only an image bigger than a page on its own stops the export. The pages'
+filter follows the project's **Textures** setting (`Linear` or, for pixel art, `Nearest`).
 
 ## Sprite sheets
 

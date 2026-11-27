@@ -9,7 +9,7 @@ import { atlasFilter, writeAtlas } from '../core/atlas.js';
 import { writeSkeletonBinary } from '../core/binary.js';
 import { writeSkeletonJson } from '../core/interop.js';
 import { usedImages } from '../editor/io.js';
-import { pack } from '../editor/pack.js';
+import { packPages } from '../editor/pack.js';
 import { zip } from '../editor/zip.js';
 import { decodePng, encodePng } from '../mcp/png.js';
 import { ToolError } from '../mcp/protocol.js';
@@ -80,10 +80,12 @@ export async function psdToWorkfile(input, output, { force = false } = {}) {
 
 /**
  * Exports skeleton JSON (`version` 3.8 / 4.2 / 4.3) or binary .skel (by the output extension) with
- * every image the skeleton uses packed into `<name>.atlas` and `<name>.png` next to it.
- * Returns { output, atlas, page, size, regions, missingImages, warnings }.
+ * every image the skeleton uses packed into `<name>.atlas` and `<name>.png` next to it (and
+ * `<name>_2.png`, ... when the images need more than one 8192px page).
+ * `pageSize` (the largest page, 8192 by default) is for tests.
+ * Returns { output, format, version, files, atlasSize, atlasPages, regions, missingImages, warnings }.
  */
-export async function exportWithAtlas(input, output, { version = '4.3', force = false } = {}) {
+export async function exportWithAtlas(input, output, { version = '4.3', force = false, pageSize = undefined } = {}) {
   const ext = path.extname(output).toLowerCase();
   if (ext !== '.json' && ext !== '.skel') throw new ToolError('The output must end in .json or .skel.');
   if (ext === '.skel' && version !== '4.3') throw new ToolError('Binary .skel files are written as format 4.3.');
@@ -107,24 +109,31 @@ export async function exportWithAtlas(input, output, { version = '4.3', force = 
   }
   const files = [];
   let size = null;
+  let pageCount = 0;
   if (items.length) {
     let packed;
     try {
-      packed = pack(items);
+      packed = packPages(items, pageSize);
     } catch (e) {
       throw new ToolError(`Packing the atlas failed: ${e.message}`);
     }
-    const { width, height, regions } = packed;
-    const sheet = new Uint8Array(width * height * 4);
-    for (const r of regions) {
-      const img = items.find((i) => i.name === r.name);
-      for (let y = 0; y < img.height; y++) sheet.set(img.data.subarray(y * img.width * 4, (y + 1) * img.width * 4), ((r.y + y) * width + r.x) * 4);
+    const pagePath = (i) => (i ? `${base}_${i + 1}.png` : pngPath);
+    await checkTargets(packed.slice(1).map((_, i) => pagePath(i + 1)), force);
+    const byName = new Map(items.map((i) => [i.name, i]));
+    const pages = [];
+    for (const [i, { width, height, regions }] of packed.entries()) {
+      const sheet = new Uint8Array(width * height * 4);
+      for (const r of regions) {
+        const img = byName.get(r.name);
+        for (let y = 0; y < img.height; y++) sheet.set(img.data.subarray(y * img.width * 4, (y + 1) * img.width * 4), ((r.y + y) * width + r.x) * 4);
+      }
+      await writeAtomic(pagePath(i), encodePng({ width, height, data: sheet }));
+      pages.push({ name: path.basename(pagePath(i)), width, height, filter: atlasFilter(p.doc.textureFilter), regions: regions.map((r) => ({ ...r, rotate: 0, index: -1 })) });
     }
-    const page = { name: path.basename(pngPath), width, height, filter: atlasFilter(p.doc.textureFilter), regions: regions.map((r) => ({ ...r, rotate: 0, index: -1 })) };
-    await writeAtomic(pngPath, encodePng({ width, height, data: sheet }));
-    await writeAtomic(atlasPath, writeAtlas([page]));
-    files.push(atlasPath, pngPath);
-    size = [width, height];
+    await writeAtomic(atlasPath, writeAtlas(pages));
+    files.push(atlasPath, ...packed.map((_, i) => pagePath(i)));
+    size = [packed[0].width, packed[0].height];
+    pageCount = packed.length;
   }
   const bytes = ext === '.skel' ? writeSkeletonBinary(written.json) : new TextEncoder().encode(JSON.stringify(written.json, null, 2));
   await writeAtomic(output, bytes);
@@ -135,6 +144,7 @@ export async function exportWithAtlas(input, output, { version = '4.3', force = 
     version: ext === '.skel' ? '4.3' : version,
     files: [output, ...files],
     atlasSize: size,
+    atlasPages: pageCount,
     regions: items.length,
     missingImages: missing,
     warnings: written.warnings,
