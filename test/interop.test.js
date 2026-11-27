@@ -310,3 +310,20 @@ a
   const again = parseAtlas(writeAtlas(pages)).pages;
   assert.deepEqual(again.map((p) => p.regions.map((r) => [r.name, r.x, r.y, r.width, r.height, r.rotate, r.index])), pages.map((p) => p.regions.map((r) => [r.name, r.x, r.y, r.width, r.height, r.rotate, r.index])));
 });
+
+test('attachment names starting with an underscore survive a JSON export', () => {
+  const json = {
+    skeleton: { [V]: '4.2.0' },
+    bones: [{ name: 'root' }],
+    slots: [{ name: 'head', bone: 'root', attachment: '_trans4x4' }],
+    skins: [{ name: 'default', attachments: { head: { _trans4x4: { x: 1, y: 2, width: 3, height: 3 } } } }],
+  };
+  const { skeleton } = readSkeletonJson(json, 'under');
+  for (const version of ['3.8', '4.2', '4.3']) {
+    const out = writeSkeletonJson(skeleton, { version }).json;
+    const skin = Array.isArray(out.skins) ? out.skins[0].attachments : out.skins.default;
+    assert.ok(skin.head._trans4x4, `${version}: the attachment is kept`);
+    assert.equal(out.slots[0].attachment, '_trans4x4');
+    assert.equal(out._strings, undefined, `${version}: binary-only keys are still stripped`);
+  }
+});
