@@ -25,13 +25,14 @@
     "ph-developer"
   ],
   "others": [],
+  "kofi": "https://ko-fi.com/rigby2d",
   "contributors": [
     {
       "login": "jaisurya-dev-art",
       "name": "jaisurya-dev-art",
       "url": "https://github.com/jaisurya-dev-art",
       "avatar": "https://avatars.githubusercontent.com/u/72857308?v=4&s=96",
-      "commits": 418
+      "commits": 432
     },
     {
       "login": "maruccimauro",
@@ -54,6 +55,5 @@
       "avatar": "https://avatars.githubusercontent.com/u/154829842?v=4&s=96",
       "commits": 2
     }
-  ],
-  "kofi": "https://ko-fi.com/rigby2d"
+  ]
 }
