@@ -1,0 +1,15 @@
+{
+  "demos": [
+    {
+      "id": "jasmine",
+      "title": "Jasmine J. Sullivan",
+      "author": "TIPUFOY",
+      "description": "Art and rig by TIPUFOY: a hand-drawn character with weighted meshes on the torso and fingers, IK on both hands and feet, and a six-second idle.",
+      "tags": ["Meshes", "Weights", "IK"],
+      "license": "CC-BY-4.0",
+      "thumbnail": "community/jasmine.jpg",
+      "file": "community/jasmine.rigby",
+      "date": "2026-11-21"
+    }
+  ]
+}

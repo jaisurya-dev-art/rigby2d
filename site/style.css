@@ -967,6 +967,49 @@ h3 {
   gap: 10px;
 }
 
+/* Community demos (site/communitydemos.js): the same cards, with the author and the license. */
+.community-demos {
+  padding-top: 24px;
+  padding-bottom: 0;
+}
+.community-demos .demo-list {
+  margin-top: 24px;
+}
+.community-demo .demo-body h3 {
+  margin: 0 0 4px;
+  font-size: 1.4rem;
+}
+.demo-body > .community-by {
+  margin-bottom: 10px;
+  font-size: 0.9rem;
+}
+.community-by a,
+.community-demo .demo-files a {
+  color: var(--ice);
+}
+.community-share {
+  margin-top: 24px;
+  padding: 22px 24px;
+  border: 1px dashed var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.community-share p {
+  margin: 0 0 14px;
+  color: var(--muted);
+}
+.community-share p b {
+  color: var(--text);
+}
+.community-rules {
+  margin: 0 0 18px;
+  padding-left: 20px;
+  color: var(--muted);
+}
+.community-rules li {
+  margin: 4px 0;
+}
+
 .brand-section {
   padding-top: 40px;
   padding-bottom: 24px;

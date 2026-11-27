@@ -13,6 +13,7 @@ import { defineConfig } from 'vite';
 import { DOCS, imageFiles, pageHtml, renderAll, renderMarkdown, searchIndex } from './docs/build.js';
 import { siteFooter, siteHeader } from './chrome.js';
 import { creatorsSection } from './creators.js';
+import { checkCommunityDemos, communityDemosSection, publishedPath, zipEntries, zipName } from './communitydemos.js';
 import { icon, mark } from './icons.js';
 import { feedXml, indexPage, newsJson, postPage, readPosts } from './blog/devlog.js';
 
@@ -355,6 +356,24 @@ function brandFiles() {
   };
 }
 
+/** site/community-demos.json, checked: a broken entry stops the build instead of going live. */
+function communityDemos() {
+  const data = JSON.parse(fs.readFileSync(path.join(here, 'community-demos.json'), 'utf8'));
+  const problems = checkCommunityDemos(data, (f) => fs.existsSync(path.join(here, 'demos', f)));
+  if (problems.length) throw new Error(`site/community-demos.json:\n  ${problems.join('\n  ')}`);
+  return data;
+}
+
+/** [demo, zip bytes] for each hosted community demo: its project and LICENSE.md (made once per build). */
+let communityZipCache = null;
+async function communityZips() {
+  if (communityZipCache) return communityZipCache;
+  const { zip } = await import(pathToFileURL(path.join(repo, 'src/editor/zip.js')).href);
+  const read = (f) => new Uint8Array(fs.readFileSync(path.join(here, 'demos', f)));
+  communityZipCache = communityDemos().demos.filter((d) => d.file).map((d) => [d, zip(zipEntries(d, read))]);
+  return communityZipCache;
+}
+
 function demoFiles() {
   return {
     name: 'rigby-site-demos',
@@ -362,7 +381,8 @@ function demoFiles() {
     async transformIndexHtml(html, ctx) {
       if (!ctx.filename.replace(/\\/g, '/').endsWith('/demos/index.html')) return html;
       const license = fs.readFileSync(path.join(repo, DEMO_LICENSE), 'utf8').replace(/^# .*\n/, '');
-      let out = html.replace('<!--demo-license-->', renderMarkdown(license).html);
+      const sizes = Object.fromEntries((await communityZips()).map(([d, bytes]) => [d.id, bytes.length]));
+      let out = html.replace('<!--demo-license-->', renderMarkdown(license).html).replace('<!--community-demos-->', () => communityDemosSection(communityDemos(), sizes));
       for (const id of Object.keys(DEMOS)) out = out.replace(`{{size:${id}}}`, `${((await zipOf(id)).length / 1048576).toFixed(1)} MB`);
       return out;
     },
@@ -373,6 +393,9 @@ function demoFiles() {
         this.emitFile({ type: 'asset', fileName: `demos/rigby2d-demo-${id}.zip`, source: await zipOf(id) });
       }
       this.emitFile({ type: 'asset', fileName: 'demos/DEMO-LICENSE.md', source: fs.readFileSync(path.join(repo, DEMO_LICENSE)) });
+      // Community demos: their thumbnails, and the projects their authors let us host, zipped with their license.
+      for (const d of communityDemos().demos) this.emitFile({ type: 'asset', fileName: publishedPath(d.thumbnail), source: fs.readFileSync(path.join(here, 'demos', d.thumbnail)) });
+      for (const [d, bytes] of await communityZips()) this.emitFile({ type: 'asset', fileName: publishedPath(zipName(d)), source: bytes });
     },
   };
 }
