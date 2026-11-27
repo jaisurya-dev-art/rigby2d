@@ -30,6 +30,17 @@ function supportersFile() {
   };
 }
 
+/** The funding manifest (funding.json at the repository root, https://fundingjson.org) at
+ *  https://rigby2d.com/funding.json, where FLOSS/fund and the funding.json directory read it. */
+function fundingManifest() {
+  return {
+    name: 'rigby-site-funding',
+    generateBundle() {
+      this.emitFile({ type: 'asset', fileName: 'funding.json', source: fs.readFileSync(path.join(repo, 'funding.json')) });
+    },
+  };
+}
+
 /** The link-preview image (og:image) needs a fixed URL, so the editor screenshot is copied as og.jpg. */
 function socialImage() {
   return {
@@ -424,7 +435,7 @@ export default defineConfig({
   root: here,
   base: process.env.SITE_BASE ?? '/',
   clearScreen: false,
-  plugins: [siteChrome(), comparePages(), socialImage(), supportersFile(), documentation(), demoFiles(), brandFiles(), starterFiles(), addonFiles(), devlogFiles()],
+  plugins: [siteChrome(), comparePages(), socialImage(), supportersFile(), fundingManifest(), documentation(), demoFiles(), brandFiles(), starterFiles(), addonFiles(), devlogFiles()],
   // The pages import the runtime, NILA and the docs from outside this folder.
   server: { port: 1430, strictPort: true, fs: { allow: [repo] } },
   build: {

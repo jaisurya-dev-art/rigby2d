@@ -1,0 +1,113 @@
+{
+  "$schema": "https://fundingjson.org/schema/v1.1.0.json",
+  "version": "v1.1.0",
+  "entity": {
+    "type": "individual",
+    "role": "owner",
+    "name": "Jai",
+    "email": "hello@rigby2d.com",
+    "description": "I'm Jai, an independent developer in India. I started Rigby2D in 2026 and build it around a day job: the editor, the engine runtimes, the documentation, the tutorials and the community. Funding buys back the hours Rigby2D gets, until it is my full-time job.",
+    "webpageUrl": {
+      "url": "https://rigby2d.com/fund/"
+    }
+  },
+  "projects": [
+    {
+      "guid": "rigby2d",
+      "name": "Rigby2D",
+      "description": "A free, open-source 2D skeletal animation editor for games and film, with runtimes for Godot, Unity, Defold, Phaser, PixiJS, Cocos Creator, Ren'Py and SDL3, and a Rust core. It reads and writes the skeleton JSON and binary formats that game studios already use, so teams can move their existing rigs to an open tool without rebuilding them. Every runtime is tested against the editor frame by frame. Animators get bones, meshes, IK, physics, skins, layered playback with crossfades and film rendering, without a per-seat license. Desktop apps for Windows, macOS and Linux, a browser editor, a command line and an MCP server for AI agents.",
+      "webpageUrl": {
+        "url": "https://rigby2d.com/"
+      },
+      "repositoryUrl": {
+        "url": "https://github.com/jaisurya-dev-art/rigby2d",
+        "wellKnown": "https://github.com/jaisurya-dev-art/rigby2d/blob/develop/.well-known/funding-manifest-urls"
+      },
+      "licenses": ["spdx:MIT", "spdx:Apache-2.0"],
+      "tags": ["animation", "2d", "game-development", "graphics", "editor", "desktop-app", "javascript", "rust", "cpp", "csharp"]
+    }
+  ],
+  "funding": {
+    "channels": [
+      {
+        "guid": "bank",
+        "type": "bank",
+        "description": "Bank transfer to an account in India. Details on request."
+      },
+      {
+        "guid": "github-sponsors",
+        "type": "payment-provider",
+        "address": "https://github.com/sponsors/jaisurya-dev-art",
+        "description": "GitHub Sponsors, monthly or one-time."
+      },
+      {
+        "guid": "ko-fi",
+        "type": "payment-provider",
+        "address": "https://ko-fi.com/rigby2d",
+        "description": "Ko-fi, by card or PayPal, without a GitHub account."
+      }
+    ],
+    "plans": [
+      {
+        "guid": "full-time-year",
+        "status": "active",
+        "name": "A year of full-time development",
+        "description": "Rigby2D becomes my full-time job for a year: releases every two weeks, the 0.7 state machine and video-to-skeleton motion capture in every runtime, console-safe runtimes, docs and tutorials kept current, and issues answered within days.",
+        "amount": 25000,
+        "currency": "USD",
+        "frequency": "yearly",
+        "channels": ["bank"]
+      },
+      {
+        "guid": "small-team",
+        "status": "active",
+        "name": "A small team",
+        "description": "A second person for community, docs and development.",
+        "amount": 2500,
+        "currency": "USD",
+        "frequency": "monthly",
+        "channels": ["bank", "github-sponsors"]
+      },
+      {
+        "guid": "full-time",
+        "status": "active",
+        "name": "Full time",
+        "description": "The day job ends. Rigby2D becomes the job.",
+        "amount": 1000,
+        "currency": "USD",
+        "frequency": "monthly",
+        "channels": ["github-sponsors", "ko-fi", "bank"]
+      },
+      {
+        "guid": "half-time",
+        "status": "active",
+        "name": "Half time",
+        "description": "Releases every two weeks, issues answered within two days, docs and tutorials kept current.",
+        "amount": 500,
+        "currency": "USD",
+        "frequency": "monthly",
+        "channels": ["github-sponsors", "ko-fi"]
+      },
+      {
+        "guid": "rigby2d-fridays",
+        "status": "active",
+        "name": "Rigby2D Fridays",
+        "description": "One full day every week on Rigby2D: bug reports, issues and requests.",
+        "amount": 250,
+        "currency": "USD",
+        "frequency": "monthly",
+        "channels": ["github-sponsors", "ko-fi"]
+      },
+      {
+        "guid": "any-amount",
+        "status": "active",
+        "name": "Any amount",
+        "description": "One-time or monthly support at any level.",
+        "amount": 0,
+        "currency": "USD",
+        "frequency": "one-time",
+        "channels": ["github-sponsors", "ko-fi"]
+      }
+    ]
+  }
+}
