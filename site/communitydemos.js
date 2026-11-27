@@ -91,7 +91,7 @@ function card(d, sizes) {
   const [license, licenseUrl] = LICENSES[d.license];
   const by = d.author_url ? `<a href="${esc(d.author_url)}" rel="noopener">${esc(d.author)}</a>` : esc(d.author);
   const download = d.file ? `./${esc(zipName(d))}` : esc(d.download);
-  const zipped = d.file ? ` Zip: <code>${esc(d.file.split('/').pop())}</code> and its license${sizes?.[d.id] ? ` · ${(sizes[d.id] / 1048576).toFixed(1)} MB` : ''}.` : '';
+  const zipped = d.file ? `<br />Zip: <code>${esc(d.file.split('/').pop())}</code> and its license${sizes?.[d.id] ? ` · ${(sizes[d.id] / 1048576).toFixed(1)} MB` : ''}` : '';
   return `<article class="demo community-demo" id="community-${esc(d.id)}">
             <img class="demo-thumb" src="./${esc(d.thumbnail)}" alt="${esc(d.title)}, by ${esc(d.author)}" width="480" height="360" loading="lazy" />
             <div class="demo-body">
@@ -99,7 +99,7 @@ function card(d, sizes) {
               <p class="community-by">By ${by}</p>
               <p>${esc(d.description)}</p>
               ${d.tags?.length ? `<ul class="tags">${d.tags.map((t) => `<li>${esc(t)}</li>`).join('')}</ul>` : ''}
-              <p class="demo-files"><a href="${esc(licenseUrl)}" rel="noopener license">${esc(license)}</a>: credit ${esc(d.author)} when you use it.${zipped}</p>
+              <p class="demo-files community-license"><a href="${esc(licenseUrl)}" rel="noopener license">${esc(license)}</a>: credit ${esc(d.author)} when you use it.${zipped}</p>
               <div class="demo-actions">
                 <a class="btn primary" href="${download}" ${d.file ? 'download' : 'rel="noopener"'} data-goatcounter-click="site-community-demo-${esc(d.id)}">Download</a>
                 ${d.source ? `<a class="btn" href="${esc(d.source)}" rel="noopener">See the post</a>` : ''}

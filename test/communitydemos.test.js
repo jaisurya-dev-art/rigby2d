@@ -33,7 +33,7 @@ test('community demos: an invitation while there are none, cards with credit and
   assert.match(html, /<a href="https:\/\/creativecommons\.org\/licenses\/by\/4\.0\/" rel="noopener license">CC BY 4\.0<\/a>: credit Ada Lin/);
   // A hosted project downloads as a zip with its license; a link opens the author's page.
   assert.match(html, /href="\.\/community\/rigby2d-community-forest-spirit\.zip" download/);
-  assert.match(html, /Zip: <code>forest-spirit\.rigby<\/code> and its license · 3\.0 MB\./);
+  assert.match(html, /credit Ada Lin when you use it\.<br \/>Zip: <code>forest-spirit\.rigby<\/code> and its license · 3\.0 MB<\/p>/);
   assert.match(html, /href="https:\/\/ada\.itch\.io\/spirit" rel="noopener"/);
   assert.equal((html.match(/See the post/g) ?? []).length, 1);
   assert.match(html, /Submit a demo/);

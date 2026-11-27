@@ -987,6 +987,13 @@ h3 {
 .community-demo .demo-files a {
   color: var(--ice);
 }
+.community-demo .tags {
+  margin-bottom: 18px;
+}
+.demo-body > .demo-files.community-license {
+  margin: 0 0 20px;
+  line-height: 1.7;
+}
 .community-share {
   margin-top: 24px;
   padding: 22px 24px;
