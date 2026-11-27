@@ -136,4 +136,5 @@ for the same look in a game, render it into a target at the art's size and scale
 
 The **Images** section of the tree and the Project panel list every image with its size. Images are
 stored inside the `.rigby` work file, so a project is one self-contained file. Exports pack the
-images that are actually used into one atlas page; see [Export](export.md).
+images that are actually used into an atlas (more pages when they don't fit on one); see
+[Export](export.md).

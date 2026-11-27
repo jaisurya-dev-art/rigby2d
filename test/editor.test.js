@@ -6,19 +6,49 @@ import { LINEAR } from '../src/core/curve.js';
 import { keySlotTint } from '../src/core/keying.js';
 import { makeSlot, Skeleton } from '../src/core/model.js';
 import { Pose } from '../src/core/pose.js';
-import { pack } from '../src/editor/pack.js';
+import { MAX_PAGE, pack, pagePath } from '../src/editor/pack.js';
 import { robot } from '../src/editor/sample.js';
 
-test('pack places without overlap', () => {
-  const items = Array.from({ length: 19 }, (_, k) => ({ name: `i${k}`, width: 10 * (k + 1), height: 7 * (19 - k) }));
-  const { width, height, regions } = pack(items);
+function assertPageFits({ width, height, regions }) {
   regions.forEach((a, i) => {
-    assert.ok(a.x + a.width <= width && a.y + a.height <= height);
+    assert.ok(a.x >= 0 && a.y >= 0 && a.x + a.width <= width && a.y + a.height <= height, `${a.name} is outside its page`);
     for (const b of regions.slice(i + 1)) {
       const overlap = a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height;
       assert.ok(!overlap, `${a.name} overlaps ${b.name}`);
     }
   });
+}
+
+test('pack places without overlap', () => {
+  const items = Array.from({ length: 19 }, (_, k) => ({ name: `i${k}`, width: 10 * (k + 1), height: 7 * (19 - k) }));
+  const { pages } = pack(items);
+  assert.equal(pages.length, 1);
+  assertPageFits(pages[0]);
+  assert.equal(pages[0].regions.length, 19);
+});
+
+test('pack spills onto more 8192px pages when one is not enough', () => {
+  // 40 images of 2000x2000 need about 160M pixels: more than one 8192x8192 page (67M) holds.
+  const items = Array.from({ length: 40 }, (_, k) => ({ name: `big${k}`, width: 2000 - k, height: 2000 - (k % 7) }));
+  items.push(...Array.from({ length: 50 }, (_, k) => ({ name: `small${k}`, width: 30 + k, height: 20 + k })));
+  const { pages } = pack(items);
+  assert.ok(pages.length > 1);
+  for (const page of pages) {
+    assert.ok(page.width <= MAX_PAGE && page.height <= MAX_PAGE);
+    assert.equal(page.width & (page.width - 1), 0, 'power-of-two width');
+    assert.equal(page.height & (page.height - 1), 0, 'power-of-two height');
+    assertPageFits(page);
+  }
+  const names = pages.flatMap((p) => p.regions.map((r) => r.name)).sort();
+  assert.deepEqual(names, items.map((i) => i.name).sort(), 'every image is placed exactly once');
+});
+
+test('pack refuses an image larger than a page', () => {
+  assert.throws(() => pack([{ name: 'huge', width: 9000, height: 10 }]), /huge/);
+});
+
+test('pagePath names pages name.png, name2.png, name3.png', () => {
+  assert.deepEqual([0, 1, 2].map((i) => pagePath('out/hero', i)), ['out/hero.png', 'out/hero2.png', 'out/hero3.png']);
 });
 
 test('sample is valid and roundtrips', () => {

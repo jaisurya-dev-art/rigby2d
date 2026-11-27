@@ -9,7 +9,7 @@ import { atlasFilter, writeAtlas } from '../core/atlas.js';
 import { writeSkeletonBinary } from '../core/binary.js';
 import { writeSkeletonJson } from '../core/interop.js';
 import { usedImages } from '../editor/io.js';
-import { pack } from '../editor/pack.js';
+import { pack, pagePath } from '../editor/pack.js';
 import { zip } from '../editor/zip.js';
 import { decodePng, encodePng } from '../mcp/png.js';
 import { ToolError } from '../mcp/protocol.js';
@@ -107,6 +107,7 @@ export async function exportWithAtlas(input, output, { version = '4.3', force = 
   }
   const files = [];
   let size = null;
+  let pageCount = 0;
   if (items.length) {
     let packed;
     try {
@@ -114,17 +115,26 @@ export async function exportWithAtlas(input, output, { version = '4.3', force = 
     } catch (e) {
       throw new ToolError(`Packing the atlas failed: ${e.message}`);
     }
-    const { width, height, regions } = packed;
-    const sheet = new Uint8Array(width * height * 4);
-    for (const r of regions) {
-      const img = items.find((i) => i.name === r.name);
-      for (let y = 0; y < img.height; y++) sheet.set(img.data.subarray(y * img.width * 4, (y + 1) * img.width * 4), ((r.y + y) * width + r.x) * 4);
+    // Pages after the first (name2.png, name3.png, ...) are only known once packed.
+    await checkTargets(packed.pages.slice(1).map((_, i) => pagePath(base, i + 1)), force);
+    const byName = new Map(items.map((it) => [it.name, it]));
+    const filter = atlasFilter(p.doc.textureFilter);
+    const pages = [];
+    files.push(atlasPath);
+    for (const [i, { width, height, regions }] of packed.pages.entries()) {
+      const sheet = new Uint8Array(width * height * 4);
+      for (const r of regions) {
+        const img = byName.get(r.name);
+        for (let y = 0; y < img.height; y++) sheet.set(img.data.subarray(y * img.width * 4, (y + 1) * img.width * 4), ((r.y + y) * width + r.x) * 4);
+      }
+      const file = pagePath(base, i);
+      await writeAtomic(file, encodePng({ width, height, data: sheet }));
+      pages.push({ name: path.basename(file), width, height, filter, regions: regions.map((r) => ({ ...r, rotate: 0, index: -1 })) });
+      files.push(file);
     }
-    const page = { name: path.basename(pngPath), width, height, filter: atlasFilter(p.doc.textureFilter), regions: regions.map((r) => ({ ...r, rotate: 0, index: -1 })) };
-    await writeAtomic(pngPath, encodePng({ width, height, data: sheet }));
-    await writeAtomic(atlasPath, writeAtlas([page]));
-    files.push(atlasPath, pngPath);
-    size = [width, height];
+    await writeAtomic(atlasPath, writeAtlas(pages));
+    size = [packed.pages[0].width, packed.pages[0].height];
+    pageCount = pages.length;
   }
   const bytes = ext === '.skel' ? writeSkeletonBinary(written.json) : new TextEncoder().encode(JSON.stringify(written.json, null, 2));
   await writeAtomic(output, bytes);
@@ -135,6 +145,7 @@ export async function exportWithAtlas(input, output, { version = '4.3', force = 
     version: ext === '.skel' ? '4.3' : version,
     files: [output, ...files],
     atlasSize: size,
+    atlasPages: pageCount,
     regions: items.length,
     missingImages: missing,
     warnings: written.warnings,

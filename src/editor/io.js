@@ -12,7 +12,7 @@ import { writeSceneManifest } from '../core/scene.js';
 import { Pose } from '../core/pose.js';
 import { sequenceFrameName } from '../core/sequence.js';
 import { Skeleton, makeAttachment, makeSlot, uniqueName } from '../core/model.js';
-import { pack } from './pack.js';
+import { pack, pagePath } from './pack.js';
 import { unzip, zip } from './zip.js';
 import { dragonBonesToSkeleton, isDragonBones, isDragonBonesAtlas } from './dragonbones.js';
 import { alphaBounds, backToFront, fileName, isLayerSet, layerCenter, layerName, pixelArtScale } from './pngset.js';
@@ -359,20 +359,26 @@ async function openSkeletonJson(path, fs, obj, images) {
   return { doc, warnings };
 }
 
-/** Packs the images used by `doc` into one sheet. Returns { sheet, width, height, regions }. */
-function packSheet(doc, images) {
-  const items = usedImages(doc).map((name) => {
-    const canvas = images.get(name);
-    if (!canvas) throw new Error(`image '${name}' is missing`);
-    return { name, width: canvas.width, height: canvas.height, canvas };
+/**
+ * Packs the images used by `doc` into atlas pages (several when they don't fit on one).
+ * Returns [{ sheet, width, height, regions }].
+ */
+function packSheets(doc, images) {
+  const items = new Map(
+    usedImages(doc).map((name) => {
+      const canvas = images.get(name);
+      if (!canvas) throw new Error(`image '${name}' is missing`);
+      return [name, { name, width: canvas.width, height: canvas.height, canvas }];
+    }),
+  );
+  return pack([...items.values()]).pages.map(({ width, height, regions }) => {
+    const sheet = document.createElement('canvas');
+    sheet.width = width;
+    sheet.height = height;
+    const ctx = sheet.getContext('2d');
+    for (const r of regions) ctx.drawImage(items.get(r.name).canvas, r.x, r.y);
+    return { sheet, width, height, regions };
   });
-  const { width, height, regions } = pack(items);
-  const sheet = document.createElement('canvas');
-  sheet.width = width;
-  sheet.height = height;
-  const ctx = sheet.getContext('2d');
-  for (const r of regions) ctx.drawImage(items.find((i) => i.name === r.name).canvas, r.x, r.y);
-  return { sheet, width, height, regions };
 }
 
 /**
@@ -427,14 +433,22 @@ export async function exportScene(path, fs, doc, images, actorDocs) {
   return { files, warnings };
 }
 
-/** Packs the used images into `<name>.png` and writes `<name>.atlas`. Returns the atlas path. */
+/**
+ * Packs the used images into `<name>.png` (then `<name>2.png`, `<name>3.png`, ... when they need
+ * more than one page) and writes `<name>.atlas` over every page. Returns the atlas path.
+ */
 async function writePackedAtlas(path, fs, doc, images) {
-  const { sheet, width, height, regions } = packSheet(doc, images);
-  const pngPath = withExtension(path, 'png');
+  const sheets = packSheets(doc, images);
   const atlasPath = withExtension(path, 'atlas');
-  const page = { name: basename(pngPath), width, height, filter: atlasFilter(doc.textureFilter), regions: regions.map((r) => ({ ...r, rotate: 0, index: -1 })) };
-  await fs.writeFile(pngPath, await encodePng(sheet));
-  await fs.writeText(atlasPath, writeAtlas([page]));
+  const base = atlasPath.slice(0, -'.atlas'.length);
+  const filter = atlasFilter(doc.textureFilter);
+  const pages = [];
+  for (const [i, { sheet, width, height, regions }] of sheets.entries()) {
+    const pngPath = pagePath(base, i);
+    await fs.writeFile(pngPath, await encodePng(sheet));
+    pages.push({ name: basename(pngPath), width, height, filter, regions: regions.map((r) => ({ ...r, rotate: 0, index: -1 })) });
+  }
+  await fs.writeText(atlasPath, writeAtlas(pages));
   return atlasPath;
 }
 
