@@ -9,6 +9,7 @@ import zh from './i18n/zh-CN.js';
 import ko from './i18n/ko.js';
 import es from './i18n/es.js';
 import pt from './i18n/pt-BR.js';
+import ru from './i18n/ru.js';
 
 /** [code, name in its own language]. */
 export const LANGUAGES = [
@@ -18,9 +19,10 @@ export const LANGUAGES = [
   ['ko', '한국어'],
   ['es', 'Español'],
   ['pt-BR', 'Português (Brasil)'],
+  ['ru', 'Русский'],
 ];
 
-export const TABLES = { ja, 'zh-CN': zh, ko, es, 'pt-BR': pt };
+export const TABLES = { ja, 'zh-CN': zh, ko, es, 'pt-BR': pt, ru };
 
 let current = 'en';
 let table = null;
